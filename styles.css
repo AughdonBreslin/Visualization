@@ -8,17 +8,14 @@
     body {
         background: #131313;
         color: #e0e0e0;
-        min-height: 100vh;
+        height: 100dvh;
         padding: 20px;
-        overscroll-behavior: contain;
     }
 
     .container {
         max-width: 1200px;
         margin: 0 auto;
         height: -webkit-fill-available;
-        min-height: 100vh;
-        overscroll-behavior: contain;
     }
 
     header {
