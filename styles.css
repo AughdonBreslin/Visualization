@@ -28,6 +28,18 @@
         margin-bottom: 6px
     }
 
+    .footer {
+        text-align: right;
+        padding: 20px 0;
+        margin-top: 40px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .footer-tag {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
     .subtitle {
         opacity: 0.9
     }
