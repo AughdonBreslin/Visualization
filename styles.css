@@ -6,8 +6,8 @@
     }
 
     body {
-        background: linear-gradient(135deg, #131313, #3f3a3a, #70706f);
-        color: #fff;
+        background: #131313;
+        color: #e0e0e0;
         min-height: 100vh;
         padding: 20px
     }
