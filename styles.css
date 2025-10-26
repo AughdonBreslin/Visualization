@@ -1,0 +1,485 @@
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+    }
+
+    body {
+        background: linear-gradient(135deg, #131313, #3f3a3a, #70706f);
+        color: #fff;
+        min-height: 100vh;
+        padding: 20px
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto
+    }
+
+    header {
+        text-align: center;
+        padding: 30px 0;
+        margin-bottom: 20px
+    }
+
+    h1 {
+        font-size: 2.4rem;
+        margin-bottom: 6px
+    }
+
+    .subtitle {
+        opacity: 0.9
+    }
+
+    .controls {
+        background: rgba(255, 255, 255, 0.06);
+        padding: 18px;
+        border-radius: 12px;
+        margin-bottom: 18px
+    }
+
+    .row {
+        display: flex;
+        gap: 12px;
+        align-items: center
+    }
+
+    .global-range {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+        flex-wrap: wrap; /* allow items to wrap when space is tight */
+    }
+
+    /* Make the input rows flexible so X Min / X Max can shrink but wrap earlier */
+    .global-range .row {
+        flex: 0 0 auto;
+        min-width: 110px; /* don't collapse to nothing */
+        box-sizing: border-box;
+    }
+
+    /* Target the action group (the third child). Keep it from shrinking so it won't be overlapped */
+    .global-range > div:last-child {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .global-range > div:last-child button {
+        flex: 0 0 auto;
+        min-width: 56px;
+        max-width: 220px;
+        white-space: nowrap;
+        padding: 6px 8px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* On very small screens stack the controls vertically to avoid overlap */
+    @media (max-width: 420px) {
+        .global-range {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+        .global-range .row { min-width: 0; }
+        .global-range > div:last-child { margin-left: 0; justify-content: space-between; }
+        .global-range > div:last-child button { flex: 1 1 auto; }
+    }
+
+    label {
+        font-weight: 600;
+        font-size: 0.95rem
+    }
+
+    input[type=number],
+    select {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        padding: 8px;
+        border-radius: 8px;
+        transition: background .3s, border-color .3s;
+        width: 100%;
+    }
+
+    input[type=number]:focus,
+    select:focus {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.4);
+        outline: none
+    }
+
+    select {
+        appearance: none;
+        background-image: linear-gradient(45deg, transparent 50%, #fff 50%), linear-gradient(135deg, #fff 50%, transparent 50%);
+        background-position: calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px);
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+        padding-right: 30px;
+        cursor: pointer
+    }
+
+    option {
+        background: #333;
+        color: #fff
+    }
+
+    button {
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer
+    }
+
+    button:hover {
+        background: rgba(255, 255, 255, 0.18)
+    }
+
+    .forms {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 12px;
+        border-radius: 10px;
+        display: flex;
+        gap: 10px;
+        align-items: end;
+        flex-wrap: wrap;
+    }
+
+    .form-swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+        margin-right: 8px;
+        align-self: center;
+        flex: 0 0 auto;
+        box-shadow: 0 0 0 1px rgba(0,0,0,0.3) inset;
+    }
+
+    /* Make native color inputs display as a full-color square */
+    input[type="color"].form-swatch {
+        -webkit-appearance: none;
+        appearance: none;
+        padding: 0;
+        border: none;
+        width: 22px;
+        height: 22px;
+        cursor: pointer;
+        background: transparent; /* will be set inline from JS to the picked color */
+    }
+
+    /* Remove inner default swatch in WebKit-based browsers */
+    input[type="color"].form-swatch::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+    input[type="color"].form-swatch::-webkit-color-swatch {
+        border: none;
+        border-radius: 3px;
+        background: transparent;
+    }
+
+    .form-col {
+        gap: 6px;
+    }
+
+    .form-col.params {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .param-item {
+        flex: 1;
+        min-width: 120px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .add-component-button {
+        justify-content: flex-end;
+    }
+
+    .graphs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 18px
+    }
+
+    .graph-card {
+        background: rgba(255, 255, 255, 0.06);
+        padding: 14px;
+        border-radius: 12px;
+        position: relative;
+        height: 420px
+    }
+
+    .graph-title {
+        text-align: center;
+        margin-bottom: 8px;
+        font-weight: 700
+    }
+
+    .legend {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 8px
+    }
+
+    .legend-item {
+        display: flex;
+        gap: 6px;
+        align-items: center
+    }
+
+    .legend-swatch {
+        width: 16px;
+        height: 10px;
+        border-radius: 2px
+    }
+
+    .tooltip {
+        position: absolute;
+        padding: 8px;
+        background: rgba(0, 0, 0, 0.75);
+        color: #fff;
+        border-radius: 6px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity .12s;
+        font-size: 13px
+    }
+
+    .distributions-info {
+        background: rgba(255, 255, 255, 0.06);
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 20px
+    }
+
+    .distributions-info h2 {
+        margin-bottom: 16px;
+        font-size: 1.8rem
+    }
+
+    #mixtureSection {
+        background: rgba(255, 255, 255, 0.08);
+        padding: 16px;
+        border-radius: 10px;
+        margin-top: 12px;
+        /* hide by default; JS will toggle .visible */
+        display: none;
+    }
+
+    /* Show mixture UI when JS toggles the class */
+    #mixtureSection.visible {
+        display: block;
+    }
+
+    #mixtureSection h3 {
+        margin-bottom: 12px;
+        font-size: 1.2rem;
+    }
+
+    .mixture-weights {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .weight-input {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 8px;
+        border-radius: 8px;
+        /* border color supplied by JS via --swatch-color */
+        border-left: 3px solid var(--swatch-color, transparent);
+    }
+
+    .mixture-component-select {
+        display: flex;
+        margin-bottom: 16px;
+    }
+
+    .mixture-component-select > div {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .mixture-components {
+        display: grid;
+        gap: 12px;
+        width: 100%;
+    }
+
+    /* Default layout for screens <= 900px */
+    .mixture-components {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .mixture-component {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 12px;
+        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    /* Layout for body inside each mixture component: left column for controls, right for params */
+    .mixture-component-body {
+        display: grid;
+        grid-template-columns: 100px 1fr;
+        gap: 12px;
+        margin-top: 8px;
+        width: 100%;
+    }
+
+    .mixture-component-left {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .mixture-component-right {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    @media (max-width: 900px) {
+        .mixture-component-body {
+            grid-template-columns: 80px 1fr;
+            gap: 8px;
+        }
+    }
+
+    .mixture-component-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .mixture-input {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .mixture-input input {
+        width: 80px;
+    }
+
+    .mixture-input label {
+        font-size: 0.9em;
+    }
+
+    .mixture-empty-message {
+        padding: 16px;
+        opacity: 0.7;
+    }
+
+    .mixture-remove-btn {
+        padding: 6px 8px;
+        font-size: 0.9rem;
+        border-radius: 6px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: #fff;
+        cursor: pointer;
+        align-self: flex-end;
+        width: 100%; /* fills the left column width (keeps it compact) */
+    }
+
+    .distribution-detail {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 16px
+    }
+
+    .distribution-detail h3 {
+        color: #fff;
+        margin-bottom: 12px;
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 8px
+    }
+
+    .distribution-detail .color-indicator {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px
+    }
+
+    .distribution-detail .formula {
+        font-family: 'Computer Modern', serif;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 12px;
+        border-radius: 6px;
+        margin: 8px 0;
+        overflow-x: auto
+    }
+
+    .distribution-detail .properties {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin: 12px 0
+    }
+
+    .distribution-detail .property {
+        background: rgba(0, 0, 0, 0.15);
+        padding: 8px 12px;
+        border-radius: 6px
+    }
+
+    .distribution-detail .use-cases {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1)
+    }
+
+    .distribution-detail .use-case {
+        margin-bottom: 8px;
+        padding-left: 16px;
+        position: relative
+    }
+
+    .distribution-detail .use-case:before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: rgba(255, 255, 255, 0.5)
+    }
+
+    @media(max-width:900px) {
+        .graphs {
+            grid-template-columns: 1fr
+        }
+
+        .form-card {
+            flex-direction: column;
+            align-items: stretch
+        }
+    }
