@@ -17,7 +17,7 @@
         margin: 0 auto;
         height: -webkit-fill-available;
         min-height: 100vh;
-        overscroll-behavior: auto;
+        overscroll-behavior: none;
     }
 
     header {
