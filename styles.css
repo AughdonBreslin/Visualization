@@ -10,14 +10,11 @@
         color: #e0e0e0;
         min-height: 100vh;
         padding: 20px;
-        overflow: hidden;
     }
 
     .container {
         max-width: 1200px;
         margin: 0 auto;
-        overflow: scroll;
-        position: fixed;
         height: -webkit-fill-available;
         min-height: 100vh;
     }
