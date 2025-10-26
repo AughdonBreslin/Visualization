@@ -8,14 +8,14 @@
     body {
         background: #131313;
         color: #e0e0e0;
-        height: 100dvh;
+        height: 100vh;
+        max-height: 100dvh;
         padding: 20px;
     }
 
     .container {
         max-width: 1200px;
         margin: 0 auto;
-        height: -webkit-fill-available;
     }
 
     header {
