@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Guard: only run on the distributions visualizer page
+    if (!document.querySelector('#pdf') || !document.querySelector('#forms')) return;
     const colors = d3.schemeTableau10.concat(d3.schemeSet3).flat();
     const distributionInfo = {
         normal: { title: 'Normal', params: ['Mean (μ)', 'Std (σ)'], defaults: [0, 1] },

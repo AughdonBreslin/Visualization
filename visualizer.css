@@ -1,0 +1,61 @@
+/* visualizer.css — styles scoped to the interactive visualizers */
+.visualizer .controls { background: rgba(255, 255, 255, 0.06); padding: 18px; border-radius: 12px; margin-bottom: 18px }
+
+.visualizer .global-range { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.visualizer .global-range .row { flex: 0 0 auto; min-width: 110px; box-sizing: border-box; }
+.visualizer .global-range > div:last-child { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.visualizer .global-range > div:last-child button { flex: 0 0 auto; min-width: 56px; max-width: 220px; white-space: nowrap; padding: 6px 8px; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 420px) { .visualizer .global-range { flex-direction: column; align-items: stretch; gap: 8px; } .visualizer .global-range .row { min-width: 0; } .visualizer .global-range > div:last-child { margin-left: 0; justify-content: space-between; } .visualizer .global-range > div:last-child button { flex: 1 1 auto; } }
+
+.visualizer .forms { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.visualizer .form-card { background: rgba(255, 255, 255, 0.03); padding: 12px; border-radius: 10px; display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
+.visualizer .form-swatch { width: 14px; height: 14px; border-radius: 3px; margin-right: 8px; align-self: center; flex: 0 0 auto; box-shadow: 0 0 0 1px rgba(0,0,0,0.3) inset; }
+.visualizer input[type="color"].form-swatch { -webkit-appearance: none; appearance: none; padding: 0; border: none; width: 22px; height: 22px; cursor: pointer; background: transparent; }
+.visualizer input[type="color"].form-swatch::-webkit-color-swatch-wrapper { padding: 0; } .visualizer input[type="color"].form-swatch::-webkit-color-swatch { border: none; border-radius: 3px; background: transparent; }
+
+.visualizer .form-col { gap: 6px; }
+.visualizer .form-col.params { display: flex; gap: 10px; flex-wrap: wrap; }
+.visualizer .param-item { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 6px; }
+.visualizer .add-component-button { justify-content: flex-end; }
+
+.visualizer .graphs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 18px }
+.visualizer .graph-card { background: rgba(255, 255, 255, 0.06); padding: 14px; border-radius: 12px; position: relative; height: 420px }
+.visualizer .graph-title { text-align: center; margin-bottom: 8px; font-weight: 700 }
+.visualizer .legend { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px }
+.visualizer .legend-item { display: flex; gap: 6px; align-items: center }
+.visualizer .legend-swatch { width: 16px; height: 10px; border-radius: 2px }
+
+.visualizer .tooltip { position: absolute; padding: 8px; background: rgba(0, 0, 0, 0.75); color: #fff; border-radius: 6px; pointer-events: none; opacity: 0; transition: opacity .12s; font-size: 13px }
+
+.visualizer .distributions-info { background: rgba(255, 255, 255, 0.06); padding: 20px; border-radius: 12px; margin-top: 20px }
+.visualizer .distributions-info h2 { margin-bottom: 16px; font-size: 1.8rem }
+
+.visualizer #mixtureSection { background: rgba(255, 255, 255, 0.08); padding: 16px; border-radius: 10px; margin-top: 12px; display: none; }
+.visualizer #mixtureSection.visible { display: block; }
+.visualizer #mixtureSection h3 { margin-bottom: 12px; font-size: 1.2rem; }
+
+.visualizer .mixture-weights { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.visualizer .weight-input { display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.06); padding: 8px; border-radius: 8px; border-left: 3px solid var(--swatch-color, transparent); }
+.visualizer .mixture-component-select { display: flex; margin-bottom: 16px; }
+.visualizer .mixture-component-select > div { display: flex; gap: 8px; margin-bottom: 8px; }
+.visualizer .mixture-components { display: grid; gap: 12px; width: 100%; }
+.visualizer .mixture-components { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.visualizer .mixture-component { background: rgba(255, 255, 255, 0.03); padding: 12px; border-radius: 6px; display: flex; flex-direction: column; width: 100%; }
+.visualizer .mixture-component-body { display: grid; grid-template-columns: 100px 1fr; gap: 12px; margin-top: 8px; width: 100%; }
+@media (max-width: 900px) { .mixture-component-body { grid-template-columns: 80px 1fr; gap: 8px; } }
+.visualizer .mixture-component-left { display: flex; flex-direction: column; gap: 8px; }
+.visualizer .mixture-component-right { display: flex; flex-direction: column; gap: 8px; }
+
+.mixture-component-header { display: flex; justify-content: space-between; align-items: center; }
+
+/* distribution detail */
+.distribution-detail { background: rgba(255, 255, 255, 0.03); padding: 16px; border-radius: 8px; margin-bottom: 16px }
+.distribution-detail h3 { color: #fff; margin-bottom: 12px; font-size: 1.4rem; display: flex; align-items: center; gap: 8px }
+.distribution-detail .color-indicator { width: 16px; height: 16px; border-radius: 4px }
+.distribution-detail .formula { font-family: 'Computer Modern', serif; background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 6px; margin: 8px 0; overflow-x: auto }
+.distribution-detail .properties { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 12px 0 }
+.distribution-detail .property { background: rgba(0, 0, 0, 0.15); padding: 8px 12px; border-radius: 6px }
+.distribution-detail .use-cases { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1) }
+.distribution-detail .use-case { margin-bottom: 8px; padding-left: 16px; position: relative }
+.distribution-detail .use-case:before { content: "•"; position: absolute; left: 0; color: rgba(255, 255, 255, 0.5) }

@@ -4,57 +4,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Distributions</title>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <link rel="stylesheet" href="styles.css">
-  <script src="script.js"></script>
+  <title>Home — Projects</title>
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="home.css">
 </head>
 
 <body>
-  <div class="container">
+  <div class="container home">
     <header>
-      <h1>Distribution Visualizer</h1>
-      <div class="subtitle">Supports Normal, Uniform, Exponential, Laplace, Dirac, and Mixtures!</div>
+      <h1>Projects Directory</h1>
+      <div class="subtitle">Browse projects and articles</div>
     </header>
 
-    <div class="controls">
-      <div class="global-range">
-        <div class="row">
-          <label for="xMin">X Min</label>
-          <input id="xMin" type="number" step="0.1" value="-5">
-        </div>
-        <div class="row">
-          <label for="xMax">X Max</label>
-          <input id="xMax" type="number" step="0.1" value="5">
-        </div>
-        <div>
-          <button id="addDist">Add Distribution</button>
-          <button id="resetAll">Clear All</button>
-        </div>
-      </div>
+    <main>
+      <ul class="project-list">
+        <li class="project-item">
+          <a href="distributions_visualized.html">Distribution Visualizer</a>
+          <div class="project-desc">Interactive PDF/CDF visualizer with mixtures</div>
+        </li>
+        <!-- Add more projects here -->
+        <li class="project-item">
+          <a href="supervised_is_unsupervised.html">Supervised is Unsupervised — Learn p(x,y) then infer p(y|x)</a>
+          <div class="project-desc">Interactive step-through demo: KDE-based classification and posterior inference</div>
+        </li>
+      </ul>
+    </main>
 
-      <div class="forms" id="forms"></div>
-    </div>
-
-    <div class="graphs">
-      <div class="graph-card" id="pdfCard">
-        <div class="graph-title">Probability Density Function (PDF)</div>
-        <div id="pdf"></div>
-        <div class="legend" id="pdfLegend"></div>
-        <div class="tooltip" id="pdfTooltip"></div>
-      </div>
-      <div class="graph-card" id="cdfCard">
-        <div class="graph-title">Cumulative Distribution Function (CDF)</div>
-        <div id="cdf"></div>
-        <div class="legend" id="cdfLegend"></div>
-        <div class="tooltip" id="cdfTooltip"></div>
-      </div>
-    </div>
-
-    <div class="distributions-info">
-      <h2>Active Distributions</h2>
-      <div id="distributions-details"></div>
-    </div>
     <footer class="footer">
       <p class="footer-tag">Created by Aughdon Breslin</p>
     </footer>

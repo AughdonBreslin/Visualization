@@ -1,0 +1,6 @@
+/* home.css — styles used on the index/home page */
+.home main { margin-top: 18px; }
+.home .project-list { list-style: none; display: grid; gap: 12px; padding: 0; }
+.home .project-item { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; }
+.home .project-item .project-desc { opacity: 0.8; font-size: 0.9rem; margin-top: 6px; }
+.home .footer { margin-top: 20px; }
