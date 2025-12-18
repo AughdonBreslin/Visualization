@@ -255,10 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Clear existing mixture components display
                 wrapper.selectAll('.mixture-components').remove();
 
-                // (Removed outer component-type selector — each component now
-                // contains its own type select. New components will default to
-                // the first non-mixture distribution.)
-
                 const buttonDiv = paramsWrap.append('div')
                     .attr('class', 'param-item');
                 buttonDiv.append('label')
@@ -433,7 +429,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const color = distObj ? distObj.color : (idx >= 0 ? colors[idx % colors.length] : 'transparent');
                 if (swatch.tagName === 'INPUT') {
                     swatch.value = color;
-                    // also set background so the whole input shows the color (some browsers show an inner swatch)
                     swatch.style.background = color;
                 } else swatch.style.background = color;
             }
