@@ -1,4 +1,3 @@
-// Renamed from article2.js — KDE per-class + posterior p(y=1|x) visualization
 document.addEventListener('DOMContentLoaded', () => {
   const csvInput = document.getElementById('csvInput');
   const loadBtn = document.getElementById('loadCsv');
@@ -18,8 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const fitGDAButton = document.getElementById('fitGDA');
   const example1Btn = document.getElementById('example1');
   const example2Btn = document.getElementById('example2');
-  const gdaParamsEl = document.getElementById('gdaParams');
-  const gdaExamplesEl = document.getElementById('gdaExamples');
   const showKDEChk = document.getElementById('showKDE');
   const showGDAChk = document.getElementById('showGDA');
 
@@ -408,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   example2Btn && example2Btn.addEventListener('click', ()=>{
     if (!gda.fitted) fitGDA();
-    const pt = [4.8,4.7]; const r = computeGDAForPoint(pt);
+    const pt = [2,4]; const r = computeGDAForPoint(pt);
     showDetailedCalculationForPoint(pt);
   });
 
