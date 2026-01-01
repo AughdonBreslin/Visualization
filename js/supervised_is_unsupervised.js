@@ -40,12 +40,25 @@ document.addEventListener('DOMContentLoaded', () => {
       data = parsed;
       // any change to data invalidates previous GDA fit
       gda.fitted = false;
-      document.getElementById('priors').textContent = `P(y=0)=–  P(y=1)=–`;
-      document.getElementById('mu0').textContent = `μ0 = –`;
-      document.getElementById('mu1').textContent = `μ1 = –`;
-      document.getElementById('sigma0').textContent = `Σ0 = –`;
-      document.getElementById('sigma1').textContent = `Σ1 = –`;
-      document.getElementById('exampleOut').textContent = `No examples computed yet.`;
+      const prior0El = document.getElementById('prior0');
+      const prior1El = document.getElementById('prior1');
+      if (prior0El) prior0El.innerHTML = `$P(y=0)=–$`;
+      if (prior1El) prior1El.innerHTML = `$P(y=1)=–$`;
+      const mu0El = document.getElementById('mu0');
+      const mu1El = document.getElementById('mu1');
+      const sigma0El = document.getElementById('sigma0');
+      const sigma1El = document.getElementById('sigma1');
+      if (mu0El) mu0El.innerHTML = `$\\mu_0 = –$`;
+      if (mu1El) mu1El.innerHTML = `$\\mu_1 = –$`;
+      if (sigma0El) sigma0El.innerHTML = `$\\Sigma_0 = –$`;
+      if (sigma1El) sigma1El.innerHTML = `$\\Sigma_1 = –$`;
+      // typeset placeholders (if MathJax available)
+      const placeholderEls = [prior0El, prior1El, mu0El, mu1El, sigma0El, sigma1El].filter(Boolean);
+      if (placeholderEls.length > 0 && window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise(placeholderEls).catch(err => console.warn('MathJax typeset failed:', err));
+      } else if (placeholderEls.length > 0 && window.MathJax && MathJax.typeset) {
+        try { MathJax.typeset(placeholderEls); } catch (e) { console.warn('MathJax typeset failed:', e); }
+      }
       // clear detailed calculation panel
       const calcP = document.getElementById('calcPriors'); if (calcP) calcP.textContent = 'Priors: —';
       const cm0 = document.getElementById('calcMuSigma0'); if (cm0) cm0.textContent = 'Class 0: μ0 = — ; Σ0 = —';
@@ -62,7 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const f = ev.target.files[0];
     if (!f) return;
     const reader = new FileReader();
-    reader.onload = e => loadAndRender(e.target.result);
+    reader.onload = e => {
+      // Place the file contents into the csvInput textarea
+      if (csvInput) csvInput.value = e.target.result;
+      loadAndRender(e.target.result);
+    };
     reader.readAsText(f);
   });
 
@@ -107,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const class0 = data.filter(d => d.y === 0).map(d => d.x);
     const class1 = data.filter(d => d.y === 1).map(d => d.x);
     const prior0 = class0.length / data.length; const prior1 = class1.length / data.length;
-    classPriorsEl.textContent = `P(y=0)=${prior0.toFixed(2)}  P(y=1)=${prior1.toFixed(2)}`;
 
     const bw = Math.max(0.01, +bandwidthInput.value || 0.6);
     const kde0 = class0.length ? kdeEstimate(class0, bw) : (() => 0);
@@ -154,25 +170,28 @@ document.addEventListener('DOMContentLoaded', () => {
       .attr('fill', d => d.y === 1 ? '#ff4d4d' : '#4d9bff')
       .attr('stroke', '#000')
       .on('mouseover', (event,d)=>{
-        const p0 = kde0(d.x) * prior0; const p1 = kde1(d.x) * prior1; const denom = p0+p1; const postx = denom===0 ? 0.5 : p1/denom;
-        let msg = `Point (${d.x[0]},${d.x[1]}) class=${d.y} → KDE p(y=1|x)=${postx.toFixed(3)}`;
+        const p0 = kde0(d.x) * prior0; const p1 = kde1(d.x) * prior1; const denom = p0+p1; const postx = denom===0 ? 0.5 : p1/denom; const post0x = 1 - postx;
+        let msg = `<table><tr><th colspan="5">Point (${d.x[0].toFixed(2)},${d.x[1].toFixed(2)}) class=${d.y}</th></tr><tr><td></td><th>p(y=0|x)</th><th>p(y=1|x)</th><th>p(x|y=0)</th><th>p(x|y=1)</th></tr><tr><td>KDE</td><td>${post0x.toFixed(3)}</td><td>${postx.toFixed(3)}</td><td>${(kde0(d.x)).toExponential(2)}</td><td>${(kde1(d.x)).toExponential(2)}</td></tr>`;
         if (gda.fitted) {
           const gdaRes = computeGDAForPoint(d.x);
-          msg += `  | GDA p(y=1|x)=${gdaRes.posterior.toFixed(3)}`;
+          msg += `<tr><td>GDA</td><td>${(1 - gdaRes.posterior).toFixed(3)}</td><td>${gdaRes.posterior.toFixed(3)}</td><td>${gdaRes.p0.toExponential(2)}</td><td>${gdaRes.p1.toExponential(2)}</td></tr>`;
         }
-        queryInfo.textContent = msg;
+        msg += `</table>`;
+        queryInfo.innerHTML = msg;
       });
 
     svg.on('click', function(event) {
       const [mx,my] = d3.pointer(event, g.node());
       const x = xScale.invert(mx); const y = yScale.invert(my);
-      const kdeP0 = kde0([x,y]) * prior0; const kdeP1 = kde1([x,y]) * prior1; const kdeDen = kdeP0 + kdeP1; const kdePost = kdeDen===0 ? 0.5 : kdeP1/kdeDen;
-      let msg = `Query (${x.toFixed(2)},${y.toFixed(2)}) → KDE p(y=1|x)=${kdePost.toFixed(3)}  p(x|y=0)=${(kde0([x,y])).toExponential(2)} p(x|y=1)=${(kde1([x,y])).toExponential(2)}`;
+      const kdeP0 = kde0([x,y]) * prior0; const kdeP1 = kde1([x,y]) * prior1; const kdeDen = kdeP0 + kdeP1; const kdePost = kdeDen===0 ? 0.5 : kdeP1/kdeDen; const kdePost0 = 1 - kdePost;
+      let msg = `<table><tr><th colspan="5">Query (${x.toFixed(2)},${y.toFixed(2)})</th></tr><tr><td></td><th>p(y=0|x)</th><th>p(y=1|x)</th><th>p(x|y=0)</th><th>p(x|y=1)</th></tr><tr><td>KDE</td><td>${kdePost0.toFixed(3)}</td><td>${kdePost.toFixed(3)}</td><td>${(kde0([x,y])).toExponential(2)}</td><td>${(kde1([x,y])).toExponential(2)}</td></tr>`;
+      if (!gda.fitted) fitGDA();
       if (gda.fitted) {
         const g = computeGDAForPoint([x,y]);
-        msg += `  | GDA p(y=1|x)=${g.posterior.toFixed(3)}  p(x|y=0)=${g.p0.toExponential(2)} p(x|y=1)=${g.p1.toExponential(2)}`;
+        msg += `<tr><td>GDA</td><td>${(1 - g.posterior).toFixed(3)}</td><td>${g.posterior.toFixed(3)}</td><td>${g.p0.toExponential(2)}</td><td>${g.p1.toExponential(2)}</td></tr>`;
       }
-      queryInfo.textContent = msg;
+      msg += `</table>`;
+      queryInfo.innerHTML = msg;
       // show detailed arithmetic for clicked point
       showDetailedCalculationForPoint([x,y]);
     });
@@ -251,13 +270,36 @@ document.addEventListener('DOMContentLoaded', () => {
     gda.prior0 = class0.length / data.length; gda.prior1 = class1.length / data.length;
     gda.fitted = true;
     // update UI
-    document.getElementById('priors').textContent = `P(y=0)=${gda.prior0.toFixed(3)}  P(y=1)=${gda.prior1.toFixed(3)}`;
-    document.getElementById('mu0').textContent = `μ0 = [${gda.mu0.map(v=>v.toFixed(3)).join(', ')}]`;
-    document.getElementById('mu1').textContent = `μ1 = [${gda.mu1.map(v=>v.toFixed(3)).join(', ')}]`;
-    document.getElementById('sigma0').textContent = `Σ0 = [${gda.sigma0[0][0].toFixed(3)} ${gda.sigma0[0][1].toFixed(3)}; ${gda.sigma0[1][0].toFixed(3)} ${gda.sigma0[1][1].toFixed(3)}]`;
-    document.getElementById('sigma1').textContent = `Σ1 = [${gda.sigma1[0][0].toFixed(3)} ${gda.sigma1[0][1].toFixed(3)}; ${gda.sigma1[1][0].toFixed(3)} ${gda.sigma1[1][1].toFixed(3)}]`;
+    const prior0El = document.getElementById('prior0');
+    const prior1El = document.getElementById('prior1');
+    if (prior0El) prior0El.innerHTML = `$P(y=0)=${gda.prior0.toFixed(3)}$`;
+    if (prior1El) prior1El.innerHTML = `$P(y=1)=${gda.prior1.toFixed(3)}$`;
+
+    // set GDA parameter displays using TeX and MathJax
+    const mu0El = document.getElementById('mu0');
+    const mu1El = document.getElementById('mu1');
+    const sigma0El = document.getElementById('sigma0');
+    const sigma1El = document.getElementById('sigma1');
+
+    if (mu0El) mu0El.innerHTML = `$\\mu_0 = [${gda.mu0.map(v=>v.toFixed(3)).join(', ')}]$`;
+    if (mu1El) mu1El.innerHTML = `$\\mu_1 = [${gda.mu1.map(v=>v.toFixed(3)).join(', ')}]$`;
+    if (sigma0El) sigma0El.innerHTML = `$\\Sigma_0 = \\begin{bmatrix}${gda.sigma0[0][0].toFixed(3)} & ${gda.sigma0[0][1].toFixed(3)} \\\\ ${gda.sigma0[1][0].toFixed(3)} & ${gda.sigma0[1][1].toFixed(3)}\\end{bmatrix}$`;
+    if (sigma1El) sigma1El.innerHTML = `$\\Sigma_1 = \\begin{bmatrix}${gda.sigma1[0][0].toFixed(3)} & ${gda.sigma1[0][1].toFixed(3)} \\\\ ${gda.sigma1[1][0].toFixed(3)} & ${gda.sigma1[1][1].toFixed(3)}\\end{bmatrix}$`;
+
+    // update detailed numeric steps area and set as TeX
+    const calcP = document.getElementById('calcPriors');
+    if (calcP) calcP.innerHTML = `$P(y=0)=${gda.prior0.toFixed(3)};\\; P(y=1)=${gda.prior1.toFixed(3)}$`;
+
+    // typeset only the updated elements (if MathJax is available)
+    const typesetEls = [prior0El, prior1El, mu0El, mu1El, sigma0El, sigma1El, calcP].filter(Boolean);
+    if (typesetEls.length > 0 && window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise(typesetEls).catch(err => console.warn('MathJax typeset failed:', err));
+    } else if (typesetEls.length > 0 && window.MathJax && MathJax.typeset) {
+      try { MathJax.typeset(typesetEls); } catch (e) { console.warn('MathJax typeset failed:', e); }
+    }
+
     // update detailed numeric steps area
-    document.getElementById('calcPriors').textContent = `Priors: P(y=0)=${gda.prior0.toFixed(3)}; P(y=1)=${gda.prior1.toFixed(3)}`;
+    // calcPriors set as TeX and typeset above
     document.getElementById('calcMuSigma0').textContent = `Class 0: μ0 = [${gda.mu0.map(v=>v.toFixed(4)).join(', ')}]; Σ0 = [${gda.sigma0[0][0].toFixed(4)} ${gda.sigma0[0][1].toFixed(4)}; ${gda.sigma0[1][0].toFixed(4)} ${gda.sigma0[1][1].toFixed(4)}]`;
     document.getElementById('calcMuSigma1').textContent = `Class 1: μ1 = [${gda.mu1.map(v=>v.toFixed(4)).join(', ')}]; Σ1 = [${gda.sigma1[0][0].toFixed(4)} ${gda.sigma1[0][1].toFixed(4)}; ${gda.sigma1[1][0].toFixed(4)} ${gda.sigma1[1][1].toFixed(4)}]`;
     render();
@@ -284,20 +326,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const g = computeGDAForPoint(x);
 
     const s = [];
-    s.push(`Query point x* = (${x[0].toFixed(4)}, ${x[1].toFixed(4)})`);
-    s.push(`Bandwidth h = ${bw}`);
-    s.push(`KDE likelihoods: p(x*|y=0) ≈ ${k0.toExponential(4)}, p(x*|y=1) ≈ ${k1.toExponential(4)}`);
-    s.push(`KDE numerators: num_0 = p(y=0)*p(x*|y=0) = ${prior0.toFixed(3)} * ${k0.toExponential(4)} = ${num0.toExponential(4)}`);
-    s.push(`num_1 = p(y=1)*p(x*|y=1) = ${prior1.toFixed(3)} * ${k1.toExponential(4)} = ${num1.toExponential(4)}`);
-    s.push(`KDE posterior p(y=1|x*) = num_1 / (num_0 + num_1) = ${kdePosterior.toFixed(6)}`);
-    s.push('---');
-    s.push('GDA (Gaussian) calculations:');
-    s.push(`p(x*|y=0) (Gaussian) ≈ ${g.p0.toExponential(4)}`);
-    s.push(`p(x*|y=1) (Gaussian) ≈ ${g.p1.toExponential(4)}`);
-    s.push(`GDA numerators: ${ (gda.prior0).toFixed(3) } * ${g.p0.toExponential(4)} = ${(g.p0 * gda.prior0).toExponential(4)} ; ${ (gda.prior1).toFixed(3)} * ${g.p1.toExponential(4)} = ${(g.p1 * gda.prior1).toExponential(4)}`);
-    s.push(`GDA posterior p(y=1|x*) = ${g.posterior.toFixed(6)}`);
+    s.push(`Query point $x^* = (${x[0].toFixed(4)}, ${x[1].toFixed(4)})$`);
+    s.push(`Bandwidth $h = ${bw}$`);
+    s.push('');
+    s.push('KDE:');
+    s.push(`Step 1: Estimate class-conditional densities — Use kernel density estimation with ${class0.length} class-0 samples and ${class1.length} class-1 samples.`);
+    s.push(`Formula: $p(x^*|y=k) = \\dfrac{1}{n_k} \\sum_{i=1}^{n_k} K_h(x^* - x_i^{(k)})$ where $K_h$ is a Gaussian kernel with bandwidth $h$.`);
+    s.push(`Result: $p(x^*|y=0) = ${k0.toExponential(4)},\\quad p(x^*|y=1) = ${k1.toExponential(4)}$`);
+    s.push('');
+    s.push(`Step 2: Compute weighted numerators — Multiply each density by its class prior to get the unnormalized joint probability.`);
+    s.push(`Formula: $\\mathrm{num}_k = p(y=k) \\cdot p(x^*|y=k)$`);
+    s.push(`$\\mathrm{num}_0 = ${prior0.toFixed(3)} \\times ${k0.toExponential(4)} = ${num0.toExponential(4)}$`);
+    s.push(`$\\mathrm{num}_1 = ${prior1.toFixed(3)} \\times ${k1.toExponential(4)} = ${num1.toExponential(4)}$`);
+    s.push('');
+    s.push(`Step 3: Normalize to get posteriors — Divide each numerator by the sum to get conditional probabilities via Bayes' rule.`);
+    s.push(`Formula: $p(y=k|x^*) = \\dfrac{\\mathrm{num}_k}{\\mathrm{num}_0 + \\mathrm{num}_1}$`);
+    s.push(`$p(y=0|x^*) = \\dfrac{${num0.toExponential(4)}}{${num0.toExponential(4)} + ${num1.toExponential(4)}} = ${(1-kdePosterior).toFixed(6)}$`);
+    s.push(`$p(y=1|x^*) = \\dfrac{${num1.toExponential(4)}}{${num0.toExponential(4)} + ${num1.toExponential(4)}} = ${kdePosterior.toFixed(6)}$`);
+    s.push('');
+    s.push('GDA:');
+    s.push(`Step 1: Estimate class-conditional densities — Using the fitted Gaussian parameters.`);
+    s.push(`Class 0: $\\mu_0 = [${gda.mu0.map(v=>v.toFixed(4)).join(', ')}]$, $\\Sigma_0 = \\begin{bmatrix} ${gda.sigma0[0][0].toFixed(4)} & ${gda.sigma0[0][1].toFixed(4)} \\\\ ${gda.sigma0[1][0].toFixed(4)} & ${gda.sigma0[1][1].toFixed(4)} \\end{bmatrix}$`);
+    s.push(`Class 1: $\\mu_1 = [${gda.mu1.map(v=>v.toFixed(4)).join(', ')}]$, $\\Sigma_1 = \\begin{bmatrix} ${gda.sigma1[0][0].toFixed(4)} & ${gda.sigma1[0][1].toFixed(4)} \\\\ ${gda.sigma1[1][0].toFixed(4)} & ${gda.sigma1[1][1].toFixed(4)} \\end{bmatrix}$`);
+    s.push(`Formula: $p(x^*|y=k) = \\dfrac{1}{2\\pi\\sqrt{|\\Sigma_k|}} \\exp\\left(-\\dfrac{1}{2}(x^* - \\mu_k)^T \\Sigma_k^{-1} (x^* - \\mu_k)\\right)$`);
+    s.push(`Result: $p(x^*|y=0) = ${g.p0.toExponential(4)},\\quad p(x^*|y=1) = ${g.p1.toExponential(4)}$`);
+    s.push('');
+    s.push(`Step 2: Compute weighted numerators — Multiply each Gaussian density by its class prior.`);
+    s.push(`Formula: $\\mathrm{num}_k = p(y=k) \\cdot p(x^*|y=k)$`);
+    s.push(`$\\mathrm{num}_0 = ${(gda.prior0).toFixed(3)} \\times ${g.p0.toExponential(4)} = ${(g.p0 * gda.prior0).toExponential(4)}$`);
+    s.push(`$\\mathrm{num}_1 = ${(gda.prior1).toFixed(3)} \\times ${g.p1.toExponential(4)} = ${(g.p1 * gda.prior1).toExponential(4)}$`);
+    s.push('');
+    s.push(`Step 3: Normalize to get posteriors — Apply Bayes' rule by dividing by the sum.`);
+    s.push(`Formula: $p(y=k|x^*) = \\dfrac{\\mathrm{num}_k}{\\mathrm{num}_0 + \\mathrm{num}_1}$`);
+    s.push(`$p(y=0|x^*) = \\dfrac{${(g.p0 * gda.prior0).toExponential(4)}}{${(g.p0 * gda.prior0).toExponential(4)} + ${(g.p1 * gda.prior1).toExponential(4)}} = ${(1-g.posterior).toFixed(6)}$`);
+    s.push(`$p(y=1|x^*) = \\dfrac{${(g.p1 * gda.prior1).toExponential(4)}}{${(g.p0 * gda.prior0).toExponential(4)} + ${(g.p1 * gda.prior1).toExponential(4)}} = ${g.posterior.toFixed(6)}$`);
 
-    document.getElementById('calcPoint').innerHTML = s.map(l=>`<div>${l}</div>`).join('');
+    document.getElementById('calcPoint').innerHTML = s.map(l=>{
+      if (l.startsWith('Step') || l.startsWith('KDE:') || l.startsWith('GDA:')) {
+        return `<div style="font-weight: bold; margin-top: 8px;">${l.replace(/\*\*/g, '')}</div>`;
+      }
+      return `<div>${l}</div>`;
+    }).join('');
+    if (window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise([document.getElementById('calcPoint')]).catch(err => console.warn('MathJax typeset failed:', err));
+    } else if (window.MathJax && MathJax.typeset) {
+      try { MathJax.typeset([document.getElementById('calcPoint')]); } catch (e) { console.warn('MathJax typeset failed:', e); }
+    }
   }
 
   function drawEllipse(mu, sigma, color) {
@@ -330,13 +404,11 @@ document.addEventListener('DOMContentLoaded', () => {
   example1Btn && example1Btn.addEventListener('click', ()=>{
     if (!gda.fitted) fitGDA();
     const pt = [2,2]; const r = computeGDAForPoint(pt);
-    document.getElementById('exampleOut').textContent = `x*=(2,2): p(x|y=0)=${r.p0.toExponential(3)} p(x|y=1)=${r.p1.toExponential(3)} → p(y=1|x)=${r.posterior.toFixed(3)}`;
     showDetailedCalculationForPoint(pt);
   });
   example2Btn && example2Btn.addEventListener('click', ()=>{
     if (!gda.fitted) fitGDA();
     const pt = [4.8,4.7]; const r = computeGDAForPoint(pt);
-    document.getElementById('exampleOut').textContent = `x*=(4.8,4.7): p(x|y=0)=${r.p0.toExponential(3)} p(x|y=1)=${r.p1.toExponential(3)} → p(y=1|x)=${r.posterior.toFixed(3)}`;
     showDetailedCalculationForPoint(pt);
   });
 
@@ -345,3 +417,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadAndRender(csvInput.value);
 });
+77

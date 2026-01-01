@@ -13,24 +13,35 @@
         };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-    <link rel="stylesheet" href="base.css">
-    <link rel="stylesheet" href="article.css">
-    <script defer src="supervised_is_unsupervised.js"></script>
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/article.css">
+    <script defer src="js/supervised_is_unsupervised.js"></script>
 </head>
 
 <body>
     <div class="container article">
         <header>
-            <h1>Learning p(x, y) → Inference p(y | x)</h1>
-            <div class="subtitle">Step-through demo: estimate class-conditional densities with KDE and compute
-                posteriors</div>
+            <h1>Supervised Demo via Unsupervised Techniques</h1>
+            <div class="subtitle">Using Unsupervised Density Estimation to Solve Supervised Classification</div>
             <div class="home-link"><a href="index.html">← Home</a></div>
         </header>
 
         <main class="article-body">
-            <section class="dataset-panel">
-                <h2>Dataset</h2>
-                <p>Paste CSV (x1,x2,y) or upload a CSV.</p>
+            <section class="demo-overview panel">
+                <h2>Overview</h2>
+                <p>
+                    This demo seeks to illustrate how a supervised learning problem such as learning $p(y|x)$ can be solved by learning the joint distribution $p(x, y)$ using unsupervised density estimation, and then applying Bayes' rule to infer the posterior. We will implement two methods for estimating class-conditional densities $p(x|y)$: Kernel Density Estimation (KDE) and Gaussian Discriminant Analysis (GDA). The demo aims to provide intuition for generative modeling approaches to classification, and how they differ from direct discriminative methods.
+                </p>
+                <p>
+                    In a supervised classification, the goal is to learn the mapping from features $x$ to labels $y$, i.e. the posterior distribution $p(y|x)$ or an equivalent decision rule for classification. This is a conditional probability of how likely each class label $y$ is given the observed features $x$. By definition, $p(y|x) = \frac{p(x,y)}{p(x)}$, so if we can estimate the joint distribution $p(x,y)$ we can compute the posterior likelihood of each class $y$ given the observed $x$ using Bayes' rule.
+                </p>
+                <p>
+                    The joint distribution $p(x,y)$ can be decomposed as $p(x,y) = p(y) p(x|y)$, where $p(y)$ is the class prior, formed by the relative frequencies of each class in the training data, and $p(x|y)$ is the class-conditional, learned using unsupervised density estimation within each class. Once the data is split by class label $y$, we can apply any unsupervised density estimation method to learn $p(x|y)$ for each class separately. In this demo we implement two aforementioned methods: KDE, a non-parametric density estimator that places kernels at each data point and averages them; and GDA, a parametric generative model that fits a Gaussian distribution to each class. The means and covariances estimated by GDA are estimated exactly as in a purely unsupervised Gaussian model, but applied separately to each class subset of the data.
+                </p>
+            </section>
+            <section class="dataset-panel panel">
+                <h2>Input Dataset</h2>
+                <p>Paste a CSV of points $x$ and their class $y$ following ($x_1,x_2,y$) where $x_1, x_2 \in \mathbb{R}$, and $y \in \{0, 1\}$. Type in your input data or use the preloaded example.</p>
                 <textarea id="csvInput" rows="6">x1,x2,y
 1,2,0
 2,1,0
@@ -41,65 +52,71 @@
 4.5,5,1
 5,5,1
 </textarea>
+
                 <div class="dataset-controls">
                     <div class="load-row">
-                        <button id="loadCsv">Load CSV</button>
-                        <input id="fileInput" type="file" accept="text/csv" />
+                        <button id="loadCsv">Load the input data</button>
+                        <label for="fileInput">Upload a File</label>
+                        <input id="fileInput" name="fileInput" type="file" accept="text/csv" />
                     </div>
                 </div>
             </section>
 
             <!-- Calculations: priors and multivariate Gaussian parameter estimates -->
-            <section id="calculations-panel" class="calculations-panel">
-                <h2>Calculations: Priors & Gaussian parameters</h2>
-                <div class="calc-row">
-                    <div class="calc-action">
-                        <button id="fitGDA">Fit GDA (compute μ, Σ)</button>
-                    </div>
-                    <div id="gdaParams" class="gda-params">
-                        <h3>Fitted parameters</h3>
-                        <div id="priors">P(y=0)=– P(y=1)=–</div>
-                        <div id="mu0">μ0 = –</div>
-                        <div id="sigma0">Σ0 = –</div>
-                        <div id="mu1">μ1 = –</div>
-                        <div id="sigma1">Σ1 = –</div>
-                    </div>
+            <section id="calculations-panel" class="calculations-panel panel">
+                <h2>Calculations: Priors & Approaches</h2>
+                <p>To learn $p(y)$, we compute the priors. A prior is the probability of a class before observing any data. This is computed as the fraction of samples belonging to each class, or:</p>
+                <div class="formula">$$p(y=k) = \frac{\text{num samples with y=k}}{\text{total samples}}$$</div>
+                <p>To learn $p(x|y)$, we have two approaches.</p>
+                <p>1. KDE: For a class $k$, given samples {$x_i, ...$} where $y_i = k$, we estimate the class-conditional density $p(x|y=k)$ using Kernel Density Estimation (KDE). KDE places a Gaussian kernel at each sample point and averages them to form a smooth density estimate. The bandwidth parameter $h$ sets the standard deviation of each Gaussian, controlling how fast each point's influence decays with distance. In other words, the bandwidth sets the smoothness of the estimate. The constant $d$ is the dimensionality of the input space. This estimator looks like:</p>
+                <div class="formulas">
+                    <div class="formula">$$\hat{p}(x|y=k) = \frac{1}{n_kh^d}\sum_{i:\,y_i=k} K(x; x_i, h)$$</div>
+                    <div class="formula">$$K(x; x_i, h) = \frac{1}{(2\pi)^{\frac{d}{2}}}
+                        \exp\left(-\frac{\|x-x_i\|^2}{2h^2}\right)$$</div>
                 </div>
+                <p>Combining these two, we get a uniform mixture of Gaussians where each mean is centered at each data point and each have covariance $h^2I$. Note: KDE is non-parametric as it grows with the number of samples. This approach makes no assumption that the class forms a single cluster.</p>
+                <div class="formula">
+                    $$\hat{p}(x|y=k) = \frac{1}{n_k}\sum_{i:\,y_i=k}^{n_k} \mathcal{N}(x; x_i, h^2I)$$
+                </div>
+                <p>2. GDA: For a class $k$, we fit a single multivariate Gaussian distribution to the samples {$x_i, ...$} where $y_i = k$. This involves estimating the mean vector $μ_k$ and covariance matrix $Σ_k$ for each class $k$ using maximum likelihood estimation:</p>
                 <div class="calc-explain">
-                    <h4>Data and GDA formulas</h4>
-                    <p>Class priors are computed as p(y=k) = (# samples with y=k) / (total samples).</p>
-                    <p>GDA parameter estimates (per-class):</p>
-                    <div class="formula">$$\mu_k = \frac{1}{N_k}\sum_{i:\,y_i=k} x_i \\
-                        \Sigma_k = \frac{1}{N_k}\sum_{i:\,y_i=k} (x_i - \mu_k)(x_i - \mu_k)^T$$</div>
+                    <div class="formulas">
+                        <div class="formula">$$\mu_k = \frac{1}{N_k}\sum_{i:\,y_i=k} x_i$$</div>
+                        <div class="formula">$$\Sigma_k = \frac{1}{N_k}\sum_{i:\,y_i=k} (x_i - \mu_k)(x_i - \mu_k)^T$$</div>
+                    </div>
+                    <p>For each class $y=k$, GDA assumes that all points of class $k$ are generated from one Gaussian:</p>
+                    <div class="formula">$$p(x|y=k) = \mathcal{N}(x; \mu_k, \Sigma_k)$$</div>
                     <p>Multivariate normal density used by GDA:</p>
                     <div class="formula">$$\mathcal{N}(x;\mu,\Sigma) =
                         \frac{1}{2\pi\sqrt{|\Sigma|}}\,\exp\left(-\tfrac12 (x-\mu)^T\Sigma^{-1}(x-\mu)\right)$$</div>
-                    <div class="theory-block">
-                        <h4>Why this generative approach works</h4>
-                        <p>Instead of learning a direct map x → y, we model the joint distribution
-                            \(p(x,y)=p(y)p(x|y)\). Once we have estimates
-                            for the class priors \(p(y)\) and class-conditional densities \(p(x|y)\), we apply Bayes'
-                            rule to get the posterior
-                            \(p(y|x)=\dfrac{p(y)p(x|y)}{\sum_j p(y=j)p(x|y=j)}\), which is exactly what a classifier
-                            needs to make probabilistic predictions.</p>
-                        <p>This generative strategy has practical benefits: it yields uncertainty estimates, handles
-                            missing/partial features naturally, and
-                            can be used to sample data. For teaching and diagnostics it also lets us inspect how the
-                            model understands each class.</p>
-                    </div>
                 </div>
+                <p> After loading data, click "Fit GDA" to compute class priors and Gaussian parameters (mean μ and covariance Σ) for each class.</p>
+                <button id="fitGDA">Fit GDA (compute μ, Σ)</button>
+                <!-- <div class="calc-row"> -->
+                
+                <h3>Fitted parameters</h3>
+
+                <div id="gdaParams" class="gda-params">
+                    <div id="prior0"></div>
+                    <div id="prior1"></div>
+                    <div id="mu0"></div>
+                    <div id="mu1"></div>
+                    <div id="sigma0"></div>
+                    <div id="sigma1"></div>
+                </div>
+                <!-- </div> -->
+
             </section>
 
             <!-- Visuals and explanations for KDE and GDA -->
-            <section class="viz-explain-panel">
+            <section class="viz-explain-panel panel">
                 <h2>Visuals: KDE & GDA</h2>
                 <div class="viz-row">
                     <div class="viz-panel">
                         <div id="viz" class="viz"></div>
-                        <div class="help-text">Click on the plot to query p(y=1 | x) at that point.</div>
+                        <div class="help-text">Click on the plot to query $p(y=k | x)$ and $p(x|y=k)$ at that point.</div>
                         <div class="info-row">
                             <div id="queryInfo">No query yet</div>
-                            <div id="classPriors"></div>
                         </div>
                     </div>
                     <aside class="viz-controls">
@@ -109,69 +126,33 @@
                             <label><input type="checkbox" id="showGDA" /> Show GDA ellipses & decision</label>
                         </div>
                         <div class="bandwidth-row">
-                            <label for="bandwidth"><strong>Bandwidth:</strong></label>
+                            <label for="bandwidth">Bandwidth:</label>
                             <input id="bandwidth" type="number" step="0.1" min="0.01" value="0.6" />
-                            <p>Bandwidth <code>h</code> controls kernel width: smaller → more detail; larger → smoother.
-                            </p>
                         </div>
+                        <p>Bandwidth $h$ controls kernel width: smaller → more detail; larger → smoother.
+                        </p>
                     </aside>
-
-                </div>
-
-                <div class="kde-explain">
-                    <h4>KDE formula</h4>
-                    <p>KDE (Kernel Density Estimation) places Gaussian kernels at each class point and averages them to
-                        estimate class-conditional densities.</p>
-                    <div class="formula">$$K(x; x_i, h) = \frac{1}{2\pi h^2}
-                        \exp\left(-\frac{\|x-x_i\|^2}{2h^2}\right)$$</div>
                 </div>
 
                 <div class="theory-block wide">
-                    <h4>Intuition for the visual tools</h4>
-                    <p><strong>KDE</strong> shows a smoothed, local estimate of density by summing contributions from
-                        nearby points — it's useful to visualize how the data is distributed
-                        without assuming a specific shape.</p>
-                    <p><strong>GDA</strong> fits Gaussian clouds to each class. If the true class-conditional densities
-                        are roughly elliptical, GDA will capture them well and
-                        produce analytic formulas for p(x|y) and p(y|x). The 1‑sigma ellipses show the main direction
-                        and spread.</p>
-                    <p><strong>How they work together:</strong> KDE gives a flexible picture of class densities (great
-                        for exploratory visualization), while GDA provides
-                        a simple analytic model that we can compute with by hand to demonstrate Bayes' rule
-                        step-by-step.</p>
-                    <p><strong>Tradeoffs & Tips:</strong> KDE is flexible but sensitive to bandwidth — try adjusting
-                        <code>h</code> and observe over/under-smoothing. GDA is robust and
-                        interpretable but can fail if class shapes are non-Gaussian; in practice mixtures of Gaussians
-                        or other generative models bridge the gap.</p>
-                    <ul>
-                        <li><strong>GDA</strong>: a <em>parametric</em> generative model — fit a Gaussian for each class
-                            (\(\mu_k,\ \Sigma_k\)). Fast, interpretable, and gives
-                            analytic densities and decision boundaries; works well when class-conditional densities are
-                            roughly Gaussian.</li>
-                        <li><strong>KDE</strong>: a <em>non-parametric</em> density estimator — place Gaussian kernels
-                            at each sample and average. Very flexible
-                            (can approximate complex shapes) but sensitive to <em>bandwidth</em> and can be
-                            computationally heavier.</li>
-                    </ul>
-                    <p>In this demo we show both: KDE to visualize flexible class densities and GDA to demonstrate
-                        closed-form calculations and the
-                        step-by-step arithmetic of Bayes' rule.</p>
+                    <h4>Interpreting the results</h4>
+                    <p>
+                        After loading data and fitting GDA, the visualization panel shows the data points colored by class, along with optional overlays for the KDE density estimates and GDA Gaussian ellipses. The KDE heatmap visualizes the estimated class-conditional densities $p(x|y=k)$ for each class using Kernel Density Estimation. The GDA ellipses represent one standard deviation contours of the fitted Gaussian distributions for each class, illustrating how GDA models the data.
+                    </p>
+                    <p>
+                        Clicking on the plot queries the posterior probabilities $p(y=k|x^*)$ and class-conditional densities $p(x^*|y=k)$ at the selected point $x^*$. The posterior probabilities indicate the likelihood of each class given the observed features, while the class-conditional densities show how likely the features are to appear under each class model.
+                    </p>
                 </div>
             </section>
 
-            <section id="posterior-panel" class="posterior-panel">
-                <h2>Posterior computation (Bayes rule)</h2>
-                <p>For a query point x* we compute numerator and denominator and then the posterior:</p>
-                <div class="formula">$$\mathrm{num}_k = p(y=k)\,p(x^*\mid y=k)\\
-                    p(y=k\mid x^*) = \dfrac{\mathrm{num}_k}{\sum_j \mathrm{num}_j}$$</div>
+            <section id="posterior-panel" class="posterior-panel panel">
+                <h2>Posterior computation</h2>
+                <p>Walking through the calculations for both KDE and GDA to compute the posterior probabilities $p(y|x^*)$ at a query point $x^*$.</p>
                 <div class="posterior-actions">
-                    <div>
+                    <div class="examples">
                         <button id="example1">Compute for x*=(2,2)</button>
                         <button id="example2">Compute for x*=(4.8,4.7)</button>
-                    </div>
-                    <div id="gdaExamples" class="gda-examples">
-                        <h3>Example inferences</h3>
-                        <div id="exampleOut">No examples computed yet.</div>
+                        </span> or click on the plot above to select a custom point.
                     </div>
                 </div>
                 <div id="calcSteps" class="calc-steps">
