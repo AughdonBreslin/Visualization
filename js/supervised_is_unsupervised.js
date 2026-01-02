@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const viz = d3.select('#viz');
   const queryInfo = document.getElementById('queryInfo');
   const classPriorsEl = document.getElementById('classPriors');
+  const gdaParamsEl = document.getElementById('gdaParams');
 
   const width = 520, height = 420, margin = { top: 10, right: 10, bottom: 20, left: 40 };
   const innerW = width - margin.left - margin.right; const innerH = height - margin.top - margin.bottom;
@@ -37,30 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
       data = parsed;
       // any change to data invalidates previous GDA fit
       gda.fitted = false;
-      const prior0El = document.getElementById('prior0');
-      const prior1El = document.getElementById('prior1');
-      if (prior0El) prior0El.innerHTML = `$P(y=0)=–$`;
-      if (prior1El) prior1El.innerHTML = `$P(y=1)=–$`;
-      const mu0El = document.getElementById('mu0');
-      const mu1El = document.getElementById('mu1');
-      const sigma0El = document.getElementById('sigma0');
-      const sigma1El = document.getElementById('sigma1');
-      if (mu0El) mu0El.innerHTML = `$\\mu_0 = –$`;
-      if (mu1El) mu1El.innerHTML = `$\\mu_1 = –$`;
-      if (sigma0El) sigma0El.innerHTML = `$\\Sigma_0 = –$`;
-      if (sigma1El) sigma1El.innerHTML = `$\\Sigma_1 = –$`;
-      // typeset placeholders (if MathJax available)
-      const placeholderEls = [prior0El, prior1El, mu0El, mu1El, sigma0El, sigma1El].filter(Boolean);
-      if (placeholderEls.length > 0 && window.MathJax && MathJax.typesetPromise) {
-        MathJax.typesetPromise(placeholderEls).catch(err => console.warn('MathJax typeset failed:', err));
-      } else if (placeholderEls.length > 0 && window.MathJax && MathJax.typeset) {
-        try { MathJax.typeset(placeholderEls); } catch (e) { console.warn('MathJax typeset failed:', e); }
-      }
-      // clear detailed calculation panel
+      // clear previous GDA placeholders and dynamic class UI
+      if (gdaParamsEl) gdaParamsEl.innerHTML = '<div>Fitted parameters will appear here</div>';
       const calcP = document.getElementById('calcPriors'); if (calcP) calcP.textContent = 'Priors: —';
-      const cm0 = document.getElementById('calcMuSigma0'); if (cm0) cm0.textContent = 'Class 0: μ0 = — ; Σ0 = —';
-      const cm1 = document.getElementById('calcMuSigma1'); if (cm1) cm1.textContent = 'Class 1: μ1 = — ; Σ1 = —';
+      const cm0 = document.getElementById('calcMuSigma0'); if (cm0) cm0.textContent = 'Class k: μ_k = — ; Σ_k = —';
+      const cm1 = document.getElementById('calcMuSigma1'); if (cm1) cm1.textContent = '';
       const cp = document.getElementById('calcPoint'); if (cp) cp.textContent = 'No point computed yet.';
+      // reset GDA fit state
+      gda.fitted = false; gda.classes = []; gda.params = {};
       render();
     } catch (e) {
       alert('Failed to parse CSV: ' + e);
@@ -118,15 +103,51 @@ document.addEventListener('DOMContentLoaded', () => {
     g.append('g').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(xScale));
     g.append('g').call(d3.axisLeft(yScale));
 
-    const class0 = data.filter(d => d.y === 0).map(d => d.x);
-    const class1 = data.filter(d => d.y === 1).map(d => d.x);
-    const prior0 = class0.length / data.length; const prior1 = class1.length / data.length;
+    // support arbitrary classes by discovering unique labels
+    const classes = Array.from(new Set(data.map(d => d.y))).sort((a,b)=> (a < b ? -1 : a > b ? 1 : 0));
+    const classPoints = classes.map(c => data.filter(d => d.y === c).map(d => d.x));
+    const priors = classPoints.map(arr => arr.length / data.length);
 
     const bw = Math.max(0.01, +bandwidthInput.value || 0.6);
-    const kde0 = class0.length ? kdeEstimate(class0, bw) : (() => 0);
-    const kde1 = class1.length ? kdeEstimate(class1, bw) : (() => 0);
+    const kdes = classPoints.map(arr => arr.length ? kdeEstimate(arr, bw) : (() => 0));
 
     const { xs: gx, ys: gy, grid, nx, ny } = computeGrid(xmin, xmax, ymin, ymax, 150, 120);
+
+    // categorical color mapping for classes
+    const classColor = d3.scaleOrdinal(d3.schemeCategory10).domain(classes);
+
+    // Populate external DOM legend (#classLegend) with class swatches and counts
+    const classLegendEl = document.getElementById('classLegend');
+    if (classLegendEl) {
+      classLegendEl.innerHTML = '';
+      if (classes.length > 0) {
+        for (let i = 0; i < classes.length; i++) {
+          const c = classes[i];
+          const color = classColor(c);
+          const count = classPoints[i].length;
+          const prior = priors[i];
+
+          const item = document.createElement('div');
+          item.className = 'legend-item';
+          item.style.display = 'flex'; item.style.alignItems = 'center'; item.style.marginBottom = '6px';
+
+          const sw = document.createElement('span');
+          sw.style.width = '14px'; sw.style.height = '14px'; sw.style.display = 'inline-block';
+          sw.style.marginRight = '8px'; sw.style.border = '1px solid #000';
+          sw.style.background = color;
+
+          const label = document.createElement('span');
+          label.textContent = `Class ${c} (n=${count}, p=${prior.toFixed(3)})`;
+          label.style.fontSize = '13px';
+
+          item.appendChild(sw); item.appendChild(label);
+          classLegendEl.appendChild(item);
+        }
+      } else {
+        classLegendEl.textContent = 'No classes loaded';
+      }
+    }
+
 
     // ensure we have up-to-date overlay checkbox elements (in case DOM changed)
     const showKDEEl = document.getElementById('showKDE');
@@ -136,26 +157,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // KDE posterior heatmap (only draw if KDE overlay enabled)
     if (showKDEEl && showKDEEl.checked) {
-      const post = grid.map(pt => {
-        const p0 = kde0(pt) * prior0; const p1 = kde1(pt) * prior1;
-        const denom = p0 + p1;
-        return denom === 0 ? 0.5 : p1 / denom;
+      const postInfo = grid.map(pt => {
+        const ps = kdes.map((k,i)=> k(pt) * priors[i]);
+        const s = ps.reduce((a,b)=>a+b,0);
+        const posts = s === 0 ? ps.map(()=>1/ps.length) : ps.map(v=>v/s);
+        const maxIdx = posts.indexOf(Math.max(...posts));
+        return { x: pt[0], y: pt[1], posts, maxIdx, maxVal: posts[maxIdx] };
       });
 
       const rectW = innerW / (nx-1); const rectH = innerH / (ny-1);
-      const color = d3.scaleSequential(t => d3.interpolateRdYlBu(1 - t)).domain([0,1]);
 
       g.append('g').attr('class','heatmap')
-        .selectAll('rect').data(grid.map((pt,i)=>({x:pt[0],y:pt[1],v:post[i]}))).enter()
+        .selectAll('rect').data(postInfo).enter()
         .append('rect')
         .attr('x', d => xScale(d.x) - rectW/2)
         .attr('y', d => yScale(d.y) - rectH/2)
         .attr('width', Math.max(1, rectW))
         .attr('height', Math.max(1, rectH))
-        .attr('fill', d => color(d.v))
-        .attr('opacity', 0.7);
+        .attr('fill', d => {
+          // blend the class color toward white for a pastel (less bright) heatmap fill
+          const base = classColor(classes[d.maxIdx]);
+          return d3.interpolateRgb(base, '#000000')(0.3);
+        })
+        .attr('opacity', d => Math.max(0.12, d.maxVal * 0.7));
 
-      g.append('g').selectAll('circle.contour').data(grid.map((pt,i)=>({x:pt[0],y:pt[1],v:post[i]})).filter(d=>Math.abs(d.v-0.5)<0.03))
+      // draw soft decision boundary where top two classes are close
+      g.append('g').selectAll('circle.contour').data(postInfo.filter(d=>{
+        const ps = d.posts.slice().sort((a,b)=>b-a); return (ps[0]-ps[1]) < 0.06;
+      }))
         .enter().append('circle').attr('class','contour').attr('cx', d=>xScale(d.x)).attr('cy', d=>yScale(d.y)).attr('r',1.2).attr('fill','#000');
     }
 
@@ -164,15 +193,38 @@ document.addEventListener('DOMContentLoaded', () => {
       .attr('cx', d => xScale(d.x[0]))
       .attr('cy', d => yScale(d.x[1]))
       .attr('r', 4)
-      .attr('fill', d => d.y === 1 ? '#ff4d4d' : '#4d9bff')
+      .attr('fill', d => classColor(d.y))
       .attr('stroke', '#000')
       .on('mouseover', (event,d)=>{
-        const p0 = kde0(d.x) * prior0; const p1 = kde1(d.x) * prior1; const denom = p0+p1; const postx = denom===0 ? 0.5 : p1/denom; const post0x = 1 - postx;
-        let msg = `<table><tr><th colspan="5">Point (${d.x[0].toFixed(2)},${d.x[1].toFixed(2)}) class=${d.y}</th></tr><tr><td></td><th>p(y=0|x)</th><th>p(y=1|x)</th><th>p(x|y=0)</th><th>p(x|y=1)</th></tr><tr><td>KDE</td><td>${post0x.toFixed(3)}</td><td>${postx.toFixed(3)}</td><td>${(kde0(d.x)).toExponential(2)}</td><td>${(kde1(d.x)).toExponential(2)}</td></tr>`;
+        // compute KDE-based posteriors and likelihoods for this point
+        const ps = kdes.map((k,i)=> (k(d.x) * priors[i]));
+        const s = ps.reduce((a,b)=>a+b,0);
+        const kdePosts = s===0 ? ps.map(()=>1/ps.length) : ps.map(v=>v/s);
+
+        // build header: posterior columns then likelihood columns
+        const headerCols = classes.map(c=>`p(y=${c}|x)`).concat(classes.map(c=>`p(x|y=${c})`));
+        const colCount = headerCols.length + 1; // +1 for row header
+
+        // KDE row values
+        const kdeVals = [];
+        for (let i=0;i<classes.length;i++) kdeVals.push(kdePosts[i].toFixed(3));
+        for (let i=0;i<classes.length;i++) kdeVals.push((kdes[i](d.x)).toExponential(2));
+
+        // assemble table
+        let msg = `<table>`;
+        msg += `<tr><th colspan="${colCount}">Point (${d.x[0].toFixed(2)},${d.x[1].toFixed(2)}) class=${d.y}</th></tr>`;
+        msg += `<tr><th></th>${headerCols.map(h=>`<th>${h}</th>`).join('')}</tr>`;
+        msg += `<tr><td style="font-weight:bold">KDE</td>${kdeVals.map(v=>`<td>${v}</td>`).join('')}</tr>`;
+
+        // optional GDA row
         if (gda.fitted) {
           const gdaRes = computeGDAForPoint(d.x);
-          msg += `<tr><td>GDA</td><td>${(1 - gdaRes.posterior).toFixed(3)}</td><td>${gdaRes.posterior.toFixed(3)}</td><td>${gdaRes.p0.toExponential(2)}</td><td>${gdaRes.p1.toExponential(2)}</td></tr>`;
+          const gdaVals = [];
+          for (let i=0;i<gda.classes.length;i++) gdaVals.push(gdaRes.classPosteriors[i].toFixed(3));
+          for (let i=0;i<gda.classes.length;i++) gdaVals.push((gdaRes.classLikelihoods[i]).toExponential(2));
+          msg += `<tr><td style="font-weight:bold">GDA</td>${gdaVals.map(v=>`<td>${v}</td>`).join('')}</tr>`;
         }
+
         msg += `</table>`;
         queryInfo.innerHTML = msg;
       });
@@ -180,13 +232,34 @@ document.addEventListener('DOMContentLoaded', () => {
     svg.on('click', function(event) {
       const [mx,my] = d3.pointer(event, g.node());
       const x = xScale.invert(mx); const y = yScale.invert(my);
-      const kdeP0 = kde0([x,y]) * prior0; const kdeP1 = kde1([x,y]) * prior1; const kdeDen = kdeP0 + kdeP1; const kdePost = kdeDen===0 ? 0.5 : kdeP1/kdeDen; const kdePost0 = 1 - kdePost;
-      let msg = `<table><tr><th colspan="5">Query (${x.toFixed(2)},${y.toFixed(2)})</th></tr><tr><td></td><th>p(y=0|x)</th><th>p(y=1|x)</th><th>p(x|y=0)</th><th>p(x|y=1)</th></tr><tr><td>KDE</td><td>${kdePost0.toFixed(3)}</td><td>${kdePost.toFixed(3)}</td><td>${(kde0([x,y])).toExponential(2)}</td><td>${(kde1([x,y])).toExponential(2)}</td></tr>`;
-      if (!gda.fitted) fitGDA();
+
+      // KDE posteriors and likelihoods
+      const ps = kdes.map((k,i)=> (k([x,y]) * priors[i]));
+      const s = ps.reduce((a,b)=>a+b,0);
+      const kdePosts = s===0 ? ps.map(()=>1/ps.length) : ps.map(v=>v/s);
+      const kdeVals = [];
+      for (let i=0;i<classes.length;i++) kdeVals.push(kdePosts[i].toFixed(3));
+      for (let i=0;i<classes.length;i++) kdeVals.push((kdes[i]([x,y])).toExponential(2));
+
+      // build header columns
+      const headerCols = classes.map(c=>`p(y=${c}|x)`).concat(classes.map(c=>`p(x|y=${c})`));
+      const colCount = headerCols.length + 1;
+
+      let msg = `<table>`;
+      msg += `<tr><th colspan="${colCount}">Query (${x.toFixed(2)},${y.toFixed(2)})</th></tr>`;
+      msg += `<tr><th></th>${headerCols.map(h=>`<th>${h}</th>`).join('')}</tr>`;
+      msg += `<tr><td style="font-weight:bold">KDE</td>${kdeVals.map(v=>`<td>${v}</td>`).join('')}</tr>`;
+
+      // ensure GDA parameters exist
+      if (!gda.fitted) fitGDA_new();
       if (gda.fitted) {
         const g = computeGDAForPoint([x,y]);
-        msg += `<tr><td>GDA</td><td>${(1 - g.posterior).toFixed(3)}</td><td>${g.posterior.toFixed(3)}</td><td>${g.p0.toExponential(2)}</td><td>${g.p1.toExponential(2)}</td></tr>`;
+        const gdaVals = [];
+        for (let i=0;i<gda.classes.length;i++) gdaVals.push(g.classPosteriors[i].toFixed(3));
+        for (let i=0;i<gda.classes.length;i++) gdaVals.push((g.classLikelihoods[i]).toExponential(2));
+        msg += `<tr><td style="font-weight:bold">GDA</td>${gdaVals.map(v=>`<td>${v}</td>`).join('')}</tr>`;
       }
+
       msg += `</table>`;
       queryInfo.innerHTML = msg;
       // show detailed arithmetic for clicked point
@@ -196,21 +269,54 @@ document.addEventListener('DOMContentLoaded', () => {
     // GDA overlay: decision boundary and covariance ellipses
     // If the user asked to show GDA but we haven't fitted yet, fit automatically
     if (showGDAEl && showGDAEl.checked && !gda.fitted) {
-      fitGDA();
+      fitGDA_new();
     }
 
     if (showGDAEl && showGDAEl.checked && gda.fitted) {
-      // decision boundary approximation
+      // compute posteriors for grid points and mark soft boundaries where top classes are close
       const gdaPost = grid.map(pt => {
         const g = computeGDAForPoint(pt);
-        return { x: pt[0], y: pt[1], v: g.posterior };
+        // determine top-two gap
+        const sorted = g.classPosteriors.slice().sort((a,b)=>b-a);
+        const gap = sorted[0] - (sorted[1] || 0);
+        return { x: pt[0], y: pt[1], gap, topIdx: g.classPosteriors.indexOf(Math.max(...g.classPosteriors)), posts: g.classPosteriors };
       });
-      g.append('g').selectAll('circle.gda-contour').data(gdaPost.filter(d=>Math.abs(d.v-0.5)<0.03))
-        .enter().append('circle').attr('class','gda-contour').attr('cx', d=>xScale(d.x)).attr('cy', d=>yScale(d.y)).attr('r',1.4).attr('fill','#fff');
 
-      // draw 1-sigma ellipses for each class
-      drawEllipse(gda.mu0, gda.sigma0, '#4d9bff');
-      drawEllipse(gda.mu1, gda.sigma1, '#ff4d4d');
+      // draw crisp decision boundaries: connect grid neighboring cells where the top predicted class changes
+      const boundaryLines = [];
+      for (let j = 0; j < ny; j++) {
+        for (let i = 0; i < nx; i++) {
+          const idx = j * nx + i;
+          const cur = gdaPost[idx];
+          if (!cur) continue;
+          // right neighbor
+          if (i < nx - 1) {
+            const right = gdaPost[idx + 1];
+            if (right && cur.topIdx !== right.topIdx) {
+              boundaryLines.push({ x1: xScale(cur.x), y1: yScale(cur.y), x2: xScale(right.x), y2: yScale(right.y) });
+            }
+          }
+          // down neighbor
+          if (j < ny - 1) {
+            const down = gdaPost[idx + nx];
+            if (down && cur.topIdx !== down.topIdx) {
+              boundaryLines.push({ x1: xScale(cur.x), y1: yScale(cur.y), x2: xScale(down.x), y2: yScale(down.y) });
+            }
+          }
+        }
+      }
+
+      // main thin dark boundary line
+      g.append('g').attr('class','gda-boundary')
+        .selectAll('line').data(boundaryLines).enter().append('line')
+        .attr('x1', d=>d.x1).attr('y1', d=>d.y1).attr('x2', d=>d.x2).attr('y2', d=>d.y2)
+        .attr('stroke', '#fff').attr('stroke-width', 1.2).attr('opacity', 1).attr('stroke-linecap', 'round');
+    
+      // draw 1-sigma ellipses for each class using their color
+      for (let i=0;i<gda.classes.length;i++) {
+        const c = gda.classes[i];
+        drawEllipse(gda.params[c].mu, gda.params[c].sigma, classColor(c));
+      }
     }
   }
 
@@ -251,10 +357,12 @@ document.addEventListener('DOMContentLoaded', () => {
     return norm * Math.exp(-0.5*q);
   }
 
-  const gda = { fitted: false };
+  const gda = { fitted: false, classes: [], params: {} };
 
-  function fitGDA() {
-    const class0 = data.filter(d=>d.y===0).map(d=>d.x);
+  function fitGDA_legacy() { /* legacy binary GDA (kept for fallback) */
+    // discover classes and compute mean/cov/prior per class
+    const classes = Array.from(new Set(data.map(d=>d.y))).sort((a,b)=> (a < b ? -1 : a > b ? 1 : 0));
+    const params = {};
     const class1 = data.filter(d=>d.y===1).map(d=>d.x);
     if (class0.length===0 || class1.length===0) {
       alert('Need at least one point in each class to fit GDA');
@@ -302,24 +410,75 @@ document.addEventListener('DOMContentLoaded', () => {
     render();
   }
 
+  function fitGDA_new() {
+    // discover classes and compute mean/cov/prior per class
+    const classes = Array.from(new Set(data.map(d=>d.y))).sort((a,b)=> (a < b ? -1 : a > b ? 1 : 0));
+    const params = {};
+    for (const c of classes) {
+      const pts = data.filter(d=>d.y===c).map(d=>d.x);
+      if (pts.length === 0) {
+        alert(`Need at least one point in class ${c} to fit GDA`);
+        return;
+      }
+      const mu = meanOf(pts);
+      const sigma = covOf(pts, mu);
+      const prior = pts.length / data.length;
+      params[c] = { mu, sigma, prior };
+    }
+    gda.classes = classes; gda.params = params; gda.fitted = true;
+
+    // render GDA params into the #gdaParams container per class (prior, μ, Σ)
+    if (gdaParamsEl) {
+      const blocks = classes.map(c => {
+        const p = params[c];
+        return `<div class="gda-class" style="margin-bottom:8px;padding:6px;border-bottom:1px solid #eee;"><div style="font-weight:bold">Class ${c}</div><div>P(y=${c}) = ${p.prior.toFixed(3)}</div><div>$$\\mu = [${p.mu.map(v=>v.toFixed(3)).join(', ')}]$$</div><div>$$\\Sigma = \\begin{bmatrix}${p.sigma[0][0].toFixed(3)} & ${p.sigma[0][1].toFixed(3)} \\\\ ${p.sigma[1][0].toFixed(3)} & ${p.sigma[1][1].toFixed(3)}\\end{bmatrix}$$</div></div>`;
+      }).join('');
+      gdaParamsEl.innerHTML = blocks;
+    }
+
+    // detailed numeric steps
+    const calcP = document.getElementById('calcPriors');
+    if (calcP) calcP.innerHTML = classes.map(c => `P(y=${c})=${params[c].prior.toFixed(3)}`).join(';\\; ');
+
+    // typeset TeX blocks if MathJax is available
+    const typesetEls = [gdaParamsEl, calcP].filter(Boolean);
+    if (typesetEls.length > 0 && window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise(typesetEls).catch(err => console.warn('MathJax typeset failed:', err));
+    } else if (typesetEls.length > 0 && window.MathJax && MathJax.typeset) {
+      try { MathJax.typeset(typesetEls); } catch (e) { console.warn('MathJax typeset failed:', e); }
+    }
+
+    const lines = [];
+    for (const c of classes) {
+      const p = params[c];
+      lines.push(`Class ${c}: μ = [${p.mu.map(v=>v.toFixed(4)).join(', ')}]; Σ = [${p.sigma[0][0].toFixed(4)} ${p.sigma[0][1].toFixed(4)}; ${p.sigma[1][0].toFixed(4)} ${p.sigma[1][1].toFixed(4)}]`);
+    }
+    document.getElementById('calcMuSigma0').textContent = lines.join('\n');
+    document.getElementById('calcMuSigma1').textContent = '';
+
+    render();
+  }
+
   function computeGDAForPoint(x) {
-    if (!gda.fitted) return { p0:0, p1:0, posterior:0.5 };
-    const p0 = mvnPdf(x, gda.mu0, gda.sigma0) * gda.prior0;
-    const p1 = mvnPdf(x, gda.mu1, gda.sigma1) * gda.prior1;
-    const denom = p0 + p1;
-    return { p0, p1, posterior: denom===0 ? 0.5 : p1/denom };
+    if (!gda.fitted) return { classLikelihoods: [], classPosteriors: [], predicted: null };
+    const liks = gda.classes.map(c => mvnPdf(x, gda.params[c].mu, gda.params[c].sigma) * gda.params[c].prior);
+    const s = liks.reduce((a,b)=>a+b,0);
+    const posts = s === 0 ? liks.map(()=>1/liks.length) : liks.map(v=>v/s);
+    const predicted = gda.classes[posts.indexOf(Math.max(...posts))];
+    return { classLikelihoods: liks, classPosteriors: posts, predicted };
   }
 
   function showDetailedCalculationForPoint(x) {
-    // compute both KDE and GDA contributions and show the arithmetic
-    const class0 = data.filter(d=>d.y===0).map(d=>d.x);
-    const class1 = data.filter(d=>d.y===1).map(d=>d.x);
-    const prior0 = class0.length / data.length; const prior1 = class1.length / data.length;
+    // compute per-class KDE and GDA contributions and show the arithmetic
+    const classes = Array.from(new Set(data.map(d=>d.y))).sort((a,b)=> (a < b ? -1 : a > b ? 1 : 0));
+    const classPoints = classes.map(c => data.filter(d=>d.y===c).map(d=>d.x));
+    const priors = classPoints.map(arr => arr.length / data.length);
     const bw = Math.max(0.01, +bandwidthInput.value || 0.6);
-    const kde0 = class0.length ? kdeEstimate(class0, bw) : (()=>0);
-    const kde1 = class1.length ? kdeEstimate(class1, bw) : (()=>0);
-    const k0 = kde0(x); const k1 = kde1(x);
-    const num0 = k0 * prior0; const num1 = k1 * prior1; const den = num0 + num1; const kdePosterior = den===0 ? 0.5 : num1/den;
+    const kdesLocal = classPoints.map(arr => arr.length ? kdeEstimate(arr, bw) : (()=>0));
+    const ks = kdesLocal.map(k=>k(x));
+    const nums = ks.map((k,i)=> k * priors[i]);
+    const den = nums.reduce((a,b)=>a+b,0);
+    const kdePosts = den === 0 ? nums.map(()=>1/nums.length) : nums.map(v=>v/den);
     const g = computeGDAForPoint(x);
 
     const s = [];
@@ -327,36 +486,34 @@ document.addEventListener('DOMContentLoaded', () => {
     s.push(`Bandwidth $h = ${bw}$`);
     s.push('');
     s.push('KDE:');
-    s.push(`Step 1: Estimate class-conditional densities — Use kernel density estimation with ${class0.length} class-0 samples and ${class1.length} class-1 samples.`);
+    s.push(`Step 1: Estimate class-conditional densities — Use kernel density estimation with ${classPoints.map(a=>a.length).join(', ')} samples per class.`);
     s.push(`Formula: $p(x^*|y=k) = \\dfrac{1}{n_k} \\sum_{i=1}^{n_k} K_h(x^* - x_i^{(k)})$ where $K_h$ is a Gaussian kernel with bandwidth $h$.`);
-    s.push(`Result: $p(x^*|y=0) = ${k0.toExponential(4)},\\quad p(x^*|y=1) = ${k1.toExponential(4)}$`);
+    for (let i=0;i<classes.length;i++) s.push(`Class ${classes[i]}: $p(x^*|y=${classes[i]}) = ${ks[i].toExponential(4)}$`);
     s.push('');
-    s.push(`Step 2: Compute weighted numerators — Multiply each density by its class prior to get the unnormalized joint probability.`);
-    s.push(`Formula: $\\mathrm{num}_k = p(y=k) \\cdot p(x^*|y=k)$`);
-    s.push(`$\\mathrm{num}_0 = ${prior0.toFixed(3)} \\times ${k0.toExponential(4)} = ${num0.toExponential(4)}$`);
-    s.push(`$\\mathrm{num}_1 = ${prior1.toFixed(3)} \\times ${k1.toExponential(4)} = ${num1.toExponential(4)}$`);
+    s.push('Step 2: Compute weighted numerators — Multiply each density by its class prior to get the unnormalized joint probability.');
+    for (let i=0;i<classes.length;i++) s.push(`$\\mathrm{num}_{${classes[i]}} = ${priors[i].toFixed(3)} \\times ${ks[i].toExponential(4)} = ${nums[i].toExponential(4)}$`);
     s.push('');
-    s.push(`Step 3: Normalize to get posteriors — Divide each numerator by the sum to get conditional probabilities via Bayes' rule.`);
-    s.push(`Formula: $p(y=k|x^*) = \\dfrac{\\mathrm{num}_k}{\\mathrm{num}_0 + \\mathrm{num}_1}$`);
-    s.push(`$p(y=0|x^*) = \\dfrac{${num0.toExponential(4)}}{${num0.toExponential(4)} + ${num1.toExponential(4)}} = ${(1-kdePosterior).toFixed(6)}$`);
-    s.push(`$p(y=1|x^*) = \\dfrac{${num1.toExponential(4)}}{${num0.toExponential(4)} + ${num1.toExponential(4)}} = ${kdePosterior.toFixed(6)}$`);
+    s.push('Step 3: Normalize to get posteriors — Divide each numerator by the sum to get conditional probabilities via Bayes\' rule.');
+    for (let i=0;i<classes.length;i++) s.push(`$p(y=${classes[i]}|x^*) = \\dfrac{${nums[i].toExponential(4)}}{${nums.map(n=>n.toExponential(4)).join(' + ')}} = ${kdePosts[i].toFixed(6)}$`);
     s.push('');
     s.push('GDA:');
-    s.push(`Step 1: Estimate class-conditional densities — Using the fitted Gaussian parameters.`);
-    s.push(`Class 0: $\\mu_0 = [${gda.mu0.map(v=>v.toFixed(4)).join(', ')}]$, $\\Sigma_0 = \\begin{bmatrix} ${gda.sigma0[0][0].toFixed(4)} & ${gda.sigma0[0][1].toFixed(4)} \\\\ ${gda.sigma0[1][0].toFixed(4)} & ${gda.sigma0[1][1].toFixed(4)} \\end{bmatrix}$`);
-    s.push(`Class 1: $\\mu_1 = [${gda.mu1.map(v=>v.toFixed(4)).join(', ')}]$, $\\Sigma_1 = \\begin{bmatrix} ${gda.sigma1[0][0].toFixed(4)} & ${gda.sigma1[0][1].toFixed(4)} \\\\ ${gda.sigma1[1][0].toFixed(4)} & ${gda.sigma1[1][1].toFixed(4)} \\end{bmatrix}$`);
+    s.push('Step 1: Estimate class-conditional densities — Using the fitted Gaussian parameters.');
+    for (let i=0;i<gda.classes.length;i++) {
+      const c = gda.classes[i];
+      const p = gda.params[c];
+      s.push(`Class ${c}: $\\mu = [${p.mu.map(v=>v.toFixed(4)).join(', ')}]$, $\\Sigma = \\begin{bmatrix} ${p.sigma[0][0].toFixed(4)} & ${p.sigma[0][1].toFixed(4)} \\\\ ${p.sigma[1][0].toFixed(4)} & ${p.sigma[1][1].toFixed(4)} \\end{bmatrix}$`);
+    }
     s.push(`Formula: $p(x^*|y=k) = \\dfrac{1}{2\\pi\\sqrt{|\\Sigma_k|}} \\exp\\left(-\\dfrac{1}{2}(x^* - \\mu_k)^T \\Sigma_k^{-1} (x^* - \\mu_k)\\right)$`);
-    s.push(`Result: $p(x^*|y=0) = ${g.p0.toExponential(4)},\\quad p(x^*|y=1) = ${g.p1.toExponential(4)}$`);
+    for (let i=0;i<gda.classes.length;i++) s.push(`Result class ${gda.classes[i]}: $p(x^*|y=${gda.classes[i]}) = ${g.classLikelihoods[i].toExponential(4)}$`);
     s.push('');
-    s.push(`Step 2: Compute weighted numerators — Multiply each Gaussian density by its class prior.`);
-    s.push(`Formula: $\\mathrm{num}_k = p(y=k) \\cdot p(x^*|y=k)$`);
-    s.push(`$\\mathrm{num}_0 = ${(gda.prior0).toFixed(3)} \\times ${g.p0.toExponential(4)} = ${(g.p0 * gda.prior0).toExponential(4)}$`);
-    s.push(`$\\mathrm{num}_1 = ${(gda.prior1).toFixed(3)} \\times ${g.p1.toExponential(4)} = ${(g.p1 * gda.prior1).toExponential(4)}$`);
+    s.push('Step 2: Compute weighted numerators — Multiply each Gaussian density by its class prior.');
+    for (let i=0;i<gda.classes.length;i++) {
+      const c = gda.classes[i];
+      s.push(`$\\mathrm{num}_{${c}} = ${gda.params[c].prior.toFixed(3)} \\times ${g.classLikelihoods[i].toExponential(4)} = ${(g.classLikelihoods[i] * gda.params[c].prior).toExponential(4)}$`);
+    }
     s.push('');
-    s.push(`Step 3: Normalize to get posteriors — Apply Bayes' rule by dividing by the sum.`);
-    s.push(`Formula: $p(y=k|x^*) = \\dfrac{\\mathrm{num}_k}{\\mathrm{num}_0 + \\mathrm{num}_1}$`);
-    s.push(`$p(y=0|x^*) = \\dfrac{${(g.p0 * gda.prior0).toExponential(4)}}{${(g.p0 * gda.prior0).toExponential(4)} + ${(g.p1 * gda.prior1).toExponential(4)}} = ${(1-g.posterior).toFixed(6)}$`);
-    s.push(`$p(y=1|x^*) = \\dfrac{${(g.p1 * gda.prior1).toExponential(4)}}{${(g.p0 * gda.prior0).toExponential(4)} + ${(g.p1 * gda.prior1).toExponential(4)}} = ${g.posterior.toFixed(6)}$`);
+    s.push('Step 3: Normalize to get posteriors — Apply Bayes\' rule by dividing by the sum.');
+    for (let i=0;i<gda.classes.length;i++) s.push(`$p(y=${gda.classes[i]}|x^*) = ${(g.classPosteriors[i]).toFixed(6)}$`);
 
     document.getElementById('calcPoint').innerHTML = s.map(l=>{
       if (l.startsWith('Step') || l.startsWith('KDE:') || l.startsWith('GDA:')) {
@@ -397,14 +554,14 @@ document.addEventListener('DOMContentLoaded', () => {
       .attr('stroke', color).attr('stroke-width', 1.2).attr('fill','none').attr('opacity',0.9);
   }
 
-  fitGDAButton && fitGDAButton.addEventListener('click', fitGDA);
+  fitGDAButton && fitGDAButton.addEventListener('click', fitGDA_new);
   example1Btn && example1Btn.addEventListener('click', ()=>{
-    if (!gda.fitted) fitGDA();
+    if (!gda.fitted) fitGDA_new();
     const pt = [2,2]; const r = computeGDAForPoint(pt);
     showDetailedCalculationForPoint(pt);
   });
   example2Btn && example2Btn.addEventListener('click', ()=>{
-    if (!gda.fitted) fitGDA();
+    if (!gda.fitted) fitGDA_new();
     const pt = [2,4]; const r = computeGDAForPoint(pt);
     showDetailedCalculationForPoint(pt);
   });
@@ -414,4 +571,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadAndRender(csvInput.value);
 });
-77

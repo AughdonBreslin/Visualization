@@ -21,11 +21,11 @@
 .article .calc-explain { margin-top:10px; }
 
 /* Visuals layout helpers */
-.article .viz-row { display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap; }
-/* .article .viz-panel { flex:1 1 400px; } */
-.article .viz-controls { flex:0 0 260px; min-width:220px; }
+.article .viz-row { display:flex; align-items:flex-start; flex-wrap:wrap; }
+.article .viz-panel { flex:0.5 }
+.article .viz-controls { flex:0.5; min-width:220px; }
 .article .viz-controls .options-group { display:flex; flex-direction:row; gap:8px; }
-.article .viz-controls .bandwidth-row { margin-top:12px; display: flex; flex-direction: row; gap:8px; align-items:center; }
+.article .viz-controls .bandwidth-row { margin-top:12px; display: flex; flex-direction: row; gap:8px; align-items:center; width: fit-content;}
 .article .viz-controls .bandwidth-row .help-text { font-size:0.95rem; opacity:0.9; }
 .article .kde-explain { margin-top:10px; max-width:800px; }
 

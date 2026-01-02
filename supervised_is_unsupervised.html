@@ -42,7 +42,7 @@
             <section class="dataset-panel panel">
                 <h2>Input Dataset</h2>
                 <p>Paste a CSV of points $x$ and their class $y$ following ($x_1,x_2,y$) where $x_1, x_2 \in \mathbb{R}$, and $y \in \{0, 1\}$. Type in your input data or use the preloaded example.</p>
-                <textarea id="csvInput" rows="6">x1,x2,y
+                <textarea id="csvInput" rows="10">x1,x2,y
 1,2,0
 2,1,0
 1.5,1.8,0
@@ -51,6 +51,17 @@
 5,4,1
 4.5,5,1
 5,5,1
+11,2,2
+12,1,2
+11.5,1.8,2
+12,2,2
+14,4,3
+15,4,3
+14.5,5,3
+15,5,3
+3,7,4
+3.5,9,4
+2,6,4
 </textarea>
 
                 <div class="dataset-controls">
@@ -104,7 +115,6 @@
                     <div id="sigma0"></div>
                     <div id="sigma1"></div>
                 </div>
-                <!-- </div> -->
 
             </section>
 
@@ -129,8 +139,16 @@
                             <label for="bandwidth">Bandwidth:</label>
                             <input id="bandwidth" type="number" step="0.1" min="0.01" value="0.6" />
                         </div>
+
+
+
                         <p>Bandwidth $h$ controls kernel width: smaller → more detail; larger → smoother.
                         </p>
+                        <!-- Legend area: populated dynamically with class swatches and counts -->
+                        <div class="legend-area" style="margin-top:8px;">
+                            <h4 style="margin:4px 0 6px 0;">Legend</h4>
+                            <div id="classLegend" class="class-legend">No classes loaded</div>
+                        </div>
                     </aside>
                 </div>
 
