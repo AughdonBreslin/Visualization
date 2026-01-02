@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (gdaParamsEl) gdaParamsEl.innerHTML = '<div>Fitted parameters will appear here</div>';
       const calcP = document.getElementById('calcPriors'); if (calcP) calcP.textContent = 'Priors: —';
       const cm0 = document.getElementById('calcMuSigma0'); if (cm0) cm0.textContent = 'Class k: μ_k = — ; Σ_k = —';
-      const cm1 = document.getElementById('calcMuSigma1'); if (cm1) cm1.textContent = '';
       const cp = document.getElementById('calcPoint'); if (cp) cp.textContent = 'No point computed yet.';
       // reset GDA fit state
       gda.fitted = false; gda.classes = []; gda.params = {};
@@ -406,7 +405,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // update detailed numeric steps area
     // calcPriors set as TeX and typeset above
     document.getElementById('calcMuSigma0').textContent = `Class 0: μ0 = [${gda.mu0.map(v=>v.toFixed(4)).join(', ')}]; Σ0 = [${gda.sigma0[0][0].toFixed(4)} ${gda.sigma0[0][1].toFixed(4)}; ${gda.sigma0[1][0].toFixed(4)} ${gda.sigma0[1][1].toFixed(4)}]`;
-    document.getElementById('calcMuSigma1').textContent = `Class 1: μ1 = [${gda.mu1.map(v=>v.toFixed(4)).join(', ')}]; Σ1 = [${gda.sigma1[0][0].toFixed(4)} ${gda.sigma1[0][1].toFixed(4)}; ${gda.sigma1[1][0].toFixed(4)} ${gda.sigma1[1][1].toFixed(4)}]`;
     render();
   }
 
@@ -438,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // detailed numeric steps
     const calcP = document.getElementById('calcPriors');
-    if (calcP) calcP.innerHTML = classes.map(c => `P(y=${c})=${params[c].prior.toFixed(3)}`).join(';\\; ');
+    if (calcP) calcP.innerHTML = `<h3>Priors</h3>` + classes.map(c => `P(y=${c})=${params[c].prior.toFixed(3)}`).join('\; ');
 
     // typeset TeX blocks if MathJax is available
     const typesetEls = [gdaParamsEl, calcP].filter(Boolean);
@@ -448,13 +446,12 @@ document.addEventListener('DOMContentLoaded', () => {
       try { MathJax.typeset(typesetEls); } catch (e) { console.warn('MathJax typeset failed:', e); }
     }
 
-    const lines = [];
+    const lines = [`<h3>Gaussian Parameters</h3>`];
     for (const c of classes) {
       const p = params[c];
-      lines.push(`Class ${c}: μ = [${p.mu.map(v=>v.toFixed(4)).join(', ')}]; Σ = [${p.sigma[0][0].toFixed(4)} ${p.sigma[0][1].toFixed(4)}; ${p.sigma[1][0].toFixed(4)} ${p.sigma[1][1].toFixed(4)}]`);
+      lines.push(`<p>Class ${c}: μ = [${p.mu.map(v=>v.toFixed(4)).join(', ')}]; Σ = [${p.sigma[0][0].toFixed(4)} ${p.sigma[0][1].toFixed(4)}; ${p.sigma[1][0].toFixed(4)} ${p.sigma[1][1].toFixed(4)}]</p>`);
     }
-    document.getElementById('calcMuSigma0').textContent = lines.join('\n');
-    document.getElementById('calcMuSigma1').textContent = '';
+    document.getElementById('calcMuSigma0').innerHTML = lines.join('');
 
     render();
   }
