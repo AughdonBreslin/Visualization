@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // update detailed numeric steps area
     // calcPriors set as TeX and typeset above
-    document.getElementById('calcMuSigma0').textContent = `Class 0: μ0 = [${gda.mu0.map(v=>v.toFixed(4)).join(', ')}]; Σ0 = [${gda.sigma0[0][0].toFixed(4)} ${gda.sigma0[0][1].toFixed(4)}; ${gda.sigma0[1][0].toFixed(4)} ${gda.sigma0[1][1].toFixed(4)}]`;
+    document.getElementById('calcMuSigma0').textContent = `Class 0: μ0 = [${gda.mu0.map(v=>v.toFixed(3)).join(', ')}]; Σ0 = [${gda.sigma0[0][0].toFixed(3)} ${gda.sigma0[0][1].toFixed(3)}; ${gda.sigma0[1][0].toFixed(3)} ${gda.sigma0[1][1].toFixed(3)}]`;
     render();
   }
 
@@ -459,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const lines = [`<h3>Gaussian Parameters</h3>`];
     for (const c of classes) {
       const p = params[c];
-      lines.push(`<p>Class ${c}: μ = [${p.mu.map(v=>v.toFixed(4)).join(', ')}]; Σ = [${p.sigma[0][0].toFixed(4)} ${p.sigma[0][1].toFixed(4)}; ${p.sigma[1][0].toFixed(4)} ${p.sigma[1][1].toFixed(4)}]</p>`);
+      lines.push(`<p>Class ${c}: μ = [${p.mu.map(v=>v.toFixed(3)).join(', ')}]; Σ = [${p.sigma[0][0].toFixed(3)} ${p.sigma[0][1].toFixed(3)}; ${p.sigma[1][0].toFixed(3)} ${p.sigma[1][1].toFixed(3)}]</p>`);
     }
     document.getElementById('calcMuSigma0').innerHTML = lines.join('');
 
@@ -508,7 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const g = computeGDAForPoint(x);
 
     const s = [];
-    s.push(`Query point $x^* = (${x[0].toFixed(4)}, ${x[1].toFixed(4)})$`);
+    s.push(`Query point $x^* = (${x[0].toFixed(3)}, ${x[1].toFixed(3)})$`);
     s.push(`Bandwidth $h = ${bw}$`);
     s.push('');
     s.push('KDE:');
@@ -524,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
       s.push(`KDE Class ${classes[i]}`);
 
       s.push(`Samples: $n_k = ${n}$`);
-      s.push(`Constant: $\\dfrac{1}{2\\pi h^2} = ${norm.toExponential(4)}$`);
+      s.push(`Constant: $\\dfrac{1}{2\\pi h^2} = ${norm.toExponential(2)}$`);
 
       // Show a few representative terms so the UI doesn't explode on big datasets.
       const maxTerms = 6;
@@ -537,26 +537,26 @@ document.addEventListener('DOMContentLoaded', () => {
         sumK += kTerm;
 
         if (j < maxTerms) {
-          s.push(`Point ${j+1}: $x_i=(${pts[j][0].toFixed(4)},${pts[j][1].toFixed(4)})$, $\\|x^*-x_i\\|^2=${r2.toFixed(6)}$, $\\exp\\left(-\\frac{\\|x^*-x_i\\|^2}{2h^2}\\right)=${kTerm.toExponential(4)}$`);
+          s.push(`Point ${j+1}: $x_i=(${pts[j][0]},${pts[j][1]})$, $\\|x^*-x_i\\|^2=${r2.toFixed(3)}$, $\\exp\\left(-\\frac{\\|x^*-x_i\\|^2}{2h^2}\\right)=${kTerm.toExponential(2)}$`);
         }
       }
 
       if (n > maxTerms) s.push(`(… ${n - maxTerms} more points omitted …)`);
 
       const density = norm * (sumK / n);
-      s.push(`Sum: $\\sum_i \\exp\\left(-\\frac{\\|x^*-x_i\\|^2}{2h^2}\\right) = ${sumK.toExponential(4)}$`);
-      s.push(`Plug in: $p(x^*|y=${classes[i]}) = ${norm.toExponential(4)} \\times \\frac{${sumK.toExponential(4)}}{${n}} = ${density.toExponential(4)}$`);
+      s.push(`Sum: $\\sum_i \\exp\\left(-\\frac{\\|x^*-x_i\\|^2}{2h^2}\\right) = ${sumK.toExponential(2)}$`);
+      s.push(`Plug in: $p(x^*|y=${classes[i]}) = ${norm.toExponential(2)} \\times \\frac{${sumK.toExponential(2)}}{${n}} = ${density.toExponential(2)}$`);
     }
     s.push('');
     s.push('Step 2: Compute joint probabilities — $p(x^*,y=k)=p(y=k)p(x^*|y=k)$.');
     for (let i=0;i<classes.length;i++) {
-      s.push(`$p(x^*,y=${classes[i]}) = ${priors[i].toFixed(3)} \\times ${ks[i].toExponential(4)} = ${nums[i].toExponential(4)}$`);
+      s.push(`$p(x^*,y=${classes[i]}) = ${priors[i].toFixed(3)} \\times ${ks[i].toExponential(2)} = ${nums[i].toExponential(2)}$`);
     }
     s.push('');
     s.push('Step 3: Compute posteriors — $p(y=k|x^*) = \\dfrac{p(x^*,y=k)}{p(x^*)}$ where $p(x^*) = \\sum_j p(x^*,y=j)$.');
-    s.push(`$p(x^*) = ${nums.map(n=>n.toExponential(4)).join(' + ')} = ${den.toExponential(4)}$`);
+    s.push(`$p(x^*) = ${nums.map(n=>n.toExponential(2)).join(' + ')} = ${den.toExponential(2)}$`);
     for (let i=0;i<classes.length;i++) {
-      s.push(`$p(y=${classes[i]}|x^*) = \\frac{p(x^*,y=${classes[i]})}{p(x^*)} = \\frac{${nums[i].toExponential(4)}}{${den.toExponential(4)}} = ${kdePosts[i].toFixed(6)}$`);
+      s.push(`$p(y=${classes[i]}|x^*) = \\frac{p(x^*,y=${classes[i]})}{p(x^*)} = \\frac{${nums[i].toExponential(2)}}{${den.toExponential(2)}} = ${kdePosts[i].toFixed(3)}$`);
     }
     s.push('');
     s.push('GDA:');
@@ -582,28 +582,28 @@ document.addEventListener('DOMContentLoaded', () => {
       const norm = (!inv || det <= 0) ? 0 : (1 / (2 * Math.PI * Math.sqrt(det)));
       const plugged = (!inv || det <= 0) ? 0 : (norm * Math.exp(-0.5 * q));
 
-      s.push(`$\\mu = [${mu.map(v=>v.toFixed(4)).join(', ')}]$, $\\Sigma = \\begin{bmatrix} ${sigma[0][0].toFixed(4)} & ${sigma[0][1].toFixed(4)} \\\\ ${sigma[1][0].toFixed(4)} & ${sigma[1][1].toFixed(4)} \\end{bmatrix}$`);
-      s.push(`Compute: $x^* - \\mu = [${dx.map(v=>v.toFixed(4)).join(', ')}]$`);
+      s.push(`$\\mu = [${mu.map(v=>v.toFixed(3)).join(', ')}]$, $\\Sigma = \\begin{bmatrix} ${sigma[0][0].toFixed(3)} & ${sigma[0][1].toFixed(3)} \\\\ ${sigma[1][0].toFixed(3)} & ${sigma[1][1].toFixed(3)} \\end{bmatrix}$`);
+      s.push(`Compute: $x^* - \\mu = [${dx.map(v=>v.toFixed(3)).join(', ')}]$`);
       if (!inv || det <= 0) {
         s.push(`Compute: $|\\Sigma| \\le 0$ or not invertible (numerically); using density $0$.`);
       } else {
-        s.push(`Compute: $|\\Sigma| = ${det.toExponential(4)}$, $\\Sigma^{-1} = \\begin{bmatrix} ${inv[0][0].toFixed(4)} & ${inv[0][1].toFixed(4)} \\\\ ${inv[1][0].toFixed(4)} & ${inv[1][1].toFixed(4)} \\end{bmatrix}$`);
-        s.push(`Compute: $(x^* - \\mu)^T\\Sigma^{-1}(x^* - \\mu) = ${q.toFixed(6)}$`);
-        s.push(`Plug in: $p(x^*|y=${c}) = \\frac{1}{2\\pi\\sqrt{${det.toExponential(4)}}}\\exp\\left(-\\frac{1}{2}\\cdot ${q.toFixed(6)}\\right) = ${plugged.toExponential(4)}$`);
+        s.push(`Compute: $|\\Sigma| = ${det.toExponential(2)}$, $\\Sigma^{-1} = \\begin{bmatrix} ${inv[0][0].toFixed(3)} & ${inv[0][1].toFixed(3)} \\\\ ${inv[1][0].toFixed(3)} & ${inv[1][1].toFixed(3)} \\end{bmatrix}$`);
+        s.push(`Compute: $(x^* - \\mu)^T\\Sigma^{-1}(x^* - \\mu) = ${q.toFixed(3)}$`);
+        s.push(`Plug in: $p(x^*|y=${c}) = \\frac{1}{2\\pi\\sqrt{${det.toExponential(2)}}}\\exp\\left(-\\frac{1}{2}\\cdot ${q.toFixed(3)}\\right) = ${plugged.toExponential(2)}$`);
       }
     }
     s.push('');
     s.push('Step 2: Compute joint probabilities — $p(x^*,y=k)=p(y=k)p(x^*|y=k)$.');
     for (let i=0;i<gda.classes.length;i++) {
       const c = gda.classes[i];
-      s.push(`$p(x^*,y=${c}) = ${gda.params[c].prior.toFixed(3)} \\times ${g.classLikelihoods[i].toExponential(4)} = ${g.weightedNumerators[i].toExponential(4)}$`);
+      s.push(`$p(x^*,y=${c}) = ${gda.params[c].prior.toFixed(3)} \\times ${g.classLikelihoods[i].toExponential(2)} = ${g.weightedNumerators[i].toExponential(2)}$`);
     }
     s.push('');
     s.push('Step 3: Compute posteriors — $p(y=k|x^*) = \\dfrac{p(x^*,y=k)}{p(x^*)}$ where $p(x^*) = \\sum_j p(x^*,y=j)$.');
-    s.push(`$p(x^*) = ${g.weightedNumerators.map(n=>n.toExponential(4)).join(' + ')} = ${g.denominator.toExponential(4)}$`);
+    s.push(`$p(x^*) = ${g.weightedNumerators.map(n=>n.toExponential(2)).join(' + ')} = ${g.denominator.toExponential(2)}$`);
     for (let i=0;i<gda.classes.length;i++) {
       const c = gda.classes[i];
-      s.push(`$p(y=${c}|x^*) = \\frac{p(x^*,y=${c})}{p(x^*)} = \\frac{${g.weightedNumerators[i].toExponential(4)}}{${g.denominator.toExponential(4)}} = ${(g.classPosteriors[i]).toFixed(6)}$`);
+      s.push(`$p(y=${c}|x^*) = \\frac{p(x^*,y=${c})}{p(x^*)} = \\frac{${g.weightedNumerators[i].toExponential(2)}}{${g.denominator.toExponential(2)}} = ${(g.classPosteriors[i]).toFixed(3)}$`);
     }
 
     document.getElementById('calcPoint').innerHTML = s.map(l=>{
@@ -651,12 +651,12 @@ document.addEventListener('DOMContentLoaded', () => {
   fitGDAButton && fitGDAButton.addEventListener('click', fitGDA_new);
   example1Btn && example1Btn.addEventListener('click', ()=>{
     if (!gda.fitted) fitGDA_new();
-    const pt = [2,2]; const r = computeGDAForPoint(pt);
+    const pt = [75,89.5]; const r = computeGDAForPoint(pt);
     showDetailedCalculationForPoint(pt);
   });
   example2Btn && example2Btn.addEventListener('click', ()=>{
     if (!gda.fitted) fitGDA_new();
-    const pt = [2,4]; const r = computeGDAForPoint(pt);
+    const pt = [83,83]; const r = computeGDAForPoint(pt);
     showDetailedCalculationForPoint(pt);
   });
 
