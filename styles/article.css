@@ -55,9 +55,20 @@
 /* Posterior Computation Formatting */
 .article .posterior-panel .examples button { margin-top: 12px }
 .article .posterior-panel .formula { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; margin: 10px 0; border-left: 3px solid rgba(255,255,255,0.3); }
-.article #calcSteps { display: grid; gap: 12px; }
-.article #calcSteps > div { background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 6px; border-left: 2px solid rgba(255,255,255,0.2); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size: 0.9rem; }
-.article #calcSteps > div:nth-child(1), .article #calcSteps > div:nth-child(2), .article #calcSteps > div:nth-child(3) { background: rgba(255,255,255,0.01); }
-.article #calcSteps > div:nth-child(4) { background: rgba(255,255,255,0.02); }
-
+.article #calcQueryPoint,
+.article #calcPriors,
+.article #calcMuSigma0,
+.article #calcPointKDE,
+.article #calcPointGDA {
+	background: rgba(255,255,255,0.03);
+	padding: 8px 12px;
+	border-radius: 6px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+	font-size: 0.9rem;
+	margin-top: 12px;
+}
+.article #calcQueryPoint { margin-top: 12px; }
+.article .calc-step-subheader { margin-top: 8px; font-size: 1rem;}
+.article .calc-step-content { margin-top: 2px; }
+.article .calc-step-end { padding-bottom: 2px; border-bottom: 2px solid rgba(255, 255, 255, 0.1)}
 @media (max-width: 900px) { .article .article-body { grid-template-columns: 1fr; } .article .viz-row { flex-direction: column; } }

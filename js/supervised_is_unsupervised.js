@@ -40,9 +40,16 @@ document.addEventListener('DOMContentLoaded', () => {
       gda.fitted = false;
       // clear previous GDA placeholders and dynamic class UI
       if (gdaParamsEl) gdaParamsEl.innerHTML = '<div>Fitted parameters will appear here</div>';
+      const cq = document.getElementById('calcQueryPoint');
       const calcP = document.getElementById('calcPriors'); if (calcP) calcP.textContent = 'Priors: —';
       const cm0 = document.getElementById('calcMuSigma0'); if (cm0) cm0.textContent = 'Class k: μ_k = — ; Σ_k = —';
-      const cp = document.getElementById('calcPoint'); if (cp) cp.textContent = 'No point computed yet.';
+      const cpKDE = document.getElementById('calcPointKDE');
+      const cpGDA = document.getElementById('calcPointGDA');
+      const cpLegacy = document.getElementById('calcPoint');
+      if (cq) cq.textContent = 'No point computed yet.';
+      if (cpKDE) cpKDE.textContent = 'No point computed yet.';
+      if (cpGDA) cpGDA.textContent = 'No point computed yet.';
+      if (cpLegacy && !cpKDE && !cpGDA) cpLegacy.textContent = 'No point computed yet.';
       // reset GDA fit state
       gda.fitted = false; gda.classes = []; gda.params = {};
       render();
@@ -507,24 +514,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const kdePosts = kde.classPosteriors;
     const g = computeGDAForPoint(x);
 
-    const s = [];
-    s.push(`Query point $x^* = (${x[0].toFixed(3)}, ${x[1].toFixed(3)})$`);
-    s.push(`Bandwidth $h = ${bw}$`);
-    s.push('');
-    s.push('KDE:');
-    s.push(`Step 1: Estimate class-conditional densities — Use kernel density estimation with ${classPoints.map(a=>a.length).join(', ')} samples per class.`);
-    s.push(`Formula: $p(x^*|y=k) = \\dfrac{1}{n_k} \\sum_{i=1}^{n_k} K_h(x^* - x_i^{(k)})$ where $K_h$ is a Gaussian kernel with bandwidth $h$.`);
-    s.push(`Gaussian kernel (2D): $K_h(u)=\\dfrac{1}{2\\pi h^2}\\exp\\left(-\\dfrac{\\|u\\|^2}{2h^2}\\right)$.`);
+    const queryLines = [];
+    queryLines.push(`Query point $x^* = (${x[0].toFixed(3)}, ${x[1].toFixed(3)})$`);
+    queryLines.push(`Bandwidth $h = ${bw}$`);
+
+    const sKDE = [];
+    sKDE.push('KDE:');
+    sKDE.push(`Step 1: Estimate class-conditional densities — Use kernel density estimation with ${classPoints.map(a=>a.length).join(', ')} samples per class.`);
+    sKDE.push(`Formula: $p(x^*|y=k) = \\dfrac{1}{n_k} \\sum_{i=1}^{n_k} K_h(x^* - x_i^{(k)})$ where $K_h$ is a Gaussian kernel with bandwidth $h$.`);
+    sKDE.push(`Gaussian kernel (2D): $K_h(u)=\\dfrac{1}{2\\pi h^2}\\exp\\left(-\\dfrac{\\|u\\|^2}{2h^2}\\right)$.`);
     for (let i=0;i<classes.length;i++) {
       const pts = classPoints[i];
       const n = pts.length;
       const norm = 1 / (2 * Math.PI * bw * bw);
       const invTwoH2 = 1 / (2 * bw * bw);
 
-      s.push(`KDE Class ${classes[i]}`);
+      sKDE.push(`Class ${classes[i]}`);
 
-      s.push(`Samples: $n_k = ${n}$`);
-      s.push(`Constant: $\\dfrac{1}{2\\pi h^2} = ${norm.toExponential(2)}$`);
+      sKDE.push(`Samples: $n_k = ${n}$`);
+      sKDE.push(`Constant: $\\dfrac{1}{2\\pi h^2} = ${norm.toExponential(2)}$`);
 
       // Show a few representative terms so the UI doesn't explode on big datasets.
       const maxTerms = 6;
@@ -537,38 +545,39 @@ document.addEventListener('DOMContentLoaded', () => {
         sumK += kTerm;
 
         if (j < maxTerms) {
-          s.push(`Point ${j+1}: $x_i=(${pts[j][0]},${pts[j][1]})$, $\\|x^*-x_i\\|^2=${r2.toFixed(3)}$, $\\exp\\left(-\\frac{\\|x^*-x_i\\|^2}{2h^2}\\right)=${kTerm.toExponential(2)}$`);
+          sKDE.push(`Point ${j+1}: $x_i=(${pts[j][0]},${pts[j][1]})$, $\\|x^*-x_i\\|^2=${r2.toFixed(3)}$, $\\exp\\left(-\\frac{\\|x^*-x_i\\|^2}{2h^2}\\right)=${kTerm.toExponential(2)}$`);
         }
       }
 
-      if (n > maxTerms) s.push(`(… ${n - maxTerms} more points omitted …)`);
+      if (n > maxTerms) sKDE.push(`(… ${n - maxTerms} more points omitted …)`);
 
       const density = norm * (sumK / n);
-      s.push(`Sum: $\\sum_i \\exp\\left(-\\frac{\\|x^*-x_i\\|^2}{2h^2}\\right) = ${sumK.toExponential(2)}$`);
-      s.push(`Plug in: $p(x^*|y=${classes[i]}) = ${norm.toExponential(2)} \\times \\frac{${sumK.toExponential(2)}}{${n}} = ${density.toExponential(2)}$`);
+      sKDE.push(`Sum: $\\sum_i \\exp\\left(-\\frac{\\|x^*-x_i\\|^2}{2h^2}\\right) = ${sumK.toExponential(2)}$`);
+      sKDE.push(`Plug in: $p(x^*|y=${classes[i]}) = ${norm.toExponential(2)} \\times \\frac{${sumK.toExponential(2)}}{${n}} = ${density.toExponential(2)}$`);
     }
-    s.push('');
-    s.push('Step 2: Compute joint probabilities — $p(x^*,y=k)=p(y=k)p(x^*|y=k)$.');
+    sKDE.push('');
+    sKDE.push('Step 2: Compute joint probabilities — $p(x^*,y=k)=p(y=k)p(x^*|y=k)$.');
     for (let i=0;i<classes.length;i++) {
-      s.push(`$p(x^*,y=${classes[i]}) = ${priors[i].toFixed(3)} \\times ${ks[i].toExponential(2)} = ${nums[i].toExponential(2)}$`);
+      sKDE.push(`$p(x^*,y=${classes[i]}) = ${priors[i].toFixed(3)} \\times ${ks[i].toExponential(2)} = ${nums[i].toExponential(2)}$`);
     }
-    s.push('');
-    s.push('Step 3: Compute posteriors — $p(y=k|x^*) = \\dfrac{p(x^*,y=k)}{p(x^*)}$ where $p(x^*) = \\sum_j p(x^*,y=j)$.');
-    s.push(`$p(x^*) = ${nums.map(n=>n.toExponential(2)).join(' + ')} = ${den.toExponential(2)}$`);
+    sKDE.push('');
+    sKDE.push('Step 3: Compute posteriors — $p(y=k|x^*) = \\dfrac{p(x^*,y=k)}{p(x^*)}$ where $p(x^*) = \\sum_k p(x^*,y=k)$.');
+    sKDE.push(`$p(x^*) = ${nums.map(n=>n.toExponential(2)).join(' + ')} = ${den.toExponential(2)}$`);
     for (let i=0;i<classes.length;i++) {
-      s.push(`$p(y=${classes[i]}|x^*) = \\frac{p(x^*,y=${classes[i]})}{p(x^*)} = \\frac{${nums[i].toExponential(2)}}{${den.toExponential(2)}} = ${kdePosts[i].toFixed(3)}$`);
+      sKDE.push(`$p(y=${classes[i]}|x^*) = \\frac{p(x^*,y=${classes[i]})}{p(x^*)} = \\frac{${nums[i].toExponential(2)}}{${den.toExponential(2)}} = ${kdePosts[i].toFixed(3)}$`);
     }
-    s.push('');
-    s.push('GDA:');
-    s.push('Step 1: Estimate class-conditional densities — Using the fitted Gaussian parameters.');
-    s.push(`Formula: $p(x^*|y=k) = \\frac{1}{2\\pi\\sqrt{|\\Sigma_k|}} \\exp\\left(-\\frac{1}{2}(x^* - \\mu_k)^T \\Sigma_k^{-1} (x^* - \\mu_k)\\right)$`);
+
+    const sGDA = [];
+    sGDA.push('GDA:');
+    sGDA.push('Step 1: Estimate class-conditional densities — Using the fitted Gaussian parameters.');
+    sGDA.push(`Formula: $p(x^*|y=k) = \\frac{1}{2\\pi\\sqrt{|\\Sigma_k|}} \\exp\\left(-\\frac{1}{2}(x^* - \\mu_k)^T \\Sigma_k^{-1} (x^* - \\mu_k)\\right)$`);
     for (let i=0;i<gda.classes.length;i++) {
       const c = gda.classes[i];
       const p = gda.params[c];
       const mu = p.mu;
       const sigma = p.sigma;
 
-      s.push(`GDA Class ${c}`);
+      sGDA.push(`Class ${c}`);
 
       // Match mvnPdf()'s numerical stabilization so the displayed arithmetic matches the computed value.
       const eps = 1e-6;
@@ -582,43 +591,67 @@ document.addEventListener('DOMContentLoaded', () => {
       const norm = (!inv || det <= 0) ? 0 : (1 / (2 * Math.PI * Math.sqrt(det)));
       const plugged = (!inv || det <= 0) ? 0 : (norm * Math.exp(-0.5 * q));
 
-      s.push(`$\\mu = [${mu.map(v=>v.toFixed(3)).join(', ')}]$, $\\Sigma = \\begin{bmatrix} ${sigma[0][0].toFixed(3)} & ${sigma[0][1].toFixed(3)} \\\\ ${sigma[1][0].toFixed(3)} & ${sigma[1][1].toFixed(3)} \\end{bmatrix}$`);
-      s.push(`$x^* - \\mu = [${dx.map(v=>v.toFixed(3)).join(', ')}]$`);
+      sGDA.push(`$\\mu = [${mu.map(v=>v.toFixed(3)).join(', ')}]$, $\\Sigma = \\begin{bmatrix} ${sigma[0][0].toFixed(3)} & ${sigma[0][1].toFixed(3)} \\\\ ${sigma[1][0].toFixed(3)} & ${sigma[1][1].toFixed(3)} \\end{bmatrix}$`);
+      sGDA.push(`$x^* - \\mu = [${dx.map(v=>v.toFixed(3)).join(', ')}]$`);
       if (!inv || det <= 0) {
-        s.push(`$|\\Sigma| \\le 0$ or not invertible (numerically); using density $0$.`);
+        sGDA.push(`$|\\Sigma| \\le 0$ or not invertible (numerically); using density $0$.`);
       } else {
-        s.push(`$|\\Sigma| = ${det.toExponential(2)}$, $\\Sigma^{-1} = \\begin{bmatrix} ${inv[0][0].toFixed(3)} & ${inv[0][1].toFixed(3)} \\\\ ${inv[1][0].toFixed(3)} & ${inv[1][1].toFixed(3)} \\end{bmatrix}$`);
-        s.push(`$(x^* - \\mu)^T\\Sigma^{-1}(x^* - \\mu) = ${q.toFixed(3)}$`);
-        s.push(`Plug in: $p(x^*|y=${c}) = \\frac{1}{2\\pi\\sqrt{${det.toExponential(2)}}}\\exp\\left(-\\frac{1}{2}\\cdot ${q.toFixed(3)}\\right) = ${plugged.toExponential(2)}$`);
+        sGDA.push(`$|\\Sigma| = ${det.toExponential(2)}$, $\\Sigma^{-1} = \\begin{bmatrix} ${inv[0][0].toFixed(3)} & ${inv[0][1].toFixed(3)} \\\\ ${inv[1][0].toFixed(3)} & ${inv[1][1].toFixed(3)} \\end{bmatrix}$`);
+        sGDA.push(`$(x^* - \\mu)^T\\Sigma^{-1}(x^* - \\mu) = ${q.toFixed(3)}$`);
+        sGDA.push(`Plug in: $p(x^*|y=${c}) = \\frac{1}{2\\pi\\sqrt{${det.toExponential(2)}}}\\exp\\left(-\\frac{1}{2}\\cdot ${q.toFixed(3)}\\right) = ${plugged.toExponential(2)}$`);
       }
     }
-    s.push('');
-    s.push('Step 2: Compute joint probabilities — $p(x^*,y=k)=p(y=k)p(x^*|y=k)$.');
+    sGDA.push('');
+    sGDA.push('Step 2: Compute joint probabilities — $p(x^*,y=k)=p(y=k)p(x^*|y=k)$.');
     for (let i=0;i<gda.classes.length;i++) {
       const c = gda.classes[i];
-      s.push(`$p(x^*,y=${c}) = ${gda.params[c].prior.toFixed(3)} \\times ${g.classLikelihoods[i].toExponential(2)} = ${g.weightedNumerators[i].toExponential(2)}$`);
+      sGDA.push(`$p(x^*,y=${c}) = ${gda.params[c].prior.toFixed(3)} \\times ${g.classLikelihoods[i].toExponential(2)} = ${g.weightedNumerators[i].toExponential(2)}$`);
     }
-    s.push('');
-    s.push('Step 3: Compute posteriors — $p(y=k|x^*) = \\dfrac{p(x^*,y=k)}{p(x^*)}$ where $p(x^*) = \\sum_j p(x^*,y=j)$.');
-    s.push(`$p(x^*) = ${g.weightedNumerators.map(n=>n.toExponential(2)).join(' + ')} = ${g.denominator.toExponential(2)}$`);
+    sGDA.push('');
+    sGDA.push('Step 3: Compute posteriors — $p(y=k|x^*) = \\dfrac{p(x^*,y=k)}{p(x^*)}$ where $p(x^*) = \\sum_k p(x^*,y=k)$.');
+    sGDA.push(`$p(x^*) = ${g.weightedNumerators.map(n=>n.toExponential(2)).join(' + ')} = ${g.denominator.toExponential(2)}$`);
     for (let i=0;i<gda.classes.length;i++) {
       const c = gda.classes[i];
-      s.push(`$p(y=${c}|x^*) = \\frac{p(x^*,y=${c})}{p(x^*)} = \\frac{${g.weightedNumerators[i].toExponential(2)}}{${g.denominator.toExponential(2)}} = ${(g.classPosteriors[i]).toFixed(3)}$`);
+      sGDA.push(`$p(y=${c}|x^*) = \\frac{p(x^*,y=${c})}{p(x^*)} = \\frac{${g.weightedNumerators[i].toExponential(2)}}{${g.denominator.toExponential(2)}} = ${(g.classPosteriors[i]).toFixed(3)}$`);
     }
 
-    document.getElementById('calcPoint').innerHTML = s.map(l=>{
-      if (l.startsWith('Step') || l.startsWith('KDE:') || l.startsWith('GDA:') || l.startsWith('GDA Class ') || l.startsWith('KDE Class ')) {
-        let label = l;
-        if (l.startsWith('GDA Class ')) label = l.replace(/^GDA Class /, 'Class ');
-        if (l.startsWith('KDE Class ')) label = l.replace(/^KDE Class /, 'Class ');
-        return `<div style="font-weight: bold; margin-top: 8px;">${label.replace(/\*\*/g, '')}</div>`;
+    const renderLines = (lines) => lines.map(l=>{
+      if (l.startsWith('KDE:') || l.startsWith('GDA:')) {
+        return `<h3 class="calc-step-header">${l}</h3>`;
       }
-      return `<div>${l}</div>`;
+      if (l.startsWith('Step')) {
+        return `<h4 class="calc-step-subheader">${l}</h4>`;
+      }
+      if (l.startsWith('Class ')) {
+        return `<h5 class="calc-step-subheader">${l}</h5>`;
+      }
+      if (l.startsWith('Plug')) {
+        return `<div class="calc-step-end">${l}</div>`;
+      }
+      return `<div class="calc-step-content">${l}</div>`;
     }).join('');
-    if (window.MathJax && MathJax.typesetPromise) {
-      MathJax.typesetPromise([document.getElementById('calcPoint')]).catch(err => console.warn('MathJax typeset failed:', err));
-    } else if (window.MathJax && MathJax.typeset) {
-      try { MathJax.typeset([document.getElementById('calcPoint')]); } catch (e) { console.warn('MathJax typeset failed:', e); }
+
+    const calcPointKDEEl = document.getElementById('calcPointKDE');
+    const calcPointGDAEl = document.getElementById('calcPointGDA');
+    const calcPointLegacyEl = document.getElementById('calcPoint');
+    const calcQueryPointEl = document.getElementById('calcQueryPoint');
+
+    if (calcQueryPointEl) {
+      calcQueryPointEl.innerHTML = renderLines(queryLines);
+    }
+
+    if (calcPointKDEEl) calcPointKDEEl.innerHTML = renderLines(sKDE);
+    if (calcPointGDAEl) calcPointGDAEl.innerHTML = renderLines(sGDA);
+    if (!calcPointKDEEl && !calcPointGDAEl && calcPointLegacyEl) {
+      // Back-compat for older HTML: include query point at the top if there's no dedicated container.
+      calcPointLegacyEl.innerHTML = renderLines(queryLines.concat([''], sKDE, [''], sGDA));
+    }
+
+    const typesetTargets = [calcQueryPointEl, calcPointKDEEl, calcPointGDAEl, calcPointLegacyEl].filter(Boolean);
+    if (typesetTargets.length > 0 && window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise(typesetTargets).catch(err => console.warn('MathJax typeset failed:', err));
+    } else if (typesetTargets.length > 0 && window.MathJax && MathJax.typeset) {
+      try { MathJax.typeset(typesetTargets); } catch (e) { console.warn('MathJax typeset failed:', e); }
     }
   }
 
