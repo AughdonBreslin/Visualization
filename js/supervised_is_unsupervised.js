@@ -91,6 +91,22 @@ document.addEventListener('DOMContentLoaded', () => {
     return { xs, ys, grid, nx, ny };
   }
 
+  function computeKDEForPoint(x, classes, kdes, priors) {
+    // Mirrors computeGDAForPoint(): likelihoods -> joint numerators -> normalized posteriors
+    const likelihoods = classes.map((_, i) => kdes[i](x));
+    const numerators = likelihoods.map((l, i) => l * priors[i]);
+    const denom = numerators.reduce((a, b) => a + b, 0);
+    const posts = denom === 0 ? numerators.map(() => 1 / Math.max(1, numerators.length)) : numerators.map(v => v / denom);
+    const predicted = classes.length ? classes[posts.indexOf(Math.max(...posts))] : null;
+    return {
+      classLikelihoods: likelihoods,
+      weightedNumerators: numerators,
+      denominator: denom,
+      classPosteriors: posts,
+      predicted
+    };
+  }
+
   function render() {
     if (!data.length) return;
     const xs = data.map(d => d.x[0]); const ys = data.map(d => d.x[1]);
@@ -157,11 +173,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // KDE posterior heatmap (only draw if KDE overlay enabled)
     if (showKDEEl && showKDEEl.checked) {
       const postInfo = grid.map(pt => {
-        const ps = kdes.map((k,i)=> k(pt) * priors[i]);
-        const s = ps.reduce((a,b)=>a+b,0);
-        const posts = s === 0 ? ps.map(()=>1/ps.length) : ps.map(v=>v/s);
-        const maxIdx = posts.indexOf(Math.max(...posts));
-        return { x: pt[0], y: pt[1], posts, maxIdx, maxVal: posts[maxIdx] };
+        const kde = computeKDEForPoint(pt, classes, kdes, priors);
+        const maxIdx = kde.classPosteriors.indexOf(Math.max(...kde.classPosteriors));
+        return { x: pt[0], y: pt[1], posts: kde.classPosteriors, maxIdx, maxVal: kde.classPosteriors[maxIdx] };
       });
 
       const rectW = innerW / (nx-1); const rectH = innerH / (ny-1);
@@ -196,9 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .attr('stroke', '#000')
       .on('mouseover', (event,d)=>{
         // compute KDE-based posteriors and likelihoods for this point
-        const ps = kdes.map((k,i)=> (k(d.x) * priors[i]));
-        const s = ps.reduce((a,b)=>a+b,0);
-        const kdePosts = s===0 ? ps.map(()=>1/ps.length) : ps.map(v=>v/s);
+        const kde = computeKDEForPoint(d.x, classes, kdes, priors);
 
         // build header: posterior columns then likelihood columns
         const headerCols = classes.map(c=>`p(y=${c}|x)`).concat(classes.map(c=>`p(x|y=${c})`));
@@ -206,8 +218,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // KDE row values
         const kdeVals = [];
-        for (let i=0;i<classes.length;i++) kdeVals.push(kdePosts[i].toFixed(3));
-        for (let i=0;i<classes.length;i++) kdeVals.push((kdes[i](d.x)).toExponential(2));
+        for (let i=0;i<classes.length;i++) kdeVals.push(kde.classPosteriors[i].toFixed(3));
+        for (let i=0;i<classes.length;i++) kdeVals.push((kde.classLikelihoods[i]).toExponential(2));
 
         // assemble table
         let msg = `<table>`;
@@ -233,12 +245,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const x = xScale.invert(mx); const y = yScale.invert(my);
 
       // KDE posteriors and likelihoods
-      const ps = kdes.map((k,i)=> (k([x,y]) * priors[i]));
-      const s = ps.reduce((a,b)=>a+b,0);
-      const kdePosts = s===0 ? ps.map(()=>1/ps.length) : ps.map(v=>v/s);
+      const kde = computeKDEForPoint([x,y], classes, kdes, priors);
       const kdeVals = [];
-      for (let i=0;i<classes.length;i++) kdeVals.push(kdePosts[i].toFixed(3));
-      for (let i=0;i<classes.length;i++) kdeVals.push((kdes[i]([x,y])).toExponential(2));
+      for (let i=0;i<classes.length;i++) kdeVals.push(kde.classPosteriors[i].toFixed(3));
+      for (let i=0;i<classes.length;i++) kdeVals.push((kde.classLikelihoods[i]).toExponential(2));
 
       // build header columns
       const headerCols = classes.map(c=>`p(y=${c}|x)`).concat(classes.map(c=>`p(x|y=${c})`));
@@ -457,12 +467,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function computeGDAForPoint(x) {
-    if (!gda.fitted) return { classLikelihoods: [], classPosteriors: [], predicted: null };
-    const liks = gda.classes.map(c => mvnPdf(x, gda.params[c].mu, gda.params[c].sigma) * gda.params[c].prior);
-    const s = liks.reduce((a,b)=>a+b,0);
-    const posts = s === 0 ? liks.map(()=>1/liks.length) : liks.map(v=>v/s);
+    if (!gda.fitted) {
+      return {
+        classLikelihoods: [],
+        weightedNumerators: [],
+        denominator: 0,
+        classPosteriors: [],
+        predicted: null
+      };
+    }
+
+    // Raw Gaussian likelihoods p(x|y=c)
+    const likelihoods = gda.classes.map(c => mvnPdf(x, gda.params[c].mu, gda.params[c].sigma));
+    // Weighted numerators p(x|y=c) P(y=c)
+    const numerators = likelihoods.map((l, i) => l * gda.params[gda.classes[i]].prior);
+    const denom = numerators.reduce((a,b)=>a+b,0);
+    const posts = denom === 0 ? numerators.map(()=>1/numerators.length) : numerators.map(v=>v/denom);
     const predicted = gda.classes[posts.indexOf(Math.max(...posts))];
-    return { classLikelihoods: liks, classPosteriors: posts, predicted };
+    return {
+      classLikelihoods: likelihoods,
+      weightedNumerators: numerators,
+      denominator: denom,
+      classPosteriors: posts,
+      predicted
+    };
   }
 
   function showDetailedCalculationForPoint(x) {
@@ -472,10 +500,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const priors = classPoints.map(arr => arr.length / data.length);
     const bw = Math.max(0.01, +bandwidthInput.value || 0.6);
     const kdesLocal = classPoints.map(arr => arr.length ? kdeEstimate(arr, bw) : (()=>0));
-    const ks = kdesLocal.map(k=>k(x));
-    const nums = ks.map((k,i)=> k * priors[i]);
-    const den = nums.reduce((a,b)=>a+b,0);
-    const kdePosts = den === 0 ? nums.map(()=>1/nums.length) : nums.map(v=>v/den);
+    const kde = computeKDEForPoint(x, classes, kdesLocal, priors);
+    const ks = kde.classLikelihoods;
+    const nums = kde.weightedNumerators;
+    const den = kde.denominator;
+    const kdePosts = kde.classPosteriors;
     const g = computeGDAForPoint(x);
 
     const s = [];
@@ -485,36 +514,104 @@ document.addEventListener('DOMContentLoaded', () => {
     s.push('KDE:');
     s.push(`Step 1: Estimate class-conditional densities — Use kernel density estimation with ${classPoints.map(a=>a.length).join(', ')} samples per class.`);
     s.push(`Formula: $p(x^*|y=k) = \\dfrac{1}{n_k} \\sum_{i=1}^{n_k} K_h(x^* - x_i^{(k)})$ where $K_h$ is a Gaussian kernel with bandwidth $h$.`);
-    for (let i=0;i<classes.length;i++) s.push(`Class ${classes[i]}: $p(x^*|y=${classes[i]}) = ${ks[i].toExponential(4)}$`);
+    s.push(`Gaussian kernel (2D): $K_h(u)=\\dfrac{1}{2\\pi h^2}\\exp\\left(-\\dfrac{\\|u\\|^2}{2h^2}\\right)$.`);
+    for (let i=0;i<classes.length;i++) {
+      const pts = classPoints[i];
+      const n = pts.length;
+      const norm = 1 / (2 * Math.PI * bw * bw);
+      const invTwoH2 = 1 / (2 * bw * bw);
+
+      s.push(`KDE Class ${classes[i]}`);
+
+      s.push(`Samples: $n_k = ${n}$`);
+      s.push(`Constant: $\\dfrac{1}{2\\pi h^2} = ${norm.toExponential(4)}$`);
+
+      // Show a few representative terms so the UI doesn't explode on big datasets.
+      const maxTerms = 6;
+      let sumK = 0;
+      for (let j=0;j<n;j++) {
+        const dx0 = x[0] - pts[j][0];
+        const dx1 = x[1] - pts[j][1];
+        const r2 = dx0*dx0 + dx1*dx1;
+        const kTerm = Math.exp(-r2 * invTwoH2);
+        sumK += kTerm;
+
+        if (j < maxTerms) {
+          s.push(`Point ${j+1}: $x_i=(${pts[j][0].toFixed(4)},${pts[j][1].toFixed(4)})$, $\\|x^*-x_i\\|^2=${r2.toFixed(6)}$, $\\exp\\left(-\\frac{\\|x^*-x_i\\|^2}{2h^2}\\right)=${kTerm.toExponential(4)}$`);
+        }
+      }
+
+      if (n > maxTerms) s.push(`(… ${n - maxTerms} more points omitted …)`);
+
+      const density = norm * (sumK / n);
+      s.push(`Sum: $\\sum_i \\exp\\left(-\\frac{\\|x^*-x_i\\|^2}{2h^2}\\right) = ${sumK.toExponential(4)}$`);
+      s.push(`Plug in: $p(x^*|y=${classes[i]}) = ${norm.toExponential(4)} \\times \\frac{${sumK.toExponential(4)}}{${n}} = ${density.toExponential(4)}$`);
+    }
     s.push('');
-    s.push('Step 2: Compute weighted numerators — Multiply each density by its class prior to get the unnormalized joint probability.');
-    for (let i=0;i<classes.length;i++) s.push(`$\\mathrm{num}_{${classes[i]}} = ${priors[i].toFixed(3)} \\times ${ks[i].toExponential(4)} = ${nums[i].toExponential(4)}$`);
+    s.push('Step 2: Compute joint probabilities — $p(x^*,y=k)=p(y=k)p(x^*|y=k)$.');
+    for (let i=0;i<classes.length;i++) {
+      s.push(`$p(x^*,y=${classes[i]}) = ${priors[i].toFixed(3)} \\times ${ks[i].toExponential(4)} = ${nums[i].toExponential(4)}$`);
+    }
     s.push('');
-    s.push('Step 3: Normalize to get posteriors — Divide each numerator by the sum to get conditional probabilities via Bayes\' rule.');
-    for (let i=0;i<classes.length;i++) s.push(`$p(y=${classes[i]}|x^*) = \\dfrac{${nums[i].toExponential(4)}}{${nums.map(n=>n.toExponential(4)).join(' + ')}} = ${kdePosts[i].toFixed(6)}$`);
+    s.push('Step 3: Compute posteriors — $p(y=k|x^*) = \\dfrac{p(x^*,y=k)}{p(x^*)}$ where $p(x^*) = \\sum_j p(x^*,y=j)$.');
+    s.push(`$p(x^*) = ${nums.map(n=>n.toExponential(4)).join(' + ')} = ${den.toExponential(4)}$`);
+    for (let i=0;i<classes.length;i++) {
+      s.push(`$p(y=${classes[i]}|x^*) = \\frac{p(x^*,y=${classes[i]})}{p(x^*)} = \\frac{${nums[i].toExponential(4)}}{${den.toExponential(4)}} = ${kdePosts[i].toFixed(6)}$`);
+    }
     s.push('');
     s.push('GDA:');
     s.push('Step 1: Estimate class-conditional densities — Using the fitted Gaussian parameters.');
+    s.push(`Formula: $p(x^*|y=k) = \\frac{1}{2\\pi\\sqrt{|\\Sigma_k|}} \\exp\\left(-\\frac{1}{2}(x^* - \\mu_k)^T \\Sigma_k^{-1} (x^* - \\mu_k)\\right)$`);
     for (let i=0;i<gda.classes.length;i++) {
       const c = gda.classes[i];
       const p = gda.params[c];
-      s.push(`Class ${c}: $\\mu = [${p.mu.map(v=>v.toFixed(4)).join(', ')}]$, $\\Sigma = \\begin{bmatrix} ${p.sigma[0][0].toFixed(4)} & ${p.sigma[0][1].toFixed(4)} \\\\ ${p.sigma[1][0].toFixed(4)} & ${p.sigma[1][1].toFixed(4)} \\end{bmatrix}$`);
+      const mu = p.mu;
+      const sigma = p.sigma;
+
+      s.push(`GDA Class ${c}`);
+
+      // Match mvnPdf()'s numerical stabilization so the displayed arithmetic matches the computed value.
+      const eps = 1e-6;
+      const sSigma = [[sigma[0][0] + eps, sigma[0][1]], [sigma[1][0], sigma[1][1] + eps]];
+      const det = det2(sSigma);
+      const inv = inv2(sSigma);
+      const dx = [x[0] - mu[0], x[1] - mu[1]];
+      const q = (!inv || det <= 0)
+        ? NaN
+        : (dx[0] * (inv[0][0] * dx[0] + inv[0][1] * dx[1]) + dx[1] * (inv[1][0] * dx[0] + inv[1][1] * dx[1]));
+      const norm = (!inv || det <= 0) ? 0 : (1 / (2 * Math.PI * Math.sqrt(det)));
+      const plugged = (!inv || det <= 0) ? 0 : (norm * Math.exp(-0.5 * q));
+
+      s.push(`$\\mu = [${mu.map(v=>v.toFixed(4)).join(', ')}]$, $\\Sigma = \\begin{bmatrix} ${sigma[0][0].toFixed(4)} & ${sigma[0][1].toFixed(4)} \\\\ ${sigma[1][0].toFixed(4)} & ${sigma[1][1].toFixed(4)} \\end{bmatrix}$`);
+      s.push(`Compute: $x^* - \\mu = [${dx.map(v=>v.toFixed(4)).join(', ')}]$`);
+      if (!inv || det <= 0) {
+        s.push(`Compute: $|\\Sigma| \\le 0$ or not invertible (numerically); using density $0$.`);
+      } else {
+        s.push(`Compute: $|\\Sigma| = ${det.toExponential(4)}$, $\\Sigma^{-1} = \\begin{bmatrix} ${inv[0][0].toFixed(4)} & ${inv[0][1].toFixed(4)} \\\\ ${inv[1][0].toFixed(4)} & ${inv[1][1].toFixed(4)} \\end{bmatrix}$`);
+        s.push(`Compute: $(x^* - \\mu)^T\\Sigma^{-1}(x^* - \\mu) = ${q.toFixed(6)}$`);
+        s.push(`Plug in: $p(x^*|y=${c}) = \\frac{1}{2\\pi\\sqrt{${det.toExponential(4)}}}\\exp\\left(-\\frac{1}{2}\\cdot ${q.toFixed(6)}\\right) = ${plugged.toExponential(4)}$`);
+      }
     }
-    s.push(`Formula: $p(x^*|y=k) = \\dfrac{1}{2\\pi\\sqrt{|\\Sigma_k|}} \\exp\\left(-\\dfrac{1}{2}(x^* - \\mu_k)^T \\Sigma_k^{-1} (x^* - \\mu_k)\\right)$`);
-    for (let i=0;i<gda.classes.length;i++) s.push(`Result class ${gda.classes[i]}: $p(x^*|y=${gda.classes[i]}) = ${g.classLikelihoods[i].toExponential(4)}$`);
     s.push('');
-    s.push('Step 2: Compute weighted numerators — Multiply each Gaussian density by its class prior.');
+    s.push('Step 2: Compute joint probabilities — $p(x^*,y=k)=p(y=k)p(x^*|y=k)$.');
     for (let i=0;i<gda.classes.length;i++) {
       const c = gda.classes[i];
-      s.push(`$\\mathrm{num}_{${c}} = ${gda.params[c].prior.toFixed(3)} \\times ${g.classLikelihoods[i].toExponential(4)} = ${(g.classLikelihoods[i] * gda.params[c].prior).toExponential(4)}$`);
+      s.push(`$p(x^*,y=${c}) = ${gda.params[c].prior.toFixed(3)} \\times ${g.classLikelihoods[i].toExponential(4)} = ${g.weightedNumerators[i].toExponential(4)}$`);
     }
     s.push('');
-    s.push('Step 3: Normalize to get posteriors — Apply Bayes\' rule by dividing by the sum.');
-    for (let i=0;i<gda.classes.length;i++) s.push(`$p(y=${gda.classes[i]}|x^*) = ${(g.classPosteriors[i]).toFixed(6)}$`);
+    s.push('Step 3: Compute posteriors — $p(y=k|x^*) = \\dfrac{p(x^*,y=k)}{p(x^*)}$ where $p(x^*) = \\sum_j p(x^*,y=j)$.');
+    s.push(`$p(x^*) = ${g.weightedNumerators.map(n=>n.toExponential(4)).join(' + ')} = ${g.denominator.toExponential(4)}$`);
+    for (let i=0;i<gda.classes.length;i++) {
+      const c = gda.classes[i];
+      s.push(`$p(y=${c}|x^*) = \\frac{p(x^*,y=${c})}{p(x^*)} = \\frac{${g.weightedNumerators[i].toExponential(4)}}{${g.denominator.toExponential(4)}} = ${(g.classPosteriors[i]).toFixed(6)}$`);
+    }
 
     document.getElementById('calcPoint').innerHTML = s.map(l=>{
-      if (l.startsWith('Step') || l.startsWith('KDE:') || l.startsWith('GDA:')) {
-        return `<div style="font-weight: bold; margin-top: 8px;">${l.replace(/\*\*/g, '')}</div>`;
+      if (l.startsWith('Step') || l.startsWith('KDE:') || l.startsWith('GDA:') || l.startsWith('GDA Class ') || l.startsWith('KDE Class ')) {
+        let label = l;
+        if (l.startsWith('GDA Class ')) label = l.replace(/^GDA Class /, 'Class ');
+        if (l.startsWith('KDE Class ')) label = l.replace(/^KDE Class /, 'Class ');
+        return `<div style="font-weight: bold; margin-top: 8px;">${label.replace(/\*\*/g, '')}</div>`;
       }
       return `<div>${l}</div>`;
     }).join('');
