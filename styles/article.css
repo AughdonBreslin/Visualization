@@ -1,16 +1,16 @@
 /* article.css — styles for article pages like supervised_is_unsupervised */
 .article .article-body { display: flex; flex-direction: column; gap: 24px; margin-top: 18px; }
-.article .panel { background: rgba(255,255,255,0.02); padding: 14px; border-radius: 10px;}
+.article .panel { background: rgba(255,255,255,0.03); padding: 14px; border-radius: 10px;}
 .article .demo-overview p { margin-bottom: 12px; }
 .article .calculations-panel h3 { margin-top: 8px; margin-bottom: 6px; }
 .article .gda-params { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.95rem; margin-bottom: 10px; }
 .article .gda-examples { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; }
 .article .viz-explain-panel { margin-top: 18px; display: block;}
 .article .viz-explain-panel p { margin-bottom: 12px; }
-.article .viz-panel { background: rgba(255,255,255,0.01); padding: 8px; border-radius: 8px; }
+.article .viz-panel { background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; }
 .article .explain-detailed .formula { background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace; margin: 6px 0; }
 .article .formulas { display: flex; width: 100%; gap: 6px; margin-top: 8px; }
-.article .formula { background: rgba(0,0,0,0.35); padding: 8px; border-radius: 6px; margin: 8px 0; flex: 1; }
+.article .formula { background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; margin: 8px 0; flex: 1; }
 .article .calc-steps { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; }
 .article .calc-steps div { font-size: 0.95rem; }
 .article .theory-block h4 { margin-bottom: 8px; }

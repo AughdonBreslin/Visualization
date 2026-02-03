@@ -583,12 +583,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const plugged = (!inv || det <= 0) ? 0 : (norm * Math.exp(-0.5 * q));
 
       s.push(`$\\mu = [${mu.map(v=>v.toFixed(3)).join(', ')}]$, $\\Sigma = \\begin{bmatrix} ${sigma[0][0].toFixed(3)} & ${sigma[0][1].toFixed(3)} \\\\ ${sigma[1][0].toFixed(3)} & ${sigma[1][1].toFixed(3)} \\end{bmatrix}$`);
-      s.push(`Compute: $x^* - \\mu = [${dx.map(v=>v.toFixed(3)).join(', ')}]$`);
+      s.push(`$x^* - \\mu = [${dx.map(v=>v.toFixed(3)).join(', ')}]$`);
       if (!inv || det <= 0) {
-        s.push(`Compute: $|\\Sigma| \\le 0$ or not invertible (numerically); using density $0$.`);
+        s.push(`$|\\Sigma| \\le 0$ or not invertible (numerically); using density $0$.`);
       } else {
-        s.push(`Compute: $|\\Sigma| = ${det.toExponential(2)}$, $\\Sigma^{-1} = \\begin{bmatrix} ${inv[0][0].toFixed(3)} & ${inv[0][1].toFixed(3)} \\\\ ${inv[1][0].toFixed(3)} & ${inv[1][1].toFixed(3)} \\end{bmatrix}$`);
-        s.push(`Compute: $(x^* - \\mu)^T\\Sigma^{-1}(x^* - \\mu) = ${q.toFixed(3)}$`);
+        s.push(`$|\\Sigma| = ${det.toExponential(2)}$, $\\Sigma^{-1} = \\begin{bmatrix} ${inv[0][0].toFixed(3)} & ${inv[0][1].toFixed(3)} \\\\ ${inv[1][0].toFixed(3)} & ${inv[1][1].toFixed(3)} \\end{bmatrix}$`);
+        s.push(`$(x^* - \\mu)^T\\Sigma^{-1}(x^* - \\mu) = ${q.toFixed(3)}$`);
         s.push(`Plug in: $p(x^*|y=${c}) = \\frac{1}{2\\pi\\sqrt{${det.toExponential(2)}}}\\exp\\left(-\\frac{1}{2}\\cdot ${q.toFixed(3)}\\right) = ${plugged.toExponential(2)}$`);
       }
     }
