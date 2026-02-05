@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Supervised is Unsupervised — Learn p(x,y) then infer p(y|x)</title>
+    <title>Supervised Demo via Unsupervised Techniques</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
         window.MathJax = {
@@ -129,7 +129,6 @@
                 </div>
                 <p> After loading data, click "Fit GDA" to compute class priors and Gaussian parameters (mean μ and covariance Σ) for each class.</p>
                 <button id="fitGDA">Fit GDA (compute μ, Σ)</button>
-                <!-- <div class="calc-row"> -->
                 
                 <h3>Fitted parameters</h3>
 
@@ -165,13 +164,7 @@
                             <label for="bandwidth">Bandwidth:</label>
                             <input id="bandwidth" type="number" step="0.1" min="0.01" value="0.6" />
                         </div>
-
-
-
-                        <p>Bandwidth $h$ controls kernel width: smaller → more detail; larger → smoother.
-                        </p>
-                        <!-- Legend area: populated dynamically with class swatches and counts -->
-                        <div class="legend-area" style="margin-top:8px;">
+                        <div class="legend-area">
                             <h4 style="margin:4px 0 6px 0;">Legend</h4>
                             <div id="classLegend" class="class-legend">No classes loaded</div>
                         </div>
@@ -190,7 +183,7 @@
             </section>
 
             <section id="posterior-panel" class="posterior-panel panel">
-                <h2>Posterior computation</h2>
+                <h2>Posterior Computation</h2>
                 <p>Walking through the calculations for both KDE and GDA to compute the posterior probabilities $p(y|x^*)$ at a query point $x^*$.</p>
                 <div class="posterior-actions">
                     <div class="examples">
@@ -205,10 +198,36 @@
                 <div id="calcPointKDE">No point computed yet.</div>
                 <div id="calcPointGDA">No point computed yet.</div>
             </section>
+
+            <section id="difference-panel" class="difference-panel panel">
+                <h2>Generative versus Discriminative Models</h2>
+                <p>
+                    The generative approach learns the data-generating story, typically the joint distribution $p(x,y)$, then classifies by applying Bayes' rule.
+                    This differs from the discriminative approach, which directly learns the decision boundary $f(x)\to y$ or posterior $p(y\mid x)$.
+                    Other examples of generative approaches than seen here include naive Bayes, Linear Discriminant Analysis (LDA), Variational Autoencoders (VAEs), and diffusion models.
+                    Examples for discriminative approaches include logistic regression, support vector machines (SVMs), and standard neural-network classifiers.
+
+                </p>
+
+                <h4>Practical implications</h4>
+                <ul>
+                    <li>Assumptions: generative models often impose a distributional shape for $p(x\mid y)$ (e.g., Gaussian in GDA). If that assumption is roughly right, they can work very well; if it's wrong, not as well. Discriminative models don't need a full model of $x$, so they're usually less sensitive to "wrong density shape" assumptions.</li>
+                    <li>Data efficiency: with limited labeled data, generative models can perform well because they exploit structure in $p(x\mid y)$, and learning $p(x\mid y)$ + $p(y)$ can be easier than directly learning the boundary. With lots of data, discriminative models often win on pure classification accuracy since they focus directly on optimizing the decision boundary.</li>
+                    <li>Extra capabilities: generative models can score plausibility (likelihood), handle missing features more naturally, and can generate/simulate samples. Discriminative models focus on predicting $y$ from $x$.</li>
+                    <li>Training objectives:
+                        <ul>
+                            <li>Generative training fits parameters by maximizing the joint log-likelihood of the labeled data under a model of $p(x,y)$.</li>
+                            <div class="formula">$$\max_{\theta}\ \sum_{i=1}^N \log p_{\theta}(x_i, y_i)\ =\ \sum_{i=1}^N \big[\log p_{\theta}(y_i) + \log p_{\theta}(x_i\mid y_i)\big]$$</div>
+                            <li>Discriminative training fits parameters by maximizing the conditional log-likelihood of the labeled data under a model of $p(y\mid x)$.</li>
+                            <div class="formula">$$\max_{\phi}\ \sum_{i=1}^N \log p_{\phi}(y_i\mid x_i)$$</div>
+                        </ul>
+                    </li>
+                </ul>
+            </section>
         </main>
 
         <footer class="footer">
-            <p class="footer-tag">Created by Aughdon Breslin</p>
+            <p class="footer-tag">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></p>
         </footer>
     </div>
 </body>

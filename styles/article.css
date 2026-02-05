@@ -23,10 +23,12 @@
 /* Visuals layout helpers */
 .article .viz-row { display:flex; align-items:flex-start; flex-wrap:wrap; }
 .article .viz-panel { flex:0.5 }
-.article .viz-controls { flex:0.5; min-width:220px; }
-.article .viz-controls .options-group { display:flex; flex-direction:row; gap:8px; }
+.article .viz-controls { flex:0.5; min-width:220px; padding-left: 8px; }
+.article .viz-controls .options-group { display:flex; flex-direction:column; gap:8px; }
 .article .viz-controls .bandwidth-row { margin-top:12px; display: flex; flex-direction: row; gap:8px; align-items:center; width: fit-content;}
 .article .viz-controls .bandwidth-row .help-text { font-size:0.95rem; opacity:0.9; }
+.article .viz-controls .options-group { padding-top: 8px; }
+.article .legend-area { margin-top:8px; }
 .article .kde-explain { margin-top:10px; max-width:800px; }
 
 /* Posterior action layout */
@@ -71,4 +73,15 @@
 .article .calc-step-subheader { margin-top: 8px; font-size: 1rem;}
 .article .calc-step-content { margin-top: 2px; }
 .article .calc-step-end { padding-bottom: 2px; border-bottom: 2px solid rgba(255, 255, 255, 0.1)}
+
+/* Difference panel: align list block with paragraph text */
+.article .difference-panel ul {
+	margin: 8px 0 12px;
+	padding-left: 1.25em;
+	list-style-position: outside;
+}
+
+.article .difference-panel li {
+	margin: 6px 0;
+}
 @media (max-width: 900px) { .article .article-body { grid-template-columns: 1fr; } .article .viz-row { flex-direction: column; } }
