@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Linear Regression Regularization Playground</title>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/article.css">
+    <link rel="stylesheet" href="styles/regularization.css">
+
+    <script defer src="js/regularization_playground.js"></script>
+</head>
+
+<body>
+    <div class="container article regularization">
+        <header>
+            <h1>Linear Regression Regularization Playground</h1>
+            <div class="subtitle">Control vs Ridge vs Lasso vs Weight Decay</div>
+            <div class="home-link"><a href="index.html">← Home</a></div>
+        </header>
+
+        <main class="article-body">
+            <section class="panel">
+                <h2>Overview</h2>
+                <p>
+                    This playground compares how different regularization schemes affect linear regression fits when the model can overfit (e.g., high-degree polynomial features).
+                    You can regenerate synthetic data, change feature degree, and sweep $\lambda$ to see how the fitted function, coefficient magnitudes, and train/test error change.
+                </p>
+                <div class="formulas">
+                    <div class="formula">$$\textbf{Control (OLS): }\min_w\ \frac{1}{N}\lVert Xw - y\rVert^2$$</div>
+                    <div class="formula">$$\textbf{Ridge: }\min_w\ \frac{1}{N}\lVert Xw - y\rVert^2 + \lambda\lVert w\rVert^2$$</div>
+                </div>
+                <div class="formulas">
+                    <div class="formula">$$\textbf{Lasso: }\min_w\ \frac{1}{N}\lVert Xw - y\rVert^2 + \lambda\lVert w\rVert_1$$</div>
+                    <div class="formula">$$\textbf{Weight decay (decoupled): } w\leftarrow (1-\eta\lambda)w - \eta\nabla_w\,\tfrac{1}{N}\lVert Xw-y\rVert^2$$</div>
+                </div>
+                <p class="note">
+                    Notes: We do not penalize the intercept term. “Weight decay” is shown as a training update rule (common in deep learning); it is closely related to L2 regularization but not identical for all optimizers.
+                </p>
+            </section>
+
+            <section class="panel">
+                <h2>Playground</h2>
+                <div class="viz-row">
+                    <div class="viz-panel">
+                        <div id="regViz" class="viz"></div>
+                        <div class="help-text">The curves show model predictions on a dense grid; points are the sampled training set.</div>
+
+                        <div class="reg-row">
+                            <div class="metrics">
+                                <h3 style="margin: 6px 0;">Metrics</h3>
+                                <div id="metricsTable" class="metrics-table">—</div>
+                            </div>
+                            <div class="coeffs">
+                                <h3 style="margin: 6px 0;">Coefficients (selected method)</h3>
+                                <div id="coeffInfo" class="coeff-info">—</div>
+                                <div id="coefViz" class="coef-viz"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <aside class="viz-controls">
+                        <h3>Data</h3>
+                        <div class="control-grid">
+                            <label for="trueFn">True function</label>
+                            <select id="trueFn">
+                                <option value="linear">Linear</option>
+                                <option value="cubic">Cubic</option>
+                                <option value="sine" selected>Sine</option>
+                            </select>
+
+                            <label for="nTrain">Train points</label>
+                            <input id="nTrain" type="number" min="10" max="300" step="5" value="60" />
+
+                            <label for="noise">Noise (σ)</label>
+                            <input id="noise" type="number" min="0" max="3" step="0.05" value="0.35" />
+
+                            <label for="seed">Seed</label>
+                            <input id="seed" type="number" step="1" value="7" />
+
+                            <button id="regen" style="grid-column: 1 / -1; margin-top: 6px;">Regenerate dataset</button>
+                        </div>
+
+                        <h3 style="margin-top: 14px;">Model</h3>
+                        <div class="control-grid">
+                            <label for="degree">Polynomial degree</label>
+                            <input id="degree" type="number" min="1" max="18" step="1" value="9" />
+
+                            <label for="lambda">Regularization (log10 λ)</label>
+                            <input id="lambda" type="range" min="-6" max="2" step="0.05" value="-2" />
+                            <div id="lambdaValue" class="small" style="grid-column: 1 / -1; opacity: 0.9;">λ = 0.01</div>
+
+                            <label for="selectedMethod">Selected method</label>
+                            <select id="selectedMethod">
+                                <option value="ols">Control (OLS)</option>
+                                <option value="ridge">Ridge (closed-form)</option>
+                                <option value="lasso">Lasso (coordinate descent)</option>
+                                <option value="l2gd">L2 penalty (gradient descent)</option>
+                                <option value="wd">Weight decay (decoupled)</option>
+                            </select>
+                        </div>
+
+                        <h3 style="margin-top: 14px;">Show curves</h3>
+                        <div class="options-group">
+                            <label><input type="checkbox" id="showOLS" checked /> Control (OLS)</label>
+                            <label><input type="checkbox" id="showRidge" checked /> Ridge</label>
+                            <label><input type="checkbox" id="showLasso" checked /> Lasso</label>
+                            <label><input type="checkbox" id="showL2GD" /> L2 penalty (GD)</label>
+                            <label><input type="checkbox" id="showWD" /> Weight decay (GD)</label>
+                        </div>
+
+                        <h3 style="margin-top: 14px;">Optimizer (GD methods)</h3>
+                        <div class="control-grid">
+                            <label for="lr">Learning rate (η)</label>
+                            <input id="lr" type="number" min="0.0001" max="1" step="0.0005" value="0.03" />
+
+                            <label for="iters">Iterations</label>
+                            <input id="iters" type="number" min="10" max="50000" step="50" value="2500" />
+
+                            <label for="lassoIters">Lasso iterations</label>
+                            <input id="lassoIters" type="number" min="5" max="2000" step="5" value="250" />
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>What to look for</h2>
+                <ul>
+                    <li>As degree increases, OLS tends to overfit (wiggly curve, large coefficients, worse test error).</li>
+                    <li>Ridge typically shrinks coefficients smoothly, reducing variance and improving test error for a wide range of $\lambda$.</li>
+                    <li>Lasso can drive some coefficients to exactly 0, acting like a form of feature selection.</li>
+                    <li>L2 penalty (GD) and weight decay are both “shrink weights” mechanisms, but their updates differ; try matching $\lambda$ and see how close the fits get.</li>
+                </ul>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p class="footer-tag">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></p>
+        </footer>
+    </div>
+</body>
+
+</html>
