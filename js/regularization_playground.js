@@ -23,6 +23,11 @@
         { key: "wd", label: "Weight decay (GD)" },
     ];
 
+    // Display guardrails (keeps charts readable even if GD diverges).
+    // Only apply tight clipping to the GD-based methods.
+    const COEF_ABS_DISPLAY_CAP_TIGHT = 20;
+    const PLOT_Y_ABS_DISPLAY_CAP_TIGHT = 20;
+
     function mulberry32(seed) {
         // https://github.com/cprosche/mulberry32
         let t = seed >>> 0;
@@ -647,6 +652,19 @@
             const w = state.fits[key];
             const degree = state.degree;
 
+            if (!w || !Array.isArray(w) || w.length === 0) {
+                el.coeffInfo.textContent = `degree=${degree}, coefficients unavailable`;
+                coefG.selectAll("*").remove();
+                return;
+            }
+
+            const hasNonFinite = w.some(v => !Number.isFinite(v));
+            if (hasNonFinite) {
+                el.coeffInfo.textContent = `degree=${degree}, coefficients diverged (non-finite values)`;
+                coefG.selectAll("*").remove();
+                return;
+            }
+
             const items = [];
             for (let j = 0; j < w.length; j++) {
                 items.push({
@@ -657,8 +675,16 @@
                 });
             }
 
+            const rawMaxAbs = d3.max(items, d => d.abs) || 0;
+            const coefCap = (key === "l2gd" || key === "wd") ? COEF_ABS_DISPLAY_CAP_TIGHT : Infinity;
+            const clipped = Number.isFinite(coefCap) && rawMaxAbs > coefCap;
+            for (const it of items) {
+                it.cappedAbs = Number.isFinite(coefCap) ? Math.min(it.abs, coefCap) : it.abs;
+                it.isClipped = Number.isFinite(coefCap) && it.abs > coefCap;
+            }
+
             // info line
-            el.coeffInfo.textContent = `degree=${degree}, ||w||2=${formatNumMax3(l2Norm(w, 1))}, nonzero=${countNonzero(w, 1e-6, 1)}`;
+            el.coeffInfo.textContent = `degree=${degree}, ||w||2=${formatNumMax3(l2Norm(w, 1))}, nonzero=${countNonzero(w, 1e-6, 1)}${clipped ? ", (coef bars clipped for display)" : ""}`;
 
             const L = coefLayout();
             const innerW = L.innerW;
@@ -669,7 +695,7 @@
                 .range([0, innerW])
                 .padding(0.2);
 
-            const maxAbs = d3.max(items, d => d.abs) || 1;
+            const maxAbs = d3.max(items, d => d.cappedAbs) || 1;
             const y = d3.scaleLinear()
                 .domain([0, maxAbs])
                 .nice()
@@ -707,9 +733,9 @@
                 .duration(180)
                 .attr("x", d => x(d.name))
                 .attr("width", x.bandwidth())
-                .attr("y", d => y(d.abs))
-                .attr("height", d => innerH - y(d.abs))
-                .attr("fill", COLORS[key] || "rgba(255,255,255,0.6)");
+                .attr("y", d => y(d.cappedAbs))
+                .attr("height", d => innerH - y(d.cappedAbs))
+                .attr("fill", d => (d.isClipped ? "rgba(255,255,255,0.35)" : (COLORS[key] || "rgba(255,255,255,0.6)")));
 
             bars.exit().remove();
         }
@@ -721,10 +747,47 @@
 
             const { xs, ys } = state.dataset;
 
+            const visibleMethods = METHODS.filter(m => methodVisible(m.key));
+            const visibleKeys = new Set(visibleMethods.map(m => m.key));
+
+            const clamp = (v, cap) => {
+                if (!Number.isFinite(cap)) return v;
+                return (v > cap ? cap : (v < -cap ? -cap : v));
+            };
+
+            // Sanitize method curves for display: clip extreme values and break lines on non-finite values.
+            const displayMethods = {};
+            const methodFlags = {};
+            for (const m of METHODS) {
+                const arr = curves.methods[m.key] || [];
+                const cap = (m.key === "l2gd" || m.key === "wd") ? PLOT_Y_ABS_DISPLAY_CAP_TIGHT : Infinity;
+                let anyNonFinite = false;
+                let anyClipped = false;
+                const out = new Array(arr.length);
+                for (let i = 0; i < arr.length; i++) {
+                    const v = arr[i];
+                    if (!Number.isFinite(v)) {
+                        anyNonFinite = true;
+                        out[i] = NaN;
+                        continue;
+                    }
+                    const c = clamp(v, cap);
+                    if (c !== v) anyClipped = true;
+                    out[i] = c;
+                }
+                displayMethods[m.key] = out;
+                methodFlags[m.key] = { anyNonFinite, anyClipped, cap };
+            }
+
+            const displayTruth = curves.yTrue.map(v => (Number.isFinite(v) ? v : NaN));
+
+            const anyVisibleNonFinite = METHODS.some(m => visibleKeys.has(m.key) && methodFlags[m.key]?.anyNonFinite);
+            const anyVisibleClipped = METHODS.some(m => visibleKeys.has(m.key) && methodFlags[m.key]?.anyClipped);
+
             const allY = [
                 ...ys,
-                ...curves.yTrue,
-                ...Object.values(curves.methods).flat(),
+                ...displayTruth,
+                ...visibleMethods.flatMap(m => displayMethods[m.key] || []),
             ].filter(Number.isFinite);
 
             const xScale = d3.scaleLinear().domain([-3, 3]).range([0, innerW]);
@@ -754,6 +817,7 @@
                 .attr("stroke", "rgba(255,255,255,0.22)");
 
             const line = d3.line()
+                .defined(d => Number.isFinite(d))
                 .x((d, i) => xScale(curves.xGrid[i]))
                 .y(d => yScale(d));
 
@@ -762,10 +826,9 @@
                 .attr("fill", "none")
                 .attr("stroke", COLORS.truth)
                 .attr("stroke-width", 2)
-                .attr("d", line(curves.yTrue));
+                .attr("d", line(displayTruth));
 
             // method lines
-            const visibleMethods = METHODS.filter(m => methodVisible(m.key));
             const lineSel = gLines.selectAll("path.method").data(visibleMethods, d => d.key);
 
             lineSel.enter()
@@ -777,7 +840,7 @@
                 .attr("opacity", 0.9)
                 .merge(lineSel)
                 .attr("stroke", d => COLORS[d.key])
-                .attr("d", d => line(curves.methods[d.key]));
+                .attr("d", d => line(displayMethods[d.key]));
 
             lineSel.exit().remove();
 
@@ -822,6 +885,29 @@
                 .style("fill", "rgba(255,255,255,0.85)");
 
             items.exit().remove();
+
+            // warning label (keeps UX clear when GD goes unstable)
+            const warnMsg = (() => {
+                if (!(anyVisibleNonFinite || anyVisibleClipped)) return null;
+                const clippedKeys = visibleMethods.filter(m => methodFlags[m.key]?.anyClipped).map(m => m.label);
+                const nonFiniteKeys = visibleMethods.filter(m => methodFlags[m.key]?.anyNonFinite).map(m => m.label);
+                const parts = [];
+                if (nonFiniteKeys.length) parts.push(`non-finite: ${nonFiniteKeys.join(", ")}`);
+                if (clippedKeys.length) parts.push(`clipped: ${clippedKeys.join(", ")}`);
+                return `Display note: ${parts.join(" · ")}`;
+            })();
+
+            const warnSel = gMain.selectAll("text.plot-warning").data(warnMsg ? [warnMsg] : []);
+            warnSel.enter()
+                .append("text")
+                .attr("class", "plot-warning")
+                .style("font-size", "12px")
+                .style("fill", "rgba(255,255,255,0.75)")
+                .merge(warnSel)
+                .attr("x", L.margin.left + 8)
+                .attr("y", L.height - 10)
+                .text(d => d);
+            warnSel.exit().remove();
         }
 
         function rerender() {
