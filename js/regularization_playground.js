@@ -24,6 +24,7 @@
     ];
 
     function mulberry32(seed) {
+        // https://github.com/cprosche/mulberry32
         let t = seed >>> 0;
         return function () {
             t += 0x6D2B79F5;
@@ -34,7 +35,7 @@
     }
 
     function randn(rng) {
-        // Box-Muller
+        // https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
         let u = 0, v = 0;
         while (u === 0) u = rng();
         while (v === 0) v = rng();
@@ -425,7 +426,6 @@
             nTrain: root.getElementById("nTrain"),
             noise: root.getElementById("noise"),
             seed: root.getElementById("seed"),
-            regen: root.getElementById("regen"),
             degree: root.getElementById("degree"),
             lambda: root.getElementById("lambda"),
             lambdaValue: root.getElementById("lambdaValue"),
@@ -820,11 +820,6 @@
         }
 
         // event wiring
-        el.regen.addEventListener("click", () => {
-            regenerateDataset();
-            rerender();
-        });
-
         const rerenderOnInput = [
             el.trueFn,
             el.nTrain,
