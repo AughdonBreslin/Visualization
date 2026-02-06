@@ -45,6 +45,9 @@
                     <div class="formula">$$\textbf{Lasso: }\min_w\ \frac{1}{N}\lVert Xw - y\rVert^2 + \lambda\lVert w\rVert_1$$</div>
                     <div class="formula">$$\textbf{Weight decay (decoupled): } w\leftarrow (1-\eta\lambda)w - \eta\nabla_w\,\tfrac{1}{N}\lVert Xw-y\rVert^2$$</div>
                 </div>
+                <div class="formulas">
+                    <div class="formula">$$\textbf{L2 penalty (GD): } w\leftarrow w - \eta\left(\nabla_w\,\tfrac{1}{N}\lVert Xw-y\rVert^2 + 2\lambda w\right)$$</div>
+                </div>
                 <p class="note">
                     Notes: We do not penalize the intercept term. “Weight decay” is shown as a training update rule (common in deep learning); it is closely related to L2 regularization but not identical for all optimizers.
                 </p>

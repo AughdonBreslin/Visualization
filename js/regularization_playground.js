@@ -410,9 +410,19 @@
     function formatNum(v) {
         if (!Number.isFinite(v)) return "—";
         const av = Math.abs(v);
+        if (av >= 1e5) return v.toExponential(2);
         if (av >= 1000) return v.toFixed(0);
         if (av >= 10) return v.toFixed(2);
         return v.toFixed(3);
+    }
+
+    function formatNumMax3(v) {
+        if (!Number.isFinite(v)) return "—";
+        const av = Math.abs(v);
+        if (av >= 1e5) return v.toExponential(3);
+        // Round to at most 3 decimals and avoid trailing zeros.
+        const rounded = Math.round(v * 1000) / 1000;
+        return rounded.toLocaleString(undefined, { maximumFractionDigits: 3 });
     }
 
     function init() {
@@ -623,9 +633,9 @@
                 .attr("class", d => (d.key === selected ? "selected" : null));
 
             tr.append("td").text(d => d.label);
-            tr.append("td").text(d => formatNum(d.train));
-            tr.append("td").text(d => formatNum(d.test));
-            tr.append("td").text(d => formatNum(d.l2));
+            tr.append("td").text(d => formatNumMax3(d.train));
+            tr.append("td").text(d => formatNumMax3(d.test));
+            tr.append("td").text(d => formatNumMax3(d.l2));
             tr.append("td").text(d => String(d.nnz));
 
             el.metricsTable.innerHTML = "";
@@ -648,7 +658,7 @@
             }
 
             // info line
-            el.coeffInfo.textContent = `degree=${degree}, ||w||2=${formatNum(l2Norm(w, 1))}, nonzero=${countNonzero(w, 1e-6, 1)}`;
+            el.coeffInfo.textContent = `degree=${degree}, ||w||2=${formatNumMax3(l2Norm(w, 1))}, nonzero=${countNonzero(w, 1e-6, 1)}`;
 
             const L = coefLayout();
             const innerW = L.innerW;
@@ -674,7 +684,11 @@
                 .style("fill", "rgba(255,255,255,0.75)");
 
             coefG.append("g").attr("class", "coef-axis")
-                .call(d3.axisLeft(y).ticks(5))
+                .call((() => {
+                    const yAxis = d3.axisLeft(y).ticks(5);
+                    if (maxAbs >= 1e5) yAxis.tickFormat(d3.format(".2e"));
+                    return yAxis;
+                })())
                 .selectAll("text")
                 .style("font-size", "10px")
                 .style("fill", "rgba(255,255,255,0.75)");
@@ -719,6 +733,8 @@
                 .nice()
                 .range([innerH, 0]);
 
+            const yMaxAbs = d3.max(allY, y => Math.abs(y)) || 0;
+
             gAxes.selectAll("*").remove();
             gAxes.append("g")
                 .attr("transform", `translate(0,${innerH})`)
@@ -726,7 +742,11 @@
                 .selectAll("text")
                 .style("fill", "rgba(255,255,255,0.75)");
             gAxes.append("g")
-                .call(d3.axisLeft(yScale).ticks(6))
+                .call((() => {
+                    const yAxis = d3.axisLeft(yScale).ticks(6);
+                    if (yMaxAbs >= 1e5) yAxis.tickFormat(d3.format(".2e"));
+                    return yAxis;
+                })())
                 .selectAll("text")
                 .style("fill", "rgba(255,255,255,0.75)");
 
