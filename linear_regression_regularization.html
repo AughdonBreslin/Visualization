@@ -142,7 +142,24 @@
                     <li>As degree increases, OLS tends to overfit (wiggly curve, large coefficients, worse test error).</li>
                     <li>Ridge typically shrinks coefficients smoothly, reducing variance and improving test error for a wide range of $\lambda$.</li>
                     <li>Lasso can drive some coefficients to exactly 0, acting like a form of feature selection.</li>
-                    <li>L2 penalty (GD) and weight decay are both “shrink weights” mechanisms, but their updates differ; try matching $\lambda$ and see how close the fits get.</li>
+                    <li> The GD methods blow up if the regularization (λ) or the learning rate (η) is set too high.</li>
+                </ul>
+            </section>
+
+            <section class="panel">
+                <h2>Why the GD methods blow up</h2>
+                <p>Both L2 penalty and weight decay depend λ or η to be within certain bounds for the gradient descent to converge properly.</p>
+                <ul>
+                    <li>L2 minimizes $J(w) = MSE(w) + \lambda \|w\|_2^2$. Its gradient is $\nabla J(w) = \nabla MSE(w) + 2\lambda w$. When updating $w_{t+1} = w_t - \eta \nabla J(w_t)$ = $w_t - \eta (\nabla MSE(w_t) + 2\lambda w_t)$, if λ or η is too large, the term dominates the update and the training behaves more like $w_{t+1} \approx w_t - 2\eta \lambda w_t$ or $w_{t+1} \approx (1 - 2\eta \lambda) w_t$.</li>
+                    <ul>
+                        <li>If $2\eta \lambda > 1$, the sign flips on each step.</li>
+                        <li>If $1 < 2\eta \lambda < 2$, it will still converge, but will oscillate back and forth while doing so, causing slower convergence and potential instability in loss.</li>
+                        <li>If $2\eta \lambda > 2$, this continuous overshooting will diverge rapidly.</li>
+                    </ul>
+                    <li>Weight decay behaves similarly. It minimizes $J(w) = MSE(w) + \lambda \|w\|_2^2$, but the update rule is $w_{t+1} = (1 - \eta \lambda) w_t - \eta \nabla MSE(w_t)$ by construction since we don't want the decay to apply directly to the gradient. When λ or η is too large, we fall into the same $w_{t+1} \approx (1 - \eta \lambda) w_t$ behavior, but this time without the 2.</li>
+                    <ul>
+                        <li>Note: The 2 is not significant and can be removed from L2 as well by redefining the regularization term as $\frac{\lambda}{2} \|w\|_2^2$.</li>
+                    </ul>
                 </ul>
             </section>
         </main>
