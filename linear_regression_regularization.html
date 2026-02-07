@@ -66,7 +66,7 @@
                                 <div id="metricsTable" class="metrics-table">—</div>
                             </div>
                             <div class="coeffs">
-                                <h3 style="margin: 6px 0;">Coefficients (selected method)</h3>
+                                <h3 style="margin: 6px 0;">Coefficients of <span id="coeffTitle">—</span></h3>
                                 <div id="coeffInfo" class="coeff-info">—</div>
                                 <div id="coefViz" class="coef-viz"></div>
                             </div>
@@ -93,25 +93,6 @@
                             <input id="seed" type="number" step="1" value="7" />
                         </div>
 
-                        <h3 style="margin-top: 14px;">Model</h3>
-                        <div class="control-grid">
-                            <label for="degree">Polynomial degree</label>
-                            <input id="degree" type="number" min="1" max="18" step="1" value="9" />
-
-                            <label for="lambda">Regularization (log10 λ)</label>
-                            <input id="lambda" type="range" min="-6" max="2" step="0.05" value="-2" />
-                            <div id="lambdaValue" class="small" style="grid-column: 1 / -1; opacity: 0.9;">λ = 0.01</div>
-
-                            <label for="selectedMethod">Selected method</label>
-                            <select id="selectedMethod">
-                                <option value="ols">Control (OLS)</option>
-                                <option value="ridge">Ridge (closed-form)</option>
-                                <option value="lasso">Lasso (coordinate descent)</option>
-                                <option value="l2gd">L2 penalty (gradient descent)</option>
-                                <option value="wd">Weight decay (decoupled)</option>
-                            </select>
-                        </div>
-
                         <h3 style="margin-top: 14px;">Show curves</h3>
                         <div class="options-group">
                             <label><input type="checkbox" id="showOLS" checked /> Control (OLS)</label>
@@ -119,6 +100,16 @@
                             <label><input type="checkbox" id="showLasso" checked /> Lasso</label>
                             <label><input type="checkbox" id="showL2GD" /> L2 penalty (GD)</label>
                             <label><input type="checkbox" id="showWD" /> Weight decay (GD)</label>
+                        </div>
+
+                        <h3 style="margin-top: 14px;">Model</h3>
+                        <div class="control-grid">
+                            <label for="degree">Polynomial degree</label>
+                            <input id="degree" type="number" min="1" max="18" step="1" value="9" />
+
+                            <label for="lambda">Regularization ($\log_{10} λ$)</label>
+                            <input id="lambda" type="range" min="-6" max="2" step="0.05" value="-2" />
+                            <div id="lambdaValue" class="small" style="grid-column: 1 / -1; opacity: 0.9;">λ = 0.01</div>
                         </div>
 
                         <h3 style="margin-top: 14px;">Optimizer (GD methods)</h3>
@@ -131,6 +122,18 @@
 
                             <label for="lassoIters">Lasso iterations</label>
                             <input id="lassoIters" type="number" min="5" max="2000" step="5" value="250" />
+                        </div>
+
+                        <h3 style="margin-top: 14px;">Selected method</h3>
+                        <div class="control-grid">
+                            <label for="selectedMethod"></label>
+                            <select id="selectedMethod">
+                                <option value="ols">Control (OLS)</option>
+                                <option value="ridge">Ridge (closed-form)</option>
+                                <option value="lasso">Lasso (coordinate descent)</option>
+                                <option value="l2gd">L2 penalty (gradient descent)</option>
+                                <option value="wd">Weight decay (decoupled)</option>
+                            </select>
                         </div>
                     </aside>
                 </div>

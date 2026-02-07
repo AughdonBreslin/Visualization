@@ -436,6 +436,7 @@
             regViz: root.getElementById("regViz"),
             coefViz: root.getElementById("coefViz"),
             metricsTable: root.getElementById("metricsTable"),
+            coeffTitle: root.getElementById("coeffTitle"),
             coeffInfo: root.getElementById("coeffInfo"),
             trueFn: root.getElementById("trueFn"),
             nTrain: root.getElementById("nTrain"),
@@ -625,7 +626,7 @@
             const thead = table.append("thead");
             thead.append("tr")
                 .selectAll("th")
-                .data(["Method", "Train MSE", "Test MSE", "||w||2", "#nonzero"])
+                .data(["Method", "Train MSE", "Test MSE", "$||w||_2$", "# of nonzero $w$"])
                 .enter()
                 .append("th")
                 .text(d => d);
@@ -635,7 +636,25 @@
                 .data(rows)
                 .enter()
                 .append("tr")
-                .attr("class", d => (d.key === selected ? "selected" : null));
+                .attr("class", d => (d.key === selected ? "selected" : null))
+                .style("cursor", "pointer")
+                .attr("tabindex", 0)
+                .attr("role", "button")
+                .attr("aria-label", d => `Select ${d.label}`)
+                .on("click", (_, d) => {
+                    if (el.selectedMethod.value === d.key) return;
+                    el.selectedMethod.value = d.key;
+                    renderMetrics(metrics);
+                    renderCoefficients();
+                })
+                .on("keydown", (event, d) => {
+                    if (event.key !== "Enter" && event.key !== " ") return;
+                    event.preventDefault();
+                    if (el.selectedMethod.value === d.key) return;
+                    el.selectedMethod.value = d.key;
+                    renderMetrics(metrics);
+                    renderCoefficients();
+                });
 
             tr.append("td").text(d => d.label);
             tr.append("td").text(d => formatNumMax3(d.train));
@@ -652,18 +671,37 @@
             const w = state.fits[key];
             const degree = state.degree;
 
+            const showCoeffInfo = (msg) => {
+                if (!el.coeffInfo) return;
+                el.coeffInfo.style.display = "block";
+                el.coeffInfo.textContent = msg;
+            };
+
+            const hideCoeffInfo = () => {
+                if (!el.coeffInfo) return;
+                el.coeffInfo.style.display = "none";
+                el.coeffInfo.textContent = "";
+            };
+
+            if (el.coeffTitle) {
+                const label = (METHODS.find(m => m.key === key)?.label) || key;
+                el.coeffTitle.textContent = label;
+            }
+
             if (!w || !Array.isArray(w) || w.length === 0) {
-                el.coeffInfo.textContent = `degree=${degree}, coefficients unavailable`;
+                showCoeffInfo("coefficients unavailable");
                 coefG.selectAll("*").remove();
                 return;
             }
 
             const hasNonFinite = w.some(v => !Number.isFinite(v));
             if (hasNonFinite) {
-                el.coeffInfo.textContent = `degree=${degree}, coefficients diverged (non-finite values)`;
+                showCoeffInfo("coefficients diverged (non-finite values)");
                 coefG.selectAll("*").remove();
                 return;
             }
+
+            hideCoeffInfo();
 
             const items = [];
             for (let j = 0; j < w.length; j++) {
@@ -682,9 +720,6 @@
                 it.cappedAbs = Number.isFinite(coefCap) ? Math.min(it.abs, coefCap) : it.abs;
                 it.isClipped = Number.isFinite(coefCap) && it.abs > coefCap;
             }
-
-            // info line
-            el.coeffInfo.textContent = `degree=${degree}, ||w||2=${formatNumMax3(l2Norm(w, 1))}, nonzero=${countNonzero(w, 1e-6, 1)}${clipped ? ", (coef bars clipped for display)" : ""}`;
 
             const L = coefLayout();
             const innerW = L.innerW;
