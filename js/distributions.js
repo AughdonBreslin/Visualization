@@ -25,8 +25,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const addBtn = d3.select('#addDist');
     const resetBtn = d3.select('#resetAll');
 
+    function getActiveDistributionKeys() {
+        // Preserve order of first occurrence.
+        return Array.from(new Set(distributions.map(d => d.distKey)));
+    }
+
     function saveState() {
         localStorage.setItem('distributions', JSON.stringify(distributions));
+        localStorage.setItem('activeDistributions', JSON.stringify(getActiveDistributionKeys()));
         localStorage.setItem('xRange', JSON.stringify({ xMin: xMinInput.property('value'), xMax: xMaxInput.property('value') }));
     }
 
@@ -681,4 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
         originalRedrawAll();
         updateDistributionInfo();
     };
+
+    // Populate the info panel immediately on refresh.
+    redrawAll();
 });
