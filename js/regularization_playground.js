@@ -1,7 +1,3 @@
-/* regularization_playground.js
-   Linear regression regularization playground: OLS vs Ridge vs Lasso vs L2 penalty (GD) vs Weight decay (GD)
-*/
-
 (function () {
     "use strict";
 
