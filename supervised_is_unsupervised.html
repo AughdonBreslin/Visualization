@@ -125,7 +125,7 @@
                     <div class="formula">$$p(x|y=k) = \mathcal{N}(x; \mu_k, \Sigma_k)$$</div>
                     <p>Multivariate normal density used by GDA:</p>
                     <div class="formula">$$\mathcal{N}(x;\mu,\Sigma) =
-                        \frac{1}{2\pi\sqrt{|\Sigma|}}\,\exp\left(-\tfrac12 (x-\mu)^T\Sigma^{-1}(x-\mu)\right)$$</div>
+                        \frac{1}{(2\pi)^{\frac{d}{2}}\sqrt{|\Sigma|}}\,\exp\left(-\tfrac12 (x-\mu)^T\Sigma^{-1}(x-\mu)\right)$$</div>
                 </div>
                 <p> After loading data, click "Fit GDA" to compute class priors and Gaussian parameters (mean μ and covariance Σ) for each class.</p>
                 <button id="fitGDA">Fit GDA (compute μ, Σ)</button>
