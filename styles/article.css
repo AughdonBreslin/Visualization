@@ -1,78 +1,296 @@
-/* article.css — styles for article pages like supervised_is_unsupervised */
-.article .article-body { display: flex; flex-direction: column; gap: 24px; margin-top: 18px; }
-.article .panel { background: rgba(255,255,255,0.03); padding: 14px; border-radius: 10px;}
-.article .demo-overview p { margin-bottom: 12px; }
-.article .calculations-panel h3 { margin-top: 8px; margin-bottom: 6px; }
-.article .gda-params { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.95rem; margin-bottom: 10px; }
-.article .gda-examples { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; }
-.article .viz-explain-panel { margin-top: 18px; display: block;}
-.article .viz-explain-panel p { margin-bottom: 12px; }
-.article .viz-panel { background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; }
-.article .explain-detailed .formula { background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace; margin: 6px 0; }
-.article .formulas { display: flex; width: 100%; gap: 6px; margin-top: 8px; }
-.article .formula { background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; margin: 8px 0; flex: 1; }
-.article .calc-steps { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; }
-.article .calc-steps div { font-size: 0.95rem; }
-.article .theory-block h4 { margin-bottom: 8px; }
+/* article.css — styles for article pages */
+
+.article .article-body {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	margin-top: 18px;
+}
+
+.article .panel {
+	background: rgba(255, 255, 255, 0.03);
+	padding: 14px;
+	border-radius: 10px;
+}
+
+.article .demo-overview p {
+	margin-bottom: 12px;
+}
+
+.article .calculations-panel h3 {
+	margin-top: 8px;
+	margin-bottom: 6px;
+}
+
+.article .gda-params {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+	font-size: 0.95rem;
+	margin-bottom: 10px;
+}
+
+.article .gda-examples {
+	background: rgba(255, 255, 255, 0.03);
+	padding: 10px;
+	border-radius: 8px;
+}
+
+.article .viz-explain-panel {
+	margin-top: 18px;
+	display: block;
+}
+
+.article .viz-explain-panel p {
+	margin-bottom: 12px;
+}
+
+.article .formulas {
+	display: flex;
+	width: 100%;
+	gap: 6px;
+	margin-top: 8px;
+}
+
+.article .formula {
+	background: rgba(0, 0, 0, 0.4);
+	padding: 8px;
+	border-radius: 6px;
+	margin: 8px 0;
+	flex: 1;
+}
+
+.article .explain-detailed .formula {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono", monospace;
+	margin: 6px 0;
+}
+
+.article .calc-steps {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: 8px;
+	background: rgba(255, 255, 255, 0.02);
+	padding: 10px;
+	border-radius: 8px;
+}
+
+.article .calc-steps div {
+	font-size: 0.95rem;
+}
+
+.article .theory-block h4 {
+	margin-bottom: 8px;
+}
 
 /* layout helpers used by Calculations & Posterior */
-.article #fitGDA { margin-top:12px; }
-.article #gdaParams { flex:1 1 420px; }
-.article .calc-explain { margin-top:10px; }
+.article #fitGDA {
+	margin-top: 12px;
+}
+
+.article #gdaParams {
+	flex: 1 1 420px;
+}
+
+.article .calc-explain {
+	margin-top: 10px;
+}
 
 /* Visuals layout helpers */
-.article .viz-row { display:flex; align-items:flex-start; flex-wrap:wrap; }
-.article .viz-panel { flex:0.5 }
-.article .viz-controls { flex:0.5; min-width:220px; padding-left: 8px; }
-.article .viz-controls .options-group { display:flex; flex-direction:column; gap:8px; }
-.article .viz-controls .bandwidth-row { margin-top:12px; display: flex; flex-direction: row; gap:8px; align-items:center; width: fit-content;}
-.article .viz-controls .bandwidth-row .help-text { font-size:0.95rem; opacity:0.9; }
-.article .viz-controls .options-group { padding-top: 8px; }
-.article .legend-area { margin-top:8px; }
-.article .kde-explain { margin-top:10px; max-width:800px; }
+.article .viz-row {
+	display: flex;
+	align-items: flex-start;
+	flex-wrap: wrap;
+}
+
+.article .viz-panel {
+	flex: 0.5;
+	background: rgba(255, 255, 255, 0.03);
+	padding: 8px;
+	border-radius: 8px;
+}
+
+.article .viz-controls {
+	flex: 0.5;
+	min-width: 220px;
+	padding-left: 8px;
+}
+
+.article .viz-controls .options-group {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding-top: 8px;
+}
+
+.article .viz-controls .bandwidth-row {
+	margin-top: 12px;
+	display: flex;
+	flex-direction: row;
+	gap: 8px;
+	align-items: center;
+	width: fit-content;
+}
+
+.article .viz-controls .bandwidth-row .help-text {
+	font-size: 0.95rem;
+	opacity: 0.9;
+}
+
+.article .legend-area {
+	margin-top: 8px;
+}
+
+.article .kde-explain {
+	margin-top: 10px;
+	max-width: 800px;
+}
 
 /* Posterior action layout */
-.article .posterior-actions { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
+.article .posterior-actions {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	flex-wrap: wrap;
+	margin-bottom: 8px;
+}
 
-.article .dataset-panel .dataset-controls { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
-.article .dataset-panel .load-row { display: flex; gap: 8px; align-items: center; }
-.article .dataset-panel #fileInput { display: none; }
-.article .dataset-panel label[for="fileInput"] { background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 6px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
+.article .dataset-panel .dataset-controls {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-top: 8px;
+	align-items: center;
+}
+
+.article .dataset-panel .load-row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.article .dataset-panel #fileInput {
+	display: none;
+}
+
+.article .dataset-panel label[for="fileInput"] {
+	background: rgba(255, 255, 255, 0.1);
+	padding: 6px 12px;
+	border-radius: 6px;
+	cursor: pointer;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 /* Force key sections to use full available width */
-.article .dataset-panel, .article .calculations-panel, .article .posterior-panel { width: 100%; box-sizing: border-box; }
+.article .dataset-panel,
+.article .calculations-panel,
+.article .posterior-panel {
+	width: 100%;
+	box-sizing: border-box;
+}
 
-.article .dataset-panel textarea { width: 100%; background: rgba(255,255,255,0.02); color: inherit; border: 1px solid rgba(255,255,255,0.06); padding: 8px; border-radius: 6px; }
-.article .viz { width: 100%; }
-.article .info-row { margin-top: 8px; display:flex; gap:12px; justify-content:space-between; }
-.article .explain { margin-top: 18px; grid-column: 1 / -1; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; }
+.article .dataset-panel textarea {
+	width: 100%;
+	background: rgba(255, 255, 255, 0.02);
+	color: inherit;
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	padding: 8px;
+	border-radius: 6px;
+}
+
+.article .viz {
+	width: 100%;
+}
+
+.article .info-row {
+	margin-top: 8px;
+	display: flex;
+	gap: 12px;
+	justify-content: space-between;
+}
+
+.article .explain {
+	margin-top: 18px;
+	grid-column: 1 / -1;
+	background: rgba(255, 255, 255, 0.02);
+	padding: 12px;
+	border-radius: 8px;
+}
 
 /* Query Results Table */
-.article #queryInfo table { border-collapse: collapse; font-size: 12px; }
-.article #queryInfo th, .article #queryInfo td { border: 1px solid #ccc; padding: 4px; }
-.article #queryInfo th { text-align: left; background: none; }
-.article #queryInfo td { text-align: right; }
-.article #queryInfo td:first-child { text-align: left; font-weight: bold; }
-.article #queryInfo tr:first-child th { text-align: center; background: none; }
+.article #queryInfo table {
+	border-collapse: collapse;
+	font-size: 12px;
+}
+
+.article #queryInfo th,
+.article #queryInfo td {
+	border: 1px solid #ccc;
+	padding: 4px;
+}
+
+.article #queryInfo th {
+	text-align: left;
+	background: none;
+}
+
+.article #queryInfo td {
+	text-align: right;
+}
+
+.article #queryInfo td:first-child {
+	text-align: left;
+	font-weight: bold;
+}
+
+.article #queryInfo tr:first-child th {
+	text-align: center;
+	background: none;
+}
 
 /* Posterior Computation Formatting */
-.article .posterior-panel .examples button { margin-top: 12px }
-.article .posterior-panel .formula { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; margin: 10px 0; border-left: 3px solid rgba(255,255,255,0.3); }
+.article .posterior-panel .examples button {
+	margin-top: 12px;
+}
+
+.article .posterior-panel .formula {
+	background: rgba(0, 0, 0, 0.3);
+	padding: 12px;
+	border-radius: 6px;
+	margin: 10px 0;
+	border-left: 3px solid rgba(255, 255, 255, 0.3);
+}
+
 .article #calcQueryPoint,
 .article #calcPriors,
 .article #calcMuSigma0,
 .article #calcPointKDE,
 .article #calcPointGDA {
-	background: rgba(255,255,255,0.03);
+	background: rgba(255, 255, 255, 0.03);
 	padding: 8px 12px;
 	border-radius: 6px;
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 	font-size: 0.9rem;
 	margin-top: 12px;
 }
-.article #calcQueryPoint { margin-top: 12px; }
-.article .calc-step-subheader { margin-top: 8px; font-size: 1rem;}
-.article .calc-step-content { margin-top: 2px; }
-.article .calc-step-end { padding-bottom: 2px; border-bottom: 2px solid rgba(255, 255, 255, 0.1)}
+
+.article #calcQueryPoint {
+	margin-top: 12px;
+}
+
+.article .calc-step-subheader {
+	margin-top: 8px;
+	font-size: 1rem;
+}
+
+.article .calc-step-content {
+	margin-top: 2px;
+}
+
+.article .calc-step-end {
+	padding-bottom: 2px;
+	border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
 
 /* Difference panel: align list block with paragraph text */
 .article .difference-panel ul {
@@ -84,4 +302,9 @@
 .article .difference-panel li {
 	margin: 6px 0;
 }
-@media (max-width: 900px) { .article .article-body { grid-template-columns: 1fr; } .article .viz-row { flex-direction: column; } }
+
+@media (max-width: 900px) {
+	.article .viz-row {
+		flex-direction: column;
+	}
+}

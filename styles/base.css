@@ -1,14 +1,46 @@
 /* base.css — global resets and basic elements */
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-body { background: #131313; color: #e0e0e0; height: 100vh; max-height: 100dvh; padding: 20px; overflow-x: auto; }
-.container { max-width: 1200px; margin: 0 auto; }
-header { text-align: center; padding: 30px 0; margin-bottom: 20px }
-h1 { font-size: 2.4rem; margin-bottom: 6px }
-h4 { margin-top: 6px;}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: #131313;
+  color: #e0e0e0;
+  height: 100vh;
+  max-height: 100dvh;
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+header {
+  text-align: center;
+  padding: 30px 0;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 2.4rem;
+  margin-bottom: 6px;
+}
+
+h4 {
+  margin-top: 6px;
+}
 
 /* header home navigation link (used on multiple pages) */
-.home-link { margin-top: 8px; }
+.home-link {
+  margin-top: 8px;
+}
+
 .home-link a {
   color: rgba(255, 255, 255, 0.92);
   font-weight: 650;
@@ -16,13 +48,32 @@ h4 { margin-top: 6px;}
   display: inline-block;
   transition: color 160ms ease, opacity 160ms ease, text-decoration-color 160ms ease;
 }
-.home-link a:hover { text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.65); }
-.home-link a:visited { color: rgba(255, 255, 255, 0.72); }
-.home-link a:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.35); outline-offset: 3px; border-radius: 4px; }
+.home-link a:hover {
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.65);
+}
 
+.home-link a:visited {
+  color: rgba(255, 255, 255, 0.72);
+}
 
-.footer { text-align: right; padding: 20px 0; margin-top: 40px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
-.footer-tag { font-size: 0.9rem; color: rgba(255, 255, 255, 0.6); }
+.home-link a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.footer {
+  text-align: right;
+  padding: 20px 0;
+  margin-top: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-tag {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+}
 
 /* Footer links should look like normal text */
 .footer a,
@@ -43,21 +94,76 @@ h4 { margin-top: 6px;}
   border-radius: 4px;
 }
 
-.subtitle { opacity: 0.9 }
+.subtitle {
+  opacity: 0.9;
+}
 
-label { font-weight: 600; font-size: 0.95rem }
+label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
 
-input[type=number], select { background-color: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 8px; border-radius: 8px; transition: background-color .3s, border-color .3s; width: 100%; }
-input[type=number]:focus, select:focus { background-color: rgba(255, 255, 255, 0.15); border-color: rgba(255, 255, 255, 0.4); outline: none }
-select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, #fff 50%), linear-gradient(135deg, #fff 50%, transparent 50%); background-position: calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px); background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 30px; cursor: pointer }
-option { background: #333; color: #fff }
+input[type="number"],
+select {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.3s, border-color 0.3s;
+  width: 100%;
+}
 
-button { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); color: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer }
-button:hover { background: rgba(255, 255, 255, 0.18) }
+input[type="number"]:focus,
+select:focus {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  outline: none;
+}
 
-.row { display: flex; gap: 12px; align-items: center }
+select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #fff 50%),
+    linear-gradient(135deg, #fff 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) calc(1em + 2px),
+    calc(100% - 15px) calc(1em + 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 30px;
+  cursor: pointer;
+}
+
+option {
+  background: #333;
+  color: #fff;
+}
+
+button {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
 
 /* small-screen global helpers */
 @media (max-width: 420px) {
-  .row { flex-direction: column; align-items: stretch; gap: 8px; }
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
 }

@@ -1,25 +1,50 @@
 /* home.css — styles used on the index/home page */
-.home main { margin-top: 18px; }
-.home .project-list { list-style: none; display: grid; gap: 12px; padding: 0; }
-.home .project-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; }
+
+.home main {
+	margin-top: 18px;
+}
+
+.home .project-list {
+	list-style: none;
+	display: grid;
+	gap: 12px;
+	padding: 0;
+}
+
+.home .project-item {
+	background: rgba(255, 255, 255, 0.05);
+	padding: 12px;
+	border-radius: 8px;
+}
+
 .home .project-item > a {
 	color: rgba(255, 255, 255, 1);
 	font-weight: 700;
 	text-decoration: none;
 	letter-spacing: 0.2px;
-	/* display: inline-block; */
 }
+
 .home .project-item > a:hover {
 	text-decoration: underline;
 	text-decoration-color: rgba(255, 255, 255, 0.75);
 }
+
 .home .project-item > a:visited {
 	color: rgba(255, 255, 255, 0.75);
 }
+
 .home .project-item > a:focus-visible {
 	outline: 2px solid rgba(255, 255, 255, 0.35);
 	outline-offset: 3px;
 	border-radius: 4px;
 }
-.home .project-item .project-desc { opacity: 0.8; font-size: 0.9rem; margin-top: 6px; }
-.home .footer { margin-top: 20px; }
+
+.home .project-item .project-desc {
+	opacity: 0.8;
+	font-size: 0.9rem;
+	margin-top: 6px;
+}
+
+.home .footer {
+	margin-top: 20px;
+}

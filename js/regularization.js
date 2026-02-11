@@ -622,7 +622,7 @@
             const thead = table.append("thead");
             thead.append("tr")
                 .selectAll("th")
-                .data(["Method", "Train MSE", "Test MSE", "$||w||_2$", "# of nonzero $w$"])
+                .data(["Method", "Train MSE", "Test MSE", "$\\lVert w\\rVert_2$", "# of nonzero $w$"])
                 .enter()
                 .append("th")
                 .text(d => d);
@@ -950,9 +950,16 @@
             renderMetrics(metrics);
             renderCoefficients();
 
-            if (window.MathJax && window.MathJax.typeset) {
-                // Keep it cheap: only typeset on first load / major rerenders.
-                try { window.MathJax.typeset(); } catch (_) { /* ignore */ }
+            if (window.MathJax) {
+                try {
+                    if (typeof window.MathJax.typesetPromise === "function") {
+                        window.MathJax.typesetPromise([el.metricsTable]);
+                    } else if (typeof window.MathJax.typeset === "function") {
+                        window.MathJax.typeset([el.metricsTable]);
+                    }
+                } catch (_) {
+                    /* ignore */
+                }
             }
         }
 
