@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Linear Regression Regularization Playground</title>
+    <title>Linear Regression Regularization</title>
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
@@ -15,18 +15,18 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-    <link rel="stylesheet" href="styles/base.css">
-    <link rel="stylesheet" href="styles/article.css">
-    <link rel="stylesheet" href="styles/regularization.css">
+    <link rel="stylesheet" href="../styles/base.css">
+    <link rel="stylesheet" href="../styles/article.css">
+    <link rel="stylesheet" href="../styles/regularization.css">
 
-    <script defer src="js/regularization_playground.js"></script>
+    <script defer src="../js/regularization.js"></script>
 </head>
 
 <body>
     <div class="container article regularization">
         <header>
             <h1>Linear Regression Regularization</h1>
-            <div class="subtitle">Control vs Ridge vs Lasso vs Weight Decay</div>
+            <div class="subtitle">Control, Ridge, Lasso, L2 Penalty (GD), and Weight Decay (GD)</div>
             <div class="home-link"><a href="index.html">← Home</a></div>
         </header>
 
@@ -34,7 +34,7 @@
             <section class="panel">
                 <h2>Overview</h2>
                 <p>
-                    This playground compares how different regularization schemes affect linear regression fits when the model can overfit (e.g., high-degree polynomial features).
+                    This demonstration compares how different regularization schemes affect linear regression fits when the model can overfit (e.g., high-degree polynomial features).
                     You can regenerate synthetic data, change feature degree, and sweep $\lambda$ to see how the fitted function, coefficient magnitudes, and train/test error change.
                 </p>
                 <div class="formulas">
@@ -55,7 +55,7 @@
             </section>
 
             <section class="panel">
-                <h2>Playground</h2>
+                <h2>Visualization</h2>
                 <div class="viz-row">
                     <div class="viz-panel">
                         <div id="regViz" class="viz"></div>
