@@ -210,8 +210,8 @@
           \mathbb{E}\big[(\hat\theta-\theta)^2\big]
           &= \mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta] + \mathbb{E}[\hat\theta]-\theta)^2\big]\\
           &= \mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta])^2\big]
-          + 2\,\mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta])(\mathbb{E}[\hat\theta]-\theta)\big]
-          + \mathbb{E}\big[(\mathbb{E}[\hat\theta]-\theta)^2\big]\\
+          + 2\,\mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta])(\underbrace{\mathbb{E}[\hat\theta]-\theta}_{\text{a constant}})\big]
+          + \mathbb{E}\big[(\underbrace{\mathbb{E}[\hat\theta]-\theta}_{\text{a constant}})^2\big]\\
           &= \mathrm{Var}(\hat\theta)
           + 2\,(\mathbb{E}[\hat\theta]-\theta)\,\underbrace{\mathbb{E}[\hat\theta-\mathbb{E}[\hat\theta]]}_{=\,0}
           + (\mathbb{E}[\hat\theta]-\theta)^2\\
