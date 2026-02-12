@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Estimation: Bias, Variance, MSE, MLE</title>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/article.css">
+  <link rel="stylesheet" href="../styles/estimation.css">
+
+  <script defer src="../js/estimation_bootstrap.js"></script>
+</head>
+
+<body>
+  <div class="container article estimation">
+    <header>
+      <h1>Estimation</h1>
+      <div class="subtitle">Point estimation, function estimation, bias/variance, standard error, MSE, consistency, and likelihood objectives</div>
+      <div class="home-link"><a href="../index.html">← Home</a></div>
+    </header>
+
+    <main class="article-body">
+      <section class="panel">
+        <h2>Overview</h2>
+        <p>
+          Estimation is about using data $\mathcal{D}$ to infer something unknown: a parameter $\theta$, a function $f$, or a prediction rule.
+          Many of the most common ideas in statistics and machine learning can be expressed using a single lens:
+          choose an estimator that performs well under a loss (like MSE) or under a probabilistic model (like likelihood).
+        </p>
+        <div class="formulas">
+          <div class="formula">$$\textbf{Point estimation:}\quad \hat\theta = T(\mathcal{D})$$</div>
+          <div class="formula">$$\textbf{Function estimation:}\quad \hat f = A(\mathcal{D}),\; \hat f: \mathcal{X}\to\mathbb{R}$$</div>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Point estimation vs. function estimation</h2>
+        <p>
+          In point estimation, the unknown object is finite-dimensional (a scalar or vector $\theta\in\mathbb{R}^p$).
+          In function estimation, the unknown object is typically infinite-dimensional (a whole curve/surface).
+        </p>
+        <div class="formulas">
+          <div class="formula">$$\textbf{Point:}\quad X_1,\dots,X_n\sim P_\theta\;\Rightarrow\;\hat\theta\approx\theta$$</div>
+          <div class="formula">$$\textbf{Function:}\quad Y = f(X)+\varepsilon\;\Rightarrow\;\hat f(x)\approx f(x)$$</div>
+        </div>
+        <p>
+          Examples:
+          (1) estimating a mean $\theta=\mu$; (2) estimating a regression function $f(x)=\mathbb{E}[Y\mid X=x]$.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Bias, variance, and standard error</h2>
+        <p>
+          Treat an estimator as a random variable (because it depends on random data). Two core quantities are:
+        </p>
+        <div class="formulas">
+          <div class="formula">$$\textbf{Bias:}\quad \mathrm{Bias}(\hat\theta) = \mathbb{E}[\hat\theta]-\theta$$</div>
+          <div class="formula">$$\textbf{Variance:}\quad \mathrm{Var}(\hat\theta) = \mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta])^2\big]$$</div>
+        </div>
+        <p>
+          The standard error is the standard deviation of the estimator:
+        </p>
+        <div class="formula">$$\textbf{Standard error:}\quad \mathrm{SE}(\hat\theta)=\sqrt{\mathrm{Var}(\hat\theta)}$$</div>
+        <p>
+          In practice, we rarely know $\mathrm{Var}(\hat\theta)$ exactly, so we plug in an estimate (analytical, bootstrap, sandwich/robust, etc.).
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Determining an unbiased estimator</h2>
+        <p>
+          Let $X_1,\dots,X_n$ be i.i.d. Bernoulli($p$), i.e., $\mathbb{P}(X_i=1)=p$ and $\mathbb{P}(X_i=0)=1-p$.
+          A natural estimator of $p$ is the sample mean
+          $$\hat p = \bar X = \frac{1}{n}\sum_{i=1}^n X_i.$$
+        </p>
+        <p>
+          First compute the mean of a Bernoulli random variable:
+          $$\mathbb{E}[X_i] = 0\cdot\mathbb{P}(X_i=0) + 1\cdot\mathbb{P}(X_i=1) = p.$$
+        </p>
+        <p>
+          Then apply linearity of expectation (independence is not required for this step):
+          $$\mathbb{E}[\hat p] = \mathbb{E}\!\left[\frac{1}{n}\sum_{i=1}^n X_i\right]
+          = \frac{1}{n}\sum_{i=1}^n \mathbb{E}[X_i]
+          = \frac{1}{n}\sum_{i=1}^n p
+          = p.$$
+        </p>
+        <p>
+          Therefore $\mathbb{E}[\hat p]=p$, so $\hat p$ is an unbiased estimator of $p$.
+        </p>
+        <div class="formulas">
+          <div class="formula">$$\mathrm{Var}(\hat p)=\frac{p(1-p)}{n}$$</div>
+          <div class="formula">$$\mathrm{SE}(\hat p)=\sqrt{\frac{p(1-p)}{n}}\;\approx\;\sqrt{\frac{\hat p(1-\hat p)}{n}}$$</div>
+        </div>
+      </section>
+
+      <section class="panel" id="bootstrapCI">
+        <h2>Bootstrap confidence interval </h2>
+        <p>
+          The bootstrap estimates uncertainty by resampling our observed dataset (with replacement) many times, computing $\hat\theta$ for each resample, and using the variability of those estimates to construct a confidence interval.
+          A confidence interval complements a point estimate by quantifying sampling variability.
+          This is especially useful when an analytical standard error is unavailable, inconvenient, or relies on assumptions we do not want to make.
+          Under repeated sampling from the data-generating process, the constructed interval contains the true parameter with approximately probability $1-\alpha$.
+          It is not, in general, a statement that the parameter itself is random or that there is a $1-\alpha$ probability it lies in this particular realized interval.
+        </p>
+        <p>
+          Note: The basic bootstrap assumes observations are i.i.d. (or at least exchangeable).
+          For dependent data (e.g., time series), we typically need variants such as the block bootstrap.
+        </p>
+        <div class="viz-row">
+          <div class="viz-panel">
+            <div id="bootstrapPlot" class="viz"></div>
+            <div class="help-text">Note the standard error and confidence interval tend to tighten as $n$ grows.</div>
+            
+            <h3 style="margin-top: 14px;">Results</h3>
+            <div id="bootstrapStats">—</div>
+          </div>
+
+          <aside class="viz-controls">
+            <h3>Controls</h3>
+            <div class="control-grid">
+              <label for="bootStat">Statistic</label>
+              <select id="bootStat">
+                <option value="mean" selected>Mean</option>
+                <option value="median">Median</option>
+              </select>
+
+              <label for="bootN">Sample size (n)</label>
+              <input id="bootN" type="number" min="5" max="500" step="1" value="40" />
+
+              <label for="bootB">Bootstrap reps (B)</label>
+              <input id="bootB" type="number" min="100" max="20000" step="100" value="2000" />
+
+              <label for="bootLevel">Confidence level</label>
+              <select id="bootLevel">
+                <option value="0.90">90%</option>
+                <option value="0.95" selected>95%</option>
+                <option value="0.99">99%</option>
+              </select>
+
+              <label for="bootMu">Population μ</label>
+              <input id="bootMu" type="number" min="-10" max="10" step="0.1" value="0" />
+
+              <label for="bootSigma">Population σ</label>
+              <input id="bootSigma" type="number" min="0.05" max="10" step="0.05" value="1" />
+
+              <label for="bootSeed">Seed</label>
+              <input id="bootSeed" type="number" step="1" value="7" />
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Mean squared error (MSE) and minimizing it</h2>
+        <p>
+          A common way to evaluate an estimator is mean squared error.
+          For a parameter estimator, the MSE decomposes into bias and variance.
+        </p>
+        <div class="formulas">
+          <div class="formula">$$\textbf{MSE:}\quad \mathrm{MSE}(\hat\theta)=\mathbb{E}\big[(\hat\theta-\theta)^2\big]$$</div>
+          <div class="formula">$$\textbf{Decomposition:}\quad \mathrm{MSE}(\hat\theta)=\mathrm{Bias}(\hat\theta)^2+\mathrm{Var}(\hat\theta)$$</div>
+        </div>
+        <p>
+          Minimizing MSE often means accepting a little bias to reduce variance.
+          This is the intuition behind shrinkage methods and regularization (e.g., ridge regression).
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Function estimation: bias–variance and prediction error</h2>
+        <p>
+          For regression, we often care about prediction error at an input $x$.
+          A classic decomposition (under squared loss) is:
+        </p>
+        <div class="formula">
+          $$\mathbb{E}\big[(\hat f(x)-Y)^2\mid X=x\big]
+          =\underbrace{\big(\mathbb{E}[\hat f(x)]-f(x)\big)^2}_{\text{bias}^2}
+          +\underbrace{\mathrm{Var}(\hat f(x))}_{\text{variance}}
+          +\underbrace{\mathrm{Var}(\varepsilon\mid X=x)}_{\text{irreducible noise}}$$
+        </div>
+        <p>
+          The irreducible noise term cannot be improved by changing the estimator; only bias and variance are under our control.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Consistency</h2>
+        <p>
+          An estimator is consistent if it converges to the truth as the sample size grows.
+          The most common notion is convergence in probability.
+        </p>
+        <div class="formula">$$\hat\theta_n\xrightarrow{p}\theta\quad\text{as }n\to\infty$$</div>
+        <p>
+          Consistency is an asymptotic property; it doesn't say the estimator is good at small $n$.
+          In ML terms: two methods can both be consistent, but one can dominate the other at realistic sample sizes.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Maximum likelihood estimation (MLE)</h2>
+        <p>
+          If we assume a probabilistic model $p_\theta(x)$ for the data, the likelihood of a dataset $\mathcal{D}=\{x_i\}_{i=1}^n$ is
+          $L(\theta)=\prod_{i=1}^n p_\theta(x_i)$. The MLE chooses the parameter that maximizes this.
+        </p>
+        <div class="formulas">
+          <div class="formula">$$\hat\theta_{\text{MLE}}=\arg\max_{\theta}\;\prod_{i=1}^n p_\theta(x_i)$$</div>
+          <div class="formula">$$\hat\theta_{\text{MLE}}=\arg\max_{\theta}\;\sum_{i=1}^n \log p_\theta(x_i)$$</div>
+        </div>
+        <p>
+          The second form is the log-likelihood; it is numerically stable and turns products into sums.
+          Under regularity conditions, MLEs are consistent and asymptotically normal.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Conditional log-likelihood (discriminative objective)</h2>
+        <p>
+          In supervised learning we often model $p_\theta(y\mid x)$ directly.
+          The conditional log-likelihood objective is:
+        </p>
+        <div class="formula">$$\hat\theta = \arg\max_{\theta}\;\sum_{i=1}^n \log p_\theta(y_i\mid x_i)$$</div>
+        <p>
+          For multiclass classification with a softmax model, maximizing conditional log-likelihood is equivalent to
+          minimizing cross-entropy (negative conditional log-likelihood).
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Conditional log-likelihood vs. mean squared error</h2>
+        <p>
+          Both are valid training objectives, but they encode different assumptions.
+        </p>
+        <div class="formulas">
+          <div class="formula">
+            $$\textbf{MSE regression:}\quad \min_{f\in\mathcal{F}}\;\frac{1}{n}\sum_{i=1}^n\big(f(x_i)-y_i\big)^2$$
+          </div>
+          <div class="formula">
+            $$\textbf{Conditional log-likelihood:}\quad \max_{\theta}\;\sum_{i=1}^n \log p_\theta(y_i\mid x_i)$$
+          </div>
+        </div>
+        <p>
+          A useful bridge: if we assume a Gaussian noise model $Y\mid X=x \sim \mathcal{N}(f(x),\sigma^2)$ with constant $\sigma^2$,
+          then minimizing MSE is (up to constants) equivalent to maximizing the conditional log-likelihood.
+        </p>
+        <div class="formula">
+          $$\log p(y\mid x) = -\tfrac{1}{2\sigma^2}(y-f(x))^2 + \text{const}\;\Rightarrow\;\min (y-f(x))^2\;\Leftrightarrow\;\max \log p(y\mid x)$$
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p class="footer-tag">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></p>
+    </footer>
+  </div>
+</body>
+
+</html>

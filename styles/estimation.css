@@ -1,0 +1,114 @@
+/* estimation.css — page-specific styles for estimation.html */
+
+.estimation .viz {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.estimation .help-text {
+  margin-top: 8px;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.estimation .viz-controls h3 {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.estimation .control-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.estimation .small {
+  font-size: 0.92rem;
+}
+
+/* Bootstrap plot styling */
+.estimation .boot-svg .axis path,
+.estimation .boot-svg .axis line {
+  stroke: rgba(255, 255, 255, 0.22);
+}
+
+.estimation .boot-svg .axis text {
+  fill: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+}
+
+.estimation .boot-svg .bars rect {
+  fill: rgba(74, 163, 255, 0.35);
+  stroke: rgba(74, 163, 255, 0.65);
+}
+
+.estimation .boot-svg .ci-band {
+  fill: rgba(125, 255, 178, 0.10);
+}
+
+.estimation .boot-svg .ci-line {
+  stroke: rgba(125, 255, 178, 0.9);
+  stroke-width: 2;
+}
+
+.estimation .boot-svg .hat-line {
+  stroke: rgba(255, 122, 89, 0.95);
+  stroke-width: 2;
+}
+
+.estimation .boot-svg .truth-line {
+  stroke: rgba(255, 255, 255, 0.65);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+/* Internal legend */
+.estimation .boot-svg .boot-legend .legend-box {
+  fill: rgba(0, 0, 0, 0.35);
+  stroke: rgba(255, 255, 255, 0.10);
+}
+
+.estimation .boot-svg .boot-legend .legend-text {
+  fill: rgba(255, 255, 255, 0.80);
+  font-size: 12px;
+}
+
+.estimation .boot-svg .boot-legend .legend-truth {
+  stroke: rgba(255, 255, 255, 0.70);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.estimation .boot-svg .boot-legend .legend-hat {
+  stroke: rgba(255, 122, 89, 0.95);
+  stroke-width: 2;
+}
+
+.estimation .boot-svg .boot-legend .legend-ci {
+  stroke: rgba(125, 255, 178, 0.9);
+  stroke-width: 2;
+}
+
+.estimation .boot-svg .boot-legend .legend-ci-band {
+  fill: rgba(125, 255, 178, 0.10);
+  stroke: rgba(125, 255, 178, 0.35);
+}
+
+.estimation .boot-metrics {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (max-width: 820px) {
+  .estimation.article .formulas {
+    flex-direction: column;
+  }
+}
