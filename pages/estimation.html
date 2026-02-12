@@ -38,13 +38,6 @@
           Many of the most common ideas in statistics and machine learning can be expressed using a single lens:
           choose an estimator that performs well under a loss (like MSE) or under a probabilistic model (like likelihood).
         </p>
-        <div class="formulas">
-          <div class="formula">$$\textbf{Point estimation:}\quad \hat\theta = T(\mathcal{D})$$</div>
-          <div class="formula">$$\textbf{Function estimation:}\quad \hat f = A(\mathcal{D}),\; \hat f: \mathcal{X}\to\mathbb{R}$$</div>
-        </div>
-      </section>
-      <section class="panel">
-        <h2>Point estimation vs. function estimation</h2>
         <p>
           In point estimation, the unknown object is finite-dimensional (a scalar or vector $\theta\in\mathbb{R}^p$).
           In function estimation, the unknown object is typically infinite-dimensional (a whole curve/surface).
@@ -54,13 +47,20 @@
           <div class="formula">$$\textbf{Function:}\quad Y = f(X)+\varepsilon\;\Rightarrow\;\hat f(x)\approx f(x)$$</div>
         </div>
         <p>
+          The estimator is a function of the data, and since the data is drawn from a random process, any function of the data is a random variable. Here $T$ and $A$ are the estimation procedures (e.g., formulas, algorithms) that we design to produce good estimates.
+        </p>
+        <div class="formulas">
+          <div class="formula">$$\textbf{Point estimation:}\quad \hat\theta = T(\mathcal{D})$$</div>
+          <div class="formula">$$\textbf{Function estimation:}\quad \hat f = A(\mathcal{D}),\; \hat f: \mathcal{X}\to\mathbb{R}$$</div>
+        </div>
+        <p>
           Examples:
           (1) estimating a mean $\theta=\mu$; (2) estimating a regression function $f(x)=\mathbb{E}[Y\mid X=x]$.
         </p>
       </section>
 
       <section class="panel">
-        <h2>Bias, variance, and standard error</h2>
+        <h2>Bias and Variance</h2>
         <p>
           Treat an estimator as a random variable (because it depends on random data). Two core quantities are:
         </p>
@@ -69,12 +69,16 @@
           <div class="formula">$$\textbf{Variance:}\quad \mathrm{Var}(\hat\theta) = \mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta])^2\big]$$</div>
         </div>
         <p>
-          The standard error is the standard deviation of the estimator:
+          An estimator is considered unbiased if $\mathrm{Bias}(\hat\theta)=0$, i.e., $\mathbb{E}[\hat\theta]=\theta$.
+          Unbiasedness is a nice property, but it is not the only thing we care about; we also want low variance.
         </p>
-        <div class="formula">$$\textbf{Standard error:}\quad \mathrm{SE}(\hat\theta)=\sqrt{\mathrm{Var}(\hat\theta)}$$</div>
         <p>
-          In practice, we rarely know $\mathrm{Var}(\hat\theta)$ exactly, so we plug in an estimate (analytical, bootstrap, sandwich/robust, etc.).
+          For function estimation, we can define bias and variance at each input $x$:
         </p>
+        <div class="formulas">
+         <div class="formula">$$\mathrm{Bias}(\hat f(x)) = \mathbb{E}[\hat f(x)]-f(x)$$</div>
+          <div class="formula">$$\mathrm{Var}(\hat f(x)) = \mathbb{E}\big[(\hat f(x)-\mathbb{E}[\hat f(x)])^2\big]$$</div>
+        </div>
       </section>
 
       <section class="panel">
@@ -85,7 +89,7 @@
           $$\hat p = \bar X = \frac{1}{n}\sum_{i=1}^n X_i.$$
         </p>
         <p>
-          First compute the mean of a Bernoulli random variable:
+          First compute the expectation of a Bernoulli random variable:
           $$\mathbb{E}[X_i] = 0\cdot\mathbb{P}(X_i=0) + 1\cdot\mathbb{P}(X_i=1) = p.$$
         </p>
         <p>
@@ -98,20 +102,45 @@
         <p>
           Therefore $\mathbb{E}[\hat p]=p$, so $\hat p$ is an unbiased estimator of $p$.
         </p>
+      </section>
+
+      <section class="panel">
+        <h2>Standard error</h2>
+        <p>
+          The standard error is the standard deviation of the estimator:
+        </p>
+        <div class="formula">$$\textbf{Standard error:}\quad \mathrm{SE}(\hat\theta)=\sqrt{\mathrm{Var}(\hat\theta)}$$</div>
+        <p>
+          In practice, we rarely know $\mathrm{Var}(\hat\theta)$ exactly, so we often estimate the standard error using the data we have sampled.
+          For the Bernoulli example, we can compute the variance of $\hat p$ using the fact that the variance of a sum of independent random variables is the sum of their variances:
+        </p>
         <div class="formulas">
-          <div class="formula">$$\mathrm{Var}(\hat p)=\frac{p(1-p)}{n}$$</div>
+          <div class="formula">
+            $$\mathrm{Var}(\hat p)=\mathrm{Var}\!\left(\frac{1}{n}\sum_{i=1}^n X_i\right)
+            = \frac{1}{n^2}\sum_{i=1}^n \mathrm{Var}(X_i)
+            = \frac{1}{n^2}\sum_{i=1}^n p(1-p)
+            = \frac{p(1-p)}{n}$$
+          </div>
           <div class="formula">$$\mathrm{SE}(\hat p)=\sqrt{\frac{p(1-p)}{n}}\;\approx\;\sqrt{\frac{\hat p(1-\hat p)}{n}}$$</div>
         </div>
+        <p>
+          The standard error quantifies the sampling variability of the estimator, meaning how much the estimate can vary across repeated samplings of the data.
+          It is required for constructing confidence intervals and performing hypothesis tests.
+        </p>
       </section>
 
       <section class="panel" id="bootstrapCI">
         <h2>Bootstrap confidence interval </h2>
         <p>
-          The bootstrap estimates uncertainty by resampling our observed dataset (with replacement) many times, computing $\hat\theta$ for each resample, and using the variability of those estimates to construct a confidence interval.
-          A confidence interval complements a point estimate by quantifying sampling variability.
+          The initial sample of data is just one of many possible samples we could have drawn from the data-generating process, and only gives us one realization of the estimator $\hat\theta$.
+          The bootstrap is one way to get a better understanding of the uncertainty of our estimate by resampling our observed dataset (with replacement) many times and computing $\hat\theta^*$ for each resample.
+          <ul>
+            <li>If $\theta = \mu$, then on each resample, $\hat\theta^*=\hat\mu^*=\frac{1}{n}\sum_{i=1}^n X_i^*$</li>
+          </ul>
+          This allows us to empirically approximate the sampling distribution of $\hat\theta$ and estimate its standard error and confidence intervals.
           This is especially useful when an analytical standard error is unavailable, inconvenient, or relies on assumptions we do not want to make.
-          Under repeated sampling from the data-generating process, the constructed interval contains the true parameter with approximately probability $1-\alpha$.
-          It is not, in general, a statement that the parameter itself is random or that there is a $1-\alpha$ probability it lies in this particular realized interval.
+          Under repeated sampling from the data-generating process, the constructed interval contains the true parameter $\theta$ with approximately probability $1-\alpha$.
+          It is not, in general, a statement that the parameter $\theta$ itself is random or that there is a $1-\alpha$ probability it lies in this particular realized interval.
         </p>
         <p>
           Note: The basic bootstrap assumes observations are i.i.d. (or at least exchangeable).
@@ -164,7 +193,7 @@
       <section class="panel">
         <h2>Mean squared error (MSE) and minimizing it</h2>
         <p>
-          A common way to evaluate an estimator is mean squared error.
+          A common way to evaluate an estimator is by its mean squared error.
           For a parameter estimator, the MSE decomposes into bias and variance.
         </p>
         <div class="formulas">
@@ -172,8 +201,24 @@
           <div class="formula">$$\textbf{Decomposition:}\quad \mathrm{MSE}(\hat\theta)=\mathrm{Bias}(\hat\theta)^2+\mathrm{Var}(\hat\theta)$$</div>
         </div>
         <p>
+          To prove this, here's the derivation where we add and subtract $\mathbb{E}[\hat\theta]$ inside the initial definition and simplify the expansion using the definition of variance and the fact that $\mathbb{E}[\hat\theta-\mathbb{E}[\hat\theta]]=0$ (the expected deviation from the mean is zero by definition):
+        </p>
+        <div class="formula">
+          $$\begin{aligned}
+          \mathbb{E}\big[(\hat\theta-\theta)^2\big]
+          &= \mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta] + \mathbb{E}[\hat\theta]-\theta)^2\big]\\
+          &= \mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta])^2\big]
+          + 2\,\mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta])(\mathbb{E}[\hat\theta]-\theta)\big]
+          + \mathbb{E}\big[(\mathbb{E}[\hat\theta]-\theta)^2\big]\\
+          &= \mathrm{Var}(\hat\theta)
+          + 2\,(\mathbb{E}[\hat\theta]-\theta)\,\underbrace{\mathbb{E}[\hat\theta-\mathbb{E}[\hat\theta]]}_{=\,0}
+          + (\mathbb{E}[\hat\theta]-\theta)^2\\
+          &= \mathrm{Var}(\hat\theta) + \mathrm{Bias}(\hat\theta)^2.
+          \end{aligned}$$
+        </div>
+        <p>
           Minimizing MSE often means accepting a little bias to reduce variance.
-          This is the intuition behind shrinkage methods and regularization (e.g., ridge regression).
+          This is the intuition behind shrinkage methods and regularization (e.g., ridge regression), and leads the discussion of the bias-variance tradeoff in ML.
         </p>
       </section>
 
@@ -190,7 +235,7 @@
           +\underbrace{\mathrm{Var}(\varepsilon\mid X=x)}_{\text{irreducible noise}}$$
         </div>
         <p>
-          The irreducible noise term cannot be improved by changing the estimator; only bias and variance are under our control.
+          The irreducible noise term cannot be improved by changing the estimator; it is the part of $Y$ that is unpredictable from $X$. Only bias and variance are under our control. 
         </p>
       </section>
 
@@ -203,15 +248,16 @@
         <div class="formula">$$\hat\theta_n\xrightarrow{p}\theta\quad\text{as }n\to\infty$$</div>
         <p>
           Consistency is an asymptotic property; it doesn't say the estimator is good at small $n$.
-          In ML terms: two methods can both be consistent, but one can dominate the other at realistic sample sizes.
+          In practice, two methods can both be consistent, but one can dominate the other at realistic sample sizes.
         </p>
       </section>
 
       <section class="panel">
         <h2>Maximum likelihood estimation (MLE)</h2>
         <p>
-          If we assume a probabilistic model $p_\theta(x)$ for the data, the likelihood of a dataset $\mathcal{D}=\{x_i\}_{i=1}^n$ is
-          $L(\theta)=\prod_{i=1}^n p_\theta(x_i)$. The MLE chooses the parameter that maximizes this.
+          If we assume a probabilistic model $p_\theta(x)$ for the data, the likelihood $L(\theta)$ of a dataset $\mathcal{D}=\{x_i\}_{i=1}^n$ is
+          $L(\theta)=\prod_{i=1}^n p_\theta(x_i)$. This is the probability of observing the data we did.
+          The MLE chooses the parameter that maximizes this.
         </p>
         <div class="formulas">
           <div class="formula">$$\hat\theta_{\text{MLE}}=\arg\max_{\theta}\;\prod_{i=1}^n p_\theta(x_i)$$</div>
@@ -219,7 +265,7 @@
         </div>
         <p>
           The second form is the log-likelihood; it is numerically stable and turns products into sums.
-          Under regularity conditions, MLEs are consistent and asymptotically normal.
+          Under regularity conditions (like differentiability and identifiability), MLEs are consistent and asymptotically normal.
         </p>
       </section>
 
@@ -239,7 +285,7 @@
       <section class="panel">
         <h2>Conditional log-likelihood vs. mean squared error</h2>
         <p>
-          Both are valid training objectives, but they encode different assumptions.
+          Both are valid training objectives, but they encode different assumptions. MLE assumes a full generative model for the data, while conditional log-likelihood only models the conditional distribution of $Y$ given $X$.
         </p>
         <div class="formulas">
           <div class="formula">

@@ -107,6 +107,11 @@
   gap: 6px;
 }
 
+.estimation ul {
+	padding-left: 1.25em;
+	list-style-position: outside;
+}
+
 @media (max-width: 820px) {
   .estimation.article .formulas {
     flex-direction: column;
