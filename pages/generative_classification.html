@@ -159,6 +159,7 @@
                         <div class="options-group">
                             <label><input type="checkbox" id="showKDE" checked /> Show KDE heatmap</label>
                             <label><input type="checkbox" id="showGDA" /> Show GDA ellipses & decision</label>
+                            <label><input type="checkbox" id="useLogSpace" checked /> Use log-space posteriors (stabilizes for extreme values)</label>
                         </div>
                         <div class="bandwidth-row">
                             <label for="bandwidth">Bandwidth:</label>
@@ -179,6 +180,9 @@
                     <p>
                         Clicking on the plot queries the posterior probabilities $p(y=k|x^*)$ and class-conditional densities $p(x^*|y=k)$ at the selected point $x^*$. The posterior probabilities indicate the likelihood of each class given the observed features, while the class-conditional densities show how likely the features are to appear under each class model.
                     </p>
+                    <p>
+                        Note: To see the log-space stabilization effect, reduce the bandwidth and click on a point far from the data. With a tiny bandwidth, KDE can produce extremely small likelihoods that underflow to zero in normal space, but remain finite in log-space. GDA can too, though the point would have to be much further away.
+                    </p>
                 </div>
             </section>
 
@@ -188,7 +192,17 @@
                 <div class="posterior-actions">
                     <div class="examples">
                         <button id="example1">Compute for x*=(75,89.5)</button>
-                        <button id="example2">Compute for x*=(83,83)</button>
+                        
+                        <button id="example2" type="button">
+                            <span >
+                                <span>Compute for x*= (</span>
+                                    <input id="example2x1" type="number" step="0.1" value="83" aria-label="x1" />
+                                    <span>,</span>
+                                    <input id="example2x2" type="number" step="0.1" value="83" aria-label="x2" />
+                                    <span>)</span>
+                                </span>
+                            </span>
+                        </button>
                         </span> or click anywhere on the plot above to query a point.
                     </div>
                 </div>

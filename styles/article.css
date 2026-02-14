@@ -209,6 +209,37 @@
 	justify-content: space-between;
 }
 
+/* Compact numeric inputs for the Example 2 query button */
+.article #example2 {
+	display: inline-flex;
+	align-items: center;
+}
+
+.article #example2x1,
+.article #example2x2 {
+	width: 6ch;
+	height: 1.25em;
+	padding: 0 0.35em;
+	margin: 0 2px;
+	font: inherit;
+	line-height: 1;
+	border-radius: 6px;
+}
+
+.article #example2x1::-webkit-outer-spin-button,
+.article #example2x1::-webkit-inner-spin-button,
+.article #example2x2::-webkit-outer-spin-button,
+.article #example2x2::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.article #example2x1,
+.article #example2x2 {
+	appearance: textfield;
+	-moz-appearance: textfield;
+}
+
 .article .explain {
 	margin-top: 18px;
 	grid-column: 1 / -1;
