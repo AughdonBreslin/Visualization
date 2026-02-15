@@ -127,7 +127,8 @@
         </div>
         <p>
           The standard error quantifies the sampling variability of the estimator, meaning how much the estimate can vary across repeated samplings of the data.
-          It is required for constructing confidence intervals and performing hypothesis tests.
+          From the Central Limit theorem, the collection of sample estimates will converge to be approximately Normal for large $n$.
+          The standard error, then, can be used to compute the probability that the true parameter lies within a confidence interval centered around the estimate.
         </p>
       </section>
 
@@ -135,7 +136,7 @@
         <h2>Bootstrap confidence interval </h2>
         <p>
           The initial sample of data is just one of many possible samples we could have drawn from the data-generating process, and only gives us one realization of the estimator $\hat\theta$.
-          The bootstrap is one way to get a better understanding of the uncertainty of our estimate by resampling our observed dataset (with replacement) many times and computing $\hat\theta^*$ for each resample.
+          The bootstrap is one way to get a better understanding of the uncertainty of our estimate by redrawing many collections of samples from our observed dataset (with replacement) and computing $\hat\theta^*$ for each resample.
           <ul>
             <li>If $\theta = \mu$, then on each resample, $\hat\theta^*=\hat\mu^*=\frac{1}{n}\sum_{i=1}^n X_i^*$</li>
           </ul>
