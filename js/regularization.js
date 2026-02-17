@@ -49,10 +49,6 @@
         return 0;
     }
 
-    function mean(arr) {
-        return arr.reduce((a, b) => a + b, 0) / arr.length;
-    }
-
     function mse(yTrue, yPred) {
         let s = 0;
         for (let i = 0; i < yTrue.length; i++) {
@@ -60,6 +56,23 @@
             s += d * d;
         }
         return s / yTrue.length;
+    }
+
+    function mseGradient(X, y, w) {
+        // Gradient of (1/N)||Xw - y||^2 w.r.t. w
+        const N = X.length;
+        const P = X[0].length;
+        const yhat = predict(X, w);
+        const grad = new Array(P).fill(0);
+
+        for (let i = 0; i < N; i++) {
+            const e = yhat[i] - y[i];
+            for (let j = 0; j < P; j++) grad[j] += X[i][j] * e;
+        }
+
+        const scale = 2 / N;
+        for (let j = 0; j < P; j++) grad[j] *= scale;
+        return grad;
     }
 
     function l2Norm(vec, startIndex = 0) {
@@ -137,17 +150,6 @@
             Xs[i] = row;
         }
         return Xs;
-    }
-
-    function matVec(A, x) {
-        const n = A.length;
-        const y = new Array(n).fill(0);
-        for (let i = 0; i < n; i++) {
-            let s = 0;
-            for (let j = 0; j < x.length; j++) s += A[i][j] * x[j];
-            y[i] = s;
-        }
-        return y;
     }
 
     function predict(X, w) {
@@ -273,60 +275,12 @@
         return solveLinear(A, Xty);
     }
 
-    function fitLassoCoordinateDescent(X, y, lambda, iters) {
-        // Objective: (1/N)||Xw - y||^2 + lambda * ||w||_1, do not penalize intercept.
-        const N = X.length;
-        const P = X[0].length;
-
-        const w = new Array(P).fill(0);
-        const yhat = new Array(N).fill(0);
-
-        // precompute column norms (1/N)*sum x_ij^2
-        const colNorm = new Array(P).fill(0);
-        for (let j = 0; j < P; j++) {
-            let s = 0;
-            for (let i = 0; i < N; i++) s += X[i][j] * X[i][j];
-            colNorm[j] = s / N;
-        }
-
-        for (let iter = 0; iter < iters; iter++) {
-            // update intercept separately (no penalty)
-            {
-                let rMean = 0;
-                for (let i = 0; i < N; i++) rMean += (y[i] - yhat[i]);
-                rMean /= N;
-                const delta = rMean; // since x0=1
-                w[0] += delta;
-                for (let i = 0; i < N; i++) yhat[i] += delta;
-            }
-
-            for (let j = 1; j < P; j++) {
-                const wOld = w[j];
-                // compute rho = (1/N) * sum x_ij * (y_i - (yhat_i - x_ij*w_j))
-                let rho = 0;
-                for (let i = 0; i < N; i++) {
-                    const xij = X[i][j];
-                    const r = y[i] - (yhat[i] - xij * wOld);
-                    rho += xij * r;
-                }
-                rho /= N;
-
-                // With squared loss scaled as (1/N)||Xw-y||^2, the coordinate-update threshold is lambda/2
-                // (many references use (1/2N)||Xw-y||^2, in which case the threshold is lambda).
-                const wNew = softThreshold(rho, 0.5 * lambda) / (colNorm[j] || 1);
-                const delta = wNew - wOld;
-                if (delta !== 0) {
-                    w[j] = wNew;
-                    for (let i = 0; i < N; i++) yhat[i] += X[i][j] * delta;
-                }
-            }
-        }
-
-        return w;
+    function fitLasso(X, y, lambda, iters) {
+        return fitLassoWarm(X, y, lambda, iters, null);
     }
 
-    function fitLassoCoordinateDescentWarm(X, y, lambda, iters, wInit) {
-        // Same objective as fitLassoCoordinateDescent, but warm-start from wInit.
+    function fitLassoWarm(X, y, lambda, iters, wInit) {
+        // Same objective as fitLasso, but warm-start from wInit.
         const N = X.length;
         const P = X[0].length;
 
@@ -380,47 +334,17 @@
         return w;
     }
 
-    function fitL2PenaltyGD(X, y, lambda, lr, iters) {
-        // Minimize (1/N)||Xw-y||^2 + lambda||w||^2 (exclude intercept)
-        const N = X.length;
-        const P = X[0].length;
-        const w = new Array(P).fill(0);
-
-        for (let t = 0; t < iters; t++) {
-            const yhat = predict(X, w);
-            const grad = new Array(P).fill(0);
-
-            for (let i = 0; i < N; i++) {
-                const e = yhat[i] - y[i];
-                for (let j = 0; j < P; j++) grad[j] += X[i][j] * e;
-            }
-            const scale = 2 / N;
-            for (let j = 0; j < P; j++) grad[j] *= scale;
-
-            // add L2 term (exclude intercept)
-            for (let j = 1; j < P; j++) grad[j] += 2 * lambda * w[j];
-
-            for (let j = 0; j < P; j++) w[j] -= lr * grad[j];
-        }
-
-        return w;
+    function fitL2Gd(X, y, lambda, lr, iters) {
+        return fitL2GdWarm(X, y, lambda, lr, iters, null);
     }
 
-    function fitL2PenaltyGDWarm(X, y, lambda, lr, iters, wInit) {
+    function fitL2GdWarm(X, y, lambda, lr, iters, wInit) {
         const N = X.length;
         const P = X[0].length;
         const w = (wInit && wInit.length === P) ? wInit.slice() : new Array(P).fill(0);
 
         for (let t = 0; t < iters; t++) {
-            const yhat = predict(X, w);
-            const grad = new Array(P).fill(0);
-
-            for (let i = 0; i < N; i++) {
-                const e = yhat[i] - y[i];
-                for (let j = 0; j < P; j++) grad[j] += X[i][j] * e;
-            }
-            const scale = 2 / N;
-            for (let j = 0; j < P; j++) grad[j] *= scale;
+            const grad = mseGradient(X, y, w);
 
             for (let j = 1; j < P; j++) grad[j] += 2 * lambda * w[j];
 
@@ -430,50 +354,17 @@
         return w;
     }
 
-    function fitWeightDecayGD(X, y, lambda, lr, iters) {
-        // Decoupled weight decay update (matched to objective (1/N)||Xw-y||^2 + lambda||w||^2):
-        // w <- (1-2*lr*lambda)w - lr * grad(MSE)
-        const N = X.length;
-        const P = X[0].length;
-        const w = new Array(P).fill(0);
-
-        for (let t = 0; t < iters; t++) {
-            const yhat = predict(X, w);
-            const grad = new Array(P).fill(0);
-
-            for (let i = 0; i < N; i++) {
-                const e = yhat[i] - y[i];
-                for (let j = 0; j < P; j++) grad[j] += X[i][j] * e;
-            }
-            const scale = 2 / N;
-            for (let j = 0; j < P; j++) grad[j] *= scale;
-
-            // decoupled shrink (exclude intercept)
-            const decay = 1 - 2 * lr * lambda;
-            for (let j = 1; j < P; j++) w[j] *= decay;
-
-            // gradient step on MSE (do not decay the gradient term)
-            for (let j = 0; j < P; j++) w[j] -= lr * grad[j];
-        }
-
-        return w;
+    function fitWd(X, y, lambda, lr, iters) {
+        return fitWdWarm(X, y, lambda, lr, iters, null);
     }
 
-    function fitWeightDecayGDWarm(X, y, lambda, lr, iters, wInit) {
+    function fitWdWarm(X, y, lambda, lr, iters, wInit) {
         const N = X.length;
         const P = X[0].length;
         const w = (wInit && wInit.length === P) ? wInit.slice() : new Array(P).fill(0);
 
         for (let t = 0; t < iters; t++) {
-            const yhat = predict(X, w);
-            const grad = new Array(P).fill(0);
-
-            for (let i = 0; i < N; i++) {
-                const e = yhat[i] - y[i];
-                for (let j = 0; j < P; j++) grad[j] += X[i][j] * e;
-            }
-            const scale = 2 / N;
-            for (let j = 0; j < P; j++) grad[j] *= scale;
+            const grad = mseGradient(X, y, w);
 
             const decay = 1 - 2 * lr * lambda;
             for (let j = 1; j < P; j++) w[j] *= decay;
@@ -491,7 +382,7 @@
         return Math.sin(1.25 * x);
     }
 
-    function generateDataset({ trueFn, nTrain, noiseVar, seed }) {
+    function makeDataset({ trueFn, nTrain, noiseVar, seed }) {
         const rng = mulberry32(seed);
         const sigma = Math.sqrt(Math.max(0, noiseVar));
         const xs = [];
@@ -503,7 +394,6 @@
             ys.push(y);
         }
 
-        // fixed test grid (same noise model as training)
         const nTest = 200;
         const xt = [];
         const yt = [];
@@ -516,8 +406,8 @@
         return { xs, ys, xt, yt };
     }
 
-    function formatNum(v) {
-        if (!Number.isFinite(v)) return "—";
+    function fmt(v) {
+        if (!Number.isFinite(v)) return "-";
         const av = Math.abs(v);
         if (av >= 1e5) return v.toExponential(2);
         if (av >= 1000) return v.toFixed(0);
@@ -525,8 +415,8 @@
         return v.toFixed(3);
     }
 
-    function formatNumMax3(v) {
-        if (!Number.isFinite(v)) return "—";
+    function fmt3(v) {
+        if (!Number.isFinite(v)) return "-";
         const av = Math.abs(v);
         if (av >= 1e5) return v.toExponential(3);
         // Round to at most 3 decimals and avoid trailing zeros.
@@ -534,8 +424,8 @@
         return rounded.toLocaleString(undefined, { maximumFractionDigits: 3 });
     }
 
-    function formatLambdaForTable(v) {
-        if (!Number.isFinite(v)) return "—";
+    function fmtLambda(v) {
+        if (!Number.isFinite(v)) return "-";
         if (v === 0) return "0";
         const av = Math.abs(v);
         // λ can be extremely small; prefer scientific notation there.
@@ -630,27 +520,23 @@
             bv.mseG = bv.mseSvg.append("g");
 
             bv.mseTooltip = mseContainer.append("div")
-                .attr("class", "bv-tooltip")
-                .style("left", "0px")
-                .style("top", "0px");
+                .attr("class", "bv-tooltip");
 
             const bvnContainer = d3.select(el.bvBvnViz);
             bv.bvnSvg = bvnContainer.append("svg").attr("class", "bv-svg");
             bv.bvnG = bv.bvnSvg.append("g");
 
             bv.bvnTooltip = bvnContainer.append("div")
-                .attr("class", "bv-tooltip")
-                .style("left", "0px")
-                .style("top", "0px");
+                .attr("class", "bv-tooltip");
         }
 
-        function currentLambda() {
+        function updateLambda() {
             state.log10lambda = Number(el.lambda.value);
             state.lambda = Math.pow(10, state.log10lambda);
-            el.lambdaValue.textContent = `λ = ${formatNum(state.lambda)} (10^${state.log10lambda.toFixed(2)})`;
+            el.lambdaValue.textContent = `λ = ${fmt(state.lambda)} (10^${state.log10lambda.toFixed(2)})`;
         }
 
-        function applySelection({ methodKey, log10lambda = null }) {
+        function setSelection({ methodKey, log10lambda = null }) {
             if (methodKey && el.selectedMethod.value !== methodKey) {
                 el.selectedMethod.value = methodKey;
             }
@@ -658,7 +544,7 @@
                 el.lambda.value = String(log10lambda);
             }
             // Keep λ display in sync immediately; rerender re-reads controls.
-            currentLambda();
+            updateLambda();
             rerender();
         }
 
@@ -667,7 +553,7 @@
             el.bvStatus.textContent = msg;
         }
 
-        function setBvComputing(isComputing) {
+        function setBvBusy(isComputing) {
             bv.computing = Boolean(isComputing);
             if (el.bvRecompute) {
                 el.bvRecompute.disabled = bv.computing;
@@ -675,7 +561,7 @@
             }
         }
 
-        function methodPalette(methodKey) {
+        function palette(methodKey) {
             const base = COLORS[methodKey] || "#e0e0e0";
             const c = d3.color(base) || d3.color("#e0e0e0");
             const rgba = (alpha) => `rgba(${c.r},${c.g},${c.b},${alpha})`;
@@ -688,6 +574,37 @@
             };
         }
 
+        const BV_GD_DISPLAY_CAP = 20;
+
+        function isGd(methodKey) {
+            return methodKey === "l2gd" || methodKey === "wd";
+        }
+
+        function finiteCap(cap) {
+            return (v) => (Number.isFinite(v) && v <= cap ? v : NaN);
+        }
+
+        function capMse(methodKey) {
+            const cap = isGd(methodKey) ? BV_GD_DISPLAY_CAP : Infinity;
+            if (!Number.isFinite(cap)) return (v) => v;
+            return finiteCap(cap);
+        }
+
+        function bestTestMse(points, methodKey) {
+            const cap = capMse(methodKey);
+            let best = null;
+            let bestVal = Infinity;
+            for (const p of points) {
+                const v = cap(p.testMSE);
+                if (!Number.isFinite(v)) continue;
+                if (v < bestVal) {
+                    bestVal = v;
+                    best = p;
+                }
+            }
+            return best;
+        }
+
         function readControls() {
             state.trueFn = el.trueFn.value;
             state.nTrain = Number(el.nTrain.value);
@@ -697,12 +614,12 @@
             state.lr = Number(el.lr.value);
             state.iters = Number(el.iters.value);
             state.lassoIters = Number(el.lassoIters.value);
-            currentLambda();
+            updateLambda();
         }
 
-        function regenerateDataset() {
+        function regenData() {
             readControls();
-            state.dataset = generateDataset({
+            state.dataset = makeDataset({
                 trueFn: state.trueFn,
                 nTrain: state.nTrain,
                 noiseVar: state.noise,
@@ -723,9 +640,9 @@
 
             fits.ols = fitOLS(Xs, ys);
             fits.ridge = fitRidge(Xs, ys, lambda);
-            fits.lasso = fitLassoCoordinateDescent(Xs, ys, lambda, state.lassoIters);
-            fits.l2gd = fitL2PenaltyGD(Xs, ys, lambda, state.lr, state.iters);
-            fits.wd = fitWeightDecayGD(Xs, ys, lambda, state.lr, state.iters);
+            fits.lasso = fitLasso(Xs, ys, lambda, state.lassoIters);
+            fits.l2gd = fitL2Gd(Xs, ys, lambda, state.lr, state.iters);
+            fits.wd = fitWd(Xs, ys, lambda, state.lr, state.iters);
 
             state.fits = fits;
         }
@@ -810,7 +727,7 @@
             return { width, height, margin, innerW: width - margin.left - margin.right, innerH: height - margin.top - margin.bottom };
         }
 
-        function makeLambdaSweep() {
+        function lambdaSweep() {
             // Coarse sweep for performance (esp. Lasso + GD), but aligned to the slider's step
             // so the table shows values that are actually reachable with the UI.
             const minAttr = Number(el.lambda?.min);
@@ -837,28 +754,28 @@
             return out;
         }
 
-        function fitMethodForSweep(methodKey, Xs, y, lambda, wInit) {
+        function fitSweep(methodKey, Xs, y, lambda, wInit) {
             if (methodKey === "ols") return fitOLS(Xs, y);
             if (methodKey === "ridge") return fitRidge(Xs, y, lambda);
             if (methodKey === "lasso") {
                 const iters = Math.max(10, Math.min(120, state.lassoIters));
-                return fitLassoCoordinateDescentWarm(Xs, y, lambda, iters, wInit);
+                return fitLassoWarm(Xs, y, lambda, iters, wInit);
             }
             if (methodKey === "l2gd") {
                 const iters = Math.max(50, Math.min(1200, state.iters));
-                return fitL2PenaltyGDWarm(Xs, y, lambda, state.lr, iters, wInit);
+                return fitL2GdWarm(Xs, y, lambda, state.lr, iters, wInit);
             }
             if (methodKey === "wd") {
                 const iters = Math.max(50, Math.min(1200, state.iters));
-                return fitWeightDecayGDWarm(Xs, y, lambda, state.lr, iters, wInit);
+                return fitWdWarm(Xs, y, lambda, state.lr, iters, wInit);
             }
             return fitRidge(Xs, y, lambda);
         }
 
-        function computeBiasVarianceAllMethods() {
+        function computeBvAll() {
             if (!bv.enabled) return null;
 
-            const sweep = makeLambdaSweep();
+            const sweep = lambdaSweep();
             const degree = state.degree;
             const sigma2 = Math.max(0, state.noise);
             const sigma = Math.sqrt(sigma2);
@@ -927,7 +844,7 @@
                             w = wOls;
                         } else {
                             try {
-                                w = fitMethodForSweep(methodKey, Xs, ys, lambda, warm[methodKey]);
+                                    w = fitSweep(methodKey, Xs, ys, lambda, warm[methodKey]);
                             } catch (_) {
                                 w = null;
                             }
@@ -938,7 +855,7 @@
                             continue;
                         }
 
-                        warm[methodKey] = (methodKey === "ols") ? w : w;
+                        warm[methodKey] = w;
 
                         const agg = methodAgg[methodKey];
                         const s = agg.sums[k];
@@ -1036,10 +953,10 @@
             return { byMethod, sweep, sigma2, B };
         }
 
-        function renderBvSummaryTable(bvAll) {
+        function renderBvTable(bvAll) {
             if (!bv.enabled) return;
             if (!bvAll || !bvAll.byMethod) {
-                el.bvSummaryTable.textContent = "—";
+                el.bvSummaryTable.textContent = "-";
                 return;
             }
 
@@ -1047,12 +964,8 @@
             for (const m of METHODS) {
                 const data = bvAll.byMethod[m.key];
                 if (!data || !data.points || !data.points.length) continue;
-                const mseCap = (m.key === "l2gd" || m.key === "wd") ? 20 : Infinity;
-                const capMse = (v) => (Number.isFinite(v) && v <= mseCap ? v : NaN);
-                const finiteTest = data.points.filter(p => Number.isFinite(capMse(p.testMSE)));
-                if (!finiteTest.length) continue;
-                let best = finiteTest[0];
-                for (const p of finiteTest) if (p.testMSE < best.testMSE) best = p;
+                const best = bestTestMse(data.points, m.key);
+                if (!best) continue;
                 rows.push({
                     key: m.key,
                     label: data.methodLabel,
@@ -1061,7 +974,7 @@
             }
 
             if (!rows.length) {
-                el.bvSummaryTable.textContent = "—";
+                el.bvSummaryTable.textContent = "-";
                 return;
             }
 
@@ -1083,128 +996,40 @@
                 .enter()
                 .append("tr")
                 .attr("class", d => (d.key === selected ? "selected" : null))
-                .style("cursor", "pointer")
                 .attr("tabindex", 0)
                 .attr("role", "button")
                 .attr("aria-label", d => `Select ${d.label} at its lowest Test MSE λ`)
                 .on("click", (_, d) => {
                     const log10lambda = (d.key === "ols") ? null : (d.best?.log10lambda ?? null);
-                    applySelection({ methodKey: d.key, log10lambda });
+                    setSelection({ methodKey: d.key, log10lambda });
                 })
                 .on("keydown", (event, d) => {
                     if (event.key !== "Enter" && event.key !== " ") return;
                     event.preventDefault();
                     const log10lambda = (d.key === "ols") ? null : (d.best?.log10lambda ?? null);
-                    applySelection({ methodKey: d.key, log10lambda });
+                    setSelection({ methodKey: d.key, log10lambda });
                 });
 
             tr.append("td").text(d => d.label);
-            tr.append("td").text(d => (d.key === "ols" ? "—" : d.best.log10lambda.toFixed(2)));
-            tr.append("td").text(d => (d.key === "ols" ? "—" : formatLambdaForTable(d.best.lambda)));
-            tr.append("td").text(d => formatNumMax3(d.best.trainMSE));
-            tr.append("td").text(d => formatNumMax3(d.best.testMSE));
-            tr.append("td").text(d => formatNumMax3(d.best.bias2));
-            tr.append("td").text(d => formatNumMax3(d.best.variance));
-            tr.append("td").text(d => formatNumMax3(d.best.noise));
+            tr.append("td").text(d => (d.key === "ols" ? "-" : d.best.log10lambda.toFixed(2)));
+            tr.append("td").text(d => (d.key === "ols" ? "-" : fmtLambda(d.best.lambda)));
+            tr.append("td").text(d => fmt3(d.best.trainMSE));
+            tr.append("td").text(d => fmt3(d.best.testMSE));
+            tr.append("td").text(d => fmt3(d.best.bias2));
+            tr.append("td").text(d => fmt3(d.best.variance));
+            tr.append("td").text(d => fmt3(d.best.noise));
 
             el.bvSummaryTable.innerHTML = "";
             el.bvSummaryTable.appendChild(table.node());
         }
 
-        function renderBvLineChart({ containerEl, svgSel, gSel, points, series, titleLegend }) {
-            const L = bvLayout(containerEl, svgSel, gSel);
-            const innerW = L.innerW;
-            const innerH = L.innerH;
-
-            gSel.selectAll("*").remove();
-
-            const x = d3.scaleLinear()
-                .domain(d3.extent(points, d => d.log10lambda))
-                .range([0, innerW]);
-
-            const allY = [];
-            for (const s of series) {
-                for (const p of points) {
-                    const v = p[s.key];
-                    if (Number.isFinite(v)) allY.push(v);
-                }
-            }
-            const y = d3.scaleLinear()
-                .domain(d3.extent(allY.length ? allY : [0, 1]))
-                .nice()
-                .range([innerH, 0]);
-
-            const xAxis = d3.axisBottom(x).ticks(6);
-            const yAxis = d3.axisLeft(y).ticks(6);
-
-            gSel.append("g")
-                .attr("transform", `translate(0,${innerH})`)
-                .call(xAxis)
-                .selectAll("text")
-                .style("fill", "rgba(255,255,255,0.75)");
-
-            gSel.append("g")
-                .call(yAxis)
-                .selectAll("text")
-                .style("fill", "rgba(255,255,255,0.75)");
-
-            gSel.selectAll(".domain, .tick line")
-                .attr("stroke", "rgba(255,255,255,0.22)");
-
-            const line = d3.line()
-                .defined(d => Number.isFinite(d.y))
-                .x(d => x(d.x))
-                .y(d => y(d.y));
-
-            for (const s of series) {
-                const data = points.map(p => ({ x: p.log10lambda, y: p[s.key] }));
-                gSel.append("path")
-                    .attr("fill", "none")
-                    .attr("stroke", s.color)
-                    .attr("stroke-width", 2)
-                    .attr("opacity", 0.92)
-                    .attr("d", line(data));
-            }
-
-            // current lambda marker
-            const curX = state.log10lambda;
-            gSel.append("line")
-                .attr("x1", x(curX))
-                .attr("x2", x(curX))
-                .attr("y1", 0)
-                .attr("y2", innerH)
-                .attr("stroke", "rgba(255,255,255,0.22)")
-                .attr("stroke-dasharray", "4 4");
-
-            // legend
-            const legendData = titleLegend || series.map(s => ({ label: s.label, color: s.color }));
-            const leg = gSel.append("g").attr("class", "bv-legend").attr("transform", `translate(0,0)`);
-            const items = leg.selectAll("g.item").data(legendData).enter().append("g").attr("class", "item")
-                .attr("transform", (_, i) => `translate(0,${i * 16})`);
-            items.append("line").attr("x1", 0).attr("x2", 18).attr("y1", 0).attr("y2", 0).attr("stroke-width", 3)
-                .attr("stroke", d => d.color);
-            items.append("text").attr("x", 24).attr("y", 4).style("font-size", "12px")
-                .style("fill", "rgba(255,255,255,0.85)")
-                .text(d => d.label);
-
-            // axis labels
-            gSel.append("text")
-                .attr("x", innerW)
-                .attr("y", innerH + 34)
-                .attr("text-anchor", "end")
-                .style("fill", "rgba(255,255,255,0.7)")
-                .style("font-size", "12px")
-                .text("log10(λ)");
-        }
-
-        function renderBvMseChartInteractive(data) {
+        function renderBvMseChart(data) {
             // Specialized rendering for the Train vs Test MSE chart:
             // - hover tooltip (log10λ, Train MSE, Test MSE)
             // - dashed vertical marker at min Test MSE, with label
             const points = data.points;
-            const mseCap = (data.methodKey === "l2gd" || data.methodKey === "wd") ? 20 : Infinity;
-            const capMse = (v) => (Number.isFinite(v) && v <= mseCap ? v : NaN);
-            const pal = methodPalette(data.methodKey);
+            const cap = capMse(data.methodKey);
+            const pal = palette(data.methodKey);
             const series = [
                 { key: "trainMSE", label: "Train MSE", color: pal.mid, dash: "6 4" },
                 { key: "testMSE", label: "Test MSE", color: pal.strong, dash: null },
@@ -1227,7 +1052,7 @@
             const allY = [];
             for (const s of series) {
                 for (const p of points) {
-                    const v = capMse(p[s.key]);
+                    const v = cap(p[s.key]);
                     if (Number.isFinite(v)) allY.push(v);
                 }
             }
@@ -1240,16 +1065,11 @@
             gSel.append("g")
                 .attr("transform", `translate(0,${innerH})`)
                 .call(d3.axisBottom(x).ticks(6))
-                .selectAll("text")
-                .style("fill", "rgba(255,255,255,0.75)");
+                .selectAll("text");
 
             gSel.append("g")
                 .call(d3.axisLeft(y).ticks(6))
-                .selectAll("text")
-                .style("fill", "rgba(255,255,255,0.75)");
-
-            gSel.selectAll(".domain, .tick line")
-                .attr("stroke", "rgba(255,255,255,0.22)");
+                .selectAll("text");
 
             const line = d3.line()
                 .defined(d => Number.isFinite(d.y))
@@ -1257,7 +1077,7 @@
                 .y(d => y(d.y));
 
             for (const s of series) {
-                const dataLine = points.map(p => ({ x: p.log10lambda, y: capMse(p[s.key]) }));
+                const dataLine = points.map(p => ({ x: p.log10lambda, y: cap(p[s.key]) }));
                 gSel.append("path")
                     .attr("fill", "none")
                     .attr("stroke", s.color)
@@ -1268,8 +1088,7 @@
             }
 
             // Best (min) Test MSE marker.
-            const finiteTest = points.filter(p => Number.isFinite(capMse(p.testMSE)));
-            const best = finiteTest.length ? finiteTest.reduce((a, b) => (b.testMSE < a.testMSE ? b : a), finiteTest[0]) : null;
+            const best = bestTestMse(points, data.methodKey);
             if (best) {
                 const bx = x(best.log10lambda);
                 gSel.append("line")
@@ -1288,7 +1107,7 @@
                 .attr("x2", x(state.log10lambda))
                 .attr("y1", 0)
                 .attr("y2", innerH)
-                .attr("stroke", pal.faint)
+                .attr("stroke", pal.mid)
                 .attr("stroke-width", 1)
                 .attr("stroke-dasharray", "2 6");
 
@@ -1299,16 +1118,17 @@
             items.append("line").attr("x1", 0).attr("x2", 18).attr("y1", 0).attr("y2", 0).attr("stroke-width", 3)
                 .attr("stroke", d => d.color)
                 .attr("stroke-dasharray", (_, i) => (series[i]?.dash || null));
-            items.append("text").attr("x", 24).attr("y", 4).style("font-size", "12px")
-                .style("fill", "rgba(255,255,255,0.85)")
+            items.append("text")
+                .attr("class", "legend-text")
+                .attr("x", 24)
+                .attr("y", 4)
                 .text(d => d.label);
 
             gSel.append("text")
                 .attr("x", innerW / 2)
                 .attr("y", innerH + 30)
                 .attr("text-anchor", "middle")
-                .style("fill", "rgba(255,255,255,0.7)")
-                .style("font-size", "12px")
+                .attr("class", "axis-label")
                 .text("log10(λ)");
 
             // Hover interaction
@@ -1333,19 +1153,19 @@
                 .attr("stroke-width", 1);
 
             const overlay = gSel.append("rect")
+                .attr("class", "bv-overlay")
                 .attr("x", 0)
                 .attr("y", 0)
                 .attr("width", innerW)
                 .attr("height", innerH)
-                .attr("fill", "transparent")
-                .style("pointer-events", "all");
+                .attr("fill", "transparent");
 
             function nearestPoint(xVal) {
                 let bestP = null;
                 let bestDist = Infinity;
                 for (const p of points) {
                     // Only consider points we actually display (both lines capped & finite)
-                    if (!Number.isFinite(capMse(p.trainMSE)) || !Number.isFinite(capMse(p.testMSE))) continue;
+                    if (!Number.isFinite(cap(p.trainMSE)) || !Number.isFinite(cap(p.testMSE))) continue;
                     const d = Math.abs(p.log10lambda - xVal);
                     if (d < bestDist) {
                         bestDist = d;
@@ -1359,15 +1179,15 @@
                 if (!tooltip) return;
                 const rect = containerEl.getBoundingClientRect();
                 const pad = 10;
-                const tr = capMse(p.trainMSE);
-                const te = capMse(p.testMSE);
+                const tr = cap(p.trainMSE);
+                const te = cap(p.testMSE);
                 if (!Number.isFinite(tr) || !Number.isFinite(te)) {
                     tooltip.classed("visible", false);
                     return;
                 }
                 const html = `log10(λ) = <b>${p.log10lambda.toFixed(2)}</b><br>`
-                    + `Train MSE = <b>${formatNumMax3(tr)}</b><br>`
-                    + `Test MSE = <b>${formatNumMax3(te)}</b>`;
+                    + `Train MSE = <b>${fmt3(tr)}</b><br>`
+                    + `Test MSE = <b>${fmt3(te)}</b>`;
                 tooltip.html(html);
 
                 const tw = tooltip.node().offsetWidth || 180;
@@ -1398,18 +1218,17 @@
                     focus.select("line.focus-x").attr("x1", fx).attr("x2", fx);
                     focusDots
                         .attr("cx", () => fx)
-                        .attr("cy", d => y(capMse(p[d.key])));
+                        .attr("cy", d => y(cap(p[d.key])));
                     showTooltip(event, p);
                 });
         }
 
-        function renderBvBvnChartInteractive(data) {
-            // Bias/variance/noise chart with hover tooltip.
+        function renderBvDecompChart(data) {
+            // Bias/variance/noise decomposition chart with hover tooltip.
             const points = data.points;
-            const cap = (data.methodKey === "l2gd" || data.methodKey === "wd") ? 20 : Infinity;
-            const capVal = (v) => (Number.isFinite(v) && v <= cap ? v : NaN);
+            const cap = capMse(data.methodKey);
 
-            const pal = methodPalette(data.methodKey);
+            const pal = palette(data.methodKey);
             const series = [
                 { key: "bias2", label: "bias²", color: pal.strong, dash: null },
                 { key: "variance", label: "variance", color: pal.mid, dash: "6 4" },
@@ -1433,7 +1252,7 @@
             const allY = [];
             for (const s of series) {
                 for (const p of points) {
-                    const v = capVal(p[s.key]);
+                    const v = cap(p[s.key]);
                     if (Number.isFinite(v)) allY.push(v);
                 }
             }
@@ -1445,16 +1264,11 @@
             gSel.append("g")
                 .attr("transform", `translate(0,${innerH})`)
                 .call(d3.axisBottom(x).ticks(6))
-                .selectAll("text")
-                .style("fill", "rgba(255,255,255,0.75)");
+                .selectAll("text");
 
             gSel.append("g")
                 .call(d3.axisLeft(y).ticks(6))
-                .selectAll("text")
-                .style("fill", "rgba(255,255,255,0.75)");
-
-            gSel.selectAll(".domain, .tick line")
-                .attr("stroke", "rgba(255,255,255,0.22)");
+                .selectAll("text");
 
             const line = d3.line()
                 .defined(d => Number.isFinite(d.y))
@@ -1462,7 +1276,7 @@
                 .y(d => y(d.y));
 
             for (const s of series) {
-                const dataLine = points.map(p => ({ x: p.log10lambda, y: capVal(p[s.key]) }));
+                const dataLine = points.map(p => ({ x: p.log10lambda, y: cap(p[s.key]) }));
                 gSel.append("path")
                     .attr("fill", "none")
                     .attr("stroke", s.color)
@@ -1473,10 +1287,7 @@
             }
 
             // Best (min) Test MSE marker (same λ as in the Train/Test MSE chart).
-            const mseCap = (data.methodKey === "l2gd" || data.methodKey === "wd") ? 20 : Infinity;
-            const capMse = (v) => (Number.isFinite(v) && v <= mseCap ? v : NaN);
-            const finiteTest = points.filter(p => Number.isFinite(capMse(p.testMSE)));
-            const best = finiteTest.length ? finiteTest.reduce((a, b) => (b.testMSE < a.testMSE ? b : a), finiteTest[0]) : null;
+            const best = bestTestMse(points, data.methodKey);
             if (best) {
                 const bx = x(best.log10lambda);
                 gSel.append("line")
@@ -1495,7 +1306,7 @@
                 .attr("x2", x(state.log10lambda))
                 .attr("y1", 0)
                 .attr("y2", innerH)
-                .attr("stroke", pal.faint)
+                .attr("stroke", pal.mid)
                 .attr("stroke-dasharray", "4 4");
 
             // Legend
@@ -1509,16 +1320,17 @@
             items.append("line").attr("x1", 0).attr("x2", 18).attr("y1", 0).attr("y2", 0).attr("stroke-width", 3)
                 .attr("stroke", d => d.color)
                 .attr("stroke-dasharray", (_, i) => (series[i]?.dash || null));
-            items.append("text").attr("x", 24).attr("y", 4).style("font-size", "12px")
-                .style("fill", "rgba(255,255,255,0.85)")
+            items.append("text")
+                .attr("class", "legend-text")
+                .attr("x", 24)
+                .attr("y", 4)
                 .text(d => d.label);
 
             gSel.append("text")
                 .attr("x", innerW)
                 .attr("y", innerH + 34)
                 .attr("text-anchor", "end")
-                .style("fill", "rgba(255,255,255,0.7)")
-                .style("font-size", "12px")
+                .attr("class", "axis-label")
                 .text("log10(λ)");
 
             // Hover interaction
@@ -1543,19 +1355,19 @@
                 .attr("stroke-width", 1);
 
             const overlay = gSel.append("rect")
+                .attr("class", "bv-overlay")
                 .attr("x", 0)
                 .attr("y", 0)
                 .attr("width", innerW)
                 .attr("height", innerH)
-                .attr("fill", "transparent")
-                .style("pointer-events", "all");
+                .attr("fill", "transparent");
 
             function nearestPoint(xVal) {
                 let bestP = null;
                 let bestDist = Infinity;
                 for (const p of points) {
                     // require at least one visible value at this x
-                    const anyVisible = series.some(s => Number.isFinite(capVal(p[s.key])));
+                    const anyVisible = series.some(s => Number.isFinite(cap(p[s.key])));
                     if (!anyVisible) continue;
                     const d = Math.abs(p.log10lambda - xVal);
                     if (d < bestDist) {
@@ -1571,15 +1383,15 @@
                 const rect = containerEl.getBoundingClientRect();
                 const pad = 10;
 
-                const b2 = capVal(p.bias2);
-                const vv = capVal(p.variance);
-                const nn = capVal(p.noise);
+                const b2 = cap(p.bias2);
+                const vv = cap(p.variance);
+                const nn = cap(p.noise);
 
-                const fmt = (v) => (Number.isFinite(v) ? formatNumMax3(v) : "—");
+                const f = (v) => (Number.isFinite(v) ? fmt3(v) : "-");
                 const html = `log10(λ) = <b>${p.log10lambda.toFixed(2)}</b><br>`
-                    + `bias² = <b>${fmt(b2)}</b><br>`
-                    + `variance = <b>${fmt(vv)}</b><br>`
-                    + `noise (σ²) = <b>${fmt(nn)}</b>`;
+                    + `bias² = <b>${f(b2)}</b><br>`
+                    + `variance = <b>${f(vv)}</b><br>`
+                    + `noise (σ²) = <b>${f(nn)}</b>`;
                 tooltip.html(html);
 
                 const tw = tooltip.node().offsetWidth || 180;
@@ -1611,40 +1423,38 @@
 
                     focusDots
                         .attr("cx", () => fx)
-                        .attr("cy", d => y(capVal(p[d.key])))
-                        .attr("display", d => (Number.isFinite(capVal(p[d.key])) ? null : "none"));
+                        .attr("cy", d => y(cap(p[d.key])))
+                        .attr("display", d => (Number.isFinite(cap(p[d.key])) ? null : "none"));
 
                     showTooltip(event, p);
                 });
         }
 
-        function renderBvPlaceholder(message) {
+        function renderBvEmpty(message) {
             if (!bv.enabled) return;
 
             const L1 = bvLayout(el.bvMseViz, bv.mseSvg, bv.mseG);
             bv.mseG.selectAll("*").remove();
             bv.mseG.append("text")
+                .attr("class", "bv-placeholder")
                 .attr("x", L1.innerW / 2)
                 .attr("y", L1.innerH / 2)
                 .attr("text-anchor", "middle")
-                .style("fill", "rgba(255,255,255,0.75)")
-                .style("font-size", "13px")
                 .text(message);
 
             const L2 = bvLayout(el.bvBvnViz, bv.bvnSvg, bv.bvnG);
             bv.bvnG.selectAll("*").remove();
             bv.bvnG.append("text")
+                .attr("class", "bv-placeholder")
                 .attr("x", L2.innerW / 2)
                 .attr("y", L2.innerH / 2)
                 .attr("text-anchor", "middle")
-                .style("fill", "rgba(255,255,255,0.75)")
-                .style("font-size", "13px")
                 .text(message);
 
-            if (el.bvSummaryTable) el.bvSummaryTable.textContent = "—";
+            if (el.bvSummaryTable) el.bvSummaryTable.textContent = "-";
         }
 
-        function renderBiasVarianceSection() {
+        function renderBvSection() {
             if (!bv.enabled) return;
 
             // The sweep is expensive; only compute it when the user presses the button.
@@ -1664,12 +1474,12 @@
                 bv.cacheKey = cacheKey;
                 bv.cached = null;
                 bv.dirty = true;
-                setBvStatus("Settings changed — press “Recompute sweep” to update.");
+                setBvStatus("Settings changed - press “Recompute sweep” to update.");
             }
 
             if (!bv.cached) {
                 if (bv.dirty) {
-                    renderBvPlaceholder("Press “Recompute sweep”");
+                    renderBvEmpty("Press “Recompute sweep”");
                 }
                 return;
             }
@@ -1680,13 +1490,13 @@
             const data = all.byMethod[el.selectedMethod.value] || all.byMethod.ridge || all.byMethod.ols;
             if (!data) return;
 
-            // MSE plot (interactive + best marker)
-            renderBvMseChartInteractive(data);
+            // MSE sweep plot (interactive + best marker)
+            renderBvMseChart(data);
 
-            // Bias/Variance/Noise plot
-            renderBvBvnChartInteractive(data);
+            // Bias/variance/noise decomposition plot
+            renderBvDecompChart(data);
 
-            renderBvSummaryTable(all);
+            renderBvTable(all);
             setBvStatus(`Computed sweep (B=${all.B}, steps=${all.sweep?.length || "?"}).`);
 
             if (window.MathJax) {
@@ -1732,32 +1542,31 @@
                 .enter()
                 .append("tr")
                 .attr("class", d => (d.key === selected ? "selected" : null))
-                .style("cursor", "pointer")
                 .attr("tabindex", 0)
                 .attr("role", "button")
                 .attr("aria-label", d => `Select ${d.label}`)
                 .on("click", (_, d) => {
                     if (el.selectedMethod.value === d.key) return;
-                    applySelection({ methodKey: d.key });
+                    setSelection({ methodKey: d.key });
                 })
                 .on("keydown", (event, d) => {
                     if (event.key !== "Enter" && event.key !== " ") return;
                     event.preventDefault();
                     if (el.selectedMethod.value === d.key) return;
-                    applySelection({ methodKey: d.key });
+                    setSelection({ methodKey: d.key });
                 });
 
             tr.append("td").text(d => d.label);
-            tr.append("td").text(d => formatNumMax3(d.train));
-            tr.append("td").text(d => formatNumMax3(d.test));
-            tr.append("td").text(d => formatNumMax3(d.l2));
+            tr.append("td").text(d => fmt3(d.train));
+            tr.append("td").text(d => fmt3(d.test));
+            tr.append("td").text(d => fmt3(d.l2));
             tr.append("td").text(d => String(d.nnz));
 
             el.metricsTable.innerHTML = "";
             el.metricsTable.appendChild(table.node());
         }
 
-        function renderCoefficients() {
+        function renderCoefs() {
             const key = el.selectedMethod.value;
             const w = state.fits[key];
             const degree = state.degree;
@@ -1831,9 +1640,7 @@
             coefG.append("g").attr("class", "coef-axis")
                 .attr("transform", `translate(0,${innerH})`)
                 .call(d3.axisBottom(x).tickValues(items.length > 10 ? items.filter((_, i) => (i % 2 === 0)).map(d => d.name) : items.map(d => d.name)))
-                .selectAll("text")
-                .style("font-size", "10px")
-                .style("fill", "rgba(255,255,255,0.75)");
+                .selectAll("text");
 
             coefG.append("g").attr("class", "coef-axis")
                 .call((() => {
@@ -1841,9 +1648,7 @@
                     if (maxAbs >= 1e5) yAxis.tickFormat(d3.format(".2e"));
                     return yAxis;
                 })())
-                .selectAll("text")
-                .style("font-size", "10px")
-                .style("fill", "rgba(255,255,255,0.75)");
+                .selectAll("text");
             const bars = coefG.selectAll("rect.bar").data(items, d => d.name);
             bars.enter()
                 .append("rect")
@@ -1865,7 +1670,7 @@
             bars.exit().remove();
         }
 
-        function renderPlot(curves) {
+        function renderMainPlot(curves) {
             const L = layout();
             const innerW = L.innerW;
             const innerH = L.innerH;
@@ -1927,19 +1732,14 @@
             gAxes.append("g")
                 .attr("transform", `translate(0,${innerH})`)
                 .call(d3.axisBottom(xScale).ticks(6))
-                .selectAll("text")
-                .style("fill", "rgba(255,255,255,0.75)");
+                .selectAll("text");
             gAxes.append("g")
                 .call((() => {
                     const yAxis = d3.axisLeft(yScale).ticks(6);
                     if (yMaxAbs >= 1e5) yAxis.tickFormat(d3.format(".2e"));
                     return yAxis;
                 })())
-                .selectAll("text")
-                .style("fill", "rgba(255,255,255,0.75)");
-
-            gAxes.selectAll(".domain, .tick line")
-                .attr("stroke", "rgba(255,255,255,0.22)");
+                .selectAll("text");
 
             const line = d3.line()
                 .defined(d => Number.isFinite(d))
@@ -1996,7 +1796,7 @@
             const items = leg.selectAll("g.item").data(legendData, d => d.key);
             const itemsEnter = items.enter().append("g").attr("class", "item");
             itemsEnter.append("line").attr("x1", 0).attr("x2", 18).attr("y1", 0).attr("y2", 0).attr("stroke-width", 3);
-            itemsEnter.append("text").attr("x", 24).attr("y", 4).style("font-size", "12px");
+            itemsEnter.append("text").attr("class", "legend-text").attr("x", 24).attr("y", 4);
 
             itemsEnter.merge(items)
                 .attr("transform", (_, i) => `translate(0,${i * 16})`);
@@ -2006,8 +1806,7 @@
                 .attr("opacity", d => (d.key === "truth" ? 1 : 0.9));
 
             itemsEnter.merge(items).select("text")
-                .text(d => d.label)
-                .style("fill", "rgba(255,255,255,0.85)");
+                .text(d => d.label);
 
             items.exit().remove();
 
@@ -2026,8 +1825,6 @@
             warnSel.enter()
                 .append("text")
                 .attr("class", "plot-warning")
-                .style("font-size", "12px")
-                .style("fill", "rgba(255,255,255,0.75)")
                 .merge(warnSel)
                 .attr("x", L.margin.left + 8)
                 .attr("y", L.height - 10)
@@ -2040,10 +1837,10 @@
             fitAll();
             const curves = computeCurves();
             const metrics = computeMetrics();
-            renderPlot(curves);
+            renderMainPlot(curves);
             renderMetrics(metrics);
-            renderCoefficients();
-            renderBiasVarianceSection();
+            renderCoefs();
+            renderBvSection();
 
             if (window.MathJax) {
                 try {
@@ -2081,7 +1878,7 @@
             c.addEventListener("input", () => {
                 // Data controls: regenerate only when these change.
                 if (c === el.trueFn || c === el.nTrain || c === el.noise || c === el.seed) {
-                    regenerateDataset();
+                    regenData();
                 }
                 rerender();
             });
@@ -2096,13 +1893,13 @@
                 // Invalidate and compute.
                 bv.cached = null;
                 bv.dirty = true;
-                setBvComputing(true);
+                setBvBusy(true);
                 setBvStatus("Computing sweep… (this can take a few seconds)");
 
                 // Yield a frame so the status/button update paints before heavy work.
                 setTimeout(() => {
                     try {
-                        bv.cached = computeBiasVarianceAllMethods();
+                        bv.cached = computeBvAll();
                         bv.dirty = false;
                     } catch (e) {
                         bv.cached = null;
@@ -2110,7 +1907,7 @@
                         setBvStatus("Sweep failed to compute (see console)." );
                         try { console.error(e); } catch (_) { /* ignore */ }
                     } finally {
-                        setBvComputing(false);
+                        setBvBusy(false);
                         rerender();
                     }
                 }, 0);
@@ -2120,12 +1917,12 @@
         window.addEventListener("resize", () => rerender());
 
         // initial
-        currentLambda();
-        regenerateDataset();
+        updateLambda();
+        regenData();
         if (bv.enabled) {
-            setBvComputing(false);
+            setBvBusy(false);
             setBvStatus("Press “Recompute sweep” to calculate.");
-            renderBvPlaceholder("Press “Recompute sweep”");
+            renderBvEmpty("Press “Recompute sweep”");
         }
         rerender();
     }

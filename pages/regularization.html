@@ -63,12 +63,12 @@
 
                         <div class="reg-row">
                             <div class="metrics">
-                                <h3 style="margin: 6px 0;">Metrics</h3>
-                                <div id="metricsTable" class="metrics-table">—</div>
+                                <h3 class="h3-tight">Metrics</h3>
+                                <div id="metricsTable" class="metrics-table">-</div>
                             </div>
                             <div class="coeffs">
-                                <h3 style="margin: 6px 0;">Coefficients of <span id="coeffTitle">—</span></h3>
-                                <div id="coeffInfo" class="coeff-info">—</div>
+                                <h3 class="h3-tight">Coefficients of <span id="coeffTitle">-</span></h3>
+                                <div id="coeffInfo" class="coeff-info">-</div>
                                 <div id="coefViz" class="coef-viz"></div>
                             </div>
                         </div>
@@ -94,7 +94,7 @@
                             <input id="seed" type="number" step="1" value="13" />
                         </div>
 
-                        <h3 style="margin-top: 14px;">Show curves</h3>
+                        <h3 class="h3-section">Show curves</h3>
                         <div class="options-group">
                             <label><input type="checkbox" id="showOLS" checked /> Control (OLS)</label>
                             <label><input type="checkbox" id="showRidge" checked /> Ridge</label>
@@ -103,17 +103,17 @@
                             <label><input type="checkbox" id="showWD" checked /> Weight decay (GD)</label>
                         </div>
 
-                        <h3 style="margin-top: 14px;">Model</h3>
+                        <h3 class="h3-section">Model</h3>
                         <div class="control-grid">
                             <label for="degree">Polynomial degree</label>
                             <input id="degree" type="number" min="1" max="18" step="1" value="9" />
 
                             <label for="lambda">Regularization</label>
                             <input id="lambda" type="range" min="-6" max="2" step="0.05" value="-2" />
-                            <div id="lambdaValue" class="small" style="grid-column: 1 / -1; opacity: 0.9;">$\lambda = 0.01$</div>
+                            <div id="lambdaValue" class="small">$\lambda = 0.01$</div>
                         </div>
 
-                        <h3 style="margin-top: 14px;">Other Parameters</h3>
+                        <h3 class="h3-section">Other Parameters</h3>
                         <div class="control-grid">
                             <label for="lr">GD Learning rate ($\eta$)</label>
                             <input id="lr" type="number" min="0.0001" max="1" step="0.0005" value="0.05" />
@@ -125,7 +125,7 @@
                             <input id="lassoIters" type="number" min="5" max="2000" step="5" value="250" />
                         </div>
 
-                        <h3 style="margin-top: 14px;">Selected method</h3>
+                        <h3 class="h3-section">Selected method</h3>
                         <div class="control-grid">
                             <label for="selectedMethod"></label>
                             <select id="selectedMethod">
@@ -153,11 +153,11 @@
 
                 <div class="bv-row">
                     <div class="bv-panel">
-                        <h3 style="margin: 6px 0;">Mean Squared Error</h3>
+                        <h3 class="h3-tight">Mean Squared Error</h3>
                         <div id="bvMseViz" class="bv-viz"></div>
                     </div>
                     <div class="bv-panel">
-                        <h3 style="margin: 6px 0;">Bias-Variance Decomposition</h3>
+                        <h3 class="h3-tight">Bias-Variance Decomposition</h3>
                         <div id="bvBvnViz" class="bv-viz"></div>
                     </div>
                 </div>
@@ -167,9 +167,9 @@
                 </p>              
 
                 <div class="bv-summary">
-                    <h3 style="margin: 10px 0 6px;">Lowest Testing MSE Stats</h3>
-                    <div id="bvSummaryTable" class="metrics-table">—</div>
-                    <div class="row" style="margin-top: 10px; flex-wrap: wrap; justify-content: flex-start;">
+                    <h3 class="h3-summary">Lowest Testing MSE Stats</h3>
+                    <div id="bvSummaryTable" class="metrics-table">-</div>
+                    <div class="row bv-actions">
                         <button id="bvRecompute" type="button">Recompute sweep</button>
                     </div>
                 </div>
@@ -182,6 +182,7 @@
                     <li>Ridge typically shrinks coefficients smoothly, reducing variance and improving test error for a wide range of $\lambda$.</li>
                     <li>Lasso can drive some coefficients to exactly 0, acting like a form of feature selection.</li>
                     <li>The GD methods blow up if the regularization ($\lambda$) or the learning rate ($\eta$) is set too high.</li>
+                    <li>For the sine function on high-degree polynomials, the models generally prefer odd-degree terms, mimicking its infinite series expansion.</li>
                 </ul>
             </section>
 

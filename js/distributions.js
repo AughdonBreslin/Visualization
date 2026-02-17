@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             default: return 0;
         }
     }
+
     function erf(x) {
         const a1 = .254829592, a2 = -.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429, p = .3275911;
         const sign = x >= 0 ? 1 : -1; x = Math.abs(x);
@@ -113,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
         return sign * y;
     }
+    
     function sharedXs(a, b, n = 300) {
         return Array.from({ length: n + 1 }, (_, i) => a + (b - a) * i / n);
     }
@@ -642,11 +644,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const detailElement = document.createElement('div');
             detailElement.className = 'distribution-detail';
+            detailElement.style.setProperty('--indicator-color', color);
 
             // Create content with MathJax formatting
             detailElement.innerHTML = `
             <h3>
-                <span class="color-indicator" style="background: ${color}"></span>
+                <span class="color-indicator" aria-hidden="true"></span>
                 ${distributionInfo[key].title}
             </h3>
             <div class="formula">\\[${info.formula}\\]</div>
@@ -674,12 +677,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // Add MathJax script for formula rendering
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
-    script.async = true;
-    document.head.appendChild(script);
 
     // Update distribution info when distributions change
     const originalRedrawAll = redrawAll;

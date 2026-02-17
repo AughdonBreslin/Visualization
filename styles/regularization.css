@@ -1,10 +1,17 @@
-/* regularization.css — page-specific styles for linear_regression_regularization.html */
+/* regularization.css - page-specific styles for linear_regression_regularization.html */
 
-.regularization .viz {
-  width: 100%;
+/* Shared “card” styling for boxed sections */
+.regularization .viz,
+.regularization .metrics-table,
+.regularization .coef-viz,
+.regularization .bv-viz {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
+}
+
+.regularization .viz {
+  width: 100%;
   padding: 8px;
 }
 
@@ -55,9 +62,6 @@
 }
 
 .regularization .metrics-table {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
   padding: 10px;
 }
 
@@ -93,9 +97,6 @@
 }
 
 .regularization .coef-viz {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
   padding: 8px;
 }
 
@@ -134,15 +135,32 @@
 .regularization .bv-viz {
   position: relative;
   width: 100%;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
   padding: 8px;
+}
+
+/* Utility heading spacing (keeps HTML clean) */
+.regularization .h3-tight {
+  margin: 6px 0;
+}
+
+.regularization .h3-section {
+  margin-top: 14px;
+}
+
+.regularization .h3-summary {
+  margin: 10px 0 6px;
+}
+
+.regularization #lambdaValue {
+  grid-column: 1 / -1;
+  opacity: 0.9;
 }
 
 .regularization .bv-tooltip {
   position: absolute;
   pointer-events: none;
+  left: 0;
+  top: 0;
   background: rgba(20, 20, 20, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 10px;
@@ -170,6 +188,57 @@
 
 .regularization .bv-summary {
   margin-top: 10px;
+}
+
+/* SVG typography/styling (keeps D3 code mostly data-driven) */
+.regularization .reg-svg .tick text,
+.regularization .coef-svg .tick text,
+.regularization .bv-svg .tick text {
+  fill: rgba(255, 255, 255, 0.75);
+}
+
+.regularization .coef-svg .tick text {
+  font-size: 10px;
+}
+
+.regularization svg .domain,
+.regularization svg .tick line {
+  stroke: rgba(255, 255, 255, 0.42);
+}
+
+.regularization .legend-text {
+  font-size: 12px;
+  fill: rgba(255, 255, 255, 0.85);
+}
+
+.regularization .axis-label {
+  font-size: 12px;
+  fill: rgba(255, 255, 255, 0.7);
+}
+
+.regularization .bv-placeholder {
+  font-size: 13px;
+  fill: rgba(255, 255, 255, 0.75);
+}
+
+.regularization .plot-warning {
+  font-size: 12px;
+  fill: rgba(255, 255, 255, 0.75);
+}
+
+.regularization .bv-overlay {
+  pointer-events: all;
+}
+
+/* Clickable metric tables */
+.regularization table.metric-table tbody tr[role="button"] {
+  cursor: pointer;
+}
+
+.regularization .bv-actions {
+  margin-top: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 /* Link styling for this page */

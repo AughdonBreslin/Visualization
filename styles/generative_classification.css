@@ -1,0 +1,37 @@
+/* generative_classification.css - page-specific styles for the Generative Classification demo */
+
+.generative-classification #classLegend .legend-item {
+	display: flex;
+	align-items: center;
+	margin-bottom: 6px;
+}
+
+.generative-classification #classLegend .legend-swatch {
+	width: 14px;
+	height: 14px;
+	display: inline-block;
+	margin-right: 8px;
+	border: 1px solid #000;
+	background: var(--swatch-color, transparent);
+}
+
+.generative-classification #classLegend .legend-label {
+	font-size: 13px;
+}
+
+/* Row labels inside the query info table (KDE / GDA) */
+.generative-classification #queryInfo .query-row-label {
+	font-weight: 700;
+}
+
+/* Per-class blocks rendered into #gdaParams by JS */
+.generative-classification .gda-class {
+	margin-bottom: 8px;
+	padding: 6px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.generative-classification .gda-class-title {
+	font-weight: 700;
+	margin-bottom: 2px;
+}

@@ -6,9 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Distribution Visualizer</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    // MathJax (kept in HTML for clarity/consistency across pages)
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <link rel="stylesheet" href="../styles/base.css">
   <link rel="stylesheet" href="../styles/visualizer.css">
-  <script src="../js/distributions.js"></script>
+  <script defer src="../js/distributions.js"></script>
 </head>
 
 <body>

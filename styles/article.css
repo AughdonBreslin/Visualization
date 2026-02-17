@@ -1,4 +1,4 @@
-/* article.css — styles for article pages */
+/* article.css - styles for article pages */
 
 .article .article-body {
 	display: flex;
@@ -139,6 +139,10 @@
 
 .article .legend-area {
 	margin-top: 8px;
+}
+
+.article .legend-area .legend-title {
+	margin: 4px 0 6px 0;
 }
 
 .article .kde-explain {

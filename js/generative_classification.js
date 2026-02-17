@@ -5,8 +5,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const bandwidthInput = document.getElementById('bandwidth');
   const viz = d3.select('#viz');
   const queryInfo = document.getElementById('queryInfo');
-  const classPriorsEl = document.getElementById('classPriors');
   const gdaParamsEl = document.getElementById('gdaParams');
+
+  const classLegendEl = document.getElementById('classLegend');
+  const calcQueryPointEl = document.getElementById('calcQueryPoint');
+  const calcPriorsEl = document.getElementById('calcPriors');
+  const calcMuSigmaEl = document.getElementById('calcMuSigma0');
+  const calcPointKDEEl = document.getElementById('calcPointKDE');
+  const calcPointGDAEl = document.getElementById('calcPointGDA');
+  const calcPointLegacyEl = document.getElementById('calcPoint');
 
   const width = 520, height = 420, margin = { top: 10, right: 10, bottom: 20, left: 40 };
   const innerW = width - margin.left - margin.right; const innerH = height - margin.top - margin.bottom;
@@ -14,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const svg = viz.append('svg').attr('width', width).attr('height', height);
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
-  // GDA UI elements
   const fitGDAButton = document.getElementById('fitGDA');
   const example1Btn = document.getElementById('example1');
   const example2Btn = document.getElementById('example2');
@@ -28,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const yScale = d3.scaleLinear().range([innerH, 0]);
 
   let data = [];
-  let kdeState = null;
+  let kdeModel = null;
 
   let useLogSpace = !!useLogSpaceChk && useLogSpaceChk.checked;
   useLogSpaceChk && useLogSpaceChk.addEventListener('change', () => {
@@ -53,57 +59,74 @@ document.addEventListener('DOMContentLoaded', () => {
     return acc;
   }
 
-  function parseCSV(text) {
+  function parseData(text) {
     const rows = d3.csvParse(text);
-    const parsed = rows.map(r => ({ x: [ +r.x1, +r.x2 ], y: +r.y }));
+
+    const requiredCols = ['x1', 'x2', 'y'];
+    for (const col of requiredCols) {
+      if (!rows.columns || !rows.columns.includes(col)) {
+        throw new Error(`Missing required column: ${col}`);
+      }
+    }
+
+    const parsed = rows.map((r, i) => {
+      const x1 = Number(r.x1);
+      const x2 = Number(r.x2);
+      const y = Number(r.y);
+      if (!Number.isFinite(x1) || !Number.isFinite(x2) || !Number.isFinite(y)) {
+        throw new Error(`Invalid numeric value on row ${i + 2}`);
+      }
+      return { x: [x1, x2], y };
+    });
+
+    if (parsed.length === 0) {
+      throw new Error('CSV contained no data rows');
+    }
+
     return parsed;
   }
 
-  function loadAndRender(text) {
+  function loadData(text) {
+    let parsed;
     try {
-      const parsed = parseCSV(text);
-      data = parsed;
-      // any change to data invalidates previous GDA fit
-      gda.fitted = false;
-      // clear previous GDA placeholders and dynamic class UI
-      if (gdaParamsEl) gdaParamsEl.innerHTML = '<div>Fitted parameters will appear here</div>';
-      const cq = document.getElementById('calcQueryPoint');
-      const calcP = document.getElementById('calcPriors'); if (calcP) calcP.textContent = 'Priors: —';
-      const cm0 = document.getElementById('calcMuSigma0'); if (cm0) cm0.textContent = 'Class k: μ_k = — ; Σ_k = —';
-      const cpKDE = document.getElementById('calcPointKDE');
-      const cpGDA = document.getElementById('calcPointGDA');
-      const cpLegacy = document.getElementById('calcPoint');
-      if (cq) cq.textContent = 'No point computed yet.';
-      if (cpKDE) cpKDE.textContent = 'No point computed yet.';
-      if (cpGDA) cpGDA.textContent = 'No point computed yet.';
-      if (cpLegacy && !cpKDE && !cpGDA) cpLegacy.textContent = 'No point computed yet.';
-      // reset GDA fit state
-      gda.fitted = false; gda.classes = []; gda.params = {};
-      render();
+      parsed = parseData(text);
     } catch (e) {
-      alert('Failed to parse CSV: ' + e);
+      alert('Failed to parse CSV: ' + (e && e.message ? e.message : e));
+      return;
     }
+
+    data = parsed;
+    if (gdaParamsEl) gdaParamsEl.innerHTML = '<div>Fitted parameters will appear here</div>';
+
+    if (calcPriorsEl) calcPriorsEl.textContent = 'Priors: -';
+    if (calcMuSigmaEl) calcMuSigmaEl.textContent = 'Class k: μ_k = - ; Σ_k = -';
+    if (calcQueryPointEl) calcQueryPointEl.textContent = 'No point computed yet.';
+    if (calcPointKDEEl) calcPointKDEEl.textContent = 'No point computed yet.';
+    if (calcPointGDAEl) calcPointGDAEl.textContent = 'No point computed yet.';
+    if (calcPointLegacyEl && !calcPointKDEEl && !calcPointGDAEl) calcPointLegacyEl.textContent = 'No point computed yet.';
+
+    // reset GDA fit state
+    gda.fitted = false; gda.classes = []; gda.params = {};
+    render();
   }
 
-  loadBtn.addEventListener('click', () => loadAndRender(csvInput.value));
+  loadBtn.addEventListener('click', () => loadData(csvInput.value));
   fileInput.addEventListener('change', (ev) => {
     const f = ev.target.files[0];
     if (!f) return;
     const reader = new FileReader();
     reader.onload = e => {
-      // Place the file contents into the csvInput textarea
       if (csvInput) csvInput.value = e.target.result;
-      loadAndRender(e.target.result);
+      loadData(e.target.result);
     };
     reader.readAsText(f);
   });
 
-  // re-render when overlay options/bandwidth change
   bandwidthInput && bandwidthInput.addEventListener('input', ()=>{ render(); });
   showKDEChk && showKDEChk.addEventListener('change', ()=>{ render(); });
   showGDAChk && showGDAChk.addEventListener('change', ()=>{ render(); });
 
-  function kdeEstimate(points, bandwidth) {
+  function kdePdf(points, bandwidth) {
     const invTwoSigma2 = 1 / (2 * bandwidth * bandwidth);
     const norm = 1 / (2 * Math.PI * bandwidth * bandwidth);
     return function(x) {
@@ -117,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  function kdeLogEstimate(points, bandwidth) {
+  function kdeLogPdf(points, bandwidth) {
     const n = points.length;
     if (!n) return () => -Infinity;
     const invTwoSigma2 = 1 / (2 * bandwidth * bandwidth);
@@ -136,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  function computeGrid(xmin,xmax,ymin,ymax,nx=120,ny=100) {
+  function makeGrid(xmin,xmax,ymin,ymax,nx=120,ny=100) {
     const xs = d3.range(nx).map(i => xmin + (xmax - xmin) * i/(nx-1));
     const ys = d3.range(ny).map(j => ymin + (ymax - ymin) * j/(ny-1));
     const grid = [];
@@ -144,11 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return { xs, ys, grid, nx, ny };
   }
 
-  function computeKDEForPoint(x, classes, kdes, kdesLog, priors, useLog) {
-    // Mirrors computeGDAForPoint(): likelihoods -> joint numerators -> normalized posteriors
+  function kdeForPoint(x, classes, pdfs, logPdfs, priors, useLog) {
     const doLog = !!useLog;
     if (doLog) {
-      const classLogLikelihoods = classes.map((_, i) => (kdesLog && kdesLog[i] ? kdesLog[i](x) : safeLog(kdes[i](x))));
+      const classLogLikelihoods = classes.map((_, i) => (logPdfs && logPdfs[i] ? logPdfs[i](x) : safeLog(pdfs[i](x))));
       const logPriors = priors.map(p => safeLog(p));
       const logNumerators = classLogLikelihoods.map((ll, i) => ll + logPriors[i]);
       const logDenom = logSumExp(logNumerators);
@@ -172,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    const likelihoods = classes.map((_, i) => kdes[i](x));
+    const likelihoods = classes.map((_, i) => pdfs[i](x));
     const numerators = likelihoods.map((l, i) => l * priors[i]);
     const denom = numerators.reduce((a, b) => a + b, 0);
     const posts = denom === 0 ? numerators.map(() => 1 / Math.max(1, numerators.length)) : numerators.map(v => v / denom);
@@ -186,9 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  function updateQueryInfoTable(point, opts = {}) {
+  function updateQueryTable(point, opts = {}) {
     if (!queryInfo) return;
-    if (!kdeState || !kdeState.classes || kdeState.classes.length === 0) {
+    if (!kdeModel || !kdeModel.classes || kdeModel.classes.length === 0) {
       queryInfo.textContent = 'No query yet';
       return;
     }
@@ -198,8 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const header = opts.header ?? `Query (${x.toFixed(2)},${y.toFixed(2)})`;
     const autoFitGDA = !!opts.autoFitGDA;
 
-    const classes = kdeState.classes;
-    const kde = computeKDEForPoint([x, y], classes, kdeState.kdes, kdeState.kdesLog, kdeState.priors, useLogSpace);
+    const classes = kdeModel.classes;
+    const kde = kdeForPoint([x, y], classes, kdeModel.pdfs, kdeModel.logPdfs, kdeModel.priors, useLogSpace);
 
     const headerCols = classes.map(c => `p(y=${c}|x)`).concat(classes.map(c => `p(x|y=${c})`));
     const colCount = headerCols.length + 1; // +1 for row header
@@ -211,15 +233,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let msg = `<table>`;
     msg += `<tr><th colspan="${colCount}">${header}</th></tr>`;
     msg += `<tr><th></th>${headerCols.map(h => `<th>${h}</th>`).join('')}</tr>`;
-    msg += `<tr><td style="font-weight:bold">KDE</td>${kdeVals.map(v => `<td>${v}</td>`).join('')}</tr>`;
+    msg += `<tr><td class="query-row-label">KDE</td>${kdeVals.map(v => `<td>${v}</td>`).join('')}</tr>`;
 
-    if (autoFitGDA && !gda.fitted) fitGDA_new();
+    if (autoFitGDA && !gda.fitted) fitGDA();
     if (gda.fitted) {
-      const gRes = computeGDAForPoint([x, y]);
+      const gRes = gdaForPoint([x, y]);
       const gdaVals = [];
       for (let i = 0; i < gda.classes.length; i++) gdaVals.push(gRes.classPosteriors[i].toFixed(3));
       for (let i = 0; i < gda.classes.length; i++) gdaVals.push((gRes.classLikelihoods[i]).toExponential(2));
-      msg += `<tr><td style="font-weight:bold">GDA</td>${gdaVals.map(v => `<td>${v}</td>`).join('')}</tr>`;
+      msg += `<tr><td class="query-row-label">GDA</td>${gdaVals.map(v => `<td>${v}</td>`).join('')}</tr>`;
     }
 
     msg += `</table>`;
@@ -243,17 +265,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const priors = classPoints.map(arr => arr.length / data.length);
 
     const bw = Math.max(0.01, +bandwidthInput.value || 0.6);
-    const kdes = classPoints.map(arr => arr.length ? kdeEstimate(arr, bw) : (() => 0));
-    const kdesLog = classPoints.map(arr => arr.length ? kdeLogEstimate(arr, bw) : (() => -Infinity));
-    kdeState = { classes, priors, kdes, kdesLog };
+    const pdfs = classPoints.map(arr => arr.length ? kdePdf(arr, bw) : (() => 0));
+    const logPdfs = classPoints.map(arr => arr.length ? kdeLogPdf(arr, bw) : (() => -Infinity));
+    kdeModel = { classes, priors, pdfs, logPdfs };
 
-    const { xs: gx, ys: gy, grid, nx, ny } = computeGrid(xmin, xmax, ymin, ymax, 150, 120);
+    const { grid, nx, ny } = makeGrid(xmin, xmax, ymin, ymax, 150, 120);
 
-    // categorical color mapping for classes
     const classColor = d3.scaleOrdinal(d3.schemeCategory10).domain(classes);
 
-    // Populate external DOM legend (#classLegend) with class swatches and counts
-    const classLegendEl = document.getElementById('classLegend');
     if (classLegendEl) {
       classLegendEl.innerHTML = '';
       if (classes.length > 0) {
@@ -265,16 +284,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const item = document.createElement('div');
           item.className = 'legend-item';
-          item.style.display = 'flex'; item.style.alignItems = 'center'; item.style.marginBottom = '6px';
 
           const sw = document.createElement('span');
-          sw.style.width = '14px'; sw.style.height = '14px'; sw.style.display = 'inline-block';
-          sw.style.marginRight = '8px'; sw.style.border = '1px solid #000';
-          sw.style.background = color;
+          sw.className = 'legend-swatch';
+          sw.style.setProperty('--swatch-color', color);
 
           const label = document.createElement('span');
+          label.className = 'legend-label';
           label.textContent = `Class ${c} (n=${count}, p=${prior.toFixed(3)})`;
-          label.style.fontSize = '13px';
 
           item.appendChild(sw); item.appendChild(label);
           classLegendEl.appendChild(item);
@@ -285,16 +302,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // ensure we have up-to-date overlay checkbox elements (in case DOM changed)
-    const showKDEEl = document.getElementById('showKDE');
-    const showGDAEl = document.getElementById('showGDA');
-    // debug: show overlay states
-    console.debug('render overlays', { showKDE: !!showKDEEl && showKDEEl.checked, showGDA: !!showGDAEl && showGDAEl.checked, gdaFitted: gda.fitted });
+    const showKDEEl = showKDEChk;
+    const showGDAEl = showGDAChk;
 
     // KDE posterior heatmap (only draw if KDE overlay enabled)
     if (showKDEEl && showKDEEl.checked) {
       const postInfo = grid.map(pt => {
-        const kde = computeKDEForPoint(pt, classes, kdes, kdesLog, priors, useLogSpace);
+        const kde = kdeForPoint(pt, classes, pdfs, logPdfs, priors, useLogSpace);
         const maxIdx = kde.classPosteriors.indexOf(Math.max(...kde.classPosteriors));
         return { x: pt[0], y: pt[1], posts: kde.classPosteriors, maxIdx, maxVal: kde.classPosteriors[maxIdx] };
       });
@@ -330,28 +344,25 @@ document.addEventListener('DOMContentLoaded', () => {
       .attr('fill', d => classColor(d.y))
       .attr('stroke', '#000')
       .on('mouseover', (event,d)=>{
-        updateQueryInfoTable(d.x, { header: `Point (${d.x[0].toFixed(2)},${d.x[1].toFixed(2)}) class=${d.y}` });
+        updateQueryTable(d.x, { header: `Point (${d.x[0].toFixed(2)},${d.x[1].toFixed(2)}) class=${d.y}` });
       });
 
     svg.on('click', function(event) {
       const [mx,my] = d3.pointer(event, g.node());
       const x = xScale.invert(mx); const y = yScale.invert(my);
 
-      updateQueryInfoTable([x, y], { header: `Query (${x.toFixed(2)},${y.toFixed(2)})`, autoFitGDA: true });
-      // show detailed arithmetic for clicked point
-      showDetailedCalculationForPoint([x,y]);
+      updateQueryTable([x, y], { header: `Query (${x.toFixed(2)},${y.toFixed(2)})`, autoFitGDA: true });
+      showCalculationForPoint([x,y]);
     });
 
-    // GDA overlay: decision boundary and covariance ellipses
-    // If the user asked to show GDA but we haven't fitted yet, fit automatically
     if (showGDAEl && showGDAEl.checked && !gda.fitted) {
-      fitGDA_new();
+      fitGDA();
     }
 
     if (showGDAEl && showGDAEl.checked && gda.fitted) {
       // compute posteriors for grid points and mark soft boundaries where top classes are close
       const gdaPost = grid.map(pt => {
-        const g = computeGDAForPoint(pt);
+        const g = gdaForPoint(pt);
         // determine top-two gap
         const sorted = g.classPosteriors.slice().sort((a,b)=>b-a);
         const gap = sorted[0] - (sorted[1] || 0);
@@ -396,14 +407,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // small linear algebra helpers for 2x2 matrices
-  function meanOf(points) {
+  function mean(points) {
     const n = points.length;
     const s = points.reduce((acc,p)=>[acc[0]+p[0], acc[1]+p[1]],[0,0]);
     return [s[0]/n, s[1]/n];
   }
 
-  function covOf(points, mu) {
+  function cov(points, mu) {
     const n = points.length;
     let a=0,b=0,c=0; // cov = [[a,c],[c,b]]
     for (const p of points) {
@@ -446,58 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const gda = { fitted: false, classes: [], params: {} };
-
-  function fitGDA_legacy() { /* legacy binary GDA (kept for fallback) */
-    // discover classes and compute mean/cov/prior per class
-    const classes = Array.from(new Set(data.map(d=>d.y))).sort((a,b)=> (a < b ? -1 : a > b ? 1 : 0));
-    const params = {};
-    const class1 = data.filter(d=>d.y===1).map(d=>d.x);
-    if (class0.length===0 || class1.length===0) {
-      alert('Need at least one point in each class to fit GDA');
-      return;
-    }
-    gda.mu0 = meanOf(class0);
-    gda.mu1 = meanOf(class1);
-    gda.sigma0 = covOf(class0, gda.mu0);
-    gda.sigma1 = covOf(class1, gda.mu1);
-    gda.prior0 = class0.length / data.length; gda.prior1 = class1.length / data.length;
-    gda.fitted = true;
-    // update UI
-    const prior0El = document.getElementById('prior0');
-    const prior1El = document.getElementById('prior1');
-    if (prior0El) prior0El.innerHTML = `$P(y=0)=${gda.prior0.toFixed(3)}$`;
-    if (prior1El) prior1El.innerHTML = `$P(y=1)=${gda.prior1.toFixed(3)}$`;
-
-    // set GDA parameter displays using TeX and MathJax
-    const mu0El = document.getElementById('mu0');
-    const mu1El = document.getElementById('mu1');
-    const sigma0El = document.getElementById('sigma0');
-    const sigma1El = document.getElementById('sigma1');
-
-    if (mu0El) mu0El.innerHTML = `$\\mu_0 = [${gda.mu0.map(v=>v.toFixed(3)).join(', ')}]$`;
-    if (mu1El) mu1El.innerHTML = `$\\mu_1 = [${gda.mu1.map(v=>v.toFixed(3)).join(', ')}]$`;
-    if (sigma0El) sigma0El.innerHTML = `$\\Sigma_0 = \\begin{bmatrix}${gda.sigma0[0][0].toFixed(3)} & ${gda.sigma0[0][1].toFixed(3)} \\\\ ${gda.sigma0[1][0].toFixed(3)} & ${gda.sigma0[1][1].toFixed(3)}\\end{bmatrix}$`;
-    if (sigma1El) sigma1El.innerHTML = `$\\Sigma_1 = \\begin{bmatrix}${gda.sigma1[0][0].toFixed(3)} & ${gda.sigma1[0][1].toFixed(3)} \\\\ ${gda.sigma1[1][0].toFixed(3)} & ${gda.sigma1[1][1].toFixed(3)}\\end{bmatrix}$`;
-
-    // update detailed numeric steps area and set as TeX
-    const calcP = document.getElementById('calcPriors');
-    if (calcP) calcP.innerHTML = `$P(y=0)=${gda.prior0.toFixed(3)};\\; P(y=1)=${gda.prior1.toFixed(3)}$`;
-
-    // typeset only the updated elements (if MathJax is available)
-    const typesetEls = [prior0El, prior1El, mu0El, mu1El, sigma0El, sigma1El, calcP].filter(Boolean);
-    if (typesetEls.length > 0 && window.MathJax && MathJax.typesetPromise) {
-      MathJax.typesetPromise(typesetEls).catch(err => console.warn('MathJax typeset failed:', err));
-    } else if (typesetEls.length > 0 && window.MathJax && MathJax.typeset) {
-      try { MathJax.typeset(typesetEls); } catch (e) { console.warn('MathJax typeset failed:', e); }
-    }
-
-    // update detailed numeric steps area
-    // calcPriors set as TeX and typeset above
-    document.getElementById('calcMuSigma0').textContent = `Class 0: μ0 = [${gda.mu0.map(v=>v.toFixed(3)).join(', ')}]; Σ0 = [${gda.sigma0[0][0].toFixed(3)} ${gda.sigma0[0][1].toFixed(3)}; ${gda.sigma0[1][0].toFixed(3)} ${gda.sigma0[1][1].toFixed(3)}]`;
-    render();
-  }
-
-  function fitGDA_new() {
+  function fitGDA() {
     // discover classes and compute mean/cov/prior per class
     const classes = Array.from(new Set(data.map(d=>d.y))).sort((a,b)=> (a < b ? -1 : a > b ? 1 : 0));
     const params = {};
@@ -507,8 +466,8 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(`Need at least one point in class ${c} to fit GDA`);
         return;
       }
-      const mu = meanOf(pts);
-      const sigma = covOf(pts, mu);
+      const mu = mean(pts);
+      const sigma = cov(pts, mu);
       const prior = pts.length / data.length;
       params[c] = { mu, sigma, prior };
     }
@@ -518,13 +477,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (gdaParamsEl) {
       const blocks = classes.map(c => {
         const p = params[c];
-        return `<div class="gda-class" style="margin-bottom:8px;padding:6px;border-bottom:1px solid #eee;"><div style="font-weight:bold">Class ${c}</div><div>P(y=${c}) = ${p.prior.toFixed(3)}</div><div>$$\\mu = [${p.mu.map(v=>v.toFixed(3)).join(', ')}]$$</div><div>$$\\Sigma = \\begin{bmatrix}${p.sigma[0][0].toFixed(3)} & ${p.sigma[0][1].toFixed(3)} \\\\ ${p.sigma[1][0].toFixed(3)} & ${p.sigma[1][1].toFixed(3)}\\end{bmatrix}$$</div></div>`;
+        return `<div class="gda-class"><div class="gda-class-title">Class ${c}</div><div>P(y=${c}) = ${p.prior.toFixed(3)}</div><div>$$\\mu = [${p.mu.map(v=>v.toFixed(3)).join(', ')}]$$</div><div>$$\\Sigma = \\begin{bmatrix}${p.sigma[0][0].toFixed(3)} & ${p.sigma[0][1].toFixed(3)} \\\\ ${p.sigma[1][0].toFixed(3)} & ${p.sigma[1][1].toFixed(3)}\\end{bmatrix}$$</div></div>`;
       }).join('');
       gdaParamsEl.innerHTML = blocks;
     }
 
-    // detailed numeric steps
-    const calcP = document.getElementById('calcPriors');
+    const calcP = calcPriorsEl;
     if (calcP) calcP.innerHTML = `<h3>Priors</h3>` + classes.map(c => `P(y=${c})=${params[c].prior.toFixed(3)}`).join('\; ');
 
     // typeset TeX blocks if MathJax is available
@@ -540,12 +498,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const p = params[c];
       lines.push(`<p>Class ${c}: μ = [${p.mu.map(v=>v.toFixed(3)).join(', ')}]; Σ = [${p.sigma[0][0].toFixed(3)} ${p.sigma[0][1].toFixed(3)}; ${p.sigma[1][0].toFixed(3)} ${p.sigma[1][1].toFixed(3)}]</p>`);
     }
-    document.getElementById('calcMuSigma0').innerHTML = lines.join('');
+    if (calcMuSigmaEl) calcMuSigmaEl.innerHTML = lines.join('');
 
     render();
   }
 
-  function computeGDAForPoint(x) {
+  function gdaForPoint(x) {
     const doLog = !!useLogSpace;
     if (!gda.fitted) {
       return {
@@ -597,20 +555,20 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  function showDetailedCalculationForPoint(x) {
+  function showCalculationForPoint(x) {
     // compute per-class KDE and GDA contributions and show the arithmetic
     const classes = Array.from(new Set(data.map(d=>d.y))).sort((a,b)=> (a < b ? -1 : a > b ? 1 : 0));
     const classPoints = classes.map(c => data.filter(d=>d.y===c).map(d=>d.x));
     const priors = classPoints.map(arr => arr.length / data.length);
     const bw = Math.max(0.01, +bandwidthInput.value || 0.6);
-    const kdesLocal = classPoints.map(arr => arr.length ? kdeEstimate(arr, bw) : (()=>0));
-    const kdesLocalLog = classPoints.map(arr => arr.length ? kdeLogEstimate(arr, bw) : (() => -Infinity));
-    const kde = computeKDEForPoint(x, classes, kdesLocal, kdesLocalLog, priors, useLogSpace);
+    const pdfsLocal = classPoints.map(arr => arr.length ? kdePdf(arr, bw) : (()=>0));
+    const logPdfsLocal = classPoints.map(arr => arr.length ? kdeLogPdf(arr, bw) : (() => -Infinity));
+    const kde = kdeForPoint(x, classes, pdfsLocal, logPdfsLocal, priors, useLogSpace);
     const ks = kde.classLikelihoods;
     const nums = kde.weightedNumerators;
     const den = kde.denominator;
     const kdePosts = kde.classPosteriors;
-    const g = computeGDAForPoint(x);
+    const g = gdaForPoint(x);
 
     const queryLines = [];
     queryLines.push(`Query point $x^* = (${x[0].toFixed(3)}, ${x[1].toFixed(3)})$`);
@@ -815,7 +773,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sGDA.push(`Class ${c}`);
 
-        // Match mvnPdf()'s numerical stabilization so the displayed arithmetic matches the computed value.
         const eps = 1e-6;
         const sSigma = [[sigma[0][0] + eps, sigma[0][1]], [sigma[1][0], sigma[1][1] + eps]];
         const det = det2(sSigma);
@@ -870,11 +827,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return `<div class="calc-step-content">${l}</div>`;
     }).join('');
 
-    const calcPointKDEEl = document.getElementById('calcPointKDE');
-    const calcPointGDAEl = document.getElementById('calcPointGDA');
-    const calcPointLegacyEl = document.getElementById('calcPoint');
-    const calcQueryPointEl = document.getElementById('calcQueryPoint');
-
     if (calcQueryPointEl) {
       calcQueryPointEl.innerHTML = renderLines(queryLines);
     }
@@ -882,7 +834,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (calcPointKDEEl) calcPointKDEEl.innerHTML = renderLines(sKDE);
     if (calcPointGDAEl) calcPointGDAEl.innerHTML = renderLines(sGDA);
     if (!calcPointKDEEl && !calcPointGDAEl && calcPointLegacyEl) {
-      // Back-compat for older HTML: include query point at the top if there's no dedicated container.
       calcPointLegacyEl.innerHTML = renderLines(queryLines.concat([''], sKDE, [''], sGDA));
     }
 
@@ -920,16 +871,13 @@ document.addEventListener('DOMContentLoaded', () => {
       .attr('stroke', color).attr('stroke-width', 1.2).attr('fill','none').attr('opacity',0.9);
   }
 
-  fitGDAButton && fitGDAButton.addEventListener('click', fitGDA_new);
+  fitGDAButton && fitGDAButton.addEventListener('click', fitGDA);
   example1Btn && example1Btn.addEventListener('click', ()=>{
-    if (!gda.fitted) fitGDA_new();
     const pt = [75,89.5];
-    updateQueryInfoTable(pt, { header: `Query (${pt[0].toFixed(2)},${pt[1].toFixed(2)})`, autoFitGDA: true });
-    computeGDAForPoint(pt);
-    showDetailedCalculationForPoint(pt);
+    updateQueryTable(pt, { header: `Query (${pt[0].toFixed(2)},${pt[1].toFixed(2)})`, autoFitGDA: true });
+    showCalculationForPoint(pt);
   });
   example2Btn && example2Btn.addEventListener('click', ()=>{
-    if (!gda.fitted) fitGDA_new();
     const x1 = example2x1Input ? parseFloat(example2x1Input.value) : NaN;
     const x2 = example2x2Input ? parseFloat(example2x2Input.value) : NaN;
     if (!Number.isFinite(x1) || !Number.isFinite(x2)) {
@@ -937,13 +885,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const pt = [x1, x2];
-    updateQueryInfoTable(pt, { header: `Query (${pt[0].toFixed(2)},${pt[1].toFixed(2)})`, autoFitGDA: true });
-    computeGDAForPoint(pt);
-    showDetailedCalculationForPoint(pt);
+    updateQueryTable(pt, { header: `Query (${pt[0].toFixed(2)},${pt[1].toFixed(2)})`, autoFitGDA: true });
+    showCalculationForPoint(pt);
   });
 
-  showKDEChk && showKDEChk.addEventListener('change', render);
-  showGDAChk && showGDAChk.addEventListener('change', render);
-
-  loadAndRender(csvInput.value);
+  loadData(csvInput.value);
 });

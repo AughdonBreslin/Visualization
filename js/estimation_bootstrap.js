@@ -45,7 +45,7 @@
   }
 
   function fmt(x, digits = 4) {
-    if (!Number.isFinite(x)) return "—";
+    if (!Number.isFinite(x)) return "-";
     const abs = Math.abs(x);
     if (abs >= 1000 || (abs > 0 && abs < 1e-3)) return x.toExponential(2);
     return x.toFixed(digits);

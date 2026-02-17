@@ -15,11 +15,12 @@
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
     <link rel="stylesheet" href="../styles/base.css">
     <link rel="stylesheet" href="../styles/article.css">
+    <link rel="stylesheet" href="../styles/generative_classification.css">
     <script defer src="../js/generative_classification.js"></script>
 </head>
 
 <body>
-    <div class="container article">
+    <div class="container article generative-classification">
         <header>
             <h1>Supervised Demo via Unsupervised Techniques</h1>
             <div class="subtitle">Using Unsupervised Density Estimation to Solve Supervised Classification</div>
@@ -99,7 +100,6 @@
                 </div>
             </section>
 
-            <!-- Calculations: priors and multivariate Gaussian parameter estimates -->
             <section id="calculations-panel" class="calculations-panel panel">
                 <h2>Calculations: Priors & Approaches</h2>
                 <p>To learn $p(y)$, we compute the priors. A prior is the probability of a class before observing any data. This is computed as the fraction of samples belonging to each class, or:</p>
@@ -159,14 +159,14 @@
                         <div class="options-group">
                             <label><input type="checkbox" id="showKDE" checked /> Show KDE heatmap</label>
                             <label><input type="checkbox" id="showGDA" /> Show GDA ellipses & decision</label>
-                            <label><input type="checkbox" id="useLogSpace" /> Use log-space posteriors (stabilizes for extreme values)</label>
+                            <label><input type="checkbox" id="useLogSpace" /> Use log-space (stabilizes for extreme values)</label>
                         </div>
                         <div class="bandwidth-row">
                             <label for="bandwidth">Bandwidth:</label>
                             <input id="bandwidth" type="number" step="0.1" min="0.01" value="0.6" />
                         </div>
                         <div class="legend-area">
-                            <h4 style="margin:4px 0 6px 0;">Legend</h4>
+                            <h4 class="legend-title">Legend</h4>
                             <div id="classLegend" class="class-legend">No classes loaded</div>
                         </div>
                     </aside>
@@ -207,8 +207,8 @@
                     </div>
                 </div>
                 <div id="calcQueryPoint">No point computed yet.</div>
-                <div id="calcPriors">Priors: —</div>
-                <div id="calcMuSigma0">Class 0: μ0 = — ; Σ0 = —</div>
+                <div id="calcPriors">Priors: -</div>
+                <div id="calcMuSigma0">Class 0: μ0 = - ; Σ0 = -</div>
                 <div id="calcPointKDE">No point computed yet.</div>
                 <div id="calcPointGDA">No point computed yet.</div>
             </section>

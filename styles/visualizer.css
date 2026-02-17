@@ -1,4 +1,4 @@
-/* visualizer.css — styles scoped to the interactive visualizers */
+/* visualizer.css - styles scoped to the interactive visualizers */
 
 .visualizer .controls {
 	background: rgba(255, 255, 255, 0.05);
@@ -308,6 +308,7 @@
 	width: 16px;
 	height: 16px;
 	border-radius: 4px;
+	background: var(--indicator-color, transparent);
 }
 
 .visualizer .distribution-detail .formula {
