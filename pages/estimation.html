@@ -138,8 +138,12 @@
           The initial sample of data is just one of many possible samples we could have drawn from the data-generating process, and only gives us one realization of the estimator $\hat\theta$.
           The bootstrap is one way to get a better understanding of the uncertainty of our estimate by redrawing many collections of samples from our observed dataset (with replacement) and computing $\hat\theta^*$ for each resample.
           <ul>
+
             <li>If $\theta = \mu$, then on each resample, $\hat\theta^*=\hat\mu^*=\frac{1}{n}\sum_{i=1}^n X_i^*$</li>
           </ul>
+        </p>
+
+        <p>
           This allows us to empirically approximate the sampling distribution of $\hat\theta$ and estimate its standard error and confidence intervals.
           This is especially useful when an analytical standard error is unavailable, inconvenient, or relies on assumptions we do not want to make.
           Under repeated sampling from the data-generating process, the constructed interval contains the true parameter $\theta$ with approximately probability $1-\alpha$.
@@ -204,7 +208,7 @@
           <div class="formula">$$\textbf{Decomposition:}\quad \mathrm{MSE}(\hat\theta)=\mathrm{Bias}(\hat\theta)^2+\mathrm{Var}(\hat\theta)$$</div>
         </div>
         <p>
-          To prove this, here's the derivation where we add and subtract $\mathbb{E}[\hat\theta]$ inside the initial definition and simplify the expansion using the definition of variance and the fact that $\mathbb{E}[\hat\theta-\mathbb{E}[\hat\theta]]=0$ (the expected deviation from the mean is zero by definition):
+          To prove this, here's the derivation where we add and subtract $\mathbb{E}[\hat\theta]$ inside the initial definition, and simplify the expansion using the definition of variance and the fact that $\mathbb{E}[\hat\theta-\mathbb{E}[\hat\theta]]=0$ (the expected deviation from the mean is zero by definition):
         </p>
         <div class="formula">
           $$\begin{aligned}
@@ -226,7 +230,7 @@
       </section>
 
       <section class="panel">
-        <h2>Function estimation: bias–variance and prediction error</h2>
+        <h2>Function estimation: bias-variance and prediction error</h2>
         <p>
           For regression, we often care about prediction error at an input $x$.
           A classic decomposition (under squared loss) is:

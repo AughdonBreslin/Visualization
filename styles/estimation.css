@@ -117,3 +117,7 @@
     flex-direction: column;
   }
 }
+
+.estimation p {
+  margin-bottom: 8px;
+}

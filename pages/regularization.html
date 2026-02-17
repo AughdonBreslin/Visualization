@@ -26,7 +26,7 @@
     <div class="container article regularization">
         <header>
             <h1>Linear Regression Regularization</h1>
-            <div class="subtitle">Control, Ridge, Lasso, L2 Penalty (GD), and Weight Decay (GD)</div>
+            <div class="subtitle">Ordinary Least Squares (OLS), Ridge, Lasso, L2 Penalty (GD), and Weight Decay (GD)</div>
             <div class="home-link"><a href="../index.html">← Home</a></div>
         </header>
 
@@ -43,14 +43,14 @@
                 </div>
                 <div class="formulas">
                     <div class="formula">$$\textbf{Lasso: }\min_w\ \frac{1}{N}\lVert Xw - y\rVert^2 + \lambda\lVert w\rVert_1$$</div>
-                    <div class="formula">$$\textbf{Weight decay (decoupled): } w\leftarrow (1-\eta\lambda)w - \eta\nabla_w\,\tfrac{1}{N}\lVert Xw-y\rVert^2$$</div>
+                    <div class="formula">$$\textbf{Weight decay (decoupled, GD): } w\leftarrow (1-2\eta\lambda)w - \eta\nabla_w\,\tfrac{1}{N}\lVert Xw-y\rVert^2$$</div>
                 </div>
                 <div class="formulas">
                     <div class="formula">$$\textbf{L2 penalty (GD): } w\leftarrow w - \eta\left(\nabla_w\,\tfrac{1}{N}\lVert Xw-y\rVert^2 + 2\lambda w\right)$$</div>
                 </div>
                 <p class="note">
-                    Notes: We do not penalize the intercept term. "Weight decay" is shown as a training update rule (common in deep learning); it is closely related to L2 regularization but not identical for all optimizers.
-                    L2 Penalty is Ridge implemented via gradient descent rather than as a closed-form solution.
+                    Notes: We do not penalize the intercept term. Weight decay and L2 penalty are shown as training update rules; they are closely related but not identical for all optimizers.
+                    L2 Penalty is Ridge implemented via gradient descent (GD) rather than as a closed-form solution.
                 </p>
             </section>
 
@@ -87,11 +87,11 @@
                             <label for="nTrain">Train points</label>
                             <input id="nTrain" type="number" min="10" max="300" step="5" value="60" />
 
-                            <label for="noise">Noise (σ)</label>
-                            <input id="noise" type="number" min="0" max="3" step="0.05" value="0.35" />
+                            <label for="noise">Noise ($\sigma^2$)</label>
+                            <input id="noise" type="number" min="0" max="9" step="0.01" value="0.1" />
 
                             <label for="seed">Seed</label>
-                            <input id="seed" type="number" step="1" value="7" />
+                            <input id="seed" type="number" step="1" value="13" />
                         </div>
 
                         <h3 style="margin-top: 14px;">Show curves</h3>
@@ -99,8 +99,8 @@
                             <label><input type="checkbox" id="showOLS" checked /> Control (OLS)</label>
                             <label><input type="checkbox" id="showRidge" checked /> Ridge</label>
                             <label><input type="checkbox" id="showLasso" checked /> Lasso</label>
-                            <label><input type="checkbox" id="showL2GD" /> L2 penalty (GD)</label>
-                            <label><input type="checkbox" id="showWD" /> Weight decay (GD)</label>
+                            <label><input type="checkbox" id="showL2GD" checked /> L2 penalty (GD)</label>
+                            <label><input type="checkbox" id="showWD" checked /> Weight decay (GD)</label>
                         </div>
 
                         <h3 style="margin-top: 14px;">Model</h3>
@@ -108,17 +108,17 @@
                             <label for="degree">Polynomial degree</label>
                             <input id="degree" type="number" min="1" max="18" step="1" value="9" />
 
-                            <label for="lambda">Regularization ($\log_{10} λ$)</label>
+                            <label for="lambda">Regularization</label>
                             <input id="lambda" type="range" min="-6" max="2" step="0.05" value="-2" />
-                            <div id="lambdaValue" class="small" style="grid-column: 1 / -1; opacity: 0.9;">λ = 0.01</div>
+                            <div id="lambdaValue" class="small" style="grid-column: 1 / -1; opacity: 0.9;">$\lambda = 0.01$</div>
                         </div>
 
-                        <h3 style="margin-top: 14px;">Optimizer (GD methods)</h3>
+                        <h3 style="margin-top: 14px;">Other Parameters</h3>
                         <div class="control-grid">
-                            <label for="lr">Learning rate (η)</label>
-                            <input id="lr" type="number" min="0.0001" max="1" step="0.0005" value="0.03" />
+                            <label for="lr">GD Learning rate ($\eta$)</label>
+                            <input id="lr" type="number" min="0.0001" max="1" step="0.0005" value="0.05" />
 
-                            <label for="iters">Iterations</label>
+                            <label for="iters">GD Iterations</label>
                             <input id="iters" type="number" min="10" max="50000" step="50" value="2500" />
 
                             <label for="lassoIters">Lasso iterations</label>
@@ -141,26 +141,61 @@
             </section>
 
             <section class="panel">
-                <h2>What to look for</h2>
+                <h2>Bias-Variance tradeoff</h2>
+                <p>
+                    Looking at the mean squared error (MSE) swept across a range of $\lambda$ values for each method, we see how regularization impacts the ability for models to generalize to unseen data.
+                    For high-capacity models, minimizing regularization yields very low training MSEs, but fails to produce that same accuracy on unseen test data, overfitting to observed samples and noise.
+                </p>
+                <p>
+                    As regularization increases, training MSE typically rises, but test MSE can improve as the model learns to capture more general patterns rather than noise.
+                    When regularization becomes too strong, the model is too inhibited to fit the training data well, and both train and test MSE rise due to underfitting.
+                </p>
+
+                <div class="bv-row">
+                    <div class="bv-panel">
+                        <h3 style="margin: 6px 0;">Mean Squared Error</h3>
+                        <div id="bvMseViz" class="bv-viz"></div>
+                    </div>
+                    <div class="bv-panel">
+                        <h3 style="margin: 6px 0;">Bias-Variance Decomposition</h3>
+                        <div id="bvBvnViz" class="bv-viz"></div>
+                    </div>
+                </div>
+                <p>
+                    Note: Bias-variance decomposition shows the test MSE decomposed as the sum of bias$^2$, variance, and noise.
+                    Refer to <a class="page-link" href="estimation.html">Estimation</a> for more on MSE.
+                </p>              
+
+                <div class="bv-summary">
+                    <h3 style="margin: 10px 0 6px;">Lowest Testing MSE Stats</h3>
+                    <div id="bvSummaryTable" class="metrics-table">—</div>
+                    <div class="row" style="margin-top: 10px; flex-wrap: wrap; justify-content: flex-start;">
+                        <button id="bvRecompute" type="button">Recompute sweep</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Observations</h2>
                 <ul>
                     <li>As degree increases, OLS tends to overfit (wiggly curve, large coefficients, worse test error).</li>
                     <li>Ridge typically shrinks coefficients smoothly, reducing variance and improving test error for a wide range of $\lambda$.</li>
                     <li>Lasso can drive some coefficients to exactly 0, acting like a form of feature selection.</li>
-                    <li> The GD methods blow up if the regularization (λ) or the learning rate (η) is set too high.</li>
+                    <li>The GD methods blow up if the regularization ($\lambda$) or the learning rate ($\eta$) is set too high.</li>
                 </ul>
             </section>
 
             <section class="panel">
                 <h2>Why the GD methods blow up</h2>
-                <p>Both L2 penalty and weight decay depend λ or η to be within certain bounds for the gradient descent to converge properly.</p>
+                <p>Both L2 penalty and weight decay depend $\lambda$ or $\eta$ to be within certain bounds for the gradient descent to converge properly.</p>
                 <ul>
-                    <li>L2 minimizes $J(w) = MSE(w) + \lambda \|w\|_2^2$. Its gradient is $\nabla J(w) = \nabla MSE(w) + 2\lambda w$. When updating $w_{t+1} = w_t - \eta \nabla J(w_t)$ = $w_t - \eta (\nabla MSE(w_t) + 2\lambda w_t)$, if λ or η is too large, the term dominates the update and the training behaves more like $w_{t+1} \approx w_t - 2\eta \lambda w_t$ or $w_{t+1} \approx (1 - 2\eta \lambda) w_t$.</li>
+                    <li>L2 minimizes $J(w) = MSE(w) + \lambda \|w\|_2^2$. Its gradient is $\nabla J(w) = \nabla MSE(w) + 2\lambda w$. When updating $w_{t+1} = w_t - \eta \nabla J(w_t)$ = $w_t - \eta (\nabla MSE(w_t) + 2\lambda w_t)$, if $\lambda$ or $\eta$ is too large, the term dominates the update and the training behaves more like $w_{t+1} \approx w_t - 2\eta \lambda w_t$ or $w_{t+1} \approx (1 - 2\eta \lambda) w_t$.</li>
                     <ul>
                         <li>If $2\eta \lambda > 1$, the sign flips on each step.</li>
                         <li>If $1 < 2\eta \lambda < 2$, it will still converge, but will oscillate back and forth while doing so, causing slower convergence and potential instability in loss.</li>
                         <li>If $2\eta \lambda > 2$, this continuous overshooting will diverge rapidly.</li>
                     </ul>
-                    <li>Weight decay behaves similarly. It minimizes $J(w) = MSE(w) + \lambda \|w\|_2^2$, but the update rule is $w_{t+1} = (1 - \eta \lambda) w_t - \eta \nabla MSE(w_t)$ by construction since we don't want the decay to apply directly to the gradient. When λ or η is too large, we fall into the same $w_{t+1} \approx (1 - \eta \lambda) w_t$ behavior, but this time without the 2.</li>
+                    <li>Weight decay behaves similarly. It uses the decoupled update rule $w_{t+1} = (1 - 2\eta \lambda) w_t - \eta \nabla MSE(w_t)$ (intercept unpenalized). When $\lambda$ or $\eta$ is too large, we fall into the same $w_{t+1} \approx (1 - 2\eta \lambda) w_t$ behavior.</li>
                     <ul>
                         <li>Note: The 2 is not significant and can be removed from L2 as well by redefining the regularization term as $\frac{\lambda}{2} \|w\|_2^2$.</li>
                     </ul>
