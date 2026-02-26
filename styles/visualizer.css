@@ -1,9 +1,6 @@
 /* visualizer.css - styles scoped to the interactive visualizers */
 
 .visualizer .controls {
-	background: rgba(255, 255, 255, 0.05);
-	padding: 18px;
-	border-radius: 12px;
 	margin-bottom: 18px;
 }
 
@@ -67,9 +64,6 @@
 }
 
 .visualizer .form-card {
-	background: rgba(255, 255, 255, 0.05);
-	padding: 12px;
-	border-radius: 10px;
 	display: flex;
 	gap: 10px;
 	align-items: end;
@@ -137,9 +131,6 @@
 }
 
 .visualizer .graph-card {
-	background: rgba(255, 255, 255, 0.05);
-	padding: 14px;
-	border-radius: 12px;
 	position: relative;
 	height: 420px;
 }
@@ -182,9 +173,6 @@
 }
 
 .visualizer .distributions-info {
-	background: rgba(255, 255, 255, 0.05);
-	padding: 20px;
-	border-radius: 12px;
 	margin-top: 20px;
 }
 
@@ -289,9 +277,6 @@
 
 /* distribution detail */
 .visualizer .distribution-detail {
-	background: rgba(255, 255, 255, 0.05);
-	padding: 16px;
-	border-radius: 8px;
 	margin-bottom: 16px;
 }
 
@@ -313,11 +298,6 @@
 
 .visualizer .distribution-detail .formula {
 	font-family: "Computer Modern", serif;
-	background: rgba(0, 0, 0, 0.4);
-	padding: 12px;
-	border-radius: 6px;
-	margin: 8px 0;
-	overflow-x: auto;
 }
 
 .visualizer .distribution-detail .properties {

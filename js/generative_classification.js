@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 0; i < classes.length; i++) kdeVals.push(kde.classPosteriors[i].toFixed(3));
     for (let i = 0; i < classes.length; i++) kdeVals.push((kde.classLikelihoods[i]).toExponential(2));
 
-    let msg = `<table>`;
+    let msg = `<table class="data-table">`;
     msg += `<tr><th colspan="${colCount}">${header}</th></tr>`;
     msg += `<tr><th></th>${headerCols.map(h => `<th>${h}</th>`).join('')}</tr>`;
     msg += `<tr><td class="query-row-label">KDE</td>${kdeVals.map(v => `<td>${v}</td>`).join('')}</tr>`;

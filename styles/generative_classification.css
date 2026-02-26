@@ -1,5 +1,14 @@
 /* generative_classification.css - page-specific styles for the Generative Classification demo */
 
+.generative-classification .bandwidth-row {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  width: fit-content;
+}
+
 .generative-classification #classLegend .legend-item {
 	display: flex;
 	align-items: center;
@@ -17,11 +26,6 @@
 
 .generative-classification #classLegend .legend-label {
 	font-size: 13px;
-}
-
-/* Row labels inside the query info table (KDE / GDA) */
-.generative-classification #queryInfo .query-row-label {
-	font-weight: 700;
 }
 
 /* Per-class blocks rendered into #gdaParams by JS */

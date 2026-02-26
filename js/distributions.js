@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function addDistributionForm(pref = { dist: 'normal', defaults: [] }) {
         const id = nextId++;
         const wrapper = formsContainer.append('div')
-            .attr('class', 'form-card')
+            .attr('class', 'form-card panel')
             .attr('data-id', id);
         const selWrap = wrapper.append('div')
             .attr('class', 'form-col');
@@ -643,7 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 : colors[firstIndex >= 0 ? firstIndex % colors.length : idx % colors.length];
 
             const detailElement = document.createElement('div');
-            detailElement.className = 'distribution-detail';
+            detailElement.className = 'distribution-detail panel';
             detailElement.style.setProperty('--indicator-color', color);
 
             // Create content with MathJax formatting
