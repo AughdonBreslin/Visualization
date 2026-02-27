@@ -85,6 +85,11 @@
 	border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.article .dataset-panel label[for="fileInput"]:hover {
+	background: rgba(255, 255, 255, 0.15);
+	border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
 /* Force key sections to use full available width */
 .article .dataset-panel,
 .article .calculations-panel,
