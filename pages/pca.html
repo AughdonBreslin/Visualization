@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Principal Component Analysis: SVD, Rotation, Stretch, and Reconstruction</title>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/article.css">
+  <link rel="stylesheet" href="../styles/pca.css">
+
+  <script defer src="../js/formulas_layout.js"></script>
+  <script defer src="../js/pca.js"></script>
+</head>
+
+<body>
+  <div class="container article pca">
+    <header>
+      <h1>Principal Component Analysis</h1>
+      <div class="subtitle">Using SVD to understand principal directions, variance, and matrix decompositions</div>
+      <div class="home-link"><a href="../index.html">← Home</a></div>
+    </header>
+
+    <main class="article-body">
+      <section class="panel">
+        <h2>Overview</h2>
+        <p>
+          Principal Component Analysis (PCA) is a way to reorganize data around the directions where it varies most. If the centered data matrix is $X \in \mathbb{R}^{n \times d}$, PCA finds orthogonal directions that explain as much variance as possible, ordered from most important to least important.
+        </p>
+        <p>
+          In two dimensions, you can think of PCA as finding the best rotated coordinate system for the data cloud. One axis points along the dominant direction of variation, the other points along the remaining orthogonal variation. This makes PCA useful for visualization, dimensionality reduction, denoising, and understanding the geometry of a dataset.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>PCA and SVD</h2>
+        <p>
+          For centered data, PCA is most cleanly computed through the singular value decomposition (SVD):
+        </p>
+        <div class="formula">$$X = U\Sigma V^T$$</div>
+        <p>
+          Here $V$ contains the principal directions in feature space, $\Sigma$ contains the singular values, and $U$ describes how the data coordinates line up with those directions. The covariance matrix is then
+        </p>
+        <div class="formula">$$\frac{1}{n-1}X^T X = V\left(\frac{\Sigma^2}{n-1}\right)V^T$$</div>
+        <p class="note">
+          This is the link between SVD and PCA: the right singular vectors in $V$ are the eigenvectors of the covariance matrix, and the eigenvalues are the squared singular values divided by $n-1$.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Geometric interpretation</h2>
+        <p>
+          The PCA directions come from the covariance operator, which can be read as a sequence of geometric transformations. In two dimensions, the eigendecomposition of the covariance matrix is
+        </p>
+        <div class="formula">$$C = V\Lambda V^T$$</div>
+        <p>
+          This means: rotate into the eigenvector basis with $V^T$, stretch along those axes by the eigenvalues in $\Lambda$, and then rotate back with $V$. The walkthrough below shows both the data view and the operator view of that sequence.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Interactive walkthrough</h2>
+        <p>
+          Generate a 2D dataset, inspect the SVD of the centered data matrix $X$, and step through the PCA-related transformation sequence. The left plot shows how the data cloud changes under each matrix factor. The right plot shows how the covariance operator acts on a unit circle and on the principal directions themselves.
+        </p>
+
+        <div class="viz-row">
+          <div class="viz-panel">
+            <h3 class="h3-tight">Data transformed step by step</h3>
+            <div id="pcaDataViz" class="viz pca-viz" aria-label="PCA data transformation visualization"></div>
+
+            <h3 class="h3-section">Covariance operator view</h3>
+            <div id="pcaOperatorViz" class="viz pca-viz" aria-label="PCA operator visualization"></div>
+
+            <div id="pcaStepSummary" class="help-text">-</div>
+
+            <div class="pca-matrix-grid">
+              <div class="pca-matrix-card">
+                <h4>Centered data matrix $X$</h4>
+                <pre id="pcaMatrixX" class="pca-matrix-display">-</pre>
+              </div>
+              <div class="pca-matrix-card">
+                <h4>SVD pieces</h4>
+                <pre id="pcaMatrixFactors" class="pca-matrix-display">-</pre>
+              </div>
+              <div class="pca-matrix-card">
+                <h4>Covariance eigendecomposition</h4>
+                <pre id="pcaMatrixCov" class="pca-matrix-display">-</pre>
+              </div>
+              <div class="pca-matrix-card">
+                <h4>Current transformation</h4>
+                <pre id="pcaMatrixCurrent" class="pca-matrix-display">-</pre>
+              </div>
+            </div>
+          </div>
+
+          <aside class="viz-controls">
+            <h3>Dataset</h3>
+            <div class="control-grid compact-grid">
+              <div class="control-item">
+                <label for="pcaPreset">Preset</label>
+                <select id="pcaPreset">
+                  <option value="ellipse" selected>Tilted ellipse</option>
+                  <option value="line">Near-line cloud</option>
+                  <option value="clusters">Two elongated clusters</option>
+                </select>
+              </div>
+              <div class="control-item">
+                <label for="pcaSamples">Samples</label>
+                <input id="pcaSamples" type="number" min="8" step="2" value="24" />
+              </div>
+            </div>
+
+            <h3 class="h3-section">Shape</h3>
+            <div class="control-grid compact-grid">
+              <div class="control-item">
+                <label for="pcaSpread1">Spread 1</label>
+                <div class="pca-slider-row">
+                  <input id="pcaSpread1" type="range" min="0.1" max="5" step="0.05" value="2.4" />
+                  <output id="pcaSpread1Value" for="pcaSpread1">2.40</output>
+                </div>
+              </div>
+              <div class="control-item">
+                <label for="pcaSpread2">Spread 2</label>
+                <div class="pca-slider-row">
+                  <input id="pcaSpread2" type="range" min="0.05" max="3" step="0.05" value="0.8" />
+                  <output id="pcaSpread2Value" for="pcaSpread2">0.80</output>
+                </div>
+              </div>
+              <div class="control-item">
+                <label for="pcaAngle">Angle (deg)</label>
+                <div class="pca-slider-row">
+                  <input id="pcaAngle" type="range" min="-180" max="180" step="1" value="35" />
+                  <output id="pcaAngleValue" for="pcaAngle">35°</output>
+                </div>
+              </div>
+              <div class="control-item">
+                <label for="pcaNoise">Noise</label>
+                <div class="pca-slider-row">
+                  <input id="pcaNoise" type="range" min="0" max="1" step="0.01" value="0.15" />
+                  <output id="pcaNoiseValue" for="pcaNoise">0.15</output>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="h3-section">Walkthrough step</h3>
+            <div class="control-grid compact-grid">
+              <div class="control-item">
+                <label for="pcaStep">Stage</label>
+                <select id="pcaStep">
+                  <option value="0" selected>Original centered data</option>
+                  <option value="1">Rotate by V^T</option>
+                  <option value="2">Stretch by Lambda</option>
+                  <option value="3">Rotate back by V</option>
+                </select>
+              </div>
+              <div class="control-item">
+                <label for="pcaRank">Projection rank</label>
+                <select id="pcaRank">
+                  <option value="2" selected>Keep 2 components</option>
+                  <option value="1">Keep 1 component</option>
+                </select>
+              </div>
+            </div>
+
+            <h3 class="h3-section">Display</h3>
+            <div class="options-group">
+              <label><input id="pcaShowVectors" type="checkbox" checked /> Show principal directions</label>
+              <label><input id="pcaShowLabels" type="checkbox" /> Label sample points</label>
+              <label><input id="pcaShowRank1" type="checkbox" /> Overlay rank-1 reconstruction</label>
+            </div>
+
+            <div class="control-grid compact-grid pca-actions">
+              <button id="pcaRandomize" type="button">Randomize seed</button>
+            </div>
+          </aside>
+        </div>
+
+        <p class="note">
+          In PCA itself, the most important operational step for analyzing data is the rotation into principal coordinates. The extra stretch-and-rotate-back view shown here is included because it makes the covariance eigendecomposition visually explicit.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Dimensionality reduction and reconstruction</h2>
+        <p>
+          After rotating into the principal basis, PCA orders coordinates by explained variance. Keeping only the first few components gives a lower-dimensional representation that preserves as much variance as possible among all orthogonal linear projections of that rank.
+        </p>
+        <div class="formula">$$X_{\text{rank-}k} = U_k\Sigma_k V_k^T$$</div>
+        <p>
+          This is why PCA is useful in practice: it compresses the data while keeping the dominant structure. When only one or two components explain most of the variance, the reconstructed data can remain visually and statistically close to the original while using fewer degrees of freedom.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Conclusion</h2>
+        <p>
+          PCA is ultimately a geometric and algebraic reorganization of the data. SVD gives a numerically stable way to compute it from the data matrix $X$, the principal directions come from the right singular vectors, and the explained variances come from the squared singular values. Conjugating the diagonal stretch by the eigenvector matrix explains why PCA can be understood as a rotation into a natural coordinate system, a variance-weighted scaling, and a rotation back.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p class="footer-tag">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></p>
+    </footer>
+  </div>
+</body>
+
+</html>
