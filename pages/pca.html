@@ -8,6 +8,7 @@
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 
   <script>
     window.MathJax = {
@@ -73,16 +74,18 @@
       <section class="panel">
         <h2>Interactive walkthrough</h2>
         <p>
-          Generate a 2D dataset, inspect the SVD of the centered data matrix $X$, and step through the PCA-related transformation sequence. The left plot shows how the data cloud changes under each matrix factor. The right plot shows how the covariance operator acts on a unit circle and on the principal directions themselves.
+          Generate a 2D or 3D dataset, inspect the SVD of the centered data matrix $X$, and step through the PCA-related transformation sequence. In 3D mode the data view is rendered as an actual 3D scene, so you can watch the cloud rotate into principal coordinates instead of seeing only a flattened projection. The right plot shows how the covariance operator acts on a unit circle or sphere and on the principal directions themselves.
         </p>
 
         <div class="viz-row">
           <div class="viz-panel">
             <h3 class="h3-tight">Data transformed step by step</h3>
             <div id="pcaDataViz" class="viz pca-viz" aria-label="PCA data transformation visualization"></div>
+            <div id="pcaDataLegend" class="pca-legend" aria-label="Legend for PCA data visualization"></div>
 
             <h3 class="h3-section">Covariance operator view</h3>
             <div id="pcaOperatorViz" class="viz pca-viz" aria-label="PCA operator visualization"></div>
+            <div id="pcaOperatorLegend" class="pca-legend" aria-label="Legend for PCA covariance operator visualization"></div>
 
             <div id="pcaStepSummary" class="help-text">-</div>
 
@@ -109,6 +112,13 @@
           <aside class="viz-controls">
             <h3>Dataset</h3>
             <div class="control-grid compact-grid">
+              <div class="control-item">
+                <label for="pcaDimension">Dimension</label>
+                <select id="pcaDimension">
+                  <option value="3" selected>3D</option>
+                  <option value="2">2D</option>
+                </select>
+              </div>
               <div class="control-item">
                 <label for="pcaPreset">Preset</label>
                 <select id="pcaPreset">
@@ -139,11 +149,25 @@
                   <output id="pcaSpread2Value" for="pcaSpread2">0.80</output>
                 </div>
               </div>
+              <div id="pcaSpread3Control" class="control-item">
+                <label for="pcaSpread3">Spread 3</label>
+                <div class="pca-slider-row">
+                  <input id="pcaSpread3" type="range" min="0.05" max="3" step="0.05" value="0.55" />
+                  <output id="pcaSpread3Value" for="pcaSpread3">0.55</output>
+                </div>
+              </div>
               <div class="control-item">
                 <label for="pcaAngle">Angle (deg)</label>
                 <div class="pca-slider-row">
                   <input id="pcaAngle" type="range" min="-180" max="180" step="1" value="35" />
                   <output id="pcaAngleValue" for="pcaAngle">35°</output>
+                </div>
+              </div>
+              <div id="pcaElevationControl" class="control-item">
+                <label for="pcaElevation">Elevation (deg)</label>
+                <div class="pca-slider-row">
+                  <input id="pcaElevation" type="range" min="-85" max="85" step="1" value="28" />
+                  <output id="pcaElevationValue" for="pcaElevation">28°</output>
                 </div>
               </div>
               <div class="control-item">
@@ -169,7 +193,8 @@
               <div class="control-item">
                 <label for="pcaRank">Projection rank</label>
                 <select id="pcaRank">
-                  <option value="2" selected>Keep 2 components</option>
+                  <option value="3" selected>Keep 3 components</option>
+                  <option value="2">Keep 2 components</option>
                   <option value="1">Keep 1 component</option>
                 </select>
               </div>
@@ -179,7 +204,7 @@
             <div class="options-group">
               <label><input id="pcaShowVectors" type="checkbox" checked /> Show principal directions</label>
               <label><input id="pcaShowLabels" type="checkbox" /> Label sample points</label>
-              <label><input id="pcaShowRank1" type="checkbox" /> Overlay rank-1 reconstruction</label>
+              <label><input id="pcaShowRank1" type="checkbox" /> Overlay low-rank reconstruction</label>
             </div>
 
             <div class="control-grid compact-grid pca-actions">
