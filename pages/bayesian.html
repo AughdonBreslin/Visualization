@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bayesian Inference: Priors, Posteriors, MAP, and Approximate Inference</title>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/article.css">
+  <link rel="stylesheet" href="../styles/bayesian.css">
+
+  <script defer src="../js/formulas_layout.js"></script>
+  <script defer src="../js/bayesian.js"></script>
+</head>
+
+<body>
+  <div class="container article bayesian">
+    <header>
+      <h1>Bayesian Inference</h1>
+      <div class="subtitle">Priors, likelihoods, posteriors, conjugacy, MAP, posterior predictive, and approximate inference</div>
+      <div class="home-link"><a href="../index.html">← Home</a></div>
+    </header>
+
+    <main class="article-body">
+      <section class="panel">
+        <h2>Overview</h2>
+        <p>
+          Bayesian inference uses observed data $\mathcal{D}$ to learn about unknown parameter(s) $\theta$. For example, $\theta$ might be a coin's probability of heads, a Gaussian mean, or a vector of regression coefficients, while $\mathcal{D}$ is the dataset you actually observed.
+        </p>
+        <p>
+          The point of introducing a prior and a posterior is to keep track of uncertainty throughout that learning process. Before seeing data, we use a prior to describe which parameter values seem plausible. This can be seen as our initial beliefs or assumptions, or as a form of regularization. After seeing data, we update those beliefs to a posterior, which tells us which parameter values are plausible given the evidence we observed.
+        </p>
+        <div class="formulas">
+          <div class="formula">$$\textbf{Prior: } p(\theta)$$</div>
+          <div class="formula">$$\textbf{Posterior: } p(\theta\mid\mathcal{D})$$</div>
+        </div>
+        <p>
+          The central update rule is Bayes' rule. It combines the prior with the likelihood, $p(\mathcal{D}\mid\theta)$, which measures how compatible the observed data is with each possible value of $\theta$. Last is the probability of observing the data, which for continuous variables would be the probability density $p(\mathcal{D}) = \int p(\mathcal{D}\mid\theta)p(\theta)\,d\theta$, which acts as the evidence (or marginal likelihood). It is often hard to compute, and that difficulty motivates approximate inference.
+        </p>
+        <div class="formula">$$p(\theta\mid\mathcal{D}) = \frac{p(\mathcal{D}\mid\theta)\,p(\theta)}{p(\mathcal{D})}$$</div>
+      </section>
+
+      <section class="panel">
+        <h2>Conjugacy</h2>
+        <p>
+          Conjugacy shows the core principle of Bayesian inference in its cleanest form. You start with a prior, update it with a likelihood after observing data, and end with a posterior. In general, carrying out that update can require difficult integration through the evidence term $p(\mathcal{D})$, but conjugate models are special because the posterior can be written down explicitly with a formula instead of requiring numerical approximation (they're closed-form).
+        </p>
+        <p>
+          A prior is conjugate to a likelihood when the posterior belongs to the same distribution family (e.g., Normal, Beta, Uniform) as the prior, just with updated parameter values. In practice, conjugacy appears when the prior is chosen to match the algebraic structure of the likelihood, and it is useful because it makes Bayesian updating both exact and easy to interpret.
+        </p>
+
+        <h3 class="h3-summary">Beta-Binomial</h3>
+        <p>
+          Suppose a coin has an unknown probability of heads $p$. You flip the coin $n$ times independently and let $X$ denote the number of observed heads. The Binomial distribution $\mathrm{Binomial}(n,p)$ describes that head count, while the Beta distribution $\mathrm{Beta}(\alpha,\beta)$ is a distribution on probabilities in $[0,1]$ with shape parameters $\alpha$ and $\beta$.
+        </p>
+        <p>
+          If we use a Beta prior for the unknown probability $p$, then the Binomial likelihood and the Beta prior form a conjugate pair:
+        </p>
+        <div class="formulas">
+          <div class="formula">$$p\sim\mathrm{Beta}(\alpha,\beta)$$</div>
+          <div class="formula">$$X\mid p\sim\mathrm{Binomial}(n,p)$$</div>
+        </div>
+        <div class="formula">$$p\mid X \sim \mathrm{Beta}(\alpha + X,\ \beta + n - X)$$</div>
+        <p class="note">
+          The posterior is still a Beta distribution, so the prior and posterior stay in the same family. Its parameters update by adding the observed heads $X$ and observed tails $n-X$, which is why $\alpha$ and $\beta$ are often interpreted as prior pseudo-counts, meaning counts contributed by the prior before any new data is observed.
+        </p>
+
+        <h3 class="h3-summary">Normal-Normal (known variance)</h3>
+        <p>
+          Now suppose the data values $x_1,\dots,x_n$ come from a Normal (Gaussian) distribution with unknown mean $\mu$ and known variance $\sigma^2$. Here $\sigma^2$ describes the variance in the data-generating process, or how noisy the observations are around the true mean $\mu$. We place a Normal prior on the unknown mean: $\mu$ itself is assumed to follow a Normal distribution with prior mean $\mu_0$ and prior variance $\tau^2$.
+        </p>
+        <p>
+          Because the likelihood is Normal in $\mu$ and the prior is also Normal in $\mu$, this is another conjugate pair:
+        </p>
+        <div class="formulas">
+          <div class="formula">$$\mu\sim\mathcal{N}(\mu_0,\tau^2)$$</div>
+          <div class="formula">$$x_i\mid\mu\sim\mathcal{N}(\mu,\sigma^2)$$</div>
+        </div>
+        <p>
+          The posterior for the unknown mean is also Normal: $\mu\mid\mathcal{D}\sim\mathcal{N}(\mu_n,\tau_n^2)$. Here $\mu_n$ is the updated posterior mean, $\tau_n^2$ is the updated posterior variance, and $\bar x$ denotes the sample mean of the observed values:
+        </p>
+        <div class="formulas">
+          <div class="formula">$$\tau_n^2 = \left(\frac{1}{\tau^2} + \frac{n}{\sigma^2}\right)^{-1}$$</div>
+          <div class="formula">$$\mu_n = \tau_n^2\left(\frac{\mu_0}{\tau^2} + \frac{n\bar x}{\sigma^2}\right)$$</div>
+        </div>
+        <p class="note">
+          Intuition: the posterior mean is a precision-weighted average of the prior mean $\mu_0$ and the sample mean $\bar x$. Precision means inverse variance, so information with smaller variance receives more weight in the update.
+        </p>
+
+        <h3 class="h3-summary">Bayesian linear regression (Gaussian)</h3>
+        <p>
+          The same conjugate idea extends to linear regression. If the response vector $y$ is modeled with Gaussian noise around the linear predictor $Xw$, and the coefficient vector $w$ has a Gaussian prior, then the posterior over $w$ is also Gaussian.
+        </p>
+        <div class="formulas">
+          <div class="formula">$$y\mid X,w\sim\mathcal{N}(Xw,\ \beta^{-1}I)$$</div>
+          <div class="formula">$$w\sim\mathcal{N}(0,\ \alpha^{-1}I)$$</div>
+        </div>
+        <p class="note">
+          This is the multivariate version of the Normal-Normal story: a Gaussian prior combined with a Gaussian likelihood gives a Gaussian posterior. In this setting, the MAP solution matches ridge regression when you identify $\lambda=\alpha/\beta$.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Conjugate updating</h2>
+        <p>
+          Paste a dataset, choose a model, and see how Bayesian updating changes both your belief about the unknown parameter and your prediction for a new observation.
+          The first plot focuses on uncertainty about the parameter itself; the second plot shows what the updated model predicts for new data.
+        </p>
+
+        <div class="viz-row">
+          <div class="viz-panel">
+            <h3 class="h3-tight">Prior vs likelihood vs posterior</h3>
+            <p id="bayesParamContext" class="help-text">
+              The prior shows what parameter values were plausible before seeing the dataset, the likelihood shows which parameter values best explain the observed data, and the posterior shows the updated belief after combining both. The shaded interval on the posterior plot is a 95% credible interval, which contains parameter values that together have 95% of the posterior probability mass.
+            </p>
+            <div id="bayesParamViz" class="viz bayes-viz" aria-label="Bayesian parameter update visualization"></div>
+
+            <h3 id="bayesPredTitle" class="h3-section">Posterior predictive for a new observation</h3>
+            <p id="bayesPredContext" class="help-text">
+              This plot summarizes predictions for new data after averaging over parameter uncertainty rather than plugging in a single estimate.
+            </p>
+            <div id="bayesPredViz" class="viz bayes-viz" aria-label="Posterior predictive visualization"></div>
+            <div id="bayesSummary" class="help-text">-</div>
+          </div>
+
+          <aside class="viz-controls">
+            <h3>Model</h3>
+            <div class="control-grid">
+              <label for="bayesModel">Conjugate pair</label>
+              <select id="bayesModel">
+                <option value="beta-binomial" selected>Beta-Binomial (coin flips)</option>
+                <option value="normal-normal">Normal-Normal (mean, known variance)</option>
+              </select>
+            </div>
+
+            <h3 class="h3-section">Dataset</h3>
+            <div class="control-grid">
+              <label for="bayesData">Paste values</label>
+              <textarea id="bayesData" rows="8">1, 1, 0, 1, 0, 1, 1, 1, 0, 1</textarea>
+              <div class="small" id="bayesDataHint">For coin flips: use 1/0 or H/T. For normals: paste numbers like 0.2, -1.1, 0.7.</div>
+            </div>
+
+            <div id="bayesControlsBeta" class="bayes-controls">
+              <h3 class="h3-section">Prior (Beta)</h3>
+              <div class="control-grid compact-grid">
+                <div class="control-item">
+                  <label for="alpha">Alpha ($\alpha$)</label>
+                  <input id="alpha" type="number" min="0.1" step="0.1" value="2" />
+                </div>
+                <div class="control-item">
+                  <label for="beta">Beta ($\beta$)</label>
+                  <input id="beta" type="number" min="0.1" step="0.1" value="2" />
+                </div>
+              </div>
+              <h3 class="h3-section">Generate data</h3>
+              <div class="control-grid compact-grid">
+                <label for="bayesProbHeads">Probability of heads</label>
+                <div class="control-inline-row">
+                  <input id="bayesProbHeads" type="number" min="0" max="1" step="0.05" value="0.6" />
+                  <button id="bayesFlipCoin" type="button">Flip a coin</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="bayesControlsNormal" class="bayes-controls" hidden>
+              <h3 class="h3-section">Prior (Normal)</h3>
+              <div class="control-grid compact-grid">
+                <div class="control-item">
+                  <label for="mu0">Prior mean ($\mu_0$)</label>
+                  <input id="mu0" type="number" step="0.1" value="0" />
+                </div>
+                <div class="control-item">
+                  <label for="tau">Prior std ($\tau$)</label>
+                  <input id="tau" type="number" min="0.05" step="0.05" value="1" />
+                </div>
+              </div>
+              <h3 class="h3-section">Likelihood</h3>
+              <div class="control-grid">
+                <label for="sigma">Known std ($\sigma$)</label>
+                <input id="sigma" type="number" min="0.05" step="0.05" value="1" />
+              </div>
+              <h3 class="h3-section">Generate data</h3>
+              <div class="control-grid compact-grid">
+                <label for="bayesTrueMean">True mean</label>
+                <div class="control-inline-row">
+                  <input id="bayesTrueMean" type="number" step="0.1" value="0" />
+                  <button id="bayesGenerateSample" type="button">Generate a sample</button>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+        <p class="note">
+          The posterior is a compromise between the prior and the likelihood. When the dataset is small, the posterior is close to the prior; as more data accumulates, the posterior gets pulled toward the likelihood and eventually approaches it.
+        </p>
+        <p class="note">
+          Conjugacy gives exact posterior updates, but only for special prior-likelihood pairs. In many useful models, the posterior cannot be written in a clean closed form, or carrying the full posterior distribution may be more work than we want for the task at hand.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Posterior predictive distribution</h2>
+        <p>
+          Bayesian prediction integrates over uncertainty in parameters instead of plugging in a single estimate:
+        </p>
+        <div class="formula">$$p(x_{\text{new}}\mid\mathcal{D}) = \int p(x_{\text{new}}\mid\theta)\,p(\theta\mid\mathcal{D})\,d\theta$$</div>
+        <p class="note">
+          This integral is often tractable in conjugate models, and otherwise is approximated (e.g. Monte Carlo by sampling $\theta$ from the posterior).
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Credible intervals vs confidence intervals</h2>
+        <p>
+          These are often confused. The difference is about what is random and what the statement conditions on. A confidence interval is a statement about a procedure over repeated samples; a credible interval is a statement about parameters conditional on observed data (given a prior and likelihood).
+
+        </p>
+        <div class="formulas">
+          <div class="formula">$$\textbf{Credible: }\Pr(\theta\in[a,b]\mid\mathcal{D}) = 0.95$$</div>
+          <div class="formula">$$\textbf{Confidence: }\Pr([a(\mathcal{D}),b(\mathcal{D})]\ni\theta)=0.95$$</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Maximum A Posteriori (MAP) estimation</h2>
+        <p>
+          MAP is relevant because it keeps the Bayesian idea of combining prior information with data, but replaces the full posterior with a single estimate.
+        </p>
+        <p>
+          MAP chooses the parameter value with highest posterior density. In other words, instead of describing all plausible values of $\theta$ after observing $\mathcal{D}$, it asks which single value of $\theta$ is most plausible under the posterior.
+        </p>
+        <div class="formula">$$\hat\theta_{\mathrm{MAP}} = \arg\max_{\theta}\ p(\theta\mid\mathcal{D}) = \arg\max_{\theta}\ \log p(\mathcal{D}\mid\theta) + \log p(\theta)$$</div>
+        <p>
+          This formula motivates MAP as an optimization problem. Because the log function preserves maximizers, MAP can be found by maximizing log-likelihood plus log-prior, or equivalently by minimizing a data-fit term plus a penalty induced by the prior. That does not solve Bayesian inference in full, but it often gives a practical Bayesian-informed estimate even when exact conjugate updating is unavailable or unnecessary.
+        </p>
+        <p>
+          This is why priors often behave like regularizers: different prior choices reshape the objective and pull the estimate toward different kinds of solutions.
+        </p>
+        <div class="formulas">
+          <div class="formula">$$\theta\sim\mathcal{N}(0,\sigma^2 I)\ \Rightarrow\ \text{L2 penalty}$$</div>
+          <div class="formula">$$\theta\sim\text{Laplace}(0,b)\ \Rightarrow\ \text{L1 penalty}$$</div>
+        </div>
+        <p class="note">
+          MAP resolves a computational and modeling convenience issue, not the full uncertainty problem. It can be a practical bridge between frequentist estimation and Bayesian modeling, but it keeps only one posterior mode. As a result, it discards posterior spread, can hide multimodality, and can be sensitive to prior strength or parameterization.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>MAP vs MLE (Normal mean)</h2>
+        <p>
+          To see that optimization view concretely, suppose $x_i\sim\mathcal{N}(\mu,\sigma^2)$ with a Gaussian prior $\mu\sim\mathcal{N}(\mu_0,\tau^2)$.
+          The MLE is $\hat\mu_{\mathrm{MLE}}=\bar x$, while the MAP estimate adds a prior penalty and therefore balances fit to the data against agreement with the prior.
+        </p>
+        <div class="formula">$$\hat\mu_{\mathrm{MAP}} = \arg\min_{\mu}\ \underbrace{\frac{n}{2\sigma^2}(\mu-\bar x)^2}_{-\log p(\mathcal{D}\mid\mu)} + \underbrace{\frac{1}{2\tau^2}(\mu-\mu_0)^2}_{-\log p(\mu)}$$</div>
+
+        <div class="viz-row">
+          <div class="viz-panel">
+            <h3 class="h3-tight">Objectives over $\mu$</h3>
+            <p class="help-text">
+              The blue curve is the data-fit term, the white curve is the prior penalty, and the green curve is their sum, whose minimum gives the MAP estimate.
+            </p>
+            <div id="mapObjViz" class="viz bayes-viz" aria-label="MAP objective curves visualization"></div>
+            <div id="mapSummary" class="help-text">-</div>
+          </div>
+
+          <aside class="viz-controls">
+            <h3>Dataset</h3>
+            <div class="control-grid">
+              <label for="mapData">Paste numbers</label>
+              <textarea id="mapData" rows="8">0.2, -0.1, 0.4, 0.3, 0.0</textarea>
+              <div class="small">Numbers separated by commas/spaces/newlines. The plot updates automatically as you type.</div>
+            </div>
+
+            <h3 class="h3-section">Prior</h3>
+            <div class="control-grid compact-grid">
+              <div class="control-item">
+                <label for="mapMu0">Prior mean ($\mu_0$)</label>
+                <input id="mapMu0" type="number" step="0.1" value="0" />
+              </div>
+              <div class="control-item">
+                <label for="mapTau">Prior std ($\tau$)</label>
+                <input id="mapTau" type="number" min="0.05" step="0.05" value="1" />
+              </div>
+            </div>
+
+            <h3 class="h3-section">Likelihood</h3>
+            <div class="control-grid">
+              <label for="mapSigma">Known std ($\sigma$)</label>
+              <input id="mapSigma" type="number" min="0.05" step="0.05" value="0.3" />
+            </div>
+
+            <h3 class="h3-section">Generate data</h3>
+            <div class="control-grid compact-grid">
+              <label for="mapTrueMean">True mean</label>
+              <div class="control-inline-row">
+                <input id="mapTrueMean" type="number" step="0.1" value="0" />
+                <button id="mapGenerateSample" type="button">Generate a sample</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <p class="note">
+          When $n$ is small and $\tau$ differs significantly from $\sigma$, MAP can differ a lot from MLE; as $n$ grows, MAP approaches MLE. 
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Approximate inference</h2>
+        <p>
+          When conjugacy is unavailable, we usually cannot write down the posterior in a clean closed form. In that case we turn to approximate inference: methods that either sample from the posterior indirectly or fit a simpler distribution to it.
+        </p>
+        <h3 class="h3-summary">MCMC (sampling)</h3>
+        <p>
+          Markov Chain Monte Carlo builds a Markov chain, meaning a sequence of parameter values where the next value depends only on the current one. 
+        </p>
+        <div class="formula">
+          $$p(\theta^{(t+1)}\mid\theta^{(1)}, \ldots, \theta^{(t)}) = p(\theta^{(t+1)}\mid\theta^{(t)})$$
+        </div>
+        <p></p>The transition rule is designed so that the posterior is the chain's stationary distribution: if the chain were already distributed according to the posterior, one more update step would leave that distribution unchanged. After enough steps, the samples produced by the chain behave approximately like posterior draws.
+        </p>
+        <p>
+          In practice, the chain is built by repeatedly proposing a move and then accepting or rejecting it in a way that favors regions of high posterior density while still exploring the full space. The appeal is that MCMC targets the true posterior rather than a simplified surrogate, but the tradeoff is computational cost: it can mix slowly, require diagnostics, and be hard to scale in high-dimensional models.
+        </p>
+        <h3 class="h3-summary">Variational inference (optimization)</h3>
+        <p>
+          Variational inference takes a different route. Instead of sampling from the posterior directly, it chooses a tractable family of distributions $q(\theta)$ and looks for the member of that family that is closest to the true posterior. The usual measure of closeness is the KL divergence,
+          $\mathrm{KL}(q\,\|\,p)$, which measures how much information is lost when we use $q(\theta)$ in place of the posterior.
+        </p>
+        <p>
+          Because the posterior contains the hard-to-compute evidence term, VI usually works with the evidence lower bound (ELBO) instead. Maximizing the ELBO is equivalent to minimizing the KL divergence from $q(\theta)$ to the posterior, so optimization pushes $q(\theta)$ toward the best approximation available within the chosen family. If that family is flexible enough, the approximation can be very good; if it is restrictive, VI converges to the best approximation in that family rather than to the exact posterior.
+        </p>
+        <div class="formula">$$\log p(\mathcal{D}) \ge \mathbb{E}_{q(\theta)}[\log p(\mathcal{D}\mid\theta)] - \mathrm{KL}(q(\theta)\,\|\,p(\theta))$$</div>
+        <p class="note">
+          A useful summary is: MCMC is a sampling route to the posterior, while VI is an optimization route to an approximation of the posterior.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Visualizing Variational inference (VI)</h2>
+        <p>
+          To make VI concrete, we'll intentionally use a variational family that does not match the true conjugate posterior.
+          For coin flips with a Beta prior, the true posterior is Beta. We'll approximate it with a logistic-normal distribution:
+          sample $z\sim\mathcal{N}(m,s^2)$ and map $p=\sigma(z)$.
+        </p>
+        <div class="formula">$$q(p)\ \text{defined by}\ z\sim\mathcal{N}(m,s^2),\ \ p=\sigma(z)$$</div>
+
+        <div class="viz-row">
+          <div class="viz-panel">
+            <h3 class="h3-tight">True posterior vs q during optimization</h3>
+            <p class="help-text">
+              This plot compares the prior, the exact posterior, and the variational approximation at several stages of optimization, so you can see both how the data updated the prior and how $q$ changes from its starting shape to its final fitted form.
+            </p>
+            <div id="viPostViz" class="viz bayes-viz" aria-label="VI posterior approximation visualization"></div>
+
+            <h3 class="h3-section">ELBO during optimization</h3>
+            <div id="viElboViz" class="viz bayes-viz" aria-label="VI ELBO visualization"></div>
+            <div id="viSummary" class="help-text">-</div>
+          </div>
+
+          <aside class="viz-controls">
+            <h3>Coin-flip dataset</h3>
+            <div class="control-grid">
+              <label for="viData">Paste flips, or generate data.</label>
+              <textarea id="viData" rows="8">1</textarea>
+            </div>
+
+            <h3 class="h3-section">Generate data</h3>
+            <div class="control-grid compact-grid">
+              <label for="viProbHeads">Probability of heads</label>
+              <div class="control-inline-row">
+                <input id="viProbHeads" type="number" min="0" max="1" step="0.05" value="0.6" />
+                <button id="viFlipCoin" type="button">Flip a coin</button>
+              </div>
+            </div>
+
+            <h3 class="h3-section">Prior (Beta)</h3>
+            <div class="control-grid compact-grid">
+              <div class="control-item">
+                <label for="viAlpha">Alpha ($\alpha$)</label>
+                <input id="viAlpha" type="number" min="0.1" step="0.1" value="2" />
+              </div>
+              <div class="control-item">
+                <label for="viBeta">Beta ($\beta$)</label>
+                <input id="viBeta" type="number" min="0.1" step="0.1" value="2" />
+              </div>
+            </div>
+
+            <h3 class="h3-section">Variational parameters</h3>
+            <div class="control-grid compact-grid">
+              <div class="control-item">
+                <label for="viM">Mean ($m$)</label>
+                <input id="viM" type="number" step="0.1" value="0" />
+              </div>
+              <div class="control-item">
+                <label for="viLogS">Log std ($\log s$)</label>
+                <input id="viLogS" type="number" step="0.1" value="1" />
+              </div>
+            </div>
+
+            <h3 class="h3-section">Optimizer</h3>
+            <div class="control-grid compact-grid">
+              <div class="control-item">
+                <label for="viSteps">Steps</label>
+                <input id="viSteps" type="number" min="1" step="10" value="100" />
+              </div>
+              <div class="control-item">
+                <label for="viLR">Learning rate</label>
+                <input id="viLR" type="number" min="0.0001" step="0.005" value="0.05" />
+              </div>
+              <div class="control-item">
+                <label for="viMC">MC samples / step</label>
+                <input id="viMC" type="number" min="5" step="5" value="50" />
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <h3 class="h3-section">Interpreting the results</h3>
+        <p class="note">
+          Large datasets: as the number of flips grows, the true posterior is driven more by the observed head-tail ratio and less by the prior. The posterior usually becomes narrower and more peaked, so the fitted $q$ has a clearer target.
+        </p>
+        <p class="note">
+          Small, large, or skewed Beta priors: when $\alpha$ and $\beta$ are small, the prior contributes little total pseudo-count but can still create extreme shapes near 0 or 1. When they are large, the prior acts like many extra observations and can resist the data. When $\alpha \neq \beta$, the prior pushes the posterior toward one side, which can make the true posterior noticeably skewed.
+        </p>
+        <p class="note">
+          Variational parameters: changing $m$ and $\log s$ changes the starting shape of $q$, not the true posterior. A better starting guess can make optimization faster, while a poor starting guess makes the transformation of $q$ more dramatic and may require more optimization steps.
+        </p>
+        <p class="note">
+          Optimizer settings: more steps usually give VI more time to improve the fit, a very small learning rate makes progress slow, and a very large one can make optimization unstable. Increasing Monte Carlo samples per step usually makes the ELBO curve smoother and the updates less noisy, but it also increases computation.
+        </p>
+        <p class="note">
+          VI solves an optimization problem: it picks $q$ from a restricted family. If the family can’t represent the true posterior well (e.g. skewed or multi-modal shapes), VI will pick the “closest” approximation under the chosen KL direction.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Concluding remarks</h2>
+        <p>
+          Bayesian inference is a framework for reasoning under uncertainty. You start with a prior, update it with a likelihood after observing data, and obtain a posterior that describes which parameter values are plausible after seeing the evidence. The main advantage is that uncertainty remains part of the answer rather than being discarded after fitting a single estimate.
+        </p>
+        <p>
+          Conjugacy shows this updating process in its cleanest form. In conjugate models, the posterior stays in the same family as the prior, so the update can be written down exactly and interpreted directly. That makes conjugacy a useful teaching tool and a practical computational shortcut, but only for a limited class of model-prior combinations.
+        </p>
+        <p>
+          MLE and MAP enter when we want point estimates instead of a full posterior. MLE uses only the likelihood and chooses the parameter that best fits the observed data. MAP adds the prior and chooses the mode of the posterior, so it acts like a regularized version of likelihood-based estimation. These approaches are often simpler and faster than full Bayesian inference, but their impact is that they collapse posterior uncertainty into a single fitted value.
+        </p>
+        <p>
+          Approximate inference becomes necessary when the posterior cannot be written in a convenient closed form or when exact inference is too expensive. MCMC aims to approximate the full posterior by sampling from it, which preserves uncertainty well but can be computationally heavy. Variational inference instead fits a simpler distribution by optimization, which is often much faster and more scalable, but only gives the best approximation within the chosen variational family.
+        </p>
+        <p class="note">
+          In practice, these methods are tools for different goals: conjugacy gives exact, interpretable examples; MLE and MAP give convenient point estimates; and approximate inference lets Bayesian modeling scale beyond the small set of problems with closed-form solutions. The main tradeoff across all of them is between computational simplicity and how faithfully they retain posterior uncertainty.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p class="footer-tag">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></p>
+    </footer>
+  </div>
+</body>
+
+</html>

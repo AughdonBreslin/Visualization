@@ -11,3 +11,6 @@ Linear Regression:
 
 Estimation:
 ![alt text](static/image-3.png)
+
+Bayesian Inference:
+(new article page: pages/bayesian.html)

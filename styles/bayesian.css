@@ -1,0 +1,75 @@
+/* bayesian.css - page-specific styles for bayesian.html */
+
+.bayesian p {
+  margin-bottom: 8px;
+}
+
+.bayesian ul {
+  padding-left: 1.25em;
+  list-style-position: outside;
+}
+
+.bayesian li {
+  margin: 6px 0;
+}
+
+.bayesian .bayes-viz {
+  min-height: 280px;
+}
+
+.bayesian #bayesSummary {
+  margin-top: 10px;
+}
+
+.bayesian .control-grid > label,
+.bayesian .control-grid > input,
+.bayesian .control-grid > select,
+.bayesian .control-grid > textarea,
+.bayesian .control-grid > .small {
+  grid-column: 1 / -1;
+}
+
+.bayesian .control-grid > button {
+  justify-self: start;
+  width: auto;
+  min-width: 0;
+}
+
+.bayesian .compact-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+}
+
+.bayesian .compact-grid > label,
+.bayesian .compact-grid > .control-inline-row {
+  grid-column: 1 / -1;
+}
+
+.bayesian .control-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.bayesian .control-item > input,
+.bayesian .control-item > select {
+  width: 100%;
+}
+
+.bayesian .control-inline-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.bayesian .control-inline-row > input,
+.bayesian .control-inline-row > select {
+  width: 100%;
+}
+
+.bayesian .control-inline-row > button {
+  width: auto;
+  white-space: nowrap;
+}
