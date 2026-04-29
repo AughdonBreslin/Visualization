@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="../styles/pca.css">
 
   <script defer src="../js/formulas_layout.js"></script>
-  <script defer src="../js/pca.js"></script>
+  <script defer src="../js/pca.js?v=20260428-2"></script>
 </head>
 
 <body>
@@ -52,9 +52,12 @@
         </p>
         <div class="formula">$$X = U\Sigma V^T$$</div>
         <p>
-          Here $V$ contains the principal directions in feature space, $\Sigma$ contains the singular values, and $U$ describes how the data coordinates line up with those directions. The covariance matrix is then
+          Here $V$ contains the principal directions in feature space, $\Sigma$ contains the singular values, and $U$ describes how the data coordinates line up with those directions.
         </p>
-        <div class="formula">$$\frac{1}{n-1}X^T X = V\left(\frac{\Sigma^2}{n-1}\right)V^T$$</div>
+        <p>
+          The covariance matrix enters because PCA is fundamentally asking which directions in feature space carry the most variation. Covariance measures how coordinates vary together after centering, so $\frac{1}{n-1}X^T X$ packages the shape of the data cloud into a symmetric operator whose dominant eigenvectors point along the directions of greatest variance. Substituting the SVD into the covariance formula gives
+        </p>
+        <div class="formula">$$\frac{1}{n-1}X^T X = \frac{1}{n-1}(U\Sigma V^T)^T(U\Sigma V^T) = \frac{1}{n-1}V\Sigma \underbrace{U^T U}_{=\,I}\Sigma V^T = V\left(\frac{\Sigma^2}{n-1}\right)V^T$$</div>
         <p class="note">
           This is the link between SVD and PCA: the right singular vectors in $V$ are the eigenvectors of the covariance matrix, and the eigenvalues are the squared singular values divided by $n-1$.
         </p>
@@ -79,13 +82,133 @@
 
         <div class="viz-row">
           <div class="viz-panel">
-            <h3 class="h3-tight">Data transformed step by step</h3>
-            <div id="pcaDataViz" class="viz pca-viz" aria-label="PCA data transformation visualization"></div>
-            <div id="pcaDataLegend" class="pca-legend" aria-label="Legend for PCA data visualization"></div>
+            <div class="pca-plot-grid">
+              <section class="pca-plot-card">
+                <h3 class="h3-tight">Data / Principal Components</h3>
+                <div id="pcaDataViz" class="viz pca-viz" aria-label="PCA data transformation visualization"></div>
+              </section>
 
-            <h3 class="h3-section">Covariance operator view</h3>
-            <div id="pcaOperatorViz" class="viz pca-viz" aria-label="PCA operator visualization"></div>
-            <div id="pcaOperatorLegend" class="pca-legend" aria-label="Legend for PCA covariance operator visualization"></div>
+              <section class="pca-plot-card">
+                <h3 class="h3-tight">Covariance Operator</h3>
+                <div id="pcaOperatorViz" class="viz pca-viz" aria-label="PCA operator visualization"></div>
+              </section>
+            </div>
+
+            <div class="viz-controls pca-controls-block">
+              <div class="pca-control-tabs" role="tablist" aria-label="PCA control sections">
+                <button type="button" class="pca-control-tab is-active" id="pcaTabButtonDataset" data-tab-target="dataset" role="tab" aria-selected="true" aria-controls="pcaTabPanelDataset">Dataset</button>
+                <button type="button" class="pca-control-tab" id="pcaTabButtonShape" data-tab-target="shape" role="tab" aria-selected="false" aria-controls="pcaTabPanelShape">Shape</button>
+                <button type="button" class="pca-control-tab" id="pcaTabButtonWalkthrough" data-tab-target="walkthrough" role="tab" aria-selected="false" aria-controls="pcaTabPanelWalkthrough">Walkthrough step</button>
+                <button type="button" class="pca-control-tab" id="pcaTabButtonDisplay" data-tab-target="display" role="tab" aria-selected="false" aria-controls="pcaTabPanelDisplay">Display</button>
+              </div>
+
+              <section class="pca-control-panel" id="pcaTabPanelDataset" data-tab-panel="dataset" role="tabpanel" aria-labelledby="pcaTabButtonDataset">
+                <div class="control-grid compact-grid">
+                  <div class="control-item">
+                    <label for="pcaDimension">Dimension</label>
+                    <select id="pcaDimension">
+                      <option value="3" selected>3D</option>
+                      <option value="2">2D</option>
+                    </select>
+                  </div>
+                  <div class="control-item">
+                    <label for="pcaPreset">Preset</label>
+                    <select id="pcaPreset">
+                      <option value="ellipse" selected>Tilted ellipse</option>
+                      <option value="line">Near-line cloud</option>
+                      <option value="clusters">Two elongated clusters</option>
+                    </select>
+                  </div>
+                  <div class="control-item">
+                    <label for="pcaSamples">Samples</label>
+                    <input id="pcaSamples" type="number" min="8" step="2" value="24" />
+                  </div>
+                  <div class="control-item pca-inline-action">
+                    <span class="small">&nbsp;</span>
+                    <button id="pcaRandomize" type="button">Randomize seed</button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="pca-control-panel" id="pcaTabPanelShape" data-tab-panel="shape" role="tabpanel" aria-labelledby="pcaTabButtonShape" hidden>
+                <div class="control-grid compact-grid">
+                  <div class="control-item">
+                    <label for="pcaSpread1">Spread 1</label>
+                    <div class="pca-slider-row">
+                      <input id="pcaSpread1" type="range" min="0.1" max="5" step="0.05" value="2.4" />
+                      <output id="pcaSpread1Value" for="pcaSpread1">2.40</output>
+                    </div>
+                  </div>
+                  <div class="control-item">
+                    <label for="pcaSpread2">Spread 2</label>
+                    <div class="pca-slider-row">
+                      <input id="pcaSpread2" type="range" min="0.05" max="3" step="0.05" value="0.8" />
+                      <output id="pcaSpread2Value" for="pcaSpread2">0.80</output>
+                    </div>
+                  </div>
+                  <div id="pcaSpread3Control" class="control-item">
+                    <label for="pcaSpread3">Spread 3</label>
+                    <div class="pca-slider-row">
+                      <input id="pcaSpread3" type="range" min="0.05" max="3" step="0.05" value="0.55" />
+                      <output id="pcaSpread3Value" for="pcaSpread3">0.55</output>
+                    </div>
+                  </div>
+                  <div class="control-item">
+                    <label for="pcaAngle">Angle (deg)</label>
+                    <div class="pca-slider-row">
+                      <input id="pcaAngle" type="range" min="-180" max="180" step="1" value="35" />
+                      <output id="pcaAngleValue" for="pcaAngle">35°</output>
+                    </div>
+                  </div>
+                  <div id="pcaElevationControl" class="control-item">
+                    <label for="pcaElevation">Elevation (deg)</label>
+                    <div class="pca-slider-row">
+                      <input id="pcaElevation" type="range" min="-85" max="85" step="1" value="28" />
+                      <output id="pcaElevationValue" for="pcaElevation">28°</output>
+                    </div>
+                  </div>
+                  <div class="control-item">
+                    <label for="pcaNoise">Noise</label>
+                    <div class="pca-slider-row">
+                      <input id="pcaNoise" type="range" min="0" max="1" step="0.01" value="0.15" />
+                      <output id="pcaNoiseValue" for="pcaNoise">0.15</output>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="pca-control-panel" id="pcaTabPanelWalkthrough" data-tab-panel="walkthrough" role="tabpanel" aria-labelledby="pcaTabButtonWalkthrough" hidden>
+                <div class="control-grid compact-grid">
+                  <div class="control-item">
+                    <label for="pcaStep">Stage</label>
+                    <select id="pcaStep">
+                      <option value="0" selected>Original centered data</option>
+                      <option value="1">Rotate by V^T</option>
+                      <option value="2">Stretch by Lambda</option>
+                      <option value="3">Rotate back by V</option>
+                    </select>
+                  </div>
+                  <div class="control-item">
+                    <label for="pcaRank">Projection rank</label>
+                    <select id="pcaRank">
+                      <option value="3">Keep 3 components</option>
+                      <option value="2">Keep 2 components</option>
+                      <option value="1" selected>Keep 1 component</option>
+                    </select>
+                  </div>
+                </div>
+              </section>
+
+              <section class="pca-control-panel" id="pcaTabPanelDisplay" data-tab-panel="display" role="tabpanel" aria-labelledby="pcaTabButtonDisplay" hidden>
+                <div class="options-group">
+                  <label><input id="pcaShowVectors" type="checkbox" checked /> Show principal directions</label>
+                  <label><input id="pcaShowLabels" type="checkbox" /> Label sample points</label>
+                  <label><input id="pcaShowRank1" type="checkbox" checked /> Overlay low-rank reconstruction</label>
+                  <label><input id="pcaUseCubeAspect" type="checkbox" checked /> Use cube scaling in 3D</label>
+                  <label><input id="pcaSyncCameras" type="checkbox" checked /> Sync 3D camera angles</label>
+                </div>
+              </section>
+            </div>
 
             <div id="pcaStepSummary" class="help-text">-</div>
 
@@ -108,109 +231,6 @@
               </div>
             </div>
           </div>
-
-          <aside class="viz-controls">
-            <h3>Dataset</h3>
-            <div class="control-grid compact-grid">
-              <div class="control-item">
-                <label for="pcaDimension">Dimension</label>
-                <select id="pcaDimension">
-                  <option value="3" selected>3D</option>
-                  <option value="2">2D</option>
-                </select>
-              </div>
-              <div class="control-item">
-                <label for="pcaPreset">Preset</label>
-                <select id="pcaPreset">
-                  <option value="ellipse" selected>Tilted ellipse</option>
-                  <option value="line">Near-line cloud</option>
-                  <option value="clusters">Two elongated clusters</option>
-                </select>
-              </div>
-              <div class="control-item">
-                <label for="pcaSamples">Samples</label>
-                <input id="pcaSamples" type="number" min="8" step="2" value="24" />
-              </div>
-            </div>
-
-            <h3 class="h3-section">Shape</h3>
-            <div class="control-grid compact-grid">
-              <div class="control-item">
-                <label for="pcaSpread1">Spread 1</label>
-                <div class="pca-slider-row">
-                  <input id="pcaSpread1" type="range" min="0.1" max="5" step="0.05" value="2.4" />
-                  <output id="pcaSpread1Value" for="pcaSpread1">2.40</output>
-                </div>
-              </div>
-              <div class="control-item">
-                <label for="pcaSpread2">Spread 2</label>
-                <div class="pca-slider-row">
-                  <input id="pcaSpread2" type="range" min="0.05" max="3" step="0.05" value="0.8" />
-                  <output id="pcaSpread2Value" for="pcaSpread2">0.80</output>
-                </div>
-              </div>
-              <div id="pcaSpread3Control" class="control-item">
-                <label for="pcaSpread3">Spread 3</label>
-                <div class="pca-slider-row">
-                  <input id="pcaSpread3" type="range" min="0.05" max="3" step="0.05" value="0.55" />
-                  <output id="pcaSpread3Value" for="pcaSpread3">0.55</output>
-                </div>
-              </div>
-              <div class="control-item">
-                <label for="pcaAngle">Angle (deg)</label>
-                <div class="pca-slider-row">
-                  <input id="pcaAngle" type="range" min="-180" max="180" step="1" value="35" />
-                  <output id="pcaAngleValue" for="pcaAngle">35°</output>
-                </div>
-              </div>
-              <div id="pcaElevationControl" class="control-item">
-                <label for="pcaElevation">Elevation (deg)</label>
-                <div class="pca-slider-row">
-                  <input id="pcaElevation" type="range" min="-85" max="85" step="1" value="28" />
-                  <output id="pcaElevationValue" for="pcaElevation">28°</output>
-                </div>
-              </div>
-              <div class="control-item">
-                <label for="pcaNoise">Noise</label>
-                <div class="pca-slider-row">
-                  <input id="pcaNoise" type="range" min="0" max="1" step="0.01" value="0.15" />
-                  <output id="pcaNoiseValue" for="pcaNoise">0.15</output>
-                </div>
-              </div>
-            </div>
-
-            <h3 class="h3-section">Walkthrough step</h3>
-            <div class="control-grid compact-grid">
-              <div class="control-item">
-                <label for="pcaStep">Stage</label>
-                <select id="pcaStep">
-                  <option value="0" selected>Original centered data</option>
-                  <option value="1">Rotate by V^T</option>
-                  <option value="2">Stretch by Lambda</option>
-                  <option value="3">Rotate back by V</option>
-                </select>
-              </div>
-              <div class="control-item">
-                <label for="pcaRank">Projection rank</label>
-                <select id="pcaRank">
-                  <option value="3" selected>Keep 3 components</option>
-                  <option value="2">Keep 2 components</option>
-                  <option value="1">Keep 1 component</option>
-                </select>
-              </div>
-            </div>
-
-            <h3 class="h3-section">Display</h3>
-            <div class="options-group">
-              <label><input id="pcaShowVectors" type="checkbox" checked /> Show principal directions</label>
-              <label><input id="pcaShowLabels" type="checkbox" /> Label sample points</label>
-              <label><input id="pcaShowRank1" type="checkbox" /> Overlay low-rank reconstruction</label>
-            </div>
-
-            <div class="control-grid compact-grid pca-actions">
-              <button id="pcaRandomize" type="button">Randomize seed</button>
-            </div>
-          </aside>
         </div>
 
         <p class="note">

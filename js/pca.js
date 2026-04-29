@@ -25,7 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const showVectorsInput = document.getElementById('pcaShowVectors');
   const showLabelsInput = document.getElementById('pcaShowLabels');
   const showRank1Input = document.getElementById('pcaShowRank1');
+  const useCubeAspectInput = document.getElementById('pcaUseCubeAspect');
+  const syncCamerasInput = document.getElementById('pcaSyncCameras');
   const randomizeBtn = document.getElementById('pcaRandomize');
+  const controlTabButtons = Array.from(document.querySelectorAll('.pca-control-tab'));
+  const controlTabPanels = Array.from(document.querySelectorAll('.pca-control-panel'));
 
   const stepSummaryEl = document.getElementById('pcaStepSummary');
   const dataLegendEl = document.getElementById('pcaDataLegend');
@@ -37,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let seed = 7;
   let shared3DCamera = { eye: { x: 1.45, y: 1.35, z: 1.15 } };
+  let last3DCameraSource = dataContainer;
 
   function syncAngleLabel() {
     if (!angleValueEl || !angleInput) return;
@@ -55,12 +60,96 @@ document.addEventListener('DOMContentLoaded', () => {
     return Math.max(minValue, x);
   }
 
+  function get3DAspectMode() {
+    return useCubeAspectInput?.checked ? 'cube' : 'data';
+  }
+
+  function shouldSync3DCameras() {
+    return !!syncCamerasInput?.checked;
+  }
+
+  function getLiveCamera(container) {
+    return cloneCamera(container?._fullLayout?.scene?.camera) || cloneCamera(shared3DCamera);
+  }
+
+  function getVectorLength(vector) {
+    if (!vector) return 0;
+    const x = Number(vector.x) || 0;
+    const y = Number(vector.y) || 0;
+    const z = Number(vector.z) || 0;
+    return Math.sqrt(x * x + y * y + z * z);
+  }
+
+  function normalizeVector(vector, fallback = { x: 1.45, y: 1.35, z: 1.15 }) {
+    const length = getVectorLength(vector);
+    if (length < 1e-6) {
+      return normalizeVector(fallback, { x: 1, y: 0, z: 0 });
+    }
+    return {
+      x: (Number(vector.x) || 0) / length,
+      y: (Number(vector.y) || 0) / length,
+      z: (Number(vector.z) || 0) / length,
+    };
+  }
+
+  function scaleVector(vector, length) {
+    return {
+      x: vector.x * length,
+      y: vector.y * length,
+      z: vector.z * length,
+    };
+  }
+
+  function mergeCameraOrientation(sourceCamera, targetCamera) {
+    const nextTargetCamera = cloneCamera(targetCamera) || {};
+    const sourceEye = sourceCamera?.eye || shared3DCamera?.eye;
+    const targetEye = nextTargetCamera.eye || sourceEye || { x: 1.45, y: 1.35, z: 1.15 };
+    const direction = normalizeVector(sourceEye);
+    const targetDistance = Math.max(getVectorLength(targetEye), 1e-6);
+
+    nextTargetCamera.eye = scaleVector(direction, targetDistance);
+    if (sourceCamera?.up) {
+      nextTargetCamera.up = cloneCamera(sourceCamera.up);
+    }
+    if (!nextTargetCamera.center && sourceCamera?.center) {
+      nextTargetCamera.center = cloneCamera(sourceCamera.center);
+    }
+
+    return nextTargetCamera;
+  }
+
+  function applyCameraOrientation(sourceContainer, targetContainer) {
+    if (!window.Plotly || !sourceContainer || !targetContainer) return;
+    if (sourceContainer.dataset.plotlyInitialized !== 'true' || targetContainer.dataset.plotlyInitialized !== 'true') return;
+
+    const sourceCamera = getLiveCamera(sourceContainer);
+
+    targetContainer.dataset.suppressCameraSync = 'true';
+    Plotly.relayout(targetContainer, { 'scene.camera': cloneCamera(sourceCamera) })
+      .catch(() => {})
+      .finally(() => {
+        delete targetContainer.dataset.suppressCameraSync;
+      });
+  }
+
   function debounce(fn, delay = 180) {
     let timer = null;
     return (...args) => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => fn(...args), delay);
     };
+  }
+
+  function setActiveControlTab(tabName) {
+    controlTabButtons.forEach((button) => {
+      const isActive = button.dataset.tabTarget === tabName;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    controlTabPanels.forEach((panel) => {
+      panel.hidden = panel.dataset.tabPanel !== tabName;
+    });
   }
 
   function clear(el) {
@@ -71,6 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
       el.innerHTML = '';
       delete el.dataset.plotlyInitialized;
       delete el.dataset.renderer;
+      delete el.dataset.cameraSyncBound;
+      delete el.dataset.suppressCameraSync;
     }
   }
 
@@ -100,6 +191,34 @@ document.addEventListener('DOMContentLoaded', () => {
   function cloneCamera(camera) {
     if (!camera) return null;
     return JSON.parse(JSON.stringify(camera));
+  }
+
+  function getCameraFromEvent(sourceContainer, eventData) {
+    const eventCamera = eventData?.['scene.camera'];
+    if (eventCamera) return cloneCamera(eventCamera);
+
+    const cameraKeys = Object.keys(eventData || {}).filter((key) => key.startsWith('scene.camera.'));
+    if (cameraKeys.length > 0) {
+      const baseCamera = cloneCamera(sourceContainer?._fullLayout?.scene?.camera) || {};
+      cameraKeys.forEach((key) => {
+        const segments = key.split('.').slice(1);
+        let cursor = baseCamera;
+        for (let index = 0; index < segments.length - 1; index += 1) {
+          const segment = segments[index];
+          if (!cursor[segment] || typeof cursor[segment] !== 'object') {
+            cursor[segment] = {};
+          }
+          cursor = cursor[segment];
+        }
+        cursor[segments[segments.length - 1]] = eventData[key];
+      });
+      return baseCamera;
+    }
+
+    const liveCamera = sourceContainer?._fullLayout?.scene?.camera;
+    if (liveCamera) return cloneCamera(liveCamera);
+
+    return null;
   }
 
   function syncPlotlyCamera(sourceContainer, targetContainer) {
@@ -132,10 +251,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function queueCameraSync(eventData) {
       if (sourceContainer.dataset.suppressCameraSync === 'true') return;
-      const nextCamera = eventData?.['scene.camera'];
+      const nextCamera = getCameraFromEvent(sourceContainer, eventData);
       if (!nextCamera) return;
 
+      last3DCameraSource = sourceContainer;
       shared3DCamera = cloneCamera(nextCamera);
+
+      if (!shouldSync3DCameras()) return;
+
       queuedCamera = cloneCamera(nextCamera);
 
       if (syncFrameId !== null) return;
@@ -154,6 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function sync3DPlots() {
     syncPlotlyCamera(dataContainer, operatorContainer);
     syncPlotlyCamera(operatorContainer, dataContainer);
+
+    if (!shouldSync3DCameras()) return;
+
+    const sourceContainer = last3DCameraSource === operatorContainer ? operatorContainer : dataContainer;
+    const targetContainer = sourceContainer === dataContainer ? operatorContainer : dataContainer;
+    applyCameraOrientation(sourceContainer, targetContainer);
   }
 
   function mulberry32(seedValue) {
@@ -385,11 +514,21 @@ document.addEventListener('DOMContentLoaded', () => {
     return matrixIdentity(decomposition.dimension);
   }
 
+  function formatSpectrum(values) {
+    return values.map((value, index) => `${index + 1}: ${value.toFixed(3)}`).join(' | ');
+  }
+
   function getStepMeta(step, decomposition) {
     if (step === 1) {
       return {
         name: 'Rotate by V^T',
-        explanation: `The ${decomposition.dimension}D cloud is rotated into principal coordinates. This is the PCA step that makes the dominant variation line up with coordinate axes.`,
+        explanation: `The ${decomposition.dimension}D cloud is rotated into principal coordinates, so the directions of largest, second-largest, and remaining variance line up with the coordinate axes.`,
+        motivation: 'This is the operational heart of PCA. By rotating into the eigenvector basis, correlation between coordinates is removed and variance can be read off axis by axis.',
+        dataView: 'The left plot shows the same centered samples in a new coordinate system. The cloud has not been stretched yet; it has only been re-expressed so its longest spread lies along pc1, the next along pc2, and so on.',
+        operatorView: 'The right plot shows a unit circle or sphere after the same rotation. Rotations preserve shape, so the object should still look round; only its orientation changes.',
+        interpretation: 'If one axis is much longer than the others after this rotation, PCA has found a strong low-dimensional structure. Projection now becomes easy: keep the first few rotated coordinates and discard the rest.',
+        matrixLabel: 'Current matrix action',
+        matrixAction: 'Apply V^T to rotate feature coordinates into the principal basis.',
         transform: decomposition.VT,
       };
     }
@@ -397,6 +536,12 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
         name: 'Stretch by Λ',
         explanation: 'After rotating into the eigenbasis, the covariance operator scales each principal axis by its eigenvalue, so high-variance directions expand more than low-variance ones.',
+        motivation: 'This step isolates what covariance contributes beyond rotation: anisotropic scaling. Large eigenvalues mean the data varies strongly in that principal direction, while small eigenvalues mean that direction contributes little.',
+        dataView: 'The left plot now applies the diagonal matrix Λ after the rotation. Axes are no longer treated equally: directions with large variance are stretched more strongly than directions with small variance.',
+        operatorView: 'The right plot turns the unit circle or sphere into an ellipse or ellipsoid. Its semiaxis lengths are the eigenvalues, so the deformation makes the variance profile visible as geometry.',
+        interpretation: 'This is why PCA ranks components. The first few eigenvalues tell you how much structure lives along each principal axis, and tiny eigenvalues signal directions that can often be dropped with little loss.',
+        matrixLabel: 'Current matrix action',
+        matrixAction: 'Apply Λ after the rotation so each principal coordinate is scaled by its variance weight.',
         transform: matrixMultiply(decomposition.Lambda, decomposition.VT),
       };
     }
@@ -404,14 +549,68 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
         name: 'Rotate back by V',
         explanation: 'Applying V returns the stretched result to feature coordinates. This completes the covariance action VΛV^T.',
+        motivation: 'Covariance is not just a diagonal scaling in the original basis. The rotate-back step shows how the operator acts in the ambient feature coordinates where the data was originally observed.',
+        dataView: 'The left plot shows the final covariance action on the sample cloud. The deformation is now expressed in the original feature axes, so it may look tilted again even though its principal structure is unchanged.',
+        operatorView: 'The right plot shows the transformed circle or sphere rotated back into the ambient coordinates. This is the full covariance operator viewed as a single linear map on the original space.',
+        interpretation: 'This stage explains why covariance eigenvectors matter: they are precisely the directions that survive this full map without changing direction, only length. Their lengths are scaled by the eigenvalues.',
+        matrixLabel: 'Current matrix action',
+        matrixAction: 'Apply VΛV^T, the full covariance operator written in the original feature basis.',
         transform: decomposition.covariance,
       };
     }
     return {
       name: 'Original centered data',
-      explanation: `The ${decomposition.dimension}D cloud has been centered so PCA measures variation around the mean. The principal directions come from the right singular vectors in V.`,
+      explanation: `The ${decomposition.dimension}D cloud has been centered so PCA measures variation around the mean rather than around an arbitrary offset. The principal directions come from the right singular vectors in V.`,
+      motivation: 'Subtracting the mean from all samples centers the data on 0. This neutralizes the location of the data in space, allowing PCA to isolate principal components of variation rather than just following a biased direction from the origin.',
+      dataView: 'The left plot shows the centered samples in their original feature coordinates. Any tilt or elongation here is the geometric structure PCA will try to summarize.',
+      operatorView: 'The right plot shows the unit circle or sphere before any covariance-induced deformation. It is the reference object that later stages rotate and stretch.',
+      interpretation: 'Use this stage to compare the raw shape of the cloud with the later aligned and stretched versions. The singular values and eigenvalues reported below already tell you how much variance each principal direction will capture.',
+      matrixLabel: 'Current matrix action',
+      matrixAction: 'Identity: no transformation yet, only centering of the raw data matrix X.',
       transform: matrixIdentity(decomposition.dimension),
     };
+  }
+
+  function renderStepSummary(stepMeta, decomposition) {
+    if (!stepSummaryEl) return;
+
+    const sections = [
+      { label: 'What is happening', text: stepMeta.explanation },
+      { label: 'Why PCA uses this step', text: stepMeta.motivation },
+      { label: 'Data / Principal Components', text: stepMeta.dataView },
+      { label: 'Covariance Operator', text: stepMeta.operatorView },
+      { label: 'How to read it', text: stepMeta.interpretation },
+      { label: stepMeta.matrixLabel, text: stepMeta.matrixAction },
+    ];
+
+    stepSummaryEl.innerHTML = `
+      <div class="pca-step-summary-card">
+        <div class="pca-step-summary-header">
+          <strong>${stepMeta.name}</strong>
+          <span>${decomposition.dimension}D walkthrough stage</span>
+        </div>
+        <div class="pca-step-summary-grid">
+          ${sections.map((section) => `
+            <div class="pca-step-summary-section">
+              <div class="pca-step-summary-label">${section.label}</div>
+              <p>${section.text}</p>
+            </div>
+          `).join('')}
+        </div>
+        <div class="pca-step-summary-stats">
+          <div>
+            <span>Singular values</span>
+            <strong>${formatSpectrum(decomposition.singularValues)}</strong>
+            <p>These are the axis lengths of the centered data matrix under SVD, so larger values indicate directions where the data cloud extends more strongly.</p>
+          </div>
+          <div>
+            <span>Covariance eigenvalues</span>
+            <strong>${formatSpectrum(decomposition.lambda)}</strong>
+            <p>These are the variances along the principal directions, so they quantify how much spread each retained PCA component explains.</p>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   function extentWithPadding(values) {
@@ -431,7 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
       z: [-vector[2], vector[2]],
       text: ['', label],
       textposition: 'top center',
-      textfont: { color, size: 11 },
+      textfont: { color, size: 14 },
       line: { color, width: 7 },
       hoverinfo: 'skip',
       showlegend: false,
@@ -447,7 +646,7 @@ document.addEventListener('DOMContentLoaded', () => {
       z: [0, axisVector[2]],
       text: ['', label],
       textposition: 'top center',
-      textfont: { color: 'rgba(255,255,255,0.72)', size: 10 },
+      textfont: { color: 'rgba(255,255,255,0.72)', size: 13 },
       line: { color, width: 5 },
       hoverinfo: 'skip',
       showlegend: false,
@@ -458,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clear(container);
     container.dataset.renderer = 'svg';
     const { width, height } = getPlotSize(container, 460);
-    const margin = { top: 18, right: 18, bottom: 34, left: 44 };
+    const margin = { top: 6, right: 18, bottom: 34, left: 44 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -480,7 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .attr('y', innerHeight + 30)
       .attr('text-anchor', 'middle')
       .attr('fill', 'rgba(255,255,255,0.75)')
-      .attr('font-size', 12)
+      .attr('font-size', 14)
       .text(axisLabels[0]);
 
     g.append('text')
@@ -489,7 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .attr('y', -34)
       .attr('text-anchor', 'middle')
       .attr('fill', 'rgba(255,255,255,0.75)')
-      .attr('font-size', 12)
+      .attr('font-size', 14)
       .text(axisLabels[1]);
 
     g.selectAll('circle.data-point')
@@ -523,7 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .attr('x', (point) => xScale(point[0]) + 6)
         .attr('y', (point) => yScale(point[1]) - 6)
         .attr('fill', 'rgba(255,255,255,0.72)')
-        .attr('font-size', 11)
+        .attr('font-size', 13)
         .text((_, index) => index + 1);
     }
 
@@ -552,18 +751,10 @@ document.addEventListener('DOMContentLoaded', () => {
           .attr('x', xScale(vector[0]) + 6)
           .attr('y', yScale(vector[1]) - 6)
           .attr('fill', colors[index])
-          .attr('font-size', 12)
+          .attr('font-size', 14)
           .text(basisLabels[index]);
       });
     }
-
-    svg.append('text')
-      .attr('x', margin.left)
-      .attr('y', 14)
-      .attr('fill', 'rgba(255,255,255,0.88)')
-      .attr('font-size', 12)
-      .attr('font-weight', 650)
-      .text(title);
   }
 
   function drawScatterPlot3D({ container, points, principalVectors, showVectors, showLabels, overlayPoints, title, axisLabels, basisLabels }) {
@@ -580,6 +771,10 @@ document.addEventListener('DOMContentLoaded', () => {
         z: points.map((point) => point[2]),
         text: showLabels ? points.map((_, index) => String(index + 1)) : undefined,
         textposition: 'top center',
+        textfont: {
+          color: 'rgba(255,255,255,0.9)',
+          size: 13,
+        },
         marker: {
           size: 4,
           color: 'rgba(74, 163, 255, 0.9)',
@@ -621,17 +816,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPlotly(container, traces, {
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
-      margin: { l: 0, r: 0, b: 0, t: 28 },
-      title: {
-        text: title,
-        font: { size: 12, color: 'rgba(255,255,255,0.88)' },
-        x: 0.03,
-        xanchor: 'left',
-      },
-      uirevision: 'pca-data-3d',
+      margin: { l: 0, r: 0, b: 0, t: 0 },
+      uirevision: `pca-data-3d-${get3DAspectMode()}`,
       scene: {
-        aspectmode: 'cube',
-        camera: cloneCamera(shared3DCamera),
+        aspectmode: get3DAspectMode(),
+        camera: getLiveCamera(container),
         xaxis: {
           title: axisLabels[0],
           range: [-axisLength, axisLength],
@@ -730,7 +919,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clear(container);
     container.dataset.renderer = 'svg';
     const { width, height } = getPlotSize(container, 460);
-    const margin = { top: 18, right: 18, bottom: 34, left: 44 };
+    const margin = { top: 6, right: 18, bottom: 34, left: 44 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -743,8 +932,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const transformedVectors = principalVectors.map((vector) => applyMatrix(transform, vector));
     const xs = circle.map((point) => point[0]).concat(transformedVectors.map((point) => point[0]), [0]);
     const ys = circle.map((point) => point[1]).concat(transformedVectors.map((point) => point[1]), [0]);
-    const xScale = d3.scaleLinear().domain(extentWithPadding(xs)).range([0, innerWidth]);
-    const yScale = d3.scaleLinear().domain(extentWithPadding(ys)).range([innerHeight, 0]);
+  const xDomain = extentWithPadding(xs);
+  const yDomain = extentWithPadding(ys);
+  const xCenter = (xDomain[0] + xDomain[1]) / 2;
+  const yCenter = (yDomain[0] + yDomain[1]) / 2;
+  const xSpan = Math.max(1e-6, xDomain[1] - xDomain[0]);
+  const ySpan = Math.max(1e-6, yDomain[1] - yDomain[0]);
+  const unitsPerPixel = Math.max(xSpan / innerWidth, ySpan / innerHeight);
+  const halfWidthUnits = unitsPerPixel * innerWidth / 2;
+  const halfHeightUnits = unitsPerPixel * innerHeight / 2;
+  const xScale = d3.scaleLinear().domain([xCenter - halfWidthUnits, xCenter + halfWidthUnits]).range([0, innerWidth]);
+  const yScale = d3.scaleLinear().domain([yCenter - halfHeightUnits, yCenter + halfHeightUnits]).range([innerHeight, 0]);
 
     const svg = d3.select(container).append('svg').attr('width', '100%').attr('height', height);
     const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
@@ -780,14 +978,6 @@ document.addEventListener('DOMContentLoaded', () => {
           .text(`λ${index + 1}=${lambda[index].toFixed(2)}`);
       });
     }
-
-    svg.append('text')
-      .attr('x', margin.left)
-      .attr('y', 14)
-      .attr('fill', 'rgba(255,255,255,0.88)')
-      .attr('font-size', 12)
-      .attr('font-weight', 650)
-      .text(title);
   }
 
   function drawOperatorPlot3D({ container, transform, principalVectors, lambda, showVectors, title }) {
@@ -803,17 +993,11 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPlotly(container, traces, {
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
-      margin: { l: 0, r: 0, b: 0, t: 28 },
-      title: {
-        text: title,
-        font: { size: 12, color: 'rgba(255,255,255,0.88)' },
-        x: 0.03,
-        xanchor: 'left',
-      },
-      uirevision: 'pca-operator-3d',
+      margin: { l: 0, r: 0, b: 0, t: 0 },
+      uirevision: `pca-operator-3d-${get3DAspectMode()}`,
       scene: {
-        aspectmode: 'cube',
-        camera: cloneCamera(shared3DCamera),
+        aspectmode: get3DAspectMode(),
+        camera: getLiveCamera(container),
         xaxis: {
           title: 'x₁',
           backgroundcolor: 'rgba(255,255,255,0.02)',
@@ -915,6 +1099,13 @@ document.addEventListener('DOMContentLoaded', () => {
           ? `Centered sample points in ${dimension}D before any PCA transform is applied.`
           : `The sample points after the current PCA stage is applied in ${dimension}D.`,
       },
+      {
+        color: 'rgba(255,255,255,0.22)',
+        label: 'White coordinate axes',
+        description: step <= 2
+          ? 'Reference axes for the current coordinate system shown in the plot.'
+          : 'Reference axes for the ambient feature coordinates after rotating back.',
+      },
     ];
 
     if (showOverlay) {
@@ -963,10 +1154,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const items = [
       {
         color: 'rgba(74, 163, 255, 0.7)',
-        label: dimension === 3 ? 'Blue sphere wireframe' : 'Blue transformed circle',
+        label: dimension === 3 ? 'Blue latitude bands' : 'Blue transformed circle',
         description: dimension === 3
-          ? 'A unit sphere after the current covariance-related operator is applied.'
+          ? 'Latitude-like curves from the unit sphere after the current covariance-related operator is applied.'
           : 'A unit circle after the current covariance-related operator is applied.',
+      },
+      {
+        color: 'rgba(255,255,255,0.26)',
+        label: dimension === 3 ? 'White meridian bands' : 'White reference axes',
+        description: dimension === 3
+          ? 'Longitude-like curves on the same transformed sphere, included to reveal the surface geometry.'
+          : 'Coordinate axes used as a fixed frame for reading the operator action.',
       },
     ];
 
@@ -1065,7 +1263,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showVectors,
     }));
 
-    stepSummaryEl.textContent = `${stepMeta.explanation} Singular values: ${decomposition.singularValues.map((value) => value.toFixed(3)).join(', ')}. Eigenvalues: ${decomposition.lambda.map((value) => value.toFixed(3)).join(', ')}.`;
+    renderStepSummary(stepMeta, decomposition);
 
     matrixXEl.textContent = formatMatrix(decomposition.X, 8);
     matrixFactorsEl.textContent = `Σ =\n${formatMatrix(decomposition.Sigma)}\n\nV =\n${formatMatrix(decomposition.V)}\n\nV^T =\n${formatMatrix(decomposition.VT)}`;
@@ -1083,6 +1281,8 @@ document.addEventListener('DOMContentLoaded', () => {
     showVectorsInput,
     showLabelsInput,
     showRank1Input,
+    useCubeAspectInput,
+    syncCamerasInput,
   ].forEach((element) => {
     element?.addEventListener('input', debouncedRender);
     element?.addEventListener('change', render);
@@ -1091,6 +1291,12 @@ document.addEventListener('DOMContentLoaded', () => {
   randomizeBtn?.addEventListener('click', () => {
     seed += 1;
     render();
+  });
+
+  controlTabButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      setActiveControlTab(button.dataset.tabTarget || 'dataset');
+    });
   });
 
   spread1Input?.addEventListener('input', () => {
@@ -1154,6 +1360,7 @@ document.addEventListener('DOMContentLoaded', () => {
   syncNumericLabel(spread3Input, spread3ValueEl);
   syncNumericLabel(elevationInput, elevationValueEl, 0, '°');
   syncNumericLabel(noiseInput, noiseValueEl);
+  setActiveControlTab('dataset');
   syncDimensionControls();
   syncRankOptions();
   render();
