@@ -4,15 +4,23 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Principal Component Analysis: SVD, Rotation, Stretch, and Reconstruction</title>
+  <title>
+    Principal Component Analysis: SVD, Rotation, Stretch, and
+    Reconstruction
+  </title>
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"
+  ></script>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 
   <script>
     window.MathJax = {
-      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      },
       svg: { fontCache: 'global' }
     };
   </script>
@@ -23,14 +31,17 @@
   <link rel="stylesheet" href="../styles/pca.css">
 
   <script defer src="../js/formulas_layout.js"></script>
-  <script defer src="../js/pca.js?v=20260428-2"></script>
+  <script defer src="../js/pca.js?v=20260508-1"></script>
 </head>
 
 <body>
   <div class="container article pca">
     <header>
       <h1>Principal Component Analysis</h1>
-      <div class="subtitle">Using SVD to understand principal directions, variance, and matrix decompositions</div>
+      <div class="subtitle">
+        Using SVD to understand principal directions, variance, and
+        matrix decompositions
+      </div>
       <div class="home-link"><a href="../index.html">← Home</a></div>
     </header>
 
@@ -38,46 +49,83 @@
       <section class="panel">
         <h2>Overview</h2>
         <p>
-          Principal Component Analysis (PCA) is a way to reorganize data around the directions where it varies most. If the centered data matrix is $X \in \mathbb{R}^{n \times d}$, PCA finds orthogonal directions that explain as much variance as possible, ordered from most important to least important.
-        </p>
-        <p>
-          In two dimensions, you can think of PCA as finding the best rotated coordinate system for the data cloud. One axis points along the dominant direction of variation, the other points along the remaining orthogonal variation. This makes PCA useful for visualization, dimensionality reduction, denoising, and understanding the geometry of a dataset.
+          Principal Component Analysis (PCA) is a way to reorganize
+          data around the directions where it varies most. If the
+          centered data matrix is $X \in \mathbb{R}^{n \times d}$,
+          PCA finds orthogonal directions that explain as much
+          variance as possible, ordered from most important to least
+          important. One axis points along the dominant direction of
+          variation, the other points along the remaining orthogonal
+          variation. This makes PCA useful for visualization,
+          dimensionality reduction, denoising, and understanding the
+          geometry of a dataset.
         </p>
       </section>
 
       <section class="panel">
         <h2>PCA and SVD</h2>
         <p>
-          For centered data, PCA is most cleanly computed through the singular value decomposition (SVD):
+          For centered data, PCA is most cleanly computed through the
+          singular value decomposition (SVD), which decomposes the
+          data matrix $X$ into three simpler matrices: $U$ contains the
+          left singular vectors, $\Sigma$ is a diagonal matrix of
+          singular values, and $V^T$ contains the right singular
+          vectors.
         </p>
         <div class="formula">$$X = U\Sigma V^T$$</div>
         <p>
-          Here $V$ contains the principal directions in feature space, $\Sigma$ contains the singular values, and $U$ describes how the data coordinates line up with those directions.
-        </p>
-        <p>
-          The covariance matrix enters because PCA is fundamentally asking which directions in feature space carry the most variation. Covariance measures how coordinates vary together after centering, so $\frac{1}{n-1}X^T X$ packages the shape of the data cloud into a symmetric operator whose dominant eigenvectors point along the directions of greatest variance. Substituting the SVD into the covariance formula gives
-        </p>
-        <div class="formula">$$\frac{1}{n-1}X^T X = \frac{1}{n-1}(U\Sigma V^T)^T(U\Sigma V^T) = \frac{1}{n-1}V\Sigma \underbrace{U^T U}_{=\,I}\Sigma V^T = V\left(\frac{\Sigma^2}{n-1}\right)V^T$$</div>
-        <p class="note">
-          This is the link between SVD and PCA: the right singular vectors in $V$ are the eigenvectors of the covariance matrix, and the eigenvalues are the squared singular values divided by $n-1$.
-        </p>
-      </section>
-
-      <section class="panel">
-        <h2>Geometric interpretation</h2>
-        <p>
-          The PCA directions come from the covariance operator, which can be read as a sequence of geometric transformations. In two dimensions, the eigendecomposition of the covariance matrix is
-        </p>
-        <div class="formula">$$C = V\Lambda V^T$$</div>
-        <p>
-          This means: rotate into the eigenvector basis with $V^T$, stretch along those axes by the eigenvalues in $\Lambda$, and then rotate back with $V$. The walkthrough below shows both the data view and the operator view of that sequence.
+          First, $V^T$ rotates feature space,
+          meaning rotating the coordinate system used to describe the
+          points rather than the points themselves, into the
+          principal-direction basis, $V$, aligning the original axes
+          with the principal directions. $\Sigma$ rescales those axes
+          according to how strongly the data varies along each
+          direction, and $U$ describes how the samples project onto 
+          those axes. The full product rebuilds the original centered
+          data matrix.
         </p>
       </section>
 
       <section class="panel">
-        <h2>Interactive walkthrough</h2>
+        <h2>Covariance eigendecomposition and PCA as a change of basis</h2>
         <p>
-          Generate a 2D or 3D dataset, inspect the SVD of the centered data matrix $X$, and step through the PCA-related transformation sequence. In 3D mode the data view is rendered as an actual 3D scene, so you can watch the cloud rotate into principal coordinates instead of seeing only a flattened projection. The right plot shows how the covariance operator acts on a unit circle or sphere and on the principal directions themselves.
+          Covariance measures how coordinates vary together, so we can
+          use the unbiased sample covariance formula
+          $C=\frac{1}{n-1}X^T X$ to package the shape of the data
+          cloud into a symmetric operator whose dominant eigenvectors
+          point along the directions of greatest variance.
+          Substituting the SVD into the covariance formula gives us:
+        </p>
+        <div class="formula">
+          $$\frac{1}{n-1}X^T X = \frac{1}{n-1}(U\Sigma V^T)^T(U\Sigma V^T)
+          = \frac{1}{n-1}V\Sigma \underbrace{U^T U}_{=\,I}\Sigma V^T
+          = V\left(\frac{\Sigma^2}{n-1}\right)V^T$$
+        </div>
+        <p>
+          The covariance eigendecomposition, $C = V\Lambda V^T$,
+          where $\Lambda = \frac{\Sigma^2}{n-1}$ is the diagonal
+          matrix of eigenvalues. The eigenvectors are the right
+          singular vectors, $V$, and the eigenvalues are the squared
+          singular values scaled by $\frac{1}{n-1}$:
+        </p>
+        <p>
+          Similar to above, $V^T$ rotates the original data into the
+          principal basis, $\Lambda$ stretches along those axes
+          according to the variance explained by each direction, and
+          $V$ rotates back to the original feature space. This
+          re-expresses the data in terms of its principal components
+          ordered by their explained variance.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>The Fun Part</h2>
+        <p>
+          Generate a dataset, inspect the SVD of the data matrix $X$,
+          and step through the PCA-related transformation sequence.
+          The right plot shows how the covariance operator acts on a
+          unit circle or sphere and on the principal directions
+          themselves.
         </p>
 
         <div class="viz-row">
@@ -85,24 +133,82 @@
             <div class="pca-plot-grid">
               <section class="pca-plot-card">
                 <h3 class="h3-tight">Data / Principal Components</h3>
-                <div id="pcaDataViz" class="viz pca-viz" aria-label="PCA data transformation visualization"></div>
+                <div
+                  id="pcaDataViz"
+                  class="viz pca-viz"
+                  aria-label="PCA data transformation visualization"
+                ></div>
               </section>
 
               <section class="pca-plot-card">
                 <h3 class="h3-tight">Covariance Operator</h3>
-                <div id="pcaOperatorViz" class="viz pca-viz" aria-label="PCA operator visualization"></div>
+                <div
+                  id="pcaOperatorViz"
+                  class="viz pca-viz"
+                  aria-label="PCA operator visualization"
+                ></div>
               </section>
             </div>
 
             <div class="viz-controls pca-controls-block">
-              <div class="pca-control-tabs" role="tablist" aria-label="PCA control sections">
-                <button type="button" class="pca-control-tab is-active" id="pcaTabButtonDataset" data-tab-target="dataset" role="tab" aria-selected="true" aria-controls="pcaTabPanelDataset">Dataset</button>
-                <button type="button" class="pca-control-tab" id="pcaTabButtonShape" data-tab-target="shape" role="tab" aria-selected="false" aria-controls="pcaTabPanelShape">Shape</button>
-                <button type="button" class="pca-control-tab" id="pcaTabButtonWalkthrough" data-tab-target="walkthrough" role="tab" aria-selected="false" aria-controls="pcaTabPanelWalkthrough">Walkthrough step</button>
-                <button type="button" class="pca-control-tab" id="pcaTabButtonDisplay" data-tab-target="display" role="tab" aria-selected="false" aria-controls="pcaTabPanelDisplay">Display</button>
+              <div
+                class="pca-control-tabs"
+                role="tablist"
+                aria-label="PCA control sections"
+              >
+                <button
+                  type="button"
+                  class="pca-control-tab is-active"
+                  id="pcaTabButtonDataset"
+                  data-tab-target="dataset"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="pcaTabPanelDataset"
+                >
+                  Dataset
+                </button>
+                <button
+                  type="button"
+                  class="pca-control-tab"
+                  id="pcaTabButtonShape"
+                  data-tab-target="shape"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="pcaTabPanelShape"
+                >
+                  Shape
+                </button>
+                <button
+                  type="button"
+                  class="pca-control-tab"
+                  id="pcaTabButtonWalkthrough"
+                  data-tab-target="walkthrough"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="pcaTabPanelWalkthrough"
+                >
+                  Walkthrough step
+                </button>
+                <button
+                  type="button"
+                  class="pca-control-tab"
+                  id="pcaTabButtonDisplay"
+                  data-tab-target="display"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="pcaTabPanelDisplay"
+                >
+                  Display
+                </button>
               </div>
 
-              <section class="pca-control-panel" id="pcaTabPanelDataset" data-tab-panel="dataset" role="tabpanel" aria-labelledby="pcaTabButtonDataset">
+              <section
+                class="pca-control-panel"
+                id="pcaTabPanelDataset"
+                data-tab-panel="dataset"
+                role="tabpanel"
+                aria-labelledby="pcaTabButtonDataset"
+              >
                 <div class="control-grid compact-grid">
                   <div class="control-item">
                     <label for="pcaDimension">Dimension</label>
@@ -117,67 +223,140 @@
                       <option value="ellipse" selected>Tilted ellipse</option>
                       <option value="line">Near-line cloud</option>
                       <option value="clusters">Two elongated clusters</option>
+                      <option value="sphere">Uniform sphere</option>
                     </select>
                   </div>
                   <div class="control-item">
                     <label for="pcaSamples">Samples</label>
-                    <input id="pcaSamples" type="number" min="8" step="2" value="24" />
+                    <input
+                      id="pcaSamples"
+                      type="number"
+                      min="8"
+                      step="2"
+                      value="24"
+                    />
                   </div>
                   <div class="control-item pca-inline-action">
                     <span class="small">&nbsp;</span>
-                    <button id="pcaRandomize" type="button">Randomize seed</button>
+                    <button id="pcaRandomize" type="button">
+                      Randomize seed
+                    </button>
                   </div>
                 </div>
               </section>
 
-              <section class="pca-control-panel" id="pcaTabPanelShape" data-tab-panel="shape" role="tabpanel" aria-labelledby="pcaTabButtonShape" hidden>
+              <section
+                class="pca-control-panel"
+                id="pcaTabPanelShape"
+                data-tab-panel="shape"
+                role="tabpanel"
+                aria-labelledby="pcaTabButtonShape"
+                hidden
+              >
                 <div class="control-grid compact-grid">
                   <div class="control-item">
                     <label for="pcaSpread1">Spread 1</label>
                     <div class="pca-slider-row">
-                      <input id="pcaSpread1" type="range" min="0.1" max="5" step="0.05" value="2.4" />
-                      <output id="pcaSpread1Value" for="pcaSpread1">2.40</output>
+                      <input
+                        id="pcaSpread1"
+                        type="range"
+                        min="0.0"
+                        max="5"
+                        step="0.05"
+                        value="1"
+                      />
+                      <output id="pcaSpread1Value" for="pcaSpread1">
+                        1.00
+                      </output>
                     </div>
                   </div>
                   <div class="control-item">
                     <label for="pcaSpread2">Spread 2</label>
                     <div class="pca-slider-row">
-                      <input id="pcaSpread2" type="range" min="0.05" max="3" step="0.05" value="0.8" />
-                      <output id="pcaSpread2Value" for="pcaSpread2">0.80</output>
+                      <input
+                        id="pcaSpread2"
+                        type="range"
+                        min="0"
+                        max="5"
+                        step="0.05"
+                        value="1"
+                      />
+                      <output id="pcaSpread2Value" for="pcaSpread2">
+                        1.00
+                      </output>
                     </div>
                   </div>
                   <div id="pcaSpread3Control" class="control-item">
                     <label for="pcaSpread3">Spread 3</label>
                     <div class="pca-slider-row">
-                      <input id="pcaSpread3" type="range" min="0.05" max="3" step="0.05" value="0.55" />
-                      <output id="pcaSpread3Value" for="pcaSpread3">0.55</output>
+                      <input
+                        id="pcaSpread3"
+                        type="range"
+                        min="0"
+                        max="5"
+                        step="0.05"
+                        value="1"
+                      />
+                      <output id="pcaSpread3Value" for="pcaSpread3">
+                        1.00
+                      </output>
                     </div>
                   </div>
                   <div class="control-item">
                     <label for="pcaAngle">Angle (deg)</label>
                     <div class="pca-slider-row">
-                      <input id="pcaAngle" type="range" min="-180" max="180" step="1" value="35" />
-                      <output id="pcaAngleValue" for="pcaAngle">35°</output>
+                      <input
+                        id="pcaAngle"
+                        type="range"
+                        min="-180"
+                        max="180"
+                        step="1"
+                        value="0"
+                      />
+                      <output id="pcaAngleValue" for="pcaAngle">0°</output>
                     </div>
                   </div>
                   <div id="pcaElevationControl" class="control-item">
                     <label for="pcaElevation">Elevation (deg)</label>
                     <div class="pca-slider-row">
-                      <input id="pcaElevation" type="range" min="-85" max="85" step="1" value="28" />
-                      <output id="pcaElevationValue" for="pcaElevation">28°</output>
+                      <input
+                        id="pcaElevation"
+                        type="range"
+                        min="-180"
+                        max="180"
+                        step="1"
+                        value="0"
+                      />
+                      <output id="pcaElevationValue" for="pcaElevation">
+                        0°
+                      </output>
                     </div>
                   </div>
                   <div class="control-item">
                     <label for="pcaNoise">Noise</label>
                     <div class="pca-slider-row">
-                      <input id="pcaNoise" type="range" min="0" max="1" step="0.01" value="0.15" />
+                      <input
+                        id="pcaNoise"
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value="0.15"
+                      />
                       <output id="pcaNoiseValue" for="pcaNoise">0.15</output>
                     </div>
                   </div>
                 </div>
               </section>
 
-              <section class="pca-control-panel" id="pcaTabPanelWalkthrough" data-tab-panel="walkthrough" role="tabpanel" aria-labelledby="pcaTabButtonWalkthrough" hidden>
+              <section
+                class="pca-control-panel"
+                id="pcaTabPanelWalkthrough"
+                data-tab-panel="walkthrough"
+                role="tabpanel"
+                aria-labelledby="pcaTabButtonWalkthrough"
+                hidden
+              >
                 <div class="control-grid compact-grid">
                   <div class="control-item">
                     <label for="pcaStep">Stage</label>
@@ -199,66 +378,96 @@
                 </div>
               </section>
 
-              <section class="pca-control-panel" id="pcaTabPanelDisplay" data-tab-panel="display" role="tabpanel" aria-labelledby="pcaTabButtonDisplay" hidden>
+              <section
+                class="pca-control-panel"
+                id="pcaTabPanelDisplay"
+                data-tab-panel="display"
+                role="tabpanel"
+                aria-labelledby="pcaTabButtonDisplay"
+                hidden
+              >
                 <div class="options-group">
-                  <label><input id="pcaShowVectors" type="checkbox" checked /> Show principal directions</label>
-                  <label><input id="pcaShowLabels" type="checkbox" /> Label sample points</label>
-                  <label><input id="pcaShowRank1" type="checkbox" checked /> Overlay low-rank reconstruction</label>
-                  <label><input id="pcaUseCubeAspect" type="checkbox" checked /> Use cube scaling in 3D</label>
-                  <label><input id="pcaSyncCameras" type="checkbox" checked /> Sync 3D camera angles</label>
+                  <label>
+                    <input id="pcaShowVectors" type="checkbox" checked />
+                    Show principal directions
+                  </label>
+                  <label>
+                    <input id="pcaShowLabels" type="checkbox" />
+                    Label sample points
+                  </label>
+                  <label>
+                    <input id="pcaShowRank1" type="checkbox" checked />
+                    Overlay low-rank reconstruction
+                  </label>
+                  <label>
+                    <input id="pcaUseCubeAspect" type="checkbox" checked />
+                    Use cube scaling in 3D
+                  </label>
+                  <label>
+                    <input id="pcaSyncCameras" type="checkbox" checked />
+                    Sync 3D camera angles
+                  </label>
                 </div>
               </section>
             </div>
 
-            <div id="pcaStepSummary" class="help-text">-</div>
-
             <div class="pca-matrix-grid">
               <div class="pca-matrix-card">
-                <h4>Centered data matrix $X$</h4>
-                <pre id="pcaMatrixX" class="pca-matrix-display">-</pre>
-              </div>
-              <div class="pca-matrix-card">
-                <h4>SVD pieces</h4>
+                <h4>Data matrix $X$ and Eigenvalues</h4>
                 <pre id="pcaMatrixFactors" class="pca-matrix-display">-</pre>
               </div>
               <div class="pca-matrix-card">
                 <h4>Covariance eigendecomposition</h4>
                 <pre id="pcaMatrixCov" class="pca-matrix-display">-</pre>
               </div>
-              <div class="pca-matrix-card">
-                <h4>Current transformation</h4>
-                <pre id="pcaMatrixCurrent" class="pca-matrix-display">-</pre>
-              </div>
             </div>
           </div>
         </div>
-
-        <p class="note">
-          In PCA itself, the most important operational step for analyzing data is the rotation into principal coordinates. The extra stretch-and-rotate-back view shown here is included because it makes the covariance eigendecomposition visually explicit.
-        </p>
+        
       </section>
 
       <section class="panel">
         <h2>Dimensionality reduction and reconstruction</h2>
         <p>
-          After rotating into the principal basis, PCA orders coordinates by explained variance. Keeping only the first few components gives a lower-dimensional representation that preserves as much variance as possible among all orthogonal linear projections of that rank.
+          Because after rotating into the principal basis, PCA orders
+          coordinates by explained variance, keeping only the first
+          few components gives a lower-dimensional representation that
+          preserves as much variance as possible among all orthogonal
+          linear projections of that rank.
         </p>
         <div class="formula">$$X_{\text{rank-}k} = U_k\Sigma_k V_k^T$$</div>
         <p>
-          This is why PCA is useful in practice: it compresses the data while keeping the dominant structure. When only one or two components explain most of the variance, the reconstructed data can remain visually and statistically close to the original while using fewer degrees of freedom.
+          Thus we can effectively compress the data while keeping as 
+          much of the dominant structure as possible. When only one or
+          two components explain most of the variance, the
+          reconstructed data can remain visually and statistically
+          close to the original while using fewer degrees of freedom.
         </p>
       </section>
 
       <section class="panel">
         <h2>Conclusion</h2>
         <p>
-          PCA is ultimately a geometric and algebraic reorganization of the data. SVD gives a numerically stable way to compute it from the data matrix $X$, the principal directions come from the right singular vectors, and the explained variances come from the squared singular values. Conjugating the diagonal stretch by the eigenvector matrix explains why PCA can be understood as a rotation into a natural coordinate system, a variance-weighted scaling, and a rotation back.
+          PCA is ultimately a geometric and algebraic
+          reorganization of the data. SVD gives a numerically stable
+          way to compute it from the data matrix $X$, the principal
+          directions come from the right singular vectors, and the
+          explained variances come from the squared singular values.
+          Conjugating the diagonal stretch by the eigenvector matrix
+          explains why PCA can be understood as a rotation into a
+          natural coordinate system, a variance-weighted scaling, and
+          a rotation back.
         </p>
       </section>
     </main>
 
     <footer class="footer">
-      <p class="footer-tag">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></p>
+      <p class="footer-tag">
+        Created by
+        <a href="https://linkedin.com/in/aughdon/">
+          Aughdon Breslin
+        </a>
+      </p>
     </footer>
   </div>
 </body>

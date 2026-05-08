@@ -31,17 +31,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const controlTabButtons = Array.from(document.querySelectorAll('.pca-control-tab'));
   const controlTabPanels = Array.from(document.querySelectorAll('.pca-control-panel'));
 
-  const stepSummaryEl = document.getElementById('pcaStepSummary');
   const dataLegendEl = document.getElementById('pcaDataLegend');
   const operatorLegendEl = document.getElementById('pcaOperatorLegend');
-  const matrixXEl = document.getElementById('pcaMatrixX');
   const matrixFactorsEl = document.getElementById('pcaMatrixFactors');
   const matrixCovEl = document.getElementById('pcaMatrixCov');
-  const matrixCurrentEl = document.getElementById('pcaMatrixCurrent');
 
   let seed = 7;
   let shared3DCamera = { eye: { x: 1.45, y: 1.35, z: 1.15 } };
   let last3DCameraSource = dataContainer;
+  const GRAPH_FONT_SIZE = 14;
+  const GRAPH_TICK_FONT_SIZE = 12;
 
   function syncAngleLabel() {
     if (!angleValueEl || !angleInput) return;
@@ -186,6 +185,72 @@ document.addEventListener('DOMContentLoaded', () => {
       container.dataset.plotlyInitialized = 'true';
     }
     container.dataset.renderer = 'plotly';
+
+    bindPlotlyAnnotationOverlay(container);
+    window.requestAnimationFrame(() => {
+      syncPlotlyAnnotationOverlay(container);
+    });
+  }
+
+  function getPlotlyAnnotationOverlay(container) {
+    if (!container) return null;
+    container.style.position = 'relative';
+
+    let overlay = container.querySelector('.pca-plotly-annotation-overlay');
+    if (overlay) return overlay;
+
+    overlay = document.createElement('div');
+    overlay.className = 'pca-plotly-annotation-overlay';
+    overlay.style.position = 'absolute';
+    overlay.style.inset = '0';
+    overlay.style.pointerEvents = 'none';
+    overlay.style.zIndex = '10';
+    container.appendChild(overlay);
+    return overlay;
+  }
+
+  function syncPlotlyAnnotationOverlay(container) {
+    if (!container || container.dataset.plotlyInitialized !== 'true') return;
+
+    const overlay = getPlotlyAnnotationOverlay(container);
+    const containerRect = container.getBoundingClientRect();
+    const annotationTexts = Array.from(
+      container.querySelectorAll('svg text.annotation-text'),
+    );
+
+    overlay.replaceChildren();
+
+    annotationTexts.forEach((node) => {
+      const rect = node.getBoundingClientRect();
+      if (rect.width < 1 || rect.height < 1) return;
+
+      const style = getComputedStyle(node);
+      const chip = document.createElement('span');
+      chip.textContent = node.textContent || '';
+      chip.style.position = 'absolute';
+      chip.style.left = `${rect.left - containerRect.left}px`;
+      chip.style.top = `${rect.top - containerRect.top}px`;
+      chip.style.fontFamily = style.fontFamily;
+      chip.style.fontSize = style.fontSize;
+      chip.style.fontWeight = style.fontWeight;
+      chip.style.fontStyle = style.fontStyle;
+      chip.style.color = style.fill;
+      chip.style.lineHeight = '1';
+      chip.style.whiteSpace = 'pre';
+      overlay.appendChild(chip);
+
+      node.style.opacity = '0';
+    });
+  }
+
+  function bindPlotlyAnnotationOverlay(container) {
+    if (!container || container.dataset.annotationOverlayBound === 'true') return;
+
+    const sync = () => window.requestAnimationFrame(() => syncPlotlyAnnotationOverlay(container));
+    container.on?.('plotly_afterplot', sync);
+    container.on?.('plotly_relayout', sync);
+    container.on?.('plotly_relayouting', sync);
+    container.dataset.annotationOverlayBound = 'true';
   }
 
   function cloneCamera(camera) {
@@ -300,6 +365,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const u1 = Math.max(1e-12, rng());
     const u2 = Math.max(1e-12, rng());
     return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  }
+
+  function sampleUniformDirection(dimension, rng) {
+    const direction = Array.from(
+      { length: dimension },
+      () => sampleStandardNormal(rng),
+    );
+    const length = Math.sqrt(
+      direction.reduce((sum, value) => sum + value * value, 0),
+    );
+
+    if (length < 1e-9) {
+      return sampleUniformDirection(dimension, rng);
+    }
+
+    return direction.map((value) => value / length);
+  }
+
+  function sampleUniformBallPoint(radii, rng) {
+    const direction = sampleUniformDirection(radii.length, rng);
+    const radius = Math.pow(rng(), 1 / radii.length);
+    return direction.map((value, index) => value * radius * radii[index]);
   }
 
   function roundSmall(x) {
@@ -422,6 +509,11 @@ document.addEventListener('DOMContentLoaded', () => {
             sampleStandardNormal(rng) * spread2,
             sampleStandardNormal(rng) * spread3,
           ];
+        } else if (preset === 'sphere') {
+          localPoint = sampleUniformBallPoint(
+            [spread1, spread2, spread3],
+            rng,
+          );
         } else {
           localPoint = [
             sampleStandardNormal(rng) * spread1,
@@ -442,8 +534,13 @@ document.addEventListener('DOMContentLoaded', () => {
             clusterSign * spread1 * 0.8 + sampleStandardNormal(rng) * spread1 * 0.45,
             sampleStandardNormal(rng) * spread2,
           ];
+        } else if (preset === 'sphere') {
+          localPoint = sampleUniformBallPoint([spread1, spread2], rng);
         } else {
-          localPoint = [sampleStandardNormal(rng) * spread1, sampleStandardNormal(rng) * spread2];
+          localPoint = [
+            sampleStandardNormal(rng) * spread1,
+            sampleStandardNormal(rng) * spread2,
+          ];
         }
 
         const rotated = applyMatrix(rotation, localPoint);
@@ -518,99 +615,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return values.map((value, index) => `${index + 1}: ${value.toFixed(3)}`).join(' | ');
   }
 
-  function getStepMeta(step, decomposition) {
-    if (step === 1) {
-      return {
-        name: 'Rotate by V^T',
-        explanation: `The ${decomposition.dimension}D cloud is rotated into principal coordinates, so the directions of largest, second-largest, and remaining variance line up with the coordinate axes.`,
-        motivation: 'This is the operational heart of PCA. By rotating into the eigenvector basis, correlation between coordinates is removed and variance can be read off axis by axis.',
-        dataView: 'The left plot shows the same centered samples in a new coordinate system. The cloud has not been stretched yet; it has only been re-expressed so its longest spread lies along pc1, the next along pc2, and so on.',
-        operatorView: 'The right plot shows a unit circle or sphere after the same rotation. Rotations preserve shape, so the object should still look round; only its orientation changes.',
-        interpretation: 'If one axis is much longer than the others after this rotation, PCA has found a strong low-dimensional structure. Projection now becomes easy: keep the first few rotated coordinates and discard the rest.',
-        matrixLabel: 'Current matrix action',
-        matrixAction: 'Apply V^T to rotate feature coordinates into the principal basis.',
-        transform: decomposition.VT,
-      };
-    }
-    if (step === 2) {
-      return {
-        name: 'Stretch by Λ',
-        explanation: 'After rotating into the eigenbasis, the covariance operator scales each principal axis by its eigenvalue, so high-variance directions expand more than low-variance ones.',
-        motivation: 'This step isolates what covariance contributes beyond rotation: anisotropic scaling. Large eigenvalues mean the data varies strongly in that principal direction, while small eigenvalues mean that direction contributes little.',
-        dataView: 'The left plot now applies the diagonal matrix Λ after the rotation. Axes are no longer treated equally: directions with large variance are stretched more strongly than directions with small variance.',
-        operatorView: 'The right plot turns the unit circle or sphere into an ellipse or ellipsoid. Its semiaxis lengths are the eigenvalues, so the deformation makes the variance profile visible as geometry.',
-        interpretation: 'This is why PCA ranks components. The first few eigenvalues tell you how much structure lives along each principal axis, and tiny eigenvalues signal directions that can often be dropped with little loss.',
-        matrixLabel: 'Current matrix action',
-        matrixAction: 'Apply Λ after the rotation so each principal coordinate is scaled by its variance weight.',
-        transform: matrixMultiply(decomposition.Lambda, decomposition.VT),
-      };
-    }
-    if (step === 3) {
-      return {
-        name: 'Rotate back by V',
-        explanation: 'Applying V returns the stretched result to feature coordinates. This completes the covariance action VΛV^T.',
-        motivation: 'Covariance is not just a diagonal scaling in the original basis. The rotate-back step shows how the operator acts in the ambient feature coordinates where the data was originally observed.',
-        dataView: 'The left plot shows the final covariance action on the sample cloud. The deformation is now expressed in the original feature axes, so it may look tilted again even though its principal structure is unchanged.',
-        operatorView: 'The right plot shows the transformed circle or sphere rotated back into the ambient coordinates. This is the full covariance operator viewed as a single linear map on the original space.',
-        interpretation: 'This stage explains why covariance eigenvectors matter: they are precisely the directions that survive this full map without changing direction, only length. Their lengths are scaled by the eigenvalues.',
-        matrixLabel: 'Current matrix action',
-        matrixAction: 'Apply VΛV^T, the full covariance operator written in the original feature basis.',
-        transform: decomposition.covariance,
-      };
-    }
-    return {
-      name: 'Original centered data',
-      explanation: `The ${decomposition.dimension}D cloud has been centered so PCA measures variation around the mean rather than around an arbitrary offset. The principal directions come from the right singular vectors in V.`,
-      motivation: 'Subtracting the mean from all samples centers the data on 0. This neutralizes the location of the data in space, allowing PCA to isolate principal components of variation rather than just following a biased direction from the origin.',
-      dataView: 'The left plot shows the centered samples in their original feature coordinates. Any tilt or elongation here is the geometric structure PCA will try to summarize.',
-      operatorView: 'The right plot shows the unit circle or sphere before any covariance-induced deformation. It is the reference object that later stages rotate and stretch.',
-      interpretation: 'Use this stage to compare the raw shape of the cloud with the later aligned and stretched versions. The singular values and eigenvalues reported below already tell you how much variance each principal direction will capture.',
-      matrixLabel: 'Current matrix action',
-      matrixAction: 'Identity: no transformation yet, only centering of the raw data matrix X.',
-      transform: matrixIdentity(decomposition.dimension),
-    };
-  }
-
-  function renderStepSummary(stepMeta, decomposition) {
-    if (!stepSummaryEl) return;
-
-    const sections = [
-      { label: 'What is happening', text: stepMeta.explanation },
-      { label: 'Why PCA uses this step', text: stepMeta.motivation },
-      { label: 'Data / Principal Components', text: stepMeta.dataView },
-      { label: 'Covariance Operator', text: stepMeta.operatorView },
-      { label: 'How to read it', text: stepMeta.interpretation },
-      { label: stepMeta.matrixLabel, text: stepMeta.matrixAction },
-    ];
-
-    stepSummaryEl.innerHTML = `
-      <div class="pca-step-summary-card">
-        <div class="pca-step-summary-header">
-          <strong>${stepMeta.name}</strong>
-          <span>${decomposition.dimension}D walkthrough stage</span>
-        </div>
-        <div class="pca-step-summary-grid">
-          ${sections.map((section) => `
-            <div class="pca-step-summary-section">
-              <div class="pca-step-summary-label">${section.label}</div>
-              <p>${section.text}</p>
-            </div>
-          `).join('')}
-        </div>
-        <div class="pca-step-summary-stats">
-          <div>
-            <span>Singular values</span>
-            <strong>${formatSpectrum(decomposition.singularValues)}</strong>
-            <p>These are the axis lengths of the centered data matrix under SVD, so larger values indicate directions where the data cloud extends more strongly.</p>
-          </div>
-          <div>
-            <span>Covariance eigenvalues</span>
-            <strong>${formatSpectrum(decomposition.lambda)}</strong>
-            <p>These are the variances along the principal directions, so they quantify how much spread each retained PCA component explains.</p>
-          </div>
-        </div>
-      </div>
-    `;
+  function getStepName(step) {
+    if (step === 1) return 'Rotate by V^T';
+    if (step === 2) return 'Stretch by Λ';
+    if (step === 3) return 'Rotate back by V';
+    return 'Original centered data';
   }
 
   function extentWithPadding(values) {
@@ -624,13 +633,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function makeVectorTrace(vector, color, label) {
     return {
       type: 'scatter3d',
-      mode: 'lines+text',
+      mode: 'lines',
       x: [-vector[0], vector[0]],
       y: [-vector[1], vector[1]],
       z: [-vector[2], vector[2]],
-      text: ['', label],
-      textposition: 'top center',
-      textfont: { color, size: 14 },
       line: { color, width: 7 },
       hoverinfo: 'skip',
       showlegend: false,
@@ -640,26 +646,118 @@ document.addEventListener('DOMContentLoaded', () => {
   function makeAxisTrace(axisVector, color, label) {
     return {
       type: 'scatter3d',
-      mode: 'lines+text',
+      mode: 'lines',
       x: [0, axisVector[0]],
       y: [0, axisVector[1]],
       z: [0, axisVector[2]],
-      text: ['', label],
-      textposition: 'top center',
-      textfont: { color: 'rgba(255,255,255,0.72)', size: 13 },
       line: { color, width: 5 },
       hoverinfo: 'skip',
       showlegend: false,
     };
   }
 
-  function drawScatterPlot2D({ container, points, principalVectors, showVectors, showLabels, overlayPoints, title, axisLabels, basisLabels }) {
-    clear(container);
+  function makeSceneAnnotation(vector, label, color, offsets = {}) {
+    const { ax = 14, ay = -14 } = offsets;
+    return {
+      x: vector[0],
+      y: vector[1],
+      z: vector[2],
+      xref: 'x',
+      yref: 'y',
+      zref: 'z',
+      text: label,
+      showarrow: true,
+      arrowhead: 0,
+      arrowcolor: 'rgba(0,0,0,0)',
+      arrowwidth: 1,
+      ax,
+      ay,
+      bgcolor: 'rgba(19, 21, 26, 0.84)',
+      bordercolor: 'rgba(0,0,0,0)',
+      borderpad: 1,
+      font: {
+        size: GRAPH_FONT_SIZE,
+        color,
+      },
+    };
+  }
+
+  function styleSvgAxis(axisSelection) {
+    axisSelection.selectAll('text').attr('font-size', GRAPH_FONT_SIZE);
+  }
+
+  function ensureSvgPlotFrame(container, minHeight = 460) {
+    if (container.dataset.renderer && container.dataset.renderer !== 'svg') {
+      clear(container);
+    }
+
     container.dataset.renderer = 'svg';
-    const { width, height } = getPlotSize(container, 460);
+    const { width, height } = getPlotSize(container, minHeight);
     const margin = { top: 6, right: 18, bottom: 34, left: 44 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
+
+    const svg = d3.select(container)
+      .selectAll('svg.pca-svg-root')
+      .data([null])
+      .join('svg')
+      .attr('class', 'pca-svg-root')
+      .attr('width', '100%')
+      .attr('height', height);
+
+    const root = svg.selectAll('g.plot-root')
+      .data([null])
+      .join('g')
+      .attr('class', 'plot-root')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    const axisX = root.selectAll('g.axis-x')
+      .data([null])
+      .join('g')
+      .attr('class', 'axis-x');
+
+    const axisY = root.selectAll('g.axis-y')
+      .data([null])
+      .join('g')
+      .attr('class', 'axis-y');
+
+    return {
+      svg,
+      root,
+      axisX,
+      axisY,
+      margin,
+      width,
+      height,
+      innerWidth,
+      innerHeight,
+    };
+  }
+
+  function setSvgAxisTitle(selection, attrs) {
+    if (!attrs) {
+      selection.remove();
+      return;
+    }
+
+    selection
+      .attr('x', attrs.x)
+      .attr('y', attrs.y)
+      .attr('transform', attrs.transform || null)
+      .attr('text-anchor', attrs.anchor || 'middle')
+      .attr('fill', 'rgba(255,255,255,0.75)')
+      .attr('font-size', GRAPH_FONT_SIZE)
+      .text(attrs.text);
+  }
+
+  function drawScatterPlot2D({ container, points, principalVectors, showVectors, showLabels, overlayPoints, title, axisLabels, basisLabels }) {
+    const {
+      root,
+      axisX,
+      axisY,
+      innerWidth,
+      innerHeight,
+    } = ensureSvgPlotFrame(container, 460);
 
     const vectorPoints = showVectors ? principalVectors.flatMap((vector) => [vector, vector.map((value) => -value)]) : [];
     const allPoints = (overlayPoints ? points.concat(overlayPoints) : points.slice()).concat(vectorPoints);
@@ -668,124 +766,174 @@ document.addEventListener('DOMContentLoaded', () => {
     const xScale = d3.scaleLinear().domain(extentWithPadding(xs)).range([0, innerWidth]);
     const yScale = d3.scaleLinear().domain(extentWithPadding(ys)).range([innerHeight, 0]);
 
-    const svg = d3.select(container).append('svg').attr('width', '100%').attr('height', height);
-    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+    axisX
+      .attr('transform', `translate(0,${yScale(0)})`)
+      .call(d3.axisBottom(xScale).ticks(6).tickSizeOuter(0));
+    styleSvgAxis(axisX);
 
-    g.append('g').attr('transform', `translate(0,${yScale(0)})`).call(d3.axisBottom(xScale).ticks(6).tickSizeOuter(0));
-    g.append('g').attr('transform', `translate(${xScale(0)},0)`).call(d3.axisLeft(yScale).ticks(6).tickSizeOuter(0));
+    axisY
+      .attr('transform', `translate(${xScale(0)},0)`)
+      .call(d3.axisLeft(yScale).ticks(6).tickSizeOuter(0));
+    styleSvgAxis(axisY);
 
-    g.append('text')
-      .attr('x', innerWidth / 2)
-      .attr('y', innerHeight + 30)
-      .attr('text-anchor', 'middle')
-      .attr('fill', 'rgba(255,255,255,0.75)')
-      .attr('font-size', 14)
-      .text(axisLabels[0]);
+    setSvgAxisTitle(
+      root.selectAll('text.axis-title-x').data([null]).join('text').attr('class', 'axis-title-x'),
+      {
+        x: innerWidth / 2,
+        y: innerHeight + 30,
+        text: axisLabels[0],
+      }
+    );
 
-    g.append('text')
-      .attr('transform', 'rotate(-90)')
-      .attr('x', -innerHeight / 2)
-      .attr('y', -34)
-      .attr('text-anchor', 'middle')
-      .attr('fill', 'rgba(255,255,255,0.75)')
-      .attr('font-size', 14)
-      .text(axisLabels[1]);
+    setSvgAxisTitle(
+      root.selectAll('text.axis-title-y').data([null]).join('text').attr('class', 'axis-title-y'),
+      {
+        x: -innerHeight / 2,
+        y: -34,
+        transform: 'rotate(-90)',
+        text: axisLabels[1],
+      }
+    );
 
-    g.selectAll('circle.data-point')
+    const scatterLayer = root.selectAll('g.scatter-layer')
+      .data([null])
+      .join('g')
+      .attr('class', 'scatter-layer');
+
+    scatterLayer
+      .selectAll('circle.data-point')
       .data(points)
-      .enter()
-      .append('circle')
+      .join('circle')
       .attr('class', 'data-point')
       .attr('cx', (point) => xScale(point[0]))
       .attr('cy', (point) => yScale(point[1]))
       .attr('r', 4)
       .attr('fill', 'rgba(74, 163, 255, 0.88)');
 
-    if (overlayPoints) {
-      g.selectAll('circle.overlay-point')
-        .data(overlayPoints)
-        .enter()
-        .append('circle')
+    const overlayLayer = root.selectAll('g.overlay-layer')
+      .data([null])
+      .join('g')
+      .attr('class', 'overlay-layer');
+
+    overlayLayer
+      .selectAll('circle.overlay-point')
+      .data(overlayPoints || [])
+      .join('circle')
         .attr('class', 'overlay-point')
         .attr('cx', (point) => xScale(point[0]))
         .attr('cy', (point) => yScale(point[1]))
         .attr('r', 3)
         .attr('fill', 'rgba(255, 196, 86, 0.86)');
-    }
 
-    if (showLabels) {
-      g.selectAll('text.point-label')
-        .data(points)
-        .enter()
-        .append('text')
+    const pointLabelLayer = root.selectAll('g.point-label-layer')
+      .data([null])
+      .join('g')
+      .attr('class', 'point-label-layer');
+
+    pointLabelLayer
+      .selectAll('text.point-label')
+      .data(showLabels ? points : [], (_, index) => index)
+      .join('text')
         .attr('class', 'point-label')
         .attr('x', (point) => xScale(point[0]) + 6)
         .attr('y', (point) => yScale(point[1]) - 6)
         .attr('fill', 'rgba(255,255,255,0.72)')
-        .attr('font-size', 13)
+        .attr('font-size', GRAPH_FONT_SIZE)
         .text((_, index) => index + 1);
-    }
 
-    if (showVectors) {
-      const colors = ['rgba(125, 255, 178, 0.92)', 'rgba(255, 196, 86, 0.92)'];
-      const axisGroup = g.append('g');
-      principalVectors.forEach((vector, index) => {
-        axisGroup.append('line')
-          .attr('x1', xScale(0))
-          .attr('y1', yScale(0))
-          .attr('x2', xScale(vector[0]))
-          .attr('y2', yScale(vector[1]))
-          .attr('stroke', colors[index])
-          .attr('stroke-width', 2.5);
+    const colors = ['rgba(125, 255, 178, 0.92)', 'rgba(255, 196, 86, 0.92)'];
+    const vectorGroups = root.selectAll('g.vector-layer').data([null]).join('g').attr('class', 'vector-layer')
+      .selectAll('g.principal-vector')
+      .data(showVectors ? principalVectors : [], (_, index) => index)
+      .join(
+        (enter) => {
+          const group = enter.append('g').attr('class', 'principal-vector');
+          group.append('line').attr('class', 'vector-positive');
+          group.append('line').attr('class', 'vector-negative');
+          group.append('text').attr('class', 'vector-label');
+          return group;
+        },
+        (update) => update,
+        (exit) => exit.remove()
+      );
 
-        axisGroup.append('line')
-          .attr('x1', xScale(0))
-          .attr('y1', yScale(0))
-          .attr('x2', xScale(-vector[0]))
-          .attr('y2', yScale(-vector[1]))
-          .attr('stroke', colors[index].replace('0.92', '0.55'))
-          .attr('stroke-width', 2)
-          .attr('stroke-dasharray', '6 4');
+    vectorGroups.each(function updateVector(vector, index) {
+      const group = d3.select(this);
+      const color = colors[index];
 
-        axisGroup.append('text')
-          .attr('x', xScale(vector[0]) + 6)
-          .attr('y', yScale(vector[1]) - 6)
-          .attr('fill', colors[index])
-          .attr('font-size', 14)
-          .text(basisLabels[index]);
-      });
-    }
+      group.select('line.vector-positive')
+        .attr('x1', xScale(0))
+        .attr('y1', yScale(0))
+        .attr('x2', xScale(vector[0]))
+        .attr('y2', yScale(vector[1]))
+        .attr('stroke', color)
+        .attr('stroke-width', 2.5);
+
+      group.select('line.vector-negative')
+        .attr('x1', xScale(0))
+        .attr('y1', yScale(0))
+        .attr('x2', xScale(-vector[0]))
+        .attr('y2', yScale(-vector[1]))
+        .attr('stroke', color.replace('0.92', '0.55'))
+        .attr('stroke-width', 2)
+        .attr('stroke-dasharray', '6 4');
+
+      group.select('text.vector-label')
+        .attr('x', xScale(vector[0]) + 6)
+        .attr('y', yScale(vector[1]) - 6)
+        .attr('fill', color)
+        .attr('font-size', GRAPH_FONT_SIZE)
+        .text(basisLabels[index]);
+    });
+
+    vectorGroups
+      .filter((_, index) => index === 0)
+      .raise();
+
+    scatterLayer.raise();
+    overlayLayer.raise();
+    pointLabelLayer.raise();
   }
 
   function drawScatterPlot3D({ container, points, principalVectors, showVectors, showLabels, overlayPoints, title, axisLabels, basisLabels }) {
     const combinedPoints = (overlayPoints ? points.concat(overlayPoints) : points.slice()).concat([[0, 0, 0]]);
     const bound = Math.max(1, d3.max(combinedPoints.flatMap((point) => point.map((value) => Math.abs(value)))) || 1);
     const axisLength = bound * 1.15;
-
-    const traces = [
-      {
-        type: 'scatter3d',
-        mode: showLabels ? 'markers+text' : 'markers',
-        x: points.map((point) => point[0]),
-        y: points.map((point) => point[1]),
-        z: points.map((point) => point[2]),
-        text: showLabels ? points.map((_, index) => String(index + 1)) : undefined,
-        textposition: 'top center',
-        textfont: {
-          color: 'rgba(255,255,255,0.9)',
-          size: 13,
-        },
-        marker: {
-          size: 4,
-          color: 'rgba(74, 163, 255, 0.9)',
-        },
-        hovertemplate: '(%{x:.2f}, %{y:.2f}, %{z:.2f})<extra></extra>',
-        showlegend: false,
+    const axisLabelLength = axisLength * 0.9;
+    const pointTrace = {
+      type: 'scatter3d',
+      mode: showLabels ? 'markers+text' : 'markers',
+      x: points.map((point) => point[0]),
+      y: points.map((point) => point[1]),
+      z: points.map((point) => point[2]),
+      text: showLabels ? points.map((_, index) => String(index + 1)) : undefined,
+      textposition: 'top center',
+      textfont: {
+        color: 'rgba(255,255,255,0.9)',
+        size: GRAPH_FONT_SIZE,
       },
+      marker: {
+        size: 4,
+        color: 'rgba(74, 163, 255, 0.9)',
+      },
+      hovertemplate: '(%{x:.2f}, %{y:.2f}, %{z:.2f})<extra></extra>',
+      showlegend: false,
+    };
+
+    const axisLabelOffsets = { ax: -26, ay: -18 };
+    const vectorLabelOffsets = { ax: 14, ay: -14 };
+    const sceneAnnotations = [
+      makeSceneAnnotation([0, 0, axisLabelLength], axisLabels[2], 'rgba(255,255,255,0.72)', axisLabelOffsets),
+      makeSceneAnnotation([0, axisLabelLength, 0], axisLabels[1], 'rgba(255,255,255,0.72)', axisLabelOffsets),
+      makeSceneAnnotation([axisLabelLength, 0, 0], axisLabels[0], 'rgba(255,255,255,0.72)', axisLabelOffsets),
     ];
 
-    if (overlayPoints) {
-      traces.push({
+    const traces = [
+      makeAxisTrace([0, 0, axisLength], 'rgba(255,255,255,0.14)', axisLabels[2]),
+      makeAxisTrace([0, axisLength, 0], 'rgba(255,255,255,0.18)', axisLabels[1]),
+      makeAxisTrace([axisLength, 0, 0], 'rgba(255,255,255,0.22)', axisLabels[0]),
+    ];
+    const overlayTrace = overlayPoints ? {
         type: 'scatter3d',
         mode: 'markers',
         x: overlayPoints.map((point) => point[0]),
@@ -797,20 +945,25 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         hovertemplate: 'recon (%{x:.2f}, %{y:.2f}, %{z:.2f})<extra></extra>',
         showlegend: false,
-      });
-    }
-
-    traces.push(
-      makeAxisTrace([axisLength, 0, 0], 'rgba(255,255,255,0.22)', axisLabels[0]),
-      makeAxisTrace([0, axisLength, 0], 'rgba(255,255,255,0.18)', axisLabels[1]),
-      makeAxisTrace([0, 0, axisLength], 'rgba(255,255,255,0.14)', axisLabels[2])
-    );
+      } : null;
 
     if (showVectors) {
+      const shouldLabelVectors = basisLabels.some((label, index) => label !== axisLabels[index]);
       const colors = ['rgba(125, 255, 178, 0.95)', 'rgba(255, 196, 86, 0.95)', 'rgba(255, 122, 122, 0.95)'];
-      principalVectors.forEach((vector, index) => {
+      for (let index = principalVectors.length - 1; index >= 0; index -= 1) {
+        const vector = principalVectors[index];
         traces.push(makeVectorTrace(vector, colors[index], basisLabels[index]));
-      });
+        if (shouldLabelVectors) {
+          sceneAnnotations.push(
+            makeSceneAnnotation(vector, basisLabels[index], colors[index], vectorLabelOffsets),
+          );
+        }
+      }
+    }
+
+    traces.push(pointTrace);
+    if (overlayTrace) {
+      traces.push(overlayTrace);
     }
 
     renderPlotly(container, traces, {
@@ -819,27 +972,31 @@ document.addEventListener('DOMContentLoaded', () => {
       margin: { l: 0, r: 0, b: 0, t: 0 },
       uirevision: `pca-data-3d-${get3DAspectMode()}`,
       scene: {
+        annotations: sceneAnnotations,
         aspectmode: get3DAspectMode(),
         camera: getLiveCamera(container),
         xaxis: {
-          title: axisLabels[0],
+          title: { text: axisLabels[0], font: { size: GRAPH_FONT_SIZE } },
           range: [-axisLength, axisLength],
+          tickfont: { size: GRAPH_TICK_FONT_SIZE },
           backgroundcolor: 'rgba(255,255,255,0.02)',
           gridcolor: 'rgba(255,255,255,0.08)',
           zerolinecolor: 'rgba(255,255,255,0.18)',
           color: 'rgba(255,255,255,0.72)',
         },
         yaxis: {
-          title: axisLabels[1],
+          title: { text: axisLabels[1], font: { size: GRAPH_FONT_SIZE } },
           range: [-axisLength, axisLength],
+          tickfont: { size: GRAPH_TICK_FONT_SIZE },
           backgroundcolor: 'rgba(255,255,255,0.02)',
           gridcolor: 'rgba(255,255,255,0.08)',
           zerolinecolor: 'rgba(255,255,255,0.18)',
           color: 'rgba(255,255,255,0.72)',
         },
         zaxis: {
-          title: axisLabels[2],
+          title: { text: axisLabels[2], font: { size: GRAPH_FONT_SIZE } },
           range: [-axisLength, axisLength],
+          tickfont: { size: GRAPH_TICK_FONT_SIZE },
           backgroundcolor: 'rgba(255,255,255,0.02)',
           gridcolor: 'rgba(255,255,255,0.08)',
           zerolinecolor: 'rgba(255,255,255,0.18)',
@@ -891,12 +1048,12 @@ document.addEventListener('DOMContentLoaded', () => {
     longitudes.forEach((lonDeg) => {
       const lon = degToRad(lonDeg);
       const points = [];
-      for (let latDeg = -90; latDeg <= 90; latDeg += step) {
-        const lat = degToRad(latDeg);
+      for (let thetaDeg = 0; thetaDeg <= 360; thetaDeg += step) {
+        const theta = degToRad(thetaDeg);
         const base = [
-          Math.cos(lat) * Math.cos(lon),
-          Math.cos(lat) * Math.sin(lon),
-          Math.sin(lat),
+          Math.cos(theta) * Math.cos(lon),
+          Math.cos(theta) * Math.sin(lon),
+          Math.sin(theta),
         ];
         points.push(applyMatrix(transform, base));
       }
@@ -906,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
         x: points.map((point) => point[0]),
         y: points.map((point) => point[1]),
         z: points.map((point) => point[2]),
-        line: { color: 'rgba(255,255,255,0.26)', width: 3 },
+        line: { color: 'rgba(255,255,255,0.10)', width: 3 },
         hoverinfo: 'skip',
         showlegend: false,
       });
@@ -916,12 +1073,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function drawOperatorPlot2D({ container, transform, principalVectors, lambda, showVectors, title }) {
-    clear(container);
-    container.dataset.renderer = 'svg';
-    const { width, height } = getPlotSize(container, 460);
-    const margin = { top: 6, right: 18, bottom: 34, left: 44 };
-    const innerWidth = width - margin.left - margin.right;
-    const innerHeight = height - margin.top - margin.bottom;
+    const {
+      root,
+      axisX,
+      axisY,
+      innerWidth,
+      innerHeight,
+    } = ensureSvgPlotFrame(container, 460);
 
     const circle = d3.range(0, 361).map((deg) => {
       const theta = degToRad(deg);
@@ -932,62 +1090,100 @@ document.addEventListener('DOMContentLoaded', () => {
     const transformedVectors = principalVectors.map((vector) => applyMatrix(transform, vector));
     const xs = circle.map((point) => point[0]).concat(transformedVectors.map((point) => point[0]), [0]);
     const ys = circle.map((point) => point[1]).concat(transformedVectors.map((point) => point[1]), [0]);
-  const xDomain = extentWithPadding(xs);
-  const yDomain = extentWithPadding(ys);
-  const xCenter = (xDomain[0] + xDomain[1]) / 2;
-  const yCenter = (yDomain[0] + yDomain[1]) / 2;
-  const xSpan = Math.max(1e-6, xDomain[1] - xDomain[0]);
-  const ySpan = Math.max(1e-6, yDomain[1] - yDomain[0]);
-  const unitsPerPixel = Math.max(xSpan / innerWidth, ySpan / innerHeight);
-  const halfWidthUnits = unitsPerPixel * innerWidth / 2;
-  const halfHeightUnits = unitsPerPixel * innerHeight / 2;
-  const xScale = d3.scaleLinear().domain([xCenter - halfWidthUnits, xCenter + halfWidthUnits]).range([0, innerWidth]);
-  const yScale = d3.scaleLinear().domain([yCenter - halfHeightUnits, yCenter + halfHeightUnits]).range([innerHeight, 0]);
+    const xDomain = extentWithPadding(xs);
+    const yDomain = extentWithPadding(ys);
+    const xCenter = (xDomain[0] + xDomain[1]) / 2;
+    const yCenter = (yDomain[0] + yDomain[1]) / 2;
+    const xSpan = Math.max(1e-6, xDomain[1] - xDomain[0]);
+    const ySpan = Math.max(1e-6, yDomain[1] - yDomain[0]);
+    const unitsPerPixel = Math.max(xSpan / innerWidth, ySpan / innerHeight);
+    const halfWidthUnits = unitsPerPixel * innerWidth / 2;
+    const halfHeightUnits = unitsPerPixel * innerHeight / 2;
+    const xScale = d3.scaleLinear()
+      .domain([xCenter - halfWidthUnits, xCenter + halfWidthUnits])
+      .range([0, innerWidth]);
+    const yScale = d3.scaleLinear()
+      .domain([yCenter - halfHeightUnits, yCenter + halfHeightUnits])
+      .range([innerHeight, 0]);
 
-    const svg = d3.select(container).append('svg').attr('width', '100%').attr('height', height);
-    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+    axisX
+      .attr('transform', `translate(0,${yScale(0)})`)
+      .call(d3.axisBottom(xScale).ticks(6).tickSizeOuter(0));
+    styleSvgAxis(axisX);
 
-    g.append('g').attr('transform', `translate(0,${yScale(0)})`).call(d3.axisBottom(xScale).ticks(6).tickSizeOuter(0));
-    g.append('g').attr('transform', `translate(${xScale(0)},0)`).call(d3.axisLeft(yScale).ticks(6).tickSizeOuter(0));
+    axisY
+      .attr('transform', `translate(${xScale(0)},0)`)
+      .call(d3.axisLeft(yScale).ticks(6).tickSizeOuter(0));
+    styleSvgAxis(axisY);
 
     const line = d3.line().x((point) => xScale(point[0])).y((point) => yScale(point[1])).curve(d3.curveLinearClosed);
 
-    g.append('path')
-      .datum(circle)
+    root.selectAll('path.operator-shape')
+      .data([circle])
+      .join('path')
+      .attr('class', 'operator-shape')
       .attr('fill', 'rgba(255,255,255,0.06)')
       .attr('stroke', 'rgba(74, 163, 255, 0.9)')
       .attr('stroke-width', 2)
       .attr('d', line);
 
-    if (showVectors) {
-      transformedVectors.forEach((vector, index) => {
-        const colors = ['rgba(125, 255, 178, 0.92)', 'rgba(255, 196, 86, 0.92)'];
-        g.append('line')
-          .attr('x1', xScale(0))
-          .attr('y1', yScale(0))
-          .attr('x2', xScale(vector[0]))
-          .attr('y2', yScale(vector[1]))
-          .attr('stroke', colors[index])
-          .attr('stroke-width', 2.5);
+    const colors = ['rgba(125, 255, 178, 0.92)', 'rgba(255, 196, 86, 0.92)'];
+    const operatorVectors = root.selectAll('g.operator-vector-layer').data([null]).join('g').attr('class', 'operator-vector-layer')
+      .selectAll('g.operator-vector')
+      .data(showVectors ? transformedVectors : [], (_, index) => index)
+      .join(
+        (enter) => {
+          const group = enter.append('g').attr('class', 'operator-vector');
+          group.append('line').attr('class', 'operator-vector-line');
+          group.append('text').attr('class', 'operator-vector-label');
+          return group;
+        },
+        (update) => update,
+        (exit) => exit.remove()
+      );
 
-        g.append('text')
-          .attr('x', xScale(vector[0]) + 6)
-          .attr('y', yScale(vector[1]) - 6)
-          .attr('fill', colors[index])
-          .attr('font-size', 12)
-          .text(`λ${index + 1}=${lambda[index].toFixed(2)}`);
-      });
-    }
+    operatorVectors.each(function updateOperatorVector(vector, index) {
+      const group = d3.select(this);
+      const color = colors[index];
+
+      group.select('line.operator-vector-line')
+        .attr('x1', xScale(0))
+        .attr('y1', yScale(0))
+        .attr('x2', xScale(vector[0]))
+        .attr('y2', yScale(vector[1]))
+        .attr('stroke', color)
+        .attr('stroke-width', 2.5);
+
+      group.select('text.operator-vector-label')
+        .attr('x', xScale(vector[0]) + 6)
+        .attr('y', yScale(vector[1]) - 6)
+        .attr('fill', color)
+        .attr('font-size', GRAPH_FONT_SIZE)
+        .text(`λ${index + 1}=${lambda[index].toFixed(2)}`);
+    });
+
+    operatorVectors
+      .filter((_, index) => index === 0)
+      .raise();
   }
 
   function drawOperatorPlot3D({ container, transform, principalVectors, lambda, showVectors, title }) {
     const traces = buildSphereWireframe(transform);
+    const sceneAnnotations = [];
     if (showVectors) {
       const colors = ['rgba(125, 255, 178, 0.95)', 'rgba(255, 196, 86, 0.95)', 'rgba(255, 122, 122, 0.95)'];
-      principalVectors.forEach((vector, index) => {
+      for (let index = principalVectors.length - 1; index >= 0; index -= 1) {
+        const vector = principalVectors[index];
         const transformed = applyMatrix(transform, vector);
         traces.push(makeVectorTrace(transformed, colors[index], `λ${index + 1}=${lambda[index].toFixed(2)}`));
-      });
+        sceneAnnotations.push(
+          makeSceneAnnotation(
+            transformed,
+            `λ${index + 1}=${lambda[index].toFixed(2)}`,
+            colors[index],
+          ),
+        );
+      }
     }
 
     renderPlotly(container, traces, {
@@ -996,24 +1192,28 @@ document.addEventListener('DOMContentLoaded', () => {
       margin: { l: 0, r: 0, b: 0, t: 0 },
       uirevision: `pca-operator-3d-${get3DAspectMode()}`,
       scene: {
+        annotations: sceneAnnotations,
         aspectmode: get3DAspectMode(),
         camera: getLiveCamera(container),
         xaxis: {
-          title: 'x₁',
+          title: { text: 'x₁', font: { size: GRAPH_FONT_SIZE } },
+          tickfont: { size: GRAPH_TICK_FONT_SIZE },
           backgroundcolor: 'rgba(255,255,255,0.02)',
           gridcolor: 'rgba(255,255,255,0.08)',
           zerolinecolor: 'rgba(255,255,255,0.18)',
           color: 'rgba(255,255,255,0.72)',
         },
         yaxis: {
-          title: 'x₂',
+          title: { text: 'x₂', font: { size: GRAPH_FONT_SIZE } },
+          tickfont: { size: GRAPH_TICK_FONT_SIZE },
           backgroundcolor: 'rgba(255,255,255,0.02)',
           gridcolor: 'rgba(255,255,255,0.08)',
           zerolinecolor: 'rgba(255,255,255,0.18)',
           color: 'rgba(255,255,255,0.72)',
         },
         zaxis: {
-          title: 'x₃',
+          title: { text: 'x₃', font: { size: GRAPH_FONT_SIZE } },
+          tickfont: { size: GRAPH_TICK_FONT_SIZE },
           backgroundcolor: 'rgba(255,255,255,0.02)',
           gridcolor: 'rgba(255,255,255,0.08)',
           zerolinecolor: 'rgba(255,255,255,0.18)',
@@ -1204,17 +1404,14 @@ document.addEventListener('DOMContentLoaded', () => {
       clear(dataContainer);
       clear(operatorContainer);
       const message = error && error.message ? error.message : String(error);
-      stepSummaryEl.textContent = message;
-      matrixXEl.textContent = '-';
       matrixFactorsEl.textContent = '-';
       matrixCovEl.textContent = '-';
-      matrixCurrentEl.textContent = '-';
       return;
     }
 
     const step = Math.max(0, Math.min(3, Number(stepInput.value) || 0));
-    const stepMeta = getStepMeta(step, decomposition);
-    const currentTransform = stepMeta.transform;
+    const stepName = getStepName(step);
+    const currentTransform = getCurrentTransform(step, decomposition);
     const transformedPoints = points.map((point) => applyMatrix(currentTransform, point));
     const principalVectors = Array.from({ length: decomposition.dimension }, (_, index) => decomposition.V.map((row) => row[index]));
     const showVectors = !!showVectorsInput.checked;
@@ -1232,7 +1429,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showVectors,
       showLabels,
       overlayPoints,
-      title: stepMeta.name,
+      title: stepName,
       axisLabels,
       basisLabels,
     });
@@ -1263,12 +1460,8 @@ document.addEventListener('DOMContentLoaded', () => {
       showVectors,
     }));
 
-    renderStepSummary(stepMeta, decomposition);
-
-    matrixXEl.textContent = formatMatrix(decomposition.X, 8);
-    matrixFactorsEl.textContent = `Σ =\n${formatMatrix(decomposition.Sigma)}\n\nV =\n${formatMatrix(decomposition.V)}\n\nV^T =\n${formatMatrix(decomposition.VT)}`;
-    matrixCovEl.textContent = `Λ =\n${formatMatrix(decomposition.Lambda)}\n\nC = X^T X / (n-1) =\n${formatMatrix(decomposition.covariance)}`;
-    matrixCurrentEl.textContent = `${stepMeta.name}\n\n${formatMatrix(currentTransform)}${showRank1Input.checked ? `\n\nLow-rank overlay keeps the first ${targetRank} principal ${targetRank === 1 ? 'coordinate' : 'coordinates'}.` : ''}`;
+    matrixFactorsEl.textContent = `X =\n${formatMatrix(decomposition.X, 8)}\n\nΣ =\n${formatMatrix(decomposition.Sigma, 8)}}`;
+    matrixCovEl.textContent = `V =\n${formatMatrix(decomposition.V, 8)}\n\nΛ =\n${formatMatrix(decomposition.Lambda, 8)}\n\nV^T =\n${formatMatrix(decomposition.VT, 8)}\n\nC =\n${formatMatrix(decomposition.covariance, 8)}`;
   }
 
   const debouncedRender = debounce(render, 220);
