@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fourier Image Decomposition: Periodicity and the Checkerboard Problem</title>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/article.css">
+  <link rel="stylesheet" href="../styles/fourier.css">
+
+  <script defer src="../js/formulas_layout.js"></script>
+  <script defer src="../js/fourier.js"></script>
+</head>
+
+<body>
+  <div class="container article fourier">
+    <header>
+      <h1>Fourier Image Decomposition</h1>
+      <div class="subtitle">
+        Periodicity, smoothness assumptions, and why the DFT tiles your image into an infinite checkerboard
+      </div>
+      <div class="home-link"><a href="../index.html">← Home</a></div>
+    </header>
+
+    <main class="article-body">
+
+      <section class="panel">
+        <h2>Overview</h2>
+        <p>
+          Any 2D image $f[x,y]$ defined on an $N \times N$ grid can be expressed as a weighted sum
+          of complex exponential basis functions — 2D sinusoids of different frequencies, amplitudes,
+          and phases. The 2D Discrete Fourier Transform computes the weight $F[u,v]$ for each
+          frequency pair $(u, v)$:
+        </p>
+        <div class="formula">
+          $$F[u,v] = \sum_{x=0}^{N-1}\sum_{y=0}^{N-1} f[x,y]\,e^{-i2\pi(ux + vy)/N}$$
+        </div>
+        <p>
+          The inverse transform reconstructs the image from those weights:
+        </p>
+        <div class="formula">
+          $$f[x,y] = \frac{1}{N^2}\sum_{u=0}^{N-1}\sum_{v=0}^{N-1} F[u,v]\,e^{\,i2\pi(ux + vy)/N}$$
+        </div>
+        <p>
+          With all $N^2$ coefficients, reconstruction is exact. Keeping only a low-frequency
+          subset — those within a circular radius $R$ from the DC component — gives a smooth
+          approximation. How good that approximation is depends critically on a hidden assumption
+          buried inside the DFT itself.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>The Periodic Assumption</h2>
+        <p>
+          The DFT treats $f[x,y]$ as one tile of an infinite, periodically repeating pattern.
+          The basis functions $e^{i2\pi(ux+vy)/N}$ are themselves periodic with period $N$,
+          so the transform implicitly defines:
+        </p>
+        <div class="formula">
+          $$f_{\text{ext}}[x,y] = f\bigl[x \bmod N,\; y \bmod N\bigr]$$
+        </div>
+        <p>
+          This is the extrapolation assumption: to know what the image looks like outside its
+          $[0,N)^2$ domain, the DFT assumes it tiles like wallpaper. If the image is naturally
+          periodic — or if its content fades smoothly to the same value at all edges — this
+          tiling is seamless and the DFT is an ideal representation. If not, tiling creates
+          sharp discontinuities at every tile boundary, and those discontinuities require
+          very high-frequency components to represent.
+        </p>
+        <p>
+          When you apply a low-pass filter (zeroing $F[u,v]$ for $\sqrt{u'^2 + v'^2} > R$,
+          where $u' = u - N/2$ and $v' = v - N/2$ are the centered frequencies) and invert,
+          those missing high-frequency components produce Gibbs-phenomenon ringing — visible
+          overshoots and oscillations that spread outward from every discontinuity.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>The Checkerboard</h2>
+        <p>
+          The clearest example is a <em>quadrant image</em>: bright in the top-left and
+          bottom-right, dark in the other two. When this single "checker cell" is tiled
+          periodically, the result is an infinite checkerboard. Every Fourier basis function
+          used to represent it shares that checkerboard periodicity. The low-frequency
+          reconstruction shows the smooth sinusoidal wave that underlies it; adding higher
+          frequencies sharpens the edges toward the hard square. Toggle the periodic
+          extension view to see the tiling directly — the red dashed lines mark tile boundaries.
+        </p>
+        <p>
+          Contrast this with the Gaussian preset: the image already decays near zero at every
+          edge, so tiling creates almost no discontinuity, and the low-frequency reconstruction
+          is a faithful approximation even with very few coefficients.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>The Interactive Demo</h2>
+        <p>
+          The left panel shows the original image or its 2×2 periodic extension. The center
+          panel shows the log-magnitude spectrum (DC centered, hot colormap), with a blue circle
+          marking the low-pass filter radius. The right panel shows the reconstruction from the
+          frequencies inside that circle.
+        </p>
+
+        <div class="viz-row fourier-viz-row">
+          <div class="viz-panel fourier-viz-panel">
+
+            <div class="fourier-canvas-grid">
+              <section class="fourier-canvas-card">
+                <h3 class="h3-tight"><span id="fourierOrigLabel">Original Image</span></h3>
+                <canvas
+                  id="fourierOrigCanvas"
+                  width="256"
+                  height="256"
+                  class="fourier-canvas"
+                  aria-label="Original image or periodic extension"
+                ></canvas>
+                <p class="help-text small">
+                  Toggle "periodic extension" to see how the DFT tiles this image.
+                </p>
+              </section>
+
+              <section class="fourier-canvas-card">
+                <h3 class="h3-tight"><span id="fourierSpecLabel">Frequency Spectrum (log magnitude)</span></h3>
+                <canvas
+                  id="fourierSpecCanvas"
+                  width="256"
+                  height="256"
+                  class="fourier-canvas"
+                  aria-label="Frequency magnitude spectrum"
+                ></canvas>
+                <p class="help-text small">
+                  DC (zero frequency) at center. Blue circle = filter boundary. Brighter = more energy.
+                </p>
+              </section>
+
+              <section class="fourier-canvas-card">
+                <h3 class="h3-tight"><span id="fourierReconLabel">Reconstruction</span></h3>
+                <canvas
+                  id="fourierReconCanvas"
+                  width="256"
+                  height="256"
+                  class="fourier-canvas"
+                  aria-label="Low-pass reconstructed image"
+                ></canvas>
+                <p class="help-text small">
+                  Inverse DFT using only frequencies inside the blue circle.
+                </p>
+              </section>
+            </div>
+
+            <div class="fourier-controls-block">
+              <div class="fourier-control-grid">
+
+                <div class="fourier-control-item">
+                  <label for="fourierBasis">Basis</label>
+                  <select id="fourierBasis">
+                    <option value="fourier" selected>Fourier (sine waves)</option>
+                    <option value="poly">Legendre polynomials</option>
+                    <option value="haar">Haar wavelets</option>
+                    <option value="cheb">Chebyshev polynomials</option>
+                  </select>
+                </div>
+
+                <div class="fourier-control-item">
+                  <label for="fourierPreset">Image Preset</label>
+                  <select id="fourierPreset">
+                    <option value="quadrant" selected>Quadrant (checker cell)</option>
+                    <option value="circle">Hard circle (sharp edge)</option>
+                    <option value="gaussian">Gaussian blob (smooth)</option>
+                    <option value="step">Step function</option>
+                    <option value="rect">Rectangle</option>
+                  </select>
+                </div>
+
+                <div class="fourier-control-item">
+                  <label id="fourierRadiusLabel" for="fourierRadius">Low-pass filter radius</label>
+                  <div class="fourier-slider-row">
+                    <input
+                      id="fourierRadius"
+                      type="range"
+                      min="1"
+                      max="128"
+                      step="1"
+                      value="20"
+                    />
+                  </div>
+                  <output id="fourierRadiusValue" for="fourierRadius" class="fourier-radius-out">
+                    r = 20
+                  </output>
+                </div>
+
+                <div class="fourier-control-item fourier-upload-item">
+                  <label class="fourier-upload-label" for="fourierUpload">Upload image</label>
+                  <label class="fourier-upload-btn" for="fourierUpload" aria-label="Choose image file">
+                    Choose file…
+                  </label>
+                  <input id="fourierUpload" type="file" accept="image/*" />
+                  <span id="fourierUploadName" class="fourier-upload-name">No file chosen</span>
+                </div>
+
+                <div class="fourier-control-item fourier-checkbox-item">
+                  <label class="fourier-check-label">
+                    <input id="fourierTiling" type="checkbox" checked />
+                    <span id="fourierTilingText">Show periodic extension (2×2 tile)</span>
+                  </label>
+                </div>
+
+                <div class="fourier-control-item fourier-checkbox-item">
+                  <label class="fourier-check-label">
+                    <input id="fourierShowOverlay" type="checkbox" checked />
+                    Show border overlay
+                  </label>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Comparing Extrapolations</h2>
+        <p>
+          Switching to <strong>Legendre polynomials</strong> shows a completely different
+          extrapolation behavior. Legendre polynomials are orthogonal on $[-1, 1]$; the
+          separable 2D fit finds the optimal polynomial approximation of each degree within
+          the image window. But unlike sine waves, polynomials have no periodicity —
+          evaluating the fitted polynomial outside $[-1, 1]$ produces whatever shape the
+          polynomial naturally continues to, and higher-degree fits tend to diverge
+          dramatically at the edges (Runge's phenomenon). Toggle "show extrapolation" in
+          polynomial mode to see this directly: grayscale is in-domain, <span class="fourier-legend-red">red</span>
+          is above 255, and <span class="fourier-legend-blue">blue</span> is below 0.
+          The dashed box marks the original image domain.
+        </p>
+        <p>
+          The center panel in polynomial mode shows the coefficient matrix $|C[j,k]|$
+          where $j$ is the degree in $y$ and $k$ in $x$. The blue rectangle marks the
+          coefficients included at the current degree cutoff; everything outside is dimmed.
+          Low-degree images (like the Gaussian) concentrate energy near the top-left corner;
+          images with sharp edges spread energy across higher degrees.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Haar Wavelets and Multi-Scale Decomposition</h2>
+        <p>
+          Switching to <strong>Haar wavelets</strong> reveals a third extrapolation strategy.
+          The 2D Haar discrete wavelet transform decomposes an image into a hierarchy of
+          approximation and detail subbands. At each level $\ell$, the $2^{-\ell} N \times 2^{-\ell} N$
+          approximation block is split into four quarter-sized subbands: a coarser approximation (LL)
+          and three detail bands capturing horizontal (LH), vertical (HL), and diagonal (HH) edges.
+        </p>
+        <p>
+          The center panel shows the full wavelet coefficient pyramid. Each subband is
+          independently normalized to the hot colormap so that fine structure is visible at
+          every scale. The blue rectangle marks the coarsest levels retained at the current
+          "levels to keep" setting; coefficients outside it are zeroed before the inverse
+          transform reconstructs the image.
+        </p>
+        <p>
+          Unlike Fourier modes — which are global sinusoids and smear any localized feature
+          across the entire frequency domain — Haar basis functions are spatially localized.
+          A sharp edge influences only the wavelet coefficients near it, not coefficients
+          far away. This means keeping only coarse levels gives a blocky but spatially
+          faithful approximation, and adding finer levels restores progressively sharper
+          edges without Gibbs ringing.
+        </p>
+        <p>
+          Wavelets also make no periodicity assumption: the Haar DWT is defined entirely
+          within the image boundary via finite-support filters, so there is no tile boundary
+          artifact. The tradeoff is that Haar functions are discontinuous themselves, so the
+          reconstruction has a characteristic staircase appearance at coarse levels.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Chebyshev Polynomials: Minimax Approximation</h2>
+        <p>
+          <strong>Chebyshev polynomials of the first kind</strong>, $T_k(t)$, are defined on $[-1,1]$
+          by the recurrence $T_0 = 1$, $T_1 = t$, $T_{k+1}(t) = 2t\,T_k(t) - T_{k-1}(t)$.
+          They are orthogonal under the weighted inner product
+        </p>
+        <div class="formula">
+          $$\langle f,\, g\rangle_w = \int_{-1}^{1} f(t)\,g(t)\;\frac{dt}{\sqrt{1-t^2}}$$
+        </div>
+        <p>
+          with norms $\|T_0\|^2 = \pi$ and $\|T_k\|^2 = \pi/2$ for $k \ge 1$.
+          The 2D coefficient matrix is computed separably, row-first then column-wise,
+          using the midpoint-rule approximation of those weighted integrals.
+          Reconstruction at degree $d$ sums all $T_j(y)\,T_k(x)$ with $j, k \le d$.
+        </p>
+        <p>
+          The key property distinguishing Chebyshev from Legendre is the <em>minimax theorem</em>:
+          among all degree-$d$ polynomials with leading coefficient 1, $2^{1-d} T_d$ has
+          the smallest possible maximum absolute value on $[-1,1]$. Equivalently, the Chebyshev
+          truncated series minimizes the maximum pointwise error on the domain, while the Legendre
+          truncated series minimizes the squared $L^2$ error. In practice this means Chebyshev
+          avoids concentrating error at any particular point — it spreads it as uniformly as possible.
+        </p>
+        <p>
+          Outside $[-1,1]$, however, $T_k(t) = \cosh(k\,\mathrm{arccosh}\,t)$ grows
+          <em>exponentially</em> in $k$. Higher-degree fits diverge even faster than Legendre
+          outside the domain. Toggle "show Chebyshev extrapolation" to see this:
+          <span class="fourier-legend-red">red</span> is above 255 and
+          <span class="fourier-legend-blue">blue</span> is below 0, with the dashed box
+          marking the original image domain.
+          Compare the coefficient matrices: Chebyshev concentrates energy toward the
+          top-left corner more aggressively for smooth images, since the Chebyshev nodes
+          cluster near $\pm 1$ and resolve edge structure more efficiently.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Gibbs Phenomenon and Edge Discontinuities</h2>
+        <p>
+          The ringing you see in the reconstruction is the Gibbs phenomenon: near a
+          discontinuity, a truncated Fourier series always overshoots by about 9% of the
+          jump height, regardless of how many terms you include. In 1D this produces
+          characteristic ripples bracketing a step. In 2D it produces concentric rings
+          around every sharp edge, including the <em>artificial</em> edges created at
+          tile boundaries when the image is not naturally periodic.
+        </p>
+        <p>
+          For the quadrant image, the dominant energy sits at the corners of frequency space —
+          the $(N/2, N/2)$ component — because the checkerboard oscillates at the Nyquist
+          frequency in both axes simultaneously. This is far outside any small filter radius,
+          which is why low values of $r$ produce a smooth, blob-like approximation with no
+          checkerboard structure. As $r$ approaches 128, the step-like boundaries begin to emerge;
+          the corners require $r \approx 181$ (the diagonal Nyquist) for perfect reconstruction.
+        </p>
+        <p>
+          The Gaussian has almost no energy far from DC because its smooth fall-off means the
+          periodic extension has negligible discontinuities. Spatial smoothness and frequency
+          compactness are two sides of the same coin: smooth images have rapidly decaying spectra,
+          and their low-frequency approximations are correspondingly accurate.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Conclusion</h2>
+        <p>
+          The DFT's implicit smoothness assumption for extrapolation — that the image tiles
+          periodically — works well when the image's content naturally matches at its boundaries,
+          and breaks down when it does not. Sharp edges, step functions, and isolated objects
+          on a uniform background all violate this assumption and generate the ringing artifacts
+          visible in the reconstruction. The standard remedy is <em>windowing</em>: multiplying
+          the image by a smooth taper (Hann, Tukey, or a Gaussian envelope) before transforming,
+          so that the content gracefully fades to zero at every edge and the periodic extension
+          is nearly continuous. The tradeoff is a small smearing in the frequency domain, but the
+          dramatic reduction in Gibbs ringing is usually worth it.
+        </p>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p class="footer-tag">
+        Created by
+        <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a>
+      </p>
+    </footer>
+  </div>
+</body>
+
+</html>

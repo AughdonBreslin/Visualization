@@ -1,0 +1,184 @@
+/* fourier.css - page-specific styles for fourier.html */
+
+.fourier p {
+  margin-bottom: 8px;
+}
+
+.fourier.container {
+  max-width: 1400px;
+}
+
+.fourier .fourier-viz-row {
+  margin: 16px 0;
+  flex-wrap: nowrap;
+}
+
+.fourier .fourier-viz-panel {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 12px;
+}
+
+/* Three-column canvas grid */
+.fourier .fourier-canvas-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.fourier .fourier-canvas-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fourier .fourier-canvas-card .h3-tight {
+  margin-top: 0;
+}
+
+.fourier .fourier-canvas {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: block;
+  image-rendering: auto;
+  border-radius: var(--radius-md);
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Controls block */
+.fourier .fourier-controls-block {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+
+.fourier .fourier-control-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 20px;
+  align-items: end;
+}
+
+.fourier .fourier-control-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fourier .fourier-control-item > select,
+.fourier .fourier-control-item > input[type="number"] {
+  width: 100%;
+}
+
+/* Slider */
+.fourier .fourier-slider-row {
+  display: flex;
+  align-items: center;
+}
+
+.fourier .fourier-slider-row input[type="range"] {
+  flex: 1;
+  background: transparent;
+}
+
+.fourier .fourier-radius-out {
+  display: block;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+/* Upload */
+.fourier input[type="file"] {
+  display: none;
+}
+
+.fourier .fourier-upload-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.fourier .fourier-upload-btn {
+  display: block;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  text-align: center;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.fourier .fourier-upload-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.fourier .fourier-upload-name {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Checkbox row */
+.fourier .fourier-checkbox-item {
+  justify-content: flex-end;
+  padding-bottom: 4px;
+}
+
+.fourier .fourier-check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.fourier .fourier-check-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: rgba(74, 163, 255, 0.9);
+}
+
+/* Inline legend color hints used in explanatory text */
+.fourier .fourier-legend-red  { color: #ff6060; font-weight: 600; }
+.fourier .fourier-legend-blue { color: #6090ff; font-weight: 600; }
+
+/* Responsive */
+@media (max-width: 800px) {
+  .fourier .fourier-canvas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fourier .fourier-viz-row {
+    flex-wrap: wrap;
+  }
+
+  .fourier .fourier-control-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fourier .fourier-checkbox-item {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 1100px) and (min-width: 801px) {
+  .fourier .fourier-canvas-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
