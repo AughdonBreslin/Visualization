@@ -84,26 +84,38 @@
     let currentPixels = null;
 
     // ---- Apply pixel array to height map ----
+    // Color grading: 0 → black, 255 → white linear grayscale in-range;
+    // values below 0 ramp into blue, values above 255 ramp into red.
+    // Same convention as the 2D `renderExtended` view so Gibbs overshoot
+    // and undershoot are visually identifiable across both panels.
     function applyPixels(pixels) {
       currentPixels = pixels;
       const pos = geometry.attributes.position;
       const col = geometry.attributes.color;
 
-      // Normalize color to the actual data range for maximum contrast.
-      let lo = Infinity, hi = -Infinity;
-      for (let i = 0; i < N * N; i++) {
-        if (pixels[i] < lo) lo = pixels[i];
-        if (pixels[i] > hi) hi = pixels[i];
-      }
-      const span = hi - lo || 1;
-
       for (let i = 0; i < N * N; i++) {
         const v = pixels[i];
+
         // Height anchored to the 0–255 scale so amplitude is physically meaningful.
         pos.setY(i, (v / 255) * heightScale);
-        // Grayscale color stretched over actual range.
-        const t = Math.max(0, Math.min(1, (v - lo) / span));
-        col.setXYZ(i, t, t, t);
+
+        let r, g, b;
+        if (v < 0) {
+          // Undershoot: blue, intensity ramps with magnitude (capped).
+          r = 0;
+          g = 0;
+          b = (80 + Math.min(175, -v * 0.4)) / 255;
+        } else if (v > 255) {
+          // Overshoot: red, intensity ramps with magnitude (capped).
+          r = (80 + Math.min(175, (v - 255) * 0.4)) / 255;
+          g = 0;
+          b = 0;
+        } else {
+          // In-range: linear grayscale.
+          const t = v / 255;
+          r = g = b = t;
+        }
+        col.setXYZ(i, r, g, b);
       }
 
       pos.needsUpdate = true;
@@ -130,6 +142,80 @@
         if (px) applyPixels(px);
       });
     });
+
+    // ---- Periodic tiling (InstancedMesh) ----
+    let tilingEnabled = false;
+    let tileExtent    = 5;       // odd → symmetric grid centered on origin
+    let instancedMesh = null;
+
+    const DEFAULT_MAX_DIST = 680;
+
+    function rebuildTiling() {
+      if (instancedMesh) {
+        scene.remove(instancedMesh);
+        if (typeof instancedMesh.dispose === 'function') instancedMesh.dispose();
+        instancedMesh = null;
+      }
+
+      if (!tilingEnabled) {
+        mesh.visible        = true;
+        controls.enablePan  = false;
+        controls.maxDistance = DEFAULT_MAX_DIST;
+        return;
+      }
+
+      // Hide the single-tile mesh and replace with a grid of instances.
+      // All instances share the geometry, so height-map updates propagate to all tiles automatically.
+      mesh.visible = false;
+
+      const count = tileExtent * tileExtent;
+      instancedMesh = new THREE.InstancedMesh(geometry, material, count);
+      instancedMesh.frustumCulled = false; // tiles span far beyond the origin bounding sphere
+
+      const matrix = new THREE.Matrix4();
+      const half   = (tileExtent - 1) / 2;
+      let i = 0;
+      for (let dz = -half; dz <= half; dz++) {
+        for (let dx = -half; dx <= half; dx++) {
+          matrix.makeTranslation(dx * N, 0, dz * N);
+          instancedMesh.setMatrixAt(i++, matrix);
+        }
+      }
+      instancedMesh.instanceMatrix.needsUpdate = true;
+      scene.add(instancedMesh);
+
+      controls.enablePan   = true;
+      controls.maxDistance = Math.max(DEFAULT_MAX_DIST, tileExtent * N * 1.2);
+    }
+
+    const tileChk = document.getElementById('fourier3dTile');
+    const tileSl  = document.getElementById('fourier3dTileExtent');
+    const tileOut = document.getElementById('fourier3dTileExtentOut');
+
+    function updateTileLabel() {
+      if (!tileOut) return;
+      const total = tileExtent * tileExtent;
+      tileOut.textContent = tilingEnabled
+        ? `${tileExtent} × ${tileExtent} = ${total} tiles`
+        : `${tileExtent} × ${tileExtent} = ${total} tiles (off)`;
+    }
+
+    if (tileChk) {
+      tileChk.addEventListener('change', () => {
+        tilingEnabled = tileChk.checked;
+        if (tileSl) tileSl.disabled = !tilingEnabled;
+        rebuildTiling();
+        updateTileLabel();
+      });
+    }
+
+    if (tileSl) {
+      tileSl.addEventListener('input', () => {
+        tileExtent = +tileSl.value;
+        if (tilingEnabled) rebuildTiling();
+        updateTileLabel();
+      });
+    }
 
     // ---- Listen for main-demo pixel updates ----
     window.addEventListener('fourier-orig-update', e => {

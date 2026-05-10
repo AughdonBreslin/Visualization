@@ -282,6 +282,34 @@
               </div>
               <output id="fourier3dScaleOut" class="fourier-radius-out">60</output>
             </div>
+
+            <div class="fourier-control-item fourier-checkbox-item">
+              <label class="fourier-check-label">
+                <input id="fourier3dTile" type="checkbox" />
+                Periodic tiling
+              </label>
+            </div>
+
+            <div class="fourier-control-item">
+              <label for="fourier3dTileExtent">Tile extent</label>
+              <div class="fourier-slider-row">
+                <input
+                  id="fourier3dTileExtent"
+                  type="range"
+                  min="3"
+                  max="21"
+                  step="2"
+                  value="5"
+                  disabled
+                />
+              </div>
+              <output id="fourier3dTileExtentOut" class="fourier-radius-out">
+                5 × 5 = 25 tiles (off)
+              </output>
+              <p class="help-text small" style="margin-top:4px">
+                Zoom out (scroll) and drag to pan once tiling is on.
+              </p>
+            </div>
           </div>
         </div>
       </section>
