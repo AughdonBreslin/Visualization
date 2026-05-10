@@ -158,6 +158,54 @@
 .fourier .fourier-legend-red  { color: #ff6060; font-weight: 600; }
 .fourier .fourier-legend-blue { color: #6090ff; font-weight: 600; }
 
+/* ---- 3D Surface View ---- */
+.fourier .fourier-3d-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.fourier .fourier-3d-canvas-wrap {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.fourier .fourier-3d-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: grab;
+}
+
+.fourier .fourier-3d-canvas:active {
+  cursor: grabbing;
+}
+
+.fourier .fourier-3d-sidebar {
+  flex: 0 0 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+.fourier .fourier-3d-source-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fourier .fourier-3d-source-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.93rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* Responsive */
 @media (max-width: 800px) {
   .fourier .fourier-canvas-grid {
@@ -170,6 +218,15 @@
 
   .fourier .fourier-control-grid {
     grid-template-columns: 1fr;
+  }
+
+  .fourier .fourier-3d-layout {
+    flex-direction: column;
+  }
+
+  .fourier .fourier-3d-sidebar {
+    flex: 1 1 auto;
+    width: 100%;
   }
 
   .fourier .fourier-checkbox-item {

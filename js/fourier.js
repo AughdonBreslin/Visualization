@@ -565,6 +565,10 @@
 
       chebC = chebDecomp2D(px);
 
+      window.__fourierState = window.__fourierState || {};
+      window.__fourierState.orig = px;
+      window.dispatchEvent(new CustomEvent('fourier-orig-update', { detail: { pixels: px } }));
+
       render();
     }
 
@@ -664,17 +668,18 @@
         }
       }
 
+      let reconPx = null;
+
       if (basis === 'fourier' && fftRe) {
         reconLabel.textContent = val >= 127 ? 'Reconstruction (full)' : `Reconstruction (r = ${val})`;
         computeRecon(fftRe, fftIm, val);
         drawRecon(workRe);
+        reconPx = workRe;
       } else if (basis === 'poly' && polyC) {
         reconLabel.textContent = `Reconstruction (degree = ${val})`;
-        if (showExt) {
-          renderExtended(canvasRecon, polyRecon2D(polyC, val, legExt));
-        } else {
-          drawRecon(polyRecon2D(polyC, val, legStd));
-        }
+        reconPx = polyRecon2D(polyC, val, showExt ? legExt : legStd);
+        if (showExt) renderExtended(canvasRecon, reconPx);
+        else drawRecon(reconPx);
       } else if (basis === 'haar' && haarC) {
         reconLabel.textContent = val >= MAX_WAVELET_LEVELS ? 'Reconstruction (full)' : `Reconstruction (${val} levels)`;
         const truncated = new Float64Array(haarC);
@@ -684,13 +689,18 @@
             if (r >= keepSize || c >= keepSize) truncated[r * N + c] = 0;
         haarInverse2D(truncated);
         drawRecon(truncated);
+        reconPx = truncated;
       } else if (basis === 'cheb' && chebC) {
         reconLabel.textContent = val >= MAX_CHEB_DEG ? 'Reconstruction (full)' : `Reconstruction (degree = ${val})`;
-        if (showExt) {
-          renderExtended(canvasRecon, chebRecon2D(chebC, val, chebExt));
-        } else {
-          drawRecon(chebRecon2D(chebC, val, chebStd));
-        }
+        reconPx = chebRecon2D(chebC, val, showExt ? chebExt : chebStd);
+        if (showExt) renderExtended(canvasRecon, reconPx);
+        else drawRecon(reconPx);
+      }
+
+      if (reconPx) {
+        window.__fourierState = window.__fourierState || {};
+        window.__fourierState.recon = reconPx;
+        window.dispatchEvent(new CustomEvent('fourier-recon-update', { detail: { pixels: reconPx } }));
       }
     }
 

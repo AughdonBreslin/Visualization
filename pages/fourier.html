@@ -23,6 +23,9 @@
 
   <script defer src="../js/formulas_layout.js"></script>
   <script defer src="../js/fourier.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+  <script defer src="../js/fourier3d.js"></script>
 </head>
 
 <body>
@@ -229,6 +232,56 @@
               </div>
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>3D Surface View</h2>
+        <p>
+          The same image rendered as a height map: the two spatial axes become the ground
+          plane and the pixel amplitude becomes vertical height. Drag <strong>horizontally</strong>
+          to orbit around the vertical axis; drag <strong>vertically</strong> to tilt the
+          elevation. Use the controls to switch between the original image and the current
+          reconstruction, and scale the height to taste.
+        </p>
+
+        <div class="fourier-3d-layout">
+          <div class="fourier-3d-canvas-wrap">
+            <canvas
+              id="fourier3dCanvas"
+              class="fourier-3d-canvas"
+              aria-label="3D height-map surface of the current image"
+            ></canvas>
+          </div>
+
+          <div class="fourier-3d-sidebar">
+            <div class="fourier-control-item fourier-3d-source-group">
+              <label class="fourier-upload-label">Source</label>
+              <label>
+                <input type="radio" name="fourier3dSource" value="recon" checked />
+                Reconstruction
+              </label>
+              <label>
+                <input type="radio" name="fourier3dSource" value="orig" />
+                Original image
+              </label>
+            </div>
+
+            <div class="fourier-control-item">
+              <label for="fourier3dScale">Height scale</label>
+              <div class="fourier-slider-row">
+                <input
+                  id="fourier3dScale"
+                  type="range"
+                  min="10"
+                  max="200"
+                  step="5"
+                  value="60"
+                />
+              </div>
+              <output id="fourier3dScaleOut" class="fourier-radius-out">60</output>
+            </div>
           </div>
         </div>
       </section>
