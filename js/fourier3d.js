@@ -15,6 +15,10 @@
       console.error('[fourier3d] OrbitControls failed to load — 3D Surface View disabled.');
       return;
     }
+    const hasFlyControls = typeof THREE.PointerLockControls !== 'undefined';
+    if (!hasFlyControls) {
+      console.warn('[fourier3d] PointerLockControls failed to load — Fly mode disabled.');
+    }
 
     // ---- Scene ----
     const scene = new THREE.Scene();
@@ -26,12 +30,35 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     // ---- Camera ----
-    const camera = new THREE.PerspectiveCamera(45, 1, 1, 1200);
+    // Far plane is driven by fog density (see setFogDensity below): dense fog
+    // means anything past the fog cutoff is invisible anyway, so we can clip
+    // aggressively and save fragment shader work.
+    const FAR_MIN = 200;
+    const FAR_MAX = 20000;
+    const camera = new THREE.PerspectiveCamera(45, 1, 1, FAR_MAX);
     camera.position.set(0, 180, 260);
+
+    function farForDensity(density) {
+      if (density <= 0) return FAR_MAX;
+      // FogExp2 attenuation = exp(-(density * d)^2). Solving for 99% opacity
+      // (factor = 0.01) gives d ≈ sqrt(ln(100)) / density ≈ 2.146 / density.
+      // We push the far plane 30% past that so the smooth fog ramp hides the
+      // clip plane.
+      const cutoff = 2.146 / density;
+      return Math.max(FAR_MIN, Math.min(FAR_MAX, cutoff * 1.3));
+    }
+
+    function setFogDensity(density) {
+      if (scene.fog) scene.fog.density = density;
+      camera.far = farForDensity(density);
+      camera.updateProjectionMatrix();
+    }
+
+    setFogDensity(scene.fog ? scene.fog.density : 0);
 
     // ---- Controls: orbit around X and Y axes ----
     const controls = new THREE.OrbitControls(camera, canvas);
-    controls.target.set(0, 28, 0);
+    controls.target.set(0, 0, 0);
     controls.enablePan = false;
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
@@ -40,6 +67,19 @@
     controls.minPolarAngle = 0.02;
     controls.maxPolarAngle = Math.PI * 0.82;
     controls.update();
+
+    // ---- Fly mode (WASD + pointer-lock mouse-look) ----
+    // PointerLockControls handles mouse-look while the pointer is locked; we
+    // drive translation manually from a key-state map. OrbitControls is left
+    // attached but disabled while flying, so toggling back resumes cleanly.
+    let cameraMode = 'orbit';
+    const flyControls = hasFlyControls
+      ? new THREE.PointerLockControls(camera, canvas)
+      : null;
+    const keys = { w: false, a: false, s: false, d: false, q: false, e: false, shift: false };
+    const clock = new THREE.Clock();
+    const FLY_BASE_SPEED = 80;   // units per second
+    const FLY_SPRINT_MULT = 3;
 
     // ---- Height map geometry ----
     // PlaneGeometry lies in XY plane; rotateX puts it in XZ plane with Y = height.
@@ -82,12 +122,52 @@
     let origPixels  = null;
     let reconPixels = null;
     let currentPixels = null;
+    let hideOutOfRange = false;
+
+    // Save the original index so toggling can restore it. Pre-allocate the
+    // filtered buffer once to avoid per-frame allocation pressure.
+    const originalIndexAttr  = geometry.index;
+    const originalIndexArray = originalIndexAttr.array;
+    const filteredIndexBuffer = new originalIndexArray.constructor(originalIndexArray.length);
+
+    // Drop any triangle whose vertices aren't all in [0, 255]. The
+    // InstancedMesh shares this geometry, so the clip applies to every tile.
+    function applyIndexFilter(pixels) {
+      if (!hideOutOfRange) {
+        if (geometry.index !== originalIndexAttr) geometry.setIndex(originalIndexAttr);
+        return;
+      }
+
+      let writePos = 0;
+      const len = originalIndexArray.length;
+      for (let t = 0; t < len; t += 3) {
+        const a = originalIndexArray[t];
+        const b = originalIndexArray[t + 1];
+        const c = originalIndexArray[t + 2];
+        const va = pixels[a], vb = pixels[b], vc = pixels[c];
+        if (va >= 0 && va <= 255 && vb >= 0 && vb <= 255 && vc >= 0 && vc <= 255) {
+          filteredIndexBuffer[writePos++] = a;
+          filteredIndexBuffer[writePos++] = b;
+          filteredIndexBuffer[writePos++] = c;
+        }
+      }
+      geometry.setIndex(new THREE.BufferAttribute(filteredIndexBuffer.subarray(0, writePos), 1));
+    }
 
     // ---- Apply pixel array to height map ----
     // Color grading: 0 → black, 255 → white linear grayscale in-range;
     // values below 0 ramp into blue, values above 255 ramp into red.
     // Same convention as the 2D `renderExtended` view so Gibbs overshoot
     // and undershoot are visually identifiable across both panels.
+    //
+    // Out-of-range heights are compressed logarithmically. High-degree
+    // Legendre/Chebyshev reconstructions can produce pixel values up to
+    // 10^20+ on the extended domain; mapped linearly those would stretch
+    // triangles across the entire screen and cripple the fragment shader.
+    // The OOR_COMPRESSION factor sets how much vertical room each decade
+    // of overshoot occupies, measured in units of heightScale.
+    const OOR_COMPRESSION = 0.25;
+
     function applyPixels(pixels) {
       currentPixels = pixels;
       const pos = geometry.attributes.position;
@@ -96,8 +176,17 @@
       for (let i = 0; i < N * N; i++) {
         const v = pixels[i];
 
-        // Height anchored to the 0–255 scale so amplitude is physically meaningful.
-        pos.setY(i, (v / 255) * heightScale);
+        let h;
+        if (v < 0) {
+          const excess = Math.min(-v, 1e20);
+          h = -OOR_COMPRESSION * heightScale * Math.log10(1 + excess);
+        } else if (v > 255) {
+          const excess = Math.min(v - 255, 1e20);
+          h = heightScale + OOR_COMPRESSION * heightScale * Math.log10(1 + excess);
+        } else {
+          h = (v / 255) * heightScale;
+        }
+        pos.setY(i, h);
 
         let r, g, b;
         if (v < 0) {
@@ -120,6 +209,7 @@
 
       pos.needsUpdate = true;
       col.needsUpdate = true;
+      applyIndexFilter(pixels);
       geometry.computeVertexNormals();
     }
 
@@ -135,6 +225,18 @@
       });
     }
 
+    const fogSl  = document.getElementById('fourier3dFog');
+    const fogOut = document.getElementById('fourier3dFogOut');
+    const FOG_DENSITY_PER_UNIT = 0.0001;
+
+    if (fogSl) {
+      fogSl.addEventListener('input', () => {
+        const v = +fogSl.value;
+        if (fogOut) fogOut.textContent = v;
+        setFogDensity(v * FOG_DENSITY_PER_UNIT);
+      });
+    }
+
     document.querySelectorAll('input[name="fourier3dSource"]').forEach(radio => {
       radio.addEventListener('change', () => {
         showSource = radio.value;
@@ -142,6 +244,67 @@
         if (px) applyPixels(px);
       });
     });
+
+    // ---- Camera mode (Orbit vs Fly) ----
+    const flyHint = document.getElementById('fourier3dFlyHint');
+    const flyRadio = document.querySelector('input[name="fourier3dCamera"][value="fly"]');
+
+    if (!hasFlyControls && flyRadio) flyRadio.disabled = true;
+
+    function setCameraMode(mode) {
+      if (mode === cameraMode) return;
+      if (mode === 'fly' && !hasFlyControls) return;
+
+      if (mode === 'fly') {
+        controls.enabled = false;
+        if (flyHint) flyHint.style.display = '';
+      } else {
+        if (flyControls && flyControls.isLocked) flyControls.unlock();
+        // Orbit always pivots around the origin so the heightmap stays
+        // centered in view regardless of where fly mode left the camera.
+        controls.target.set(0, 0, 0);
+        controls.enabled = true;
+        if (flyHint) flyHint.style.display = 'none';
+        for (const k in keys) keys[k] = false;
+      }
+      cameraMode = mode;
+    }
+
+    document.querySelectorAll('input[name="fourier3dCamera"]').forEach(radio => {
+      radio.addEventListener('change', () => setCameraMode(radio.value));
+    });
+
+    canvas.addEventListener('click', () => {
+      if (cameraMode !== 'fly' || !flyControls) return;
+      if (flyControls.isLocked) flyControls.unlock();
+      else flyControls.lock();
+    });
+
+    window.addEventListener('keydown', e => {
+      if (cameraMode !== 'fly') return;
+      if (e.key === 'Shift') { keys.shift = true; return; }
+      const k = e.key.toLowerCase();
+      if (k in keys) { keys[k] = true; e.preventDefault(); }
+    });
+
+    window.addEventListener('keyup', e => {
+      if (e.key === 'Shift') { keys.shift = false; return; }
+      const k = e.key.toLowerCase();
+      if (k in keys) keys[k] = false;
+    });
+
+    // Clear stuck keys if the window loses focus mid-press.
+    window.addEventListener('blur', () => {
+      for (const k in keys) keys[k] = false;
+    });
+
+    const hideChk = document.getElementById('fourier3dHideOOR');
+    if (hideChk) {
+      hideChk.addEventListener('change', () => {
+        hideOutOfRange = hideChk.checked;
+        if (currentPixels) applyPixels(currentPixels);
+      });
+    }
 
     // ---- Periodic tiling (InstancedMesh) ----
     let tilingEnabled = false;
@@ -191,21 +354,22 @@
     const tileChk = document.getElementById('fourier3dTile');
     const tileSl  = document.getElementById('fourier3dTileExtent');
     const tileOut = document.getElementById('fourier3dTileExtentOut');
+    const tileRow = document.getElementById('fourier3dTileExtentRow');
 
     function updateTileLabel() {
       if (!tileOut) return;
       const total = tileExtent * tileExtent;
-      tileOut.textContent = tilingEnabled
-        ? `${tileExtent} × ${tileExtent} = ${total} tiles`
-        : `${tileExtent} × ${tileExtent} = ${total} tiles (off)`;
+      tileOut.textContent = `${tileExtent} × ${tileExtent} = ${total} tiles`;
     }
 
     if (tileChk) {
       tileChk.addEventListener('change', () => {
         tilingEnabled = tileChk.checked;
         if (tileSl) tileSl.disabled = !tilingEnabled;
+        if (tileRow) tileRow.style.display = tilingEnabled ? '' : 'none';
         rebuildTiling();
         updateTileLabel();
+        syncBasisWarning();
       });
     }
 
@@ -216,6 +380,23 @@
         updateTileLabel();
       });
     }
+
+    // ---- Basis-aware tiling warning ----
+    // The tiling control stays usable for every basis (mirroring the 2D demo,
+    // which also lets you toggle its extension/extrapolation view freely).
+    // For Legendre, Chebyshev, and Haar we surface a warning so the user
+    // knows the replication is visual only, not implied by the basis.
+    const basisSel = document.getElementById('fourierBasis');
+    const tileNote = document.getElementById('fourier3dTileBasisNote');
+
+    function syncBasisWarning() {
+      const isFourier = !basisSel || basisSel.value === 'fourier';
+      const show = !isFourier && tilingEnabled;
+      if (tileNote) tileNote.style.display = show ? '' : 'none';
+    }
+
+    if (basisSel) basisSel.addEventListener('change', syncBasisWarning);
+    syncBasisWarning();
 
     // ---- Listen for main-demo pixel updates ----
     window.addEventListener('fourier-orig-update', e => {
@@ -254,7 +435,18 @@
     // ---- Render loop ----
     (function animate() {
       requestAnimationFrame(animate);
-      controls.update();
+      const dt = clock.getDelta();
+      if (cameraMode === 'fly' && flyControls) {
+        const speed = FLY_BASE_SPEED * (keys.shift ? FLY_SPRINT_MULT : 1) * dt;
+        if (keys.w) flyControls.moveForward(speed);
+        if (keys.s) flyControls.moveForward(-speed);
+        if (keys.a) flyControls.moveRight(-speed);
+        if (keys.d) flyControls.moveRight(speed);
+        if (keys.e) camera.position.y += speed;
+        if (keys.q) camera.position.y -= speed;
+      } else {
+        controls.update();
+      }
       renderer.render(scene, camera);
     })();
   });

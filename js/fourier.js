@@ -4,7 +4,7 @@
   const N = 256;
   const HALF = N / 2;
   const N2 = N * N;
-  const MAX_POLY_DEG = 30;
+  const MAX_POLY_DEG = 128;
   const MAX_WAVELET_LEVELS = 8; // log2(256)
 
   // ---- FFT (Cooley-Tukey radix-2 DIT, in-place) ----
@@ -146,7 +146,7 @@
   // Norm: ||T_0||^2 = pi, ||T_k||^2 = pi/2 (k>=1).
   // Use midpoint nodes t_i = (2i+1)/N - 1 to avoid singularity at +-1.
 
-  const MAX_CHEB_DEG = 30;
+  const MAX_CHEB_DEG = 128;
 
   function buildChebyshevAt(tValues, maxDeg) {
     const n = tValues.length;
@@ -467,23 +467,21 @@
     ctx.setLineDash([]);
   }
 
-  function renderTiled(destCanvas, srcCanvas, showOverlay) {
+  function renderTiled(destCanvas, srcCanvas) {
     const ctx = destCanvas.getContext('2d');
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     for (let ty = 0; ty < 2; ty++)
       for (let tx = 0; tx < 2; tx++)
         ctx.drawImage(srcCanvas, tx * HALF, ty * HALF, HALF, HALF);
-    if (showOverlay) {
-      ctx.strokeStyle = 'rgba(255, 80, 80, 0.85)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([3, 3]);
-      ctx.beginPath();
-      ctx.moveTo(HALF, 0); ctx.lineTo(HALF, N);
-      ctx.moveTo(0, HALF); ctx.lineTo(N, HALF);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
+    ctx.strokeStyle = 'rgba(255, 80, 80, 0.85)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(HALF, 0); ctx.lineTo(HALF, N);
+    ctx.moveTo(0, HALF); ctx.lineTo(N, HALF);
+    ctx.stroke();
+    ctx.setLineDash([]);
     ctx.restore();
   }
 
@@ -531,7 +529,6 @@
     const radiusLabel    = document.getElementById('fourierRadiusLabel');
     const tilingChk      = document.getElementById('fourierTiling');
     const tilingText     = document.getElementById('fourierTilingText');
-    const showOverlayChk = document.getElementById('fourierShowOverlay');
     const origLabel      = document.getElementById('fourierOrigLabel');
     const specLabel      = document.getElementById('fourierSpecLabel');
     const reconLabel     = document.getElementById('fourierReconLabel');
@@ -539,7 +536,6 @@
     const canvasSpec     = document.getElementById('fourierSpecCanvas');
     const canvasRecon    = document.getElementById('fourierReconCanvas');
     const uploadInput    = document.getElementById('fourierUpload');
-    const uploadName     = document.getElementById('fourierUploadName');
 
     const srcCanvas = document.createElement('canvas');
     srcCanvas.width = N; srcCanvas.height = N;
@@ -609,7 +605,6 @@
       const basis      = basisSel.value;
       const val        = parseInt(radiusSl.value, 10);
       const showExt    = tilingChk.checked;
-      const showOverlay = showOverlayChk ? showOverlayChk.checked : true;
 
       // --- coefficient count label ---
       if (basis === 'fourier') {
@@ -636,7 +631,7 @@
           if (chebC) renderExtended(canvasOrig, chebRecon2D(chebC, MAX_CHEB_DEG, chebExt));
         } else {
           origLabel.textContent = 'Periodic Extension (2×2 tile)';
-          renderTiled(canvasOrig, srcCanvas, showOverlay);
+          renderTiled(canvasOrig, srcCanvas);
         }
       } else {
         origLabel.textContent = 'Original Image';
@@ -660,7 +655,7 @@
       function drawRecon(px) {
         renderGrayscale(reconSrcCanvas, px);
         if (showExt) {
-          renderTiled(canvasRecon, reconSrcCanvas, showOverlay);
+          renderTiled(canvasRecon, reconSrcCanvas);
         } else {
           const ctx = canvasRecon.getContext('2d');
           ctx.imageSmoothingEnabled = false;
@@ -705,15 +700,36 @@
     }
 
     basisSel.addEventListener('change', onBasisChange);
-    presetSel.addEventListener('change', () => loadPixels(makePreset(presetSel.value)));
     radiusSl.addEventListener('input', render);
     tilingChk.addEventListener('change', render);
-    if (showOverlayChk) showOverlayChk.addEventListener('change', render);
+
+    // The Image dropdown combines presets with an "upload" action. The action
+    // option triggers the hidden file input; the upload handler then inserts
+    // a filename option above "Choose file…" so the user can switch back to
+    // the uploaded image later.
+    const UPLOAD_ACTION = '__upload__';
+    const UPLOAD_SLOT   = '__uploaded__';
+    let lastImageSelection = presetSel.value;
+    let uploadedPixels = null;
+
+    presetSel.addEventListener('change', () => {
+      const v = presetSel.value;
+      if (v === UPLOAD_ACTION) {
+        presetSel.value = lastImageSelection;
+        uploadInput.click();
+        return;
+      }
+      lastImageSelection = v;
+      if (v === UPLOAD_SLOT && uploadedPixels) {
+        loadPixels(uploadedPixels);
+      } else {
+        loadPixels(makePreset(v));
+      }
+    });
 
     uploadInput.addEventListener('change', function () {
       const file = this.files[0];
       if (!file) return;
-      uploadName.textContent = file.name;
       const reader = new FileReader();
       reader.onload = function (e) {
         const img = new Image();
@@ -727,6 +743,19 @@
           const px = new Float64Array(N2);
           for (let i = 0; i < N2; i++)
             px[i] = 0.299*data[i*4] + 0.587*data[i*4+1] + 0.114*data[i*4+2];
+          uploadedPixels = px;
+
+          let slot = presetSel.querySelector(`option[value="${UPLOAD_SLOT}"]`);
+          if (!slot) {
+            slot = document.createElement('option');
+            slot.value = UPLOAD_SLOT;
+            const action = presetSel.querySelector(`option[value="${UPLOAD_ACTION}"]`);
+            action.parentNode.insertBefore(slot, action);
+          }
+          slot.textContent = file.name;
+          presetSel.value = UPLOAD_SLOT;
+          lastImageSelection = UPLOAD_SLOT;
+          uploadInput.value = '';
           loadPixels(px);
         };
         img.src = e.target.result;

@@ -25,6 +25,7 @@
   <script defer src="../js/fourier.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/PointerLockControls.js"></script>
   <script defer src="../js/fourier3d.js"></script>
 </head>
 
@@ -109,209 +110,229 @@
         </p>
       </section>
 
-      <section class="panel">
-        <h2>The Interactive Demo</h2>
-        <p>
-          The left panel shows the original image or its 2×2 periodic extension. The center
-          panel shows the log-magnitude spectrum (DC centered, hot colormap), with a blue circle
-          marking the low-pass filter radius. The right panel shows the reconstruction from the
-          frequencies inside that circle.
-        </p>
+      <section class="panel fourier-demo-panel">
+        <h2>Interactive Demo</h2>
 
-        <div class="viz-row fourier-viz-row">
-          <div class="viz-panel fourier-viz-panel">
+        <div class="fourier-canvas-grid">
+          <section class="fourier-canvas-card">
+            <h3 class="h3-tight"><span id="fourierOrigLabel">Original Image</span></h3>
+            <canvas
+              id="fourierOrigCanvas"
+              width="256"
+              height="256"
+              class="fourier-canvas"
+              aria-label="Original image or periodic extension"
+            ></canvas>
+          </section>
 
-            <div class="fourier-canvas-grid">
-              <section class="fourier-canvas-card">
-                <h3 class="h3-tight"><span id="fourierOrigLabel">Original Image</span></h3>
-                <canvas
-                  id="fourierOrigCanvas"
-                  width="256"
-                  height="256"
-                  class="fourier-canvas"
-                  aria-label="Original image or periodic extension"
-                ></canvas>
-                <p class="help-text small">
-                  Toggle "periodic extension" to see how the DFT tiles this image.
-                </p>
-              </section>
+          <section class="fourier-canvas-card">
+            <h3 class="h3-tight"><span id="fourierSpecLabel">Frequency Spectrum (log magnitude)</span></h3>
+            <canvas
+              id="fourierSpecCanvas"
+              width="256"
+              height="256"
+              class="fourier-canvas"
+              aria-label="Frequency magnitude spectrum"
+            ></canvas>
+          </section>
 
-              <section class="fourier-canvas-card">
-                <h3 class="h3-tight"><span id="fourierSpecLabel">Frequency Spectrum (log magnitude)</span></h3>
-                <canvas
-                  id="fourierSpecCanvas"
-                  width="256"
-                  height="256"
-                  class="fourier-canvas"
-                  aria-label="Frequency magnitude spectrum"
-                ></canvas>
-                <p class="help-text small">
-                  DC (zero frequency) at center. Blue circle = filter boundary. Brighter = more energy.
-                </p>
-              </section>
+          <section class="fourier-canvas-card">
+            <h3 class="h3-tight"><span id="fourierReconLabel">Reconstruction</span></h3>
+            <canvas
+              id="fourierReconCanvas"
+              width="256"
+              height="256"
+              class="fourier-canvas"
+              aria-label="Low-pass reconstructed image"
+            ></canvas>
+          </section>
+        </div>
 
-              <section class="fourier-canvas-card">
-                <h3 class="h3-tight"><span id="fourierReconLabel">Reconstruction</span></h3>
-                <canvas
-                  id="fourierReconCanvas"
-                  width="256"
-                  height="256"
-                  class="fourier-canvas"
-                  aria-label="Low-pass reconstructed image"
-                ></canvas>
-                <p class="help-text small">
-                  Inverse DFT using only frequencies inside the blue circle.
-                </p>
-              </section>
+        <div class="fourier-controls-block">
+
+          <div class="fourier-control-section">
+            <h3 class="fourier-control-heading">Decomposition</h3>
+            <div class="fourier-control-grid">
+
+              <div class="fourier-control-item">
+                <label for="fourierBasis">Basis</label>
+                <select id="fourierBasis">
+                  <option value="fourier" selected>Fourier series</option>
+                  <option value="poly">Legendre polynomials</option>
+                  <option value="cheb">Chebyshev polynomials</option>
+                  <option value="haar">Haar wavelets</option>
+                </select>
+              </div>
+
+              <div class="fourier-control-item">
+                <label for="fourierPreset">Image</label>
+                <select id="fourierPreset">
+                  <option value="quadrant" selected>Quadrant</option>
+                  <option value="circle">Hard circle</option>
+                  <option value="gaussian">Gaussian blob</option>
+                  <option value="step">Step function</option>
+                  <option value="rect">Rectangle</option>
+                  <option disabled>──────────</option>
+                  <option value="__upload__">Choose file…</option>
+                </select>
+                <input id="fourierUpload" type="file" accept="image/*" hidden />
+              </div>
+
+              <div class="fourier-control-item">
+                <label id="fourierRadiusLabel" for="fourierRadius">Low-pass filter radius</label>
+                <div class="fourier-slider-row">
+                  <input
+                    id="fourierRadius"
+                    type="range"
+                    min="1"
+                    max="128"
+                    step="1"
+                    value="20"
+                  />
+                </div>
+                <output id="fourierRadiusValue" for="fourierRadius" class="fourier-radius-out">
+                  r = 20
+                </output>
+              </div>
+
+              <div class="fourier-control-item fourier-checkbox-item">
+                <label class="fourier-check-label">
+                  <input id="fourierTiling" type="checkbox" checked />
+                  <span id="fourierTilingText">Show periodic extension (2×2 tile)</span>
+                </label>
+              </div>
+
             </div>
+          </div>
 
-            <div class="fourier-controls-block">
-              <div class="fourier-control-grid">
+          <div class="fourier-control-section">
+            <h3 class="fourier-control-heading">3D View</h3>
+            <div class="fourier-control-grid fourier-3d-grid">
 
-                <div class="fourier-control-item">
-                  <label for="fourierBasis">Basis</label>
-                  <select id="fourierBasis">
-                    <option value="fourier" selected>Fourier (sine waves)</option>
-                    <option value="poly">Legendre polynomials</option>
-                    <option value="haar">Haar wavelets</option>
-                    <option value="cheb">Chebyshev polynomials</option>
-                  </select>
+              <div class="fourier-control-column">
+                <div class="fourier-control-item fourier-3d-source-group">
+                  <label class="fourier-upload-label">Source</label>
+                  <label>
+                    <input type="radio" name="fourier3dSource" value="recon" checked />
+                    Reconstruction
+                  </label>
+                  <label>
+                    <input type="radio" name="fourier3dSource" value="orig" />
+                    Original image
+                  </label>
                 </div>
 
-                <div class="fourier-control-item">
-                  <label for="fourierPreset">Image Preset</label>
-                  <select id="fourierPreset">
-                    <option value="quadrant" selected>Quadrant (checker cell)</option>
-                    <option value="circle">Hard circle (sharp edge)</option>
-                    <option value="gaussian">Gaussian blob (smooth)</option>
-                    <option value="step">Step function</option>
-                    <option value="rect">Rectangle</option>
-                  </select>
-                </div>
-
-                <div class="fourier-control-item">
-                  <label id="fourierRadiusLabel" for="fourierRadius">Low-pass filter radius</label>
+                <div
+                  id="fourier3dTileExtentRow"
+                  class="fourier-control-item"
+                  style="display:none"
+                >
+                  <label for="fourier3dTileExtent">Tile extent</label>
                   <div class="fourier-slider-row">
                     <input
-                      id="fourierRadius"
+                      id="fourier3dTileExtent"
                       type="range"
-                      min="1"
-                      max="128"
-                      step="1"
-                      value="20"
+                      min="3"
+                      max="21"
+                      step="2"
+                      value="5"
+                      disabled
                     />
                   </div>
-                  <output id="fourierRadiusValue" for="fourierRadius" class="fourier-radius-out">
-                    r = 20
+                  <output id="fourier3dTileExtentOut" class="fourier-radius-out">
+                    5 × 5 = 25 tiles
                   </output>
                 </div>
+              </div>
 
-                <div class="fourier-control-item fourier-upload-item">
-                  <label class="fourier-upload-label" for="fourierUpload">Upload image</label>
-                  <label class="fourier-upload-btn" for="fourierUpload" aria-label="Choose image file">
-                    Choose file…
+              <div class="fourier-control-column">
+                <div class="fourier-control-item fourier-3d-source-group fourier-3d-camera-item">
+                  <label class="fourier-upload-label">Camera</label>
+                  <label>
+                    <input type="radio" name="fourier3dCamera" value="orbit" checked />
+                    Orbit
                   </label>
-                  <input id="fourierUpload" type="file" accept="image/*" />
-                  <span id="fourierUploadName" class="fourier-upload-name">No file chosen</span>
+                  <label>
+                    <input type="radio" name="fourier3dCamera" value="fly" />
+                    Fly
+                  </label>
+                  <p
+                    id="fourier3dFlyHint"
+                    class="fourier-fly-hint"
+                    style="display:none"
+                  >
+                    Click the canvas to lock the cursor; click again or press ESC
+                    to release. WASD to move, Q/E for down/up, Shift to sprint.
+                  </p>
+                </div>
+              </div>
+
+              <div class="fourier-control-column">
+                <div class="fourier-control-item">
+                  <label for="fourier3dScale">Height scale</label>
+                  <div class="fourier-slider-row">
+                    <input
+                      id="fourier3dScale"
+                      type="range"
+                      min="10"
+                      max="200"
+                      step="5"
+                      value="60"
+                    />
+                  </div>
+                  <output id="fourier3dScaleOut" class="fourier-radius-out">60</output>
+                </div>
+
+                <div class="fourier-control-item">
+                  <label for="fourier3dFog">Fog density</label>
+                  <div class="fourier-slider-row">
+                    <input
+                      id="fourier3dFog"
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value="28"
+                    />
+                  </div>
+                  <output id="fourier3dFogOut" class="fourier-radius-out">28</output>
+                </div>
+
+              </div>
+
+              <div class="fourier-control-column">
+                <div class="fourier-control-item fourier-checkbox-item">
+                  <label class="fourier-check-label">
+                    <input id="fourier3dHideOOR" type="checkbox" />
+                    Hide overshoot regions
+                  </label>
                 </div>
 
                 <div class="fourier-control-item fourier-checkbox-item">
                   <label class="fourier-check-label">
-                    <input id="fourierTiling" type="checkbox" checked />
-                    <span id="fourierTilingText">Show periodic extension (2×2 tile)</span>
+                    <input id="fourier3dTile" type="checkbox" />
+                    Periodic tiling
                   </label>
+                  <p
+                    id="fourier3dTileBasisNote"
+                    class="fourier-warning"
+                    style="display:none"
+                  >
+                    Basis not periodic - replicating tiles
+                  </p>
                 </div>
-
-                <div class="fourier-control-item fourier-checkbox-item">
-                  <label class="fourier-check-label">
-                    <input id="fourierShowOverlay" type="checkbox" checked />
-                    Show border overlay
-                  </label>
-                </div>
-
               </div>
-            </div>
 
+            </div>
           </div>
+
         </div>
-      </section>
 
-      <section class="panel">
-        <h2>3D Surface View</h2>
-        <p>
-          The same image rendered as a height map: the two spatial axes become the ground
-          plane and the pixel amplitude becomes vertical height. Drag <strong>horizontally</strong>
-          to orbit around the vertical axis; drag <strong>vertically</strong> to tilt the
-          elevation. Use the controls to switch between the original image and the current
-          reconstruction, and scale the height to taste.
-        </p>
-
-        <div class="fourier-3d-layout">
-          <div class="fourier-3d-canvas-wrap">
-            <canvas
-              id="fourier3dCanvas"
-              class="fourier-3d-canvas"
-              aria-label="3D height-map surface of the current image"
-            ></canvas>
-          </div>
-
-          <div class="fourier-3d-sidebar">
-            <div class="fourier-control-item fourier-3d-source-group">
-              <label class="fourier-upload-label">Source</label>
-              <label>
-                <input type="radio" name="fourier3dSource" value="recon" checked />
-                Reconstruction
-              </label>
-              <label>
-                <input type="radio" name="fourier3dSource" value="orig" />
-                Original image
-              </label>
-            </div>
-
-            <div class="fourier-control-item">
-              <label for="fourier3dScale">Height scale</label>
-              <div class="fourier-slider-row">
-                <input
-                  id="fourier3dScale"
-                  type="range"
-                  min="10"
-                  max="200"
-                  step="5"
-                  value="60"
-                />
-              </div>
-              <output id="fourier3dScaleOut" class="fourier-radius-out">60</output>
-            </div>
-
-            <div class="fourier-control-item fourier-checkbox-item">
-              <label class="fourier-check-label">
-                <input id="fourier3dTile" type="checkbox" />
-                Periodic tiling
-              </label>
-            </div>
-
-            <div class="fourier-control-item">
-              <label for="fourier3dTileExtent">Tile extent</label>
-              <div class="fourier-slider-row">
-                <input
-                  id="fourier3dTileExtent"
-                  type="range"
-                  min="3"
-                  max="21"
-                  step="2"
-                  value="5"
-                  disabled
-                />
-              </div>
-              <output id="fourier3dTileExtentOut" class="fourier-radius-out">
-                5 × 5 = 25 tiles (off)
-              </output>
-              <p class="help-text small" style="margin-top:4px">
-                Zoom out (scroll) and drag to pan once tiling is on.
-              </p>
-            </div>
-          </div>
-        </div>
+        <canvas
+          id="fourier3dCanvas"
+          class="fourier-3d-canvas"
+          aria-label="3D height-map surface of the current image"
+        ></canvas>
       </section>
 
       <section class="panel">

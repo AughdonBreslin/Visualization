@@ -8,20 +8,6 @@
   max-width: 1400px;
 }
 
-.fourier .fourier-viz-row {
-  margin: 16px 0;
-  flex-wrap: nowrap;
-}
-
-.fourier .fourier-viz-panel {
-  flex: 1 1 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-width: 0;
-  padding: 12px;
-}
-
 /* Three-column canvas grid */
 .fourier .fourier-canvas-grid {
   display: grid;
@@ -107,31 +93,6 @@
   font-size: 0.95rem;
 }
 
-.fourier .fourier-upload-btn {
-  display: block;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  text-align: center;
-  transition: background 120ms ease, border-color 120ms ease;
-}
-
-.fourier .fourier-upload-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.32);
-}
-
-.fourier .fourier-upload-name {
-  font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.55);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* Checkbox row */
 .fourier .fourier-checkbox-item {
   justify-content: flex-end;
@@ -158,18 +119,27 @@
 .fourier .fourier-legend-red  { color: #ff6060; font-weight: 600; }
 .fourier .fourier-legend-blue { color: #6090ff; font-weight: 600; }
 
+/* ---- Unified panel layout ---- */
+.fourier .fourier-demo-panel > * + * {
+  margin-top: 16px;
+}
+
+.fourier .fourier-control-section + .fourier-control-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+.fourier .fourier-control-heading {
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 /* ---- 3D Surface View ---- */
-.fourier .fourier-3d-layout {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.fourier .fourier-3d-canvas-wrap {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
 .fourier .fourier-3d-canvas {
   display: block;
   width: 100%;
@@ -183,18 +153,41 @@
   cursor: grabbing;
 }
 
-.fourier .fourier-3d-sidebar {
-  flex: 0 0 200px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding-top: 4px;
-}
-
 .fourier .fourier-3d-source-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+/* 3D View: fixed 4-column layout — radios, radios, sliders, toggles */
+.fourier .fourier-3d-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
+}
+
+.fourier .fourier-control-column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* Camera column hosts the fly hint as an absolute-positioned overlay so it
+   never pushes the rest of the page down when Fly is selected. */
+.fourier .fourier-3d-camera-item {
+  position: relative;
+}
+
+.fourier .fourier-fly-hint {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  opacity: 0.85;
+  z-index: 1;
 }
 
 .fourier .fourier-3d-source-group label {
@@ -206,27 +199,38 @@
   cursor: pointer;
 }
 
+.fourier .fourier-warning {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-left: 3px solid #e0b341;
+  background: rgba(224, 179, 65, 0.10);
+  color: #f0c460;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  border-radius: 2px;
+}
+
+.fourier .fourier-warning strong {
+  color: #f5d27e;
+}
+
 /* Responsive */
 @media (max-width: 800px) {
   .fourier .fourier-canvas-grid {
     grid-template-columns: 1fr;
   }
 
-  .fourier .fourier-viz-row {
-    flex-wrap: wrap;
-  }
-
   .fourier .fourier-control-grid {
     grid-template-columns: 1fr;
   }
 
-  .fourier .fourier-3d-layout {
-    flex-direction: column;
+  .fourier .fourier-3d-grid {
+    grid-template-columns: 1fr;
   }
 
-  .fourier .fourier-3d-sidebar {
-    flex: 1 1 auto;
-    width: 100%;
+  .fourier .fourier-fly-hint {
+    position: static;
+    margin-top: 4px;
   }
 
   .fourier .fourier-checkbox-item {
