@@ -19,6 +19,9 @@
     if (!hasFlyControls) {
       console.warn('[fourier3d] PointerLockControls failed to load — Fly mode disabled.');
     }
+    // On touch devices PointerLock + WASD is unusable. Fall back to enabling
+    // OrbitControls panning so a two-finger drag translates the camera.
+    const isMobile = window.matchMedia('(pointer: coarse)').matches;
 
     // ---- Scene ----
     const scene = new THREE.Scene();
@@ -200,9 +203,11 @@
           g = 0;
           b = 0;
         } else {
-          // In-range: linear grayscale.
+          // In-range: linear grayscale, capped slightly below pure white so
+          // the directional light's specular contribution does not push the
+          // brightest pixels into saturated glare.
           const t = v / 255;
-          r = g = b = t;
+          r = g = b = t * 0.85;
         }
         col.setXYZ(i, r, g, b);
       }
@@ -225,18 +230,6 @@
       });
     }
 
-    const fogSl  = document.getElementById('fourier3dFog');
-    const fogOut = document.getElementById('fourier3dFogOut');
-    const FOG_DENSITY_PER_UNIT = 0.0001;
-
-    if (fogSl) {
-      fogSl.addEventListener('input', () => {
-        const v = +fogSl.value;
-        if (fogOut) fogOut.textContent = v;
-        setFogDensity(v * FOG_DENSITY_PER_UNIT);
-      });
-    }
-
     document.querySelectorAll('input[name="fourier3dSource"]').forEach(radio => {
       radio.addEventListener('change', () => {
         showSource = radio.value;
@@ -245,25 +238,43 @@
       });
     });
 
-    // ---- Camera mode (Orbit vs Fly) ----
+    // ---- Camera mode (Orbit vs Fly/Pan) ----
+    // On desktop the second mode is true Fly: PointerLockControls + WASD.
+    // On mobile it degrades to Pan: OrbitControls with panning enabled, so a
+    // two-finger drag translates the camera instead of orbiting it.
     const flyHint = document.getElementById('fourier3dFlyHint');
     const flyRadio = document.querySelector('input[name="fourier3dCamera"][value="fly"]');
+    const flyLabel = document.getElementById('fourier3dFlyLabel');
 
-    if (!hasFlyControls && flyRadio) flyRadio.disabled = true;
+    if (isMobile) {
+      if (flyLabel) flyLabel.textContent = 'Pan';
+      if (flyHint) {
+        flyHint.textContent = 'Two-finger drag to pan, single-finger drag to orbit.';
+      }
+    } else if (!hasFlyControls && flyRadio) {
+      flyRadio.disabled = true;
+    }
 
     function setCameraMode(mode) {
       if (mode === cameraMode) return;
-      if (mode === 'fly' && !hasFlyControls) return;
+      if (mode === 'fly' && !hasFlyControls && !isMobile) return;
 
       if (mode === 'fly') {
-        controls.enabled = false;
+        if (isMobile) {
+          // Pan: keep OrbitControls active, just turn panning on.
+          controls.enablePan = true;
+        } else {
+          controls.enabled = false;
+        }
         if (flyHint) flyHint.style.display = '';
       } else {
-        if (flyControls && flyControls.isLocked) flyControls.unlock();
+        if (!isMobile && flyControls && flyControls.isLocked) flyControls.unlock();
         // Orbit always pivots around the origin so the heightmap stays
-        // centered in view regardless of where fly mode left the camera.
+        // centered in view regardless of where fly/pan mode left the camera.
         controls.target.set(0, 0, 0);
         controls.enabled = true;
+        // Restore tiling-driven pan state for orbit mode.
+        if (isMobile) controls.enablePan = tilingEnabled;
         if (flyHint) flyHint.style.display = 'none';
         for (const k in keys) keys[k] = false;
       }
@@ -275,7 +286,7 @@
     });
 
     canvas.addEventListener('click', () => {
-      if (cameraMode !== 'fly' || !flyControls) return;
+      if (cameraMode !== 'fly' || !flyControls || isMobile) return;
       if (flyControls.isLocked) flyControls.unlock();
       else flyControls.lock();
     });
@@ -322,7 +333,8 @@
 
       if (!tilingEnabled) {
         mesh.visible        = true;
-        controls.enablePan  = false;
+        // Mobile-pan mode wants panning on regardless of tiling state.
+        controls.enablePan  = isMobile && cameraMode === 'fly';
         controls.maxDistance = DEFAULT_MAX_DIST;
         return;
       }
@@ -362,6 +374,22 @@
       tileOut.textContent = `${tileExtent} × ${tileExtent} = ${total} tiles`;
     }
 
+    // Fog scales down to zero as tile extent grows, so the larger the
+    // wallpaper grid the further the user can see across it. When tiling is
+    // off, fog returns to its default density.
+    const DEFAULT_FOG_DENSITY = 0.0028;
+    const TILE_EXTENT_MIN = 3;
+    const TILE_EXTENT_MAX = 21;
+
+    function fogForTileState() {
+      if (!tilingEnabled) return DEFAULT_FOG_DENSITY;
+      const t = (tileExtent - TILE_EXTENT_MIN) / (TILE_EXTENT_MAX - TILE_EXTENT_MIN);
+      // Halve the curve so that even at the smallest tile extent the fog is
+      // already 50% of the non-tiling default, giving cleaner long-range
+      // visibility across the wallpaper grid.
+      return DEFAULT_FOG_DENSITY * 0.5 * (1 - Math.max(0, Math.min(1, t)));
+    }
+
     if (tileChk) {
       tileChk.addEventListener('change', () => {
         tilingEnabled = tileChk.checked;
@@ -369,6 +397,7 @@
         if (tileRow) tileRow.style.display = tilingEnabled ? '' : 'none';
         rebuildTiling();
         updateTileLabel();
+        setFogDensity(fogForTileState());
         syncBasisWarning();
       });
     }
@@ -378,6 +407,7 @@
         tileExtent = +tileSl.value;
         if (tilingEnabled) rebuildTiling();
         updateTileLabel();
+        if (tilingEnabled) setFogDensity(fogForTileState());
       });
     }
 
@@ -436,7 +466,7 @@
     (function animate() {
       requestAnimationFrame(animate);
       const dt = clock.getDelta();
-      if (cameraMode === 'fly' && flyControls) {
+      if (cameraMode === 'fly' && flyControls && !isMobile) {
         const speed = FLY_BASE_SPEED * (keys.shift ? FLY_SPRINT_MULT : 1) * dt;
         if (keys.w) flyControls.moveForward(speed);
         if (keys.s) flyControls.moveForward(-speed);

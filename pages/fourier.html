@@ -46,11 +46,10 @@
         <p>
           Linear and polynomial regression both rest on an assumption that
           the function we are trying to recover is smooth. Typically, 
-          given $n$ sample points, infinitely
-          many curves pass through them all exactly (the system is
-          underdetermined), but smoothness picks one out by ruling out
-          high-frequency oscillation and often-unwarranted complexity
-          between the samples.
+          given $n$ sample points, the system is underdetermined (infinitely
+          many curves can exactly fit the points), but smoothness narrows
+          the possibilities down to a single best fit by minimizing the
+          complexity between samples.
         </p>
         <p>
           The cost of that prior is that we can resolve at most $n$ distinct
@@ -184,7 +183,7 @@
         </p>
         <p>
           Chebyshev polynomials $T_k(t)$ are also
-          orthogonal on $[-1, 1]$, but under the weighted inner product
+          orthogonal on $[-1, 1]$, but under the weighted inner product:
         </p>
         <div class="formula">
           $$\langle f,\, g \rangle_w = \int_{-1}^{1} \frac{f(t)\,g(t)}{\sqrt{1 - t^2}}\, dt$$
@@ -337,28 +336,6 @@
                     Original image
                   </label>
                 </div>
-
-                <div
-                  id="fourier3dTileExtentRow"
-                  class="fourier-control-item"
-                  style="display:none"
-                >
-                  <label for="fourier3dTileExtent">Tile extent</label>
-                  <div class="fourier-slider-row">
-                    <input
-                      id="fourier3dTileExtent"
-                      type="range"
-                      min="3"
-                      max="21"
-                      step="2"
-                      value="5"
-                      disabled
-                    />
-                  </div>
-                  <output id="fourier3dTileExtentOut" class="fourier-radius-out">
-                    5 × 5 = 25 tiles
-                  </output>
-                </div>
               </div>
 
               <div class="fourier-control-column">
@@ -370,7 +347,7 @@
                   </label>
                   <label>
                     <input type="radio" name="fourier3dCamera" value="fly" />
-                    Fly
+                    <span id="fourier3dFlyLabel">Fly</span>
                   </label>
                   <p
                     id="fourier3dFlyHint"
@@ -399,19 +376,26 @@
                   <output id="fourier3dScaleOut" class="fourier-radius-out">60</output>
                 </div>
 
-                <div class="fourier-control-item">
-                  <label for="fourier3dFog">Fog density</label>
+                <div
+                  id="fourier3dTileExtentRow"
+                  class="fourier-control-item"
+                  style="display:none"
+                >
+                  <label for="fourier3dTileExtent">Tile extent</label>
                   <div class="fourier-slider-row">
                     <input
-                      id="fourier3dFog"
+                      id="fourier3dTileExtent"
                       type="range"
-                      min="0"
-                      max="100"
-                      step="1"
-                      value="28"
+                      min="3"
+                      max="21"
+                      step="2"
+                      value="5"
+                      disabled
                     />
                   </div>
-                  <output id="fourier3dFogOut" class="fourier-radius-out">28</output>
+                  <output id="fourier3dTileExtentOut" class="fourier-radius-out">
+                    5 × 5 = 25 tiles
+                  </output>
                 </div>
 
               </div>
@@ -434,7 +418,7 @@
                     class="fourier-warning"
                     style="display:none"
                   >
-                    Basis not periodic - replicating tiles
+                    Basis isn't periodic - replicating tiles instead
                   </p>
                 </div>
               </div>
