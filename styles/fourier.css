@@ -172,22 +172,13 @@
   min-width: 0;
 }
 
-/* Camera column hosts the fly hint as an absolute-positioned overlay so it
-   never pushes the rest of the page down when Fly is selected. */
-.fourier .fourier-3d-camera-item {
-  position: relative;
-}
-
+/* Fly hint lives in the normal flow so the panel grows to encompass it
+   when Fly is selected, rather than overlaying whatever sits below. */
 .fourier .fourier-fly-hint {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
   margin-top: 6px;
   font-size: 0.85rem;
   line-height: 1.35;
   opacity: 0.85;
-  z-index: 1;
 }
 
 .fourier .fourier-3d-source-group label {
@@ -226,11 +217,6 @@
 
   .fourier .fourier-3d-grid {
     grid-template-columns: 1fr;
-  }
-
-  .fourier .fourier-fly-hint {
-    position: static;
-    margin-top: 4px;
   }
 
   .fourier .fourier-checkbox-item {
