@@ -84,3 +84,4 @@
 .manifold .viz-centering { position: absolute; inset: 0; }
 .manifold .viz-knn { position: absolute; inset: 0; }
 .manifold .knn-node:hover { stroke: rgba(255,255,255,0.95); stroke-width: 1.5; }
+.manifold .viz-matrix-strip { position: absolute; inset: 0; background: rgba(0,0,0,0.25); }
