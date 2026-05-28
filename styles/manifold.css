@@ -77,3 +77,7 @@
 .manifold .sp-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); }
 .manifold .sp-nav button { padding: 6px 12px; font-size: 0.95rem; }
 .manifold .step-desc { flex: 1; text-align: center; opacity: 0.9; font-size: 0.95rem; }
+.manifold .ifw-worked-section { margin: 10px 0; }
+.manifold .ifw-worked-label { font-size: 0.78rem; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.manifold .ifw-worked-body { background: rgba(0,0,0,0.4); border-left: 2px solid rgba(255,255,255,0.25); padding: 8px 12px; border-radius: 0 4px 4px 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; }
+.manifold .ifw-worked-body.math { font-family: inherit; font-size: 0.95rem; padding-top: 6px; padding-bottom: 6px; }
