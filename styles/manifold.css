@@ -24,3 +24,12 @@
 .manifold .viz3d { position: absolute; inset: 0; }
 .manifold .viz3d-thumb { position: absolute; right: 8px; bottom: 8px; width: 32%; max-width: 160px; aspect-ratio: 4 / 3; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25); border-radius: var(--radius-sm); overflow: hidden; }
 .manifold .viz2d { position: absolute; inset: 0; }
+.manifold .step-indicator { display: flex; flex-direction: column; gap: 8px; }
+.manifold .step-label-row { display: flex; justify-content: space-between; font-size: 0.95rem; }
+.manifold .step-label-a { color: #ffb877; }
+.manifold .step-label-b { color: #8ec2ff; }
+.manifold .step-rails-wrap { width: 100%; overflow-x: auto; }
+.manifold svg.step-rails { width: 100%; min-width: 600px; height: auto; display: block; }
+.manifold .step-node text { pointer-events: none; user-select: none; }
+.manifold .step-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+.manifold .step-desc { font-size: 0.95rem; opacity: 0.9; text-align: center; flex: 1; }
