@@ -15,6 +15,62 @@ export function createState({ algorithmsById, defaults }) {
     cache: { dataset: null, left: null, right: null, key: null },
   };
 
+  let worker = null;
+  let nextRunId = 1;
+  const runHandlers = new Map();
+
+  function ensureWorker() {
+    if (worker) return worker;
+    try {
+      worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
+      worker.addEventListener('message', (event) => {
+        const msg = event.data;
+        const handler = runHandlers.get(msg.runId);
+        if (!handler) return;
+        if (msg.type === 'step') handler.onStep(msg.stepId, msg.state);
+        else if (msg.type === 'error') console.error('Worker error:', msg.error);
+      });
+      worker.addEventListener('error', (e) => {
+        console.error('Worker runtime error:', e.message || e);
+      });
+    } catch (e) {
+      console.warn('Web Worker unavailable, falling back to main thread:', e);
+      worker = null;
+    }
+    return worker;
+  }
+
+  function startWorkerRun(algoId, data, params, onStep) {
+    const w = ensureWorker();
+    const runId = nextRunId++;
+    if (!w) {
+      const result = algorithmsById[algoId].run(data, params);
+      const step0 = result.steps.get('0');
+      if (step0) Promise.resolve().then(() => onStep('0', step0));
+      if (result.start) {
+        result.start((stepId) => {
+          const state = result.steps.get(stepId);
+          onStep(stepId, state);
+        });
+      }
+      return { runId, cancel: result.cancel || (() => {}) };
+    }
+    runHandlers.set(runId, { onStep });
+    w.postMessage({
+      type: 'run', runId, algoId,
+      X: data.X.buffer.slice(0),
+      t: data.t.buffer.slice(0),
+      params,
+    });
+    return {
+      runId,
+      cancel() {
+        runHandlers.delete(runId);
+        w.postMessage({ type: 'cancel', runId });
+      },
+    };
+  }
+
   function key() {
     return JSON.stringify({
       d: state.datasetId, dp: state.datasetParams,
@@ -35,13 +91,39 @@ export function createState({ algorithmsById, defaults }) {
       state.cache = { dataset: data, left: null, right: null, key: k };
       return;
     }
-    const left = algorithmsById[state.leftAlgoId].run(data, state.leftAlgoParams);
-    const right = algorithmsById[state.rightAlgoId].run(data, state.rightAlgoParams);
+
+    const leftAlgo = algorithmsById[state.leftAlgoId];
+    const rightAlgo = algorithmsById[state.rightAlgoId];
+
+    const left = {
+      steps: new Map(),
+      presentSubSteps: leftAlgo.presentSubSteps,
+      pending: new Set(leftAlgo.presentSubSteps),
+      cancel: null,
+    };
+    const right = {
+      steps: new Map(),
+      presentSubSteps: rightAlgo.presentSubSteps,
+      pending: new Set(rightAlgo.presentSubSteps),
+      cancel: null,
+    };
     state.cache = { dataset: data, left, right, key: k };
-    const onLeftProgress = () => { if (state.cache.left === left) emit(); };
-    const onRightProgress = () => { if (state.cache.right === right) emit(); };
-    if (left.start) left.start(onLeftProgress);
-    if (right.start) right.start(onRightProgress);
+
+    const leftRun = startWorkerRun(state.leftAlgoId, data, state.leftAlgoParams, (stepId, stepState) => {
+      if (state.cache.left !== left) return;
+      left.steps.set(stepId, stepState);
+      left.pending.delete(stepId);
+      emit();
+    });
+    left.cancel = leftRun.cancel;
+
+    const rightRun = startWorkerRun(state.rightAlgoId, data, state.rightAlgoParams, (stepId, stepState) => {
+      if (state.cache.right !== right) return;
+      right.steps.set(stepId, stepState);
+      right.pending.delete(stepId);
+      emit();
+    });
+    right.cancel = rightRun.cancel;
   }
 
   function subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); }

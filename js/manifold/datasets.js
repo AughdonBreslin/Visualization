@@ -1,4 +1,5 @@
 import { mulberry32, gaussian } from './rng.js';
+import { jacobiEigSym } from './linalg.js';
 
 function allocate(N) {
   return { X: new Float64Array(N * 3), t: new Float64Array(N), N };
@@ -65,26 +66,23 @@ function projectToThreeViaPCA(rows) {
     }
     return out;
   }
-  if (typeof window === 'undefined' || !window.numeric) {
-    throw new Error('CSV projection requires numeric.js (browser only)');
-  }
   const C = [];
-  for (let i = 0; i < d; i++) C.push(new Float64Array(d));
+  for (let i = 0; i < d; i++) {
+    const row = new Array(d).fill(0);
+    C.push(row);
+  }
   for (const r of centered) {
     for (let i = 0; i < d; i++) for (let j = 0; j < d; j++) C[i][j] += r[i] * r[j];
   }
-  for (let i = 0; i < d; i++) for (let j = 0; j < d; j++) C[i][j] /= Math.max(1, N - 1);
-  const Cm = C.map(row => Array.from(row));
-  const eig = window.numeric.eig(Cm);
-  const lam = eig.lambda.x.map((v, i) => ({ v: Math.abs(v), i }));
-  lam.sort((a, b) => b.v - a.v);
-  const V = eig.E.x;
+  const denom = Math.max(1, N - 1);
+  for (let i = 0; i < d; i++) for (let j = 0; j < d; j++) C[i][j] /= denom;
+  const { vectors } = jacobiEigSym(C);
   const out = allocate(N);
   for (let i = 0; i < N; i++) {
     for (let k = 0; k < 3; k++) {
       let s = 0;
-      const col = lam[k].i;
-      for (let j = 0; j < d; j++) s += centered[i][j] * V[j][col];
+      const vk = vectors[k];
+      for (let j = 0; j < d; j++) s += centered[i][j] * vk[j];
       out.X[i * 3 + k] = s;
     }
     out.t[i] = i / Math.max(1, N - 1);

@@ -8,6 +8,7 @@ export const PCA = {
   id: 'pca',
   label: 'PCA',
   params: [],
+  presentSubSteps: ['0', '1', '3', '5', '6'],
   pseudocode: [
     { id: 'pca-center', title: '1. Center the data', steps: ['1'],
       lines: ['mean ← (1/N) · Σ_i x_i', 'for i = 1..N: x_i ← x_i − mean'] },

@@ -158,47 +158,111 @@ export function doubleCenterSquared(D, N) {
   return B;
 }
 
-export function eigSymSorted3(M) {
-  if (typeof window === 'undefined' || !window.numeric) {
-    throw new Error('eigSymSorted3 requires numeric.js (browser only)');
+export function jacobiEigSym(Ain) {
+  const N = Ain.length;
+  const A = [];
+  for (let i = 0; i < N; i++) A.push(Array.from(Ain[i]));
+  const V = [];
+  for (let i = 0; i < N; i++) {
+    const row = new Array(N).fill(0);
+    row[i] = 1;
+    V.push(row);
   }
-  const Mm = M.map(row => Array.from(row));
-  const eig = window.numeric.eig(Mm);
-  const lambda = eig.lambda.x;
-  const V = eig.E.x;
-  const n = lambda.length;
-  const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => lambda[b] - lambda[a]);
+  const tol = 1e-12;
+  for (let iter = 0; iter < 200; iter++) {
+    let p = 0, q = 1, maxv = 0;
+    for (let i = 0; i < N - 1; i++) {
+      for (let j = i + 1; j < N; j++) {
+        const a = Math.abs(A[i][j]);
+        if (a > maxv) { maxv = a; p = i; q = j; }
+      }
+    }
+    if (maxv < tol) break;
+    const app = A[p][p], aqq = A[q][q], apq = A[p][q];
+    let c, s;
+    if (apq === 0) { c = 1; s = 0; }
+    else {
+      const phi = (aqq - app) / (2 * apq);
+      const t = phi >= 0
+        ? 1 / (phi + Math.sqrt(phi * phi + 1))
+        : 1 / (phi - Math.sqrt(phi * phi + 1));
+      c = 1 / Math.sqrt(1 + t * t);
+      s = t * c;
+    }
+    A[p][p] = c * c * app - 2 * c * s * apq + s * s * aqq;
+    A[q][q] = s * s * app + 2 * c * s * apq + c * c * aqq;
+    A[p][q] = 0; A[q][p] = 0;
+    for (let i = 0; i < N; i++) {
+      if (i !== p && i !== q) {
+        const aip = A[i][p];
+        const aiq = A[i][q];
+        const nip = c * aip - s * aiq;
+        const niq = s * aip + c * aiq;
+        A[i][p] = nip; A[p][i] = nip;
+        A[i][q] = niq; A[q][i] = niq;
+      }
+    }
+    for (let i = 0; i < N; i++) {
+      const vip = V[i][p];
+      const viq = V[i][q];
+      V[i][p] = c * vip - s * viq;
+      V[i][q] = s * vip + c * viq;
+    }
+  }
+  const lambda = new Array(N);
+  for (let i = 0; i < N; i++) lambda[i] = A[i][i];
+  const order = Array.from({ length: N }, (_, i) => i).sort((a, b) => lambda[b] - lambda[a]);
   const sortedLambda = order.map(i => lambda[i]);
   const sortedV = [];
-  for (let i = 0; i < n; i++) {
-    const col = [];
-    for (let r = 0; r < n; r++) col.push(V[r][order[i]]);
+  for (let m = 0; m < N; m++) {
+    const col = new Array(N);
+    for (let r = 0; r < N; r++) col[r] = V[r][order[m]];
     sortedV.push(col);
   }
   return { lambda: sortedLambda, vectors: sortedV };
 }
 
-export function topKSymmetricEig(M, N, k) {
-  if (typeof window === 'undefined' || !window.numeric) {
-    throw new Error('topKSymmetricEig requires numeric.js (browser only)');
+export function eigSymSorted3(M) {
+  return jacobiEigSym(M);
+}
+
+export function topKSymmetricEig(M, N, k, iters = 120) {
+  const Mwork = new Float64Array(M);
+  const lambdaOut = new Float64Array(k);
+  const vectorsOut = [];
+  const Mv = new Float64Array(N);
+  for (let kk = 0; kk < k; kk++) {
+    const v = new Float64Array(N);
+    for (let i = 0; i < N; i++) v[i] = Math.sin((i + 1) * 1.3 + kk * 0.7);
+    let norm = 0;
+    for (let i = 0; i < N; i++) norm += v[i] * v[i];
+    norm = Math.sqrt(norm);
+    if (norm > 0) for (let i = 0; i < N; i++) v[i] /= norm;
+    for (let iter = 0; iter < iters; iter++) {
+      for (let i = 0; i < N; i++) {
+        let s = 0;
+        for (let j = 0; j < N; j++) s += Mwork[i * N + j] * v[j];
+        Mv[i] = s;
+      }
+      norm = 0;
+      for (let i = 0; i < N; i++) norm += Mv[i] * Mv[i];
+      norm = Math.sqrt(norm);
+      if (norm < 1e-12) break;
+      for (let i = 0; i < N; i++) v[i] = Mv[i] / norm;
+    }
+    for (let i = 0; i < N; i++) {
+      let s = 0;
+      for (let j = 0; j < N; j++) s += Mwork[i * N + j] * v[j];
+      Mv[i] = s;
+    }
+    let lambdaK = 0;
+    for (let i = 0; i < N; i++) lambdaK += v[i] * Mv[i];
+    lambdaOut[kk] = lambdaK;
+    vectorsOut.push(v);
+    for (let i = 0; i < N; i++) {
+      const lv = lambdaK * v[i];
+      for (let j = 0; j < N; j++) Mwork[i * N + j] -= lv * v[j];
+    }
   }
-  const A = [];
-  for (let i = 0; i < N; i++) {
-    const row = new Array(N);
-    for (let j = 0; j < N; j++) row[j] = M[i * N + j];
-    A.push(row);
-  }
-  const eig = window.numeric.eig(A);
-  const lambda = eig.lambda.x;
-  const V = eig.E.x;
-  const order = Array.from({ length: N }, (_, i) => i).sort((a, b) => lambda[b] - lambda[a]);
-  const outLambda = new Float64Array(k);
-  const outVectors = [];
-  for (let m = 0; m < k; m++) {
-    outLambda[m] = lambda[order[m]];
-    const col = new Float64Array(N);
-    for (let r = 0; r < N; r++) col[r] = V[r][order[m]];
-    outVectors.push(col);
-  }
-  return { lambda: outLambda, vectors: outVectors };
+  return { lambda: lambdaOut, vectors: vectorsOut };
 }
