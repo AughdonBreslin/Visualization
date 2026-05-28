@@ -41,3 +41,13 @@
 .manifold .ifw-content { min-height: 80px; font-size: 0.95rem; line-height: 1.45; }
 .manifold .ifw-content pre { background: rgba(0,0,0,0.35); padding: 8px; border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.85rem; }
 .manifold .ifw-empty { opacity: 0.55; font-style: italic; }
+.manifold .pseudocode { display: flex; flex-direction: column; gap: 6px; }
+.manifold .pseudocode-title { font-weight: 700; font-size: 0.95rem; opacity: 0.85; }
+.manifold .pc-section { border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); overflow: hidden; }
+.manifold .pc-section.is-current { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.03); }
+.manifold .pc-section-header { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: rgba(0,0,0,0.25); cursor: pointer; font-size: 0.92rem; }
+.manifold .pc-section.is-current .pc-section-header { background: rgba(255,255,255,0.08); }
+.manifold .pc-chevron { width: 1ch; text-align: center; opacity: 0.7; }
+.manifold .pc-section-title { font-weight: 600; flex: 1; }
+.manifold .pc-section-steps { font-size: 0.8rem; opacity: 0.6; }
+.manifold .pc-section-body { margin: 0; padding: 8px 12px; background: rgba(0,0,0,0.35); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size: 0.85rem; white-space: pre-wrap; }
