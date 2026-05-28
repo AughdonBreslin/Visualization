@@ -33,3 +33,11 @@
 .manifold .step-node text { pointer-events: none; user-select: none; }
 .manifold .step-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
 .manifold .step-desc { font-size: 0.95rem; opacity: 0.9; text-align: center; flex: 1; }
+.manifold .ifw { display: flex; flex-direction: column; gap: 8px; }
+.manifold .ifw-tabs { display: flex; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 4px; }
+.manifold .ifw-tab { padding: 6px 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer; font-size: 0.9rem; }
+.manifold .ifw-tab.is-active { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.3); }
+.manifold .ifw-tab.is-disabled, .manifold .ifw-tab[disabled] { opacity: 0.35; cursor: not-allowed; }
+.manifold .ifw-content { min-height: 80px; font-size: 0.95rem; line-height: 1.45; }
+.manifold .ifw-content pre { background: rgba(0,0,0,0.35); padding: 8px; border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.85rem; }
+.manifold .ifw-empty { opacity: 0.55; font-style: italic; }
