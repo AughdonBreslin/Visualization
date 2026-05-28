@@ -21,3 +21,5 @@
 @media (max-width: 820px) {
   .manifold .mf-algos-row, .manifold .mf-viz-row, .manifold .mf-ifw-row, .manifold .mf-pseudo-row { grid-template-columns: 1fr; }
 }
+.manifold .viz3d { position: absolute; inset: 0; }
+.manifold .viz3d-thumb { position: absolute; right: 8px; bottom: 8px; width: 32%; max-width: 160px; aspect-ratio: 4 / 3; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25); border-radius: var(--radius-sm); overflow: hidden; }
