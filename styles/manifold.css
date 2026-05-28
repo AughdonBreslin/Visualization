@@ -24,15 +24,6 @@
 .manifold .viz3d { position: absolute; inset: 0; }
 .manifold .viz3d-thumb { position: absolute; right: 8px; bottom: 8px; width: 32%; max-width: 160px; aspect-ratio: 4 / 3; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25); border-radius: var(--radius-sm); overflow: hidden; }
 .manifold .viz2d { position: absolute; inset: 0; }
-.manifold .step-indicator { display: flex; flex-direction: column; gap: 8px; }
-.manifold .step-label-row { display: flex; justify-content: space-between; font-size: 0.95rem; }
-.manifold .step-label-a { color: #ffb877; }
-.manifold .step-label-b { color: #8ec2ff; }
-.manifold .step-rails-wrap { width: 100%; overflow-x: auto; }
-.manifold svg.step-rails { width: 100%; min-width: 600px; height: auto; display: block; }
-.manifold .step-node text { pointer-events: none; user-select: none; }
-.manifold .step-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
-.manifold .step-desc { font-size: 0.95rem; opacity: 0.9; text-align: center; flex: 1; }
 .manifold .ifw { display: flex; flex-direction: column; gap: 8px; }
 .manifold .ifw-tabs { display: flex; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 4px; }
 .manifold .ifw-tab { padding: 6px 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer; font-size: 0.9rem; }
@@ -52,3 +43,37 @@
 .manifold .pc-section-steps { font-size: 0.8rem; opacity: 0.6; }
 .manifold .pc-section-body { margin: 0; padding: 8px 12px; background: rgba(0,0,0,0.35); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size: 0.85rem; white-space: pre-wrap; }
 .manifold .viz-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.55); color: rgba(255,255,255,0.85); font-size: 0.95rem; pointer-events: none; z-index: 10; }
+.manifold .sp-frame { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 14px; }
+.manifold .sp-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.manifold .sp-panel { background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 12px; }
+.manifold .sp-panel-header { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; color: rgba(255,255,255,0.95); }
+.manifold .sp-bar { display: flex; align-items: center; padding: 6px 6px 22px; }
+.manifold .sp-cell { position: relative; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.manifold .sp-cell:hover .sp-dot { transform: scale(1.18); }
+.manifold .sp-cell.na { cursor: default; }
+.manifold .sp-cell.na:hover .sp-dot { transform: none; }
+.manifold .sp-dot { width: 11px; height: 11px; border-radius: 50%; transition: transform 120ms; box-sizing: border-box; }
+.manifold .sp-dot.filled { background: rgba(255,255,255,0.92); }
+.manifold .sp-dot.hollow { border: 1.5px solid rgba(255,255,255,0.7); background: transparent; }
+.manifold .sp-dot.na { background: rgba(255,255,255,0.22); width: 8px; height: 8px; }
+.manifold .sp-num { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; font-size: 0.72rem; opacity: 0.55; line-height: 1; }
+.manifold .sp-num.na { opacity: 0.3; }
+.manifold .sp-edge { flex: 1; min-width: 18px; height: 18px; display: flex; align-items: center; cursor: zoom-in; padding: 0 2px; }
+.manifold .sp-frame.is-expanded .sp-edge { cursor: zoom-out; }
+.manifold .sp-edge::before { content: ''; flex: 1; height: 2px; background: rgba(255,255,255,0.18); transition: background 120ms; border-radius: 1px; }
+.manifold .sp-edge:hover::before { background: rgba(255,255,255,0.5); }
+.manifold .sp-detail { display: none; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 4px; padding-top: 8px; }
+.manifold .sp-frame.is-expanded .sp-detail { display: block; }
+.manifold .sp-step { display: flex; align-items: center; gap: 10px; padding: 6px 6px; border-radius: 6px; font-size: 0.93rem; cursor: pointer; transition: background 120ms; }
+.manifold .sp-step:hover { background: rgba(255,255,255,0.06); }
+.manifold .sp-step .sp-step-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; box-sizing: border-box; }
+.manifold .sp-step.past .sp-step-dot, .manifold .sp-step.current .sp-step-dot { background: rgba(255,255,255,0.92); }
+.manifold .sp-step.future .sp-step-dot { border: 1.5px solid rgba(255,255,255,0.7); background: transparent; }
+.manifold .sp-step.na .sp-step-dot { background: rgba(255,255,255,0.22); width: 7px; height: 7px; }
+.manifold .sp-step.future { opacity: 0.75; }
+.manifold .sp-step.na { opacity: 0.4; cursor: default; font-style: italic; }
+.manifold .sp-step.na:hover { background: transparent; }
+.manifold .sp-step.current { font-weight: 600; background: rgba(255,255,255,0.06); }
+.manifold .sp-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); }
+.manifold .sp-nav button { padding: 6px 12px; font-size: 0.95rem; }
+.manifold .step-desc { flex: 1; text-align: center; opacity: 0.9; font-size: 0.95rem; }
