@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Per-step visualization, iteration</title>
+  <link rel="stylesheet" href="../styles/base.css">
+  <style>
+    body { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    h1 { margin-bottom: 8px; }
+    h2 { margin: 28px 0 6px; font-size: 1.3rem; }
+    h3 { margin: 12px 0 6px; font-size: 1.0rem; }
+    .intro { opacity: 0.85; margin-bottom: 24px; }
+    .pattern { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 20px; margin: 28px 0; border-radius: 10px; }
+    .pattern-desc { opacity: 0.8; font-size: 0.95rem; margin-bottom: 12px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .opt { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; }
+    .opt-canvas { background: rgba(0,0,0,0.45); border-radius: 6px; padding: 8px; margin: 8px 0; position: relative; }
+    .opt-canvas svg { display: block; width: 100%; height: auto; }
+    .opt p { font-size: 0.88rem; opacity: 0.8; margin: 6px 0; }
+    .note { font-size: 0.82rem; opacity: 0.6; margin-top: 8px; font-style: italic; }
+    .axis { stroke: rgba(255,255,255,0.18); stroke-width: 1; }
+    .axis-label { fill: rgba(255,255,255,0.45); font-size: 9px; }
+    .point { fill: rgba(255,255,255,0.92); }
+    .ghost { fill: rgba(255,255,255,0.28); }
+    .arrow-line { stroke: rgba(255,255,255,0.75); stroke-width: 1.5; fill: none; }
+    .arrow-head { fill: rgba(255,255,255,0.75); }
+    .edge { stroke: rgba(255,255,255,0.22); stroke-width: 0.9; transition: stroke 160ms, stroke-width 160ms; }
+    .edge.dim { stroke: rgba(255,255,255,0.06); }
+    .edge.hi { stroke: rgba(255,255,255,0.95); stroke-width: 1.6; }
+    .label { fill: rgba(255,255,255,0.85); font-size: 10px; }
+    .label-dim { fill: rgba(255,255,255,0.55); font-size: 9px; }
+    .label-mini { fill: rgba(255,255,255,0.85); font-size: 8px; }
+    .heatmap-cell { stroke: rgba(0,0,0,0.4); stroke-width: 0.3; }
+
+    /* Pattern 1B: slide animation */
+    @keyframes slide-pca { 0%, 12% { transform: translate(0, 0); } 50% { transform: translate(-44px, 22px); } 90%, 100% { transform: translate(-44px, 22px); } }
+    .slide-anim { animation: slide-pca 3.4s ease-in-out infinite; }
+
+    /* Pattern 2B: edge wave */
+    @keyframes edge-grow { 0% { stroke-dashoffset: 100; } 35% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; } }
+    .edge-anim { stroke-dasharray: 100; stroke-dashoffset: 100; animation: edge-grow 3.4s ease-in-out infinite; }
+
+    /* Mini-thumbnail overlay (pattern 4) */
+    .mini-corner { position: absolute; right: 8px; bottom: 8px; width: 36%; max-width: 150px; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.25); border-radius: 6px; padding: 6px; }
+    .mini-corner svg { display: block; width: 100%; height: auto; }
+
+    .hover-note { font-size: 0.82rem; opacity: 0.75; padding: 6px 8px; background: rgba(255,255,255,0.05); border-radius: 4px; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Per-step visualizations: iterations on your picks</h1>
+    <p class="intro">1B slide animation, 2B edge wave with hover-highlight, 3B step-by-step adapted to all matrix steps, 4A algorithm-specific with the 2D projection in the main viewport and the spectral mini in the bottom-right corner.</p>
+
+    <!-- ========== PATTERN 1: 1B (no changes) ========== -->
+    <div class="pattern">
+      <h2>Pattern 1 · Centering (1B confirmed)</h2>
+      <div class="pattern-desc">Points slide from the original cloud to the centered cloud when the step is reached. After the animation, the centered cloud sits at the origin.</div>
+      <div class="opt">
+        <div class="opt-canvas">
+          <svg viewBox="0 0 240 160">
+            <line class="axis" x1="20" y1="80" x2="220" y2="80"/>
+            <line class="axis" x1="120" y1="20" x2="120" y2="140"/>
+            <text class="axis-label" x="222" y="83">x</text>
+            <text class="axis-label" x="116" y="18">y</text>
+            <g class="ghost">
+              <circle cx="170" cy="56" r="3"/><circle cx="178" cy="50" r="3"/><circle cx="165" cy="62" r="3"/>
+              <circle cx="182" cy="58" r="3"/><circle cx="174" cy="64" r="3"/><circle cx="168" cy="48" r="3"/>
+              <circle cx="180" cy="46" r="3"/><circle cx="171" cy="66" r="3"/>
+            </g>
+            <g class="slide-anim">
+              <g class="point">
+                <circle cx="170" cy="56" r="3"/><circle cx="178" cy="50" r="3"/><circle cx="165" cy="62" r="3"/>
+                <circle cx="182" cy="58" r="3"/><circle cx="174" cy="64" r="3"/><circle cx="168" cy="48" r="3"/>
+                <circle cx="180" cy="46" r="3"/><circle cx="171" cy="66" r="3"/>
+              </g>
+            </g>
+            <text class="label-dim" x="100" y="148">cloud slides toward origin</text>
+          </svg>
+        </div>
+        <div class="note">Looping preview. In the real page, the animation plays once on entering the step.</div>
+      </div>
+    </div>
+
+    <!-- ========== PATTERN 2: 2B + hover (interactive) ========== -->
+    <div class="pattern">
+      <h2>Pattern 2 · kNN graph (2B confirmed, with hover spotlight)</h2>
+      <div class="pattern-desc">When the step is reached, edges sweep in once. After the wave, the full graph stays. Hovering any node lights up the edges connecting to that node's k neighbours; the rest fade. The example below is fully interactive: hover any white dot.</div>
+      <div class="opt">
+        <div class="opt-canvas">
+          <svg viewBox="0 0 240 160" id="knn-svg">
+            <!-- edges (data-from / data-to indices match circle data-i) -->
+            <line class="edge" data-from="0" data-to="1" x1="40" y1="40" x2="80" y2="40"/>
+            <line class="edge" data-from="1" data-to="2" x1="80" y1="40" x2="120" y2="50"/>
+            <line class="edge" data-from="2" data-to="3" x1="120" y1="50" x2="160" y2="42"/>
+            <line class="edge" data-from="3" data-to="4" x1="160" y1="42" x2="200" y2="48"/>
+            <line class="edge" data-from="0" data-to="5" x1="40" y1="40" x2="48" y2="80"/>
+            <line class="edge" data-from="1" data-to="6" x1="80" y1="40" x2="90" y2="80"/>
+            <line class="edge" data-from="2" data-to="7" x1="120" y1="50" x2="125" y2="80"/>
+            <line class="edge" data-from="3" data-to="8" x1="160" y1="42" x2="158" y2="80"/>
+            <line class="edge" data-from="4" data-to="9" x1="200" y1="48" x2="195" y2="82"/>
+            <line class="edge" data-from="5" data-to="6" x1="48" y1="80" x2="90" y2="80"/>
+            <line class="edge" data-from="6" data-to="7" x1="90" y1="80" x2="125" y2="80"/>
+            <line class="edge" data-from="7" data-to="8" x1="125" y1="80" x2="158" y2="80"/>
+            <line class="edge" data-from="8" data-to="9" x1="158" y1="80" x2="195" y2="82"/>
+            <line class="edge" data-from="5" data-to="10" x1="48" y1="80" x2="52" y2="118"/>
+            <line class="edge" data-from="6" data-to="11" x1="90" y1="80" x2="88" y2="120"/>
+            <line class="edge" data-from="7" data-to="12" x1="125" y1="80" x2="128" y2="122"/>
+            <line class="edge" data-from="8" data-to="13" x1="158" y1="80" x2="162" y2="120"/>
+            <line class="edge" data-from="9" data-to="14" x1="195" y1="82" x2="198" y2="118"/>
+            <line class="edge" data-from="10" data-to="11" x1="52" y1="118" x2="88" y2="120"/>
+            <line class="edge" data-from="11" data-to="12" x1="88" y1="120" x2="128" y2="122"/>
+            <line class="edge" data-from="12" data-to="13" x1="128" y1="122" x2="162" y2="120"/>
+            <line class="edge" data-from="13" data-to="14" x1="162" y1="120" x2="198" y2="118"/>
+            <line class="edge" data-from="1" data-to="7" x1="80" y1="40" x2="125" y2="80"/>
+            <line class="edge" data-from="2" data-to="6" x1="120" y1="50" x2="90" y2="80"/>
+            <line class="edge" data-from="6" data-to="12" x1="90" y1="80" x2="128" y2="122"/>
+            <line class="edge" data-from="7" data-to="11" x1="125" y1="80" x2="88" y2="120"/>
+
+            <!-- nodes -->
+            <circle class="point knn-node" data-i="0" cx="40" cy="40" r="3.2"/>
+            <circle class="point knn-node" data-i="1" cx="80" cy="40" r="3.2"/>
+            <circle class="point knn-node" data-i="2" cx="120" cy="50" r="3.2"/>
+            <circle class="point knn-node" data-i="3" cx="160" cy="42" r="3.2"/>
+            <circle class="point knn-node" data-i="4" cx="200" cy="48" r="3.2"/>
+            <circle class="point knn-node" data-i="5" cx="48" cy="80" r="3.2"/>
+            <circle class="point knn-node" data-i="6" cx="90" cy="80" r="3.2"/>
+            <circle class="point knn-node" data-i="7" cx="125" cy="80" r="3.2"/>
+            <circle class="point knn-node" data-i="8" cx="158" cy="80" r="3.2"/>
+            <circle class="point knn-node" data-i="9" cx="195" cy="82" r="3.2"/>
+            <circle class="point knn-node" data-i="10" cx="52" cy="118" r="3.2"/>
+            <circle class="point knn-node" data-i="11" cx="88" cy="120" r="3.2"/>
+            <circle class="point knn-node" data-i="12" cx="128" cy="122" r="3.2"/>
+            <circle class="point knn-node" data-i="13" cx="162" cy="120" r="3.2"/>
+            <circle class="point knn-node" data-i="14" cx="198" cy="118" r="3.2"/>
+          </svg>
+        </div>
+        <div class="hover-note">Hover any node. Connected edges brighten, other edges fade. Move the cursor off to restore the full graph.</div>
+        <div class="note">In the real page, the initial wave animation plays once; this preview omits the wave to keep the hover behavior easy to test.</div>
+      </div>
+    </div>
+
+    <!-- ========== PATTERN 3: 3B for every matrix step ========== -->
+    <div class="pattern">
+      <h2>Pattern 3 · Matrix derivation (3B confirmed, applied to all three matrix steps)</h2>
+      <div class="pattern-desc">Each matrix step gets a step-by-step strip: input on the left, intermediate(s) in the middle, output on the right, with arrows between them showing the operation. PCA's 3x3 case uses readable numbers; Isomap's NxN cases use heatmaps.</div>
+
+      <div class="grid-3">
+        <div class="opt">
+          <h3>PCA step 3 · Covariance</h3>
+          <div class="opt-canvas">
+            <svg viewBox="0 0 240 160">
+              <!-- input: small centered cloud -->
+              <g transform="translate(8, 30)">
+                <text class="label-dim" x="24" y="-2" text-anchor="middle">X_c</text>
+                <line class="axis" x1="6" y1="36" x2="46" y2="36"/>
+                <line class="axis" x1="26" y1="14" x2="26" y2="58"/>
+                <g class="point">
+                  <circle cx="22" cy="34" r="1.8"/><circle cx="28" cy="32" r="1.8"/>
+                  <circle cx="24" cy="38" r="1.8"/><circle cx="30" cy="36" r="1.8"/>
+                  <circle cx="26" cy="40" r="1.8"/><circle cx="20" cy="36" r="1.8"/>
+                </g>
+                <text class="label-dim" x="24" y="78" text-anchor="middle">centered data</text>
+              </g>
+              <defs>
+                <marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="arrow-head"/></marker>
+              </defs>
+              <line x1="60" y1="60" x2="86" y2="60" class="arrow-line" marker-end="url(#ar1)"/>
+              <text class="label-dim" x="73" y="54" text-anchor="middle">X_cᵀ X_c</text>
+              <!-- middle: outer product matrix unscaled -->
+              <g transform="translate(90, 38)">
+                <text class="label-dim" x="30" y="-4" text-anchor="middle">sum of x_i x_iᵀ</text>
+                <rect x="0" y="0" width="60" height="40" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.3)"/>
+                <line x1="20" y1="0" x2="20" y2="40" stroke="rgba(255,255,255,0.15)"/>
+                <line x1="40" y1="0" x2="40" y2="40" stroke="rgba(255,255,255,0.15)"/>
+                <line x1="0" y1="13" x2="60" y2="13" stroke="rgba(255,255,255,0.15)"/>
+                <line x1="0" y1="27" x2="60" y2="27" stroke="rgba(255,255,255,0.15)"/>
+                <text class="label-mini" x="10" y="9.5" text-anchor="middle">12.4</text>
+                <text class="label-mini" x="30" y="9.5" text-anchor="middle">2.1</text>
+                <text class="label-mini" x="50" y="9.5" text-anchor="middle">-0.3</text>
+                <text class="label-mini" x="10" y="23" text-anchor="middle">2.1</text>
+                <text class="label-mini" x="30" y="23" text-anchor="middle">5.8</text>
+                <text class="label-mini" x="50" y="23" text-anchor="middle">0.9</text>
+                <text class="label-mini" x="10" y="37" text-anchor="middle">-0.3</text>
+                <text class="label-mini" x="30" y="37" text-anchor="middle">0.9</text>
+                <text class="label-mini" x="50" y="37" text-anchor="middle">1.7</text>
+              </g>
+              <line x1="156" y1="60" x2="174" y2="60" class="arrow-line" marker-end="url(#ar1)"/>
+              <text class="label-dim" x="165" y="54" text-anchor="middle">÷(N−1)</text>
+              <!-- right: covariance C -->
+              <g transform="translate(176, 38)">
+                <text class="label-dim" x="30" y="-4" text-anchor="middle">C</text>
+                <rect x="0" y="0" width="60" height="40" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.4)"/>
+                <line x1="20" y1="0" x2="20" y2="40" stroke="rgba(255,255,255,0.15)"/>
+                <line x1="40" y1="0" x2="40" y2="40" stroke="rgba(255,255,255,0.15)"/>
+                <line x1="0" y1="13" x2="60" y2="13" stroke="rgba(255,255,255,0.15)"/>
+                <line x1="0" y1="27" x2="60" y2="27" stroke="rgba(255,255,255,0.15)"/>
+                <text class="label-mini" x="10" y="9.5" text-anchor="middle">0.083</text>
+                <text class="label-mini" x="30" y="9.5" text-anchor="middle">0.014</text>
+                <text class="label-mini" x="50" y="9.5" text-anchor="middle">-0.002</text>
+                <text class="label-mini" x="10" y="23" text-anchor="middle">0.014</text>
+                <text class="label-mini" x="30" y="23" text-anchor="middle">0.039</text>
+                <text class="label-mini" x="50" y="23" text-anchor="middle">0.006</text>
+                <text class="label-mini" x="10" y="37" text-anchor="middle">-0.002</text>
+                <text class="label-mini" x="30" y="37" text-anchor="middle">0.006</text>
+                <text class="label-mini" x="50" y="37" text-anchor="middle">0.011</text>
+                <text class="label-dim" x="30" y="56" text-anchor="middle">covariance</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="opt">
+          <h3>Isomap step 3 · Geodesic distances</h3>
+          <div class="opt-canvas">
+            <svg viewBox="0 0 240 160">
+              <!-- left: small graph -->
+              <g transform="translate(6, 22)">
+                <text class="label-dim" x="30" y="-4" text-anchor="middle">kNN graph</text>
+                <line class="edge" x1="14" y1="28" x2="28" y2="14"/>
+                <line class="edge" x1="28" y1="14" x2="42" y2="24"/>
+                <line class="edge" x1="42" y1="24" x2="50" y2="40"/>
+                <line class="edge" x1="14" y1="28" x2="20" y2="46"/>
+                <line class="edge" x1="20" y1="46" x2="40" y2="48"/>
+                <line class="edge" x1="40" y1="48" x2="50" y2="40"/>
+                <line class="edge" x1="28" y1="14" x2="20" y2="46"/>
+                <circle class="point" cx="14" cy="28" r="2"/>
+                <circle class="point" cx="28" cy="14" r="2"/>
+                <circle class="point" cx="42" cy="24" r="2"/>
+                <circle class="point" cx="50" cy="40" r="2"/>
+                <circle class="point" cx="20" cy="46" r="2"/>
+                <circle class="point" cx="40" cy="48" r="2"/>
+              </g>
+              <line x1="68" y1="50" x2="86" y2="50" class="arrow-line" marker-end="url(#ar2)"/>
+              <text class="label-dim" x="77" y="44" text-anchor="middle">all-pairs</text>
+              <text class="label-dim" x="77" y="68" text-anchor="middle">Dijkstra</text>
+              <!-- middle: one example path highlighted -->
+              <g transform="translate(90, 22)">
+                <text class="label-dim" x="30" y="-4" text-anchor="middle">one path traced</text>
+                <line class="edge" x1="14" y1="28" x2="28" y2="14"/>
+                <line class="edge" x1="28" y1="14" x2="42" y2="24"/>
+                <line class="edge edge-hi-path" x1="42" y1="24" x2="50" y2="40"/>
+                <line class="edge edge-hi-path" x1="14" y1="28" x2="20" y2="46"/>
+                <line class="edge edge-hi-path" x1="20" y1="46" x2="40" y2="48"/>
+                <line class="edge edge-hi-path" x1="40" y1="48" x2="50" y2="40"/>
+                <line class="edge" x1="28" y1="14" x2="20" y2="46"/>
+                <circle class="point" cx="14" cy="28" r="2.4" fill="#fff"/>
+                <circle class="point" cx="28" cy="14" r="2"/>
+                <circle class="point" cx="42" cy="24" r="2"/>
+                <circle class="point" cx="50" cy="40" r="2.4" fill="#fff"/>
+                <circle class="point" cx="20" cy="46" r="2"/>
+                <circle class="point" cx="40" cy="48" r="2"/>
+                <text class="label-mini" x="11" y="22">i</text>
+                <text class="label-mini" x="55" y="38">j</text>
+                <text class="label-dim" x="30" y="78" text-anchor="middle">d(i,j) = sum of edge weights</text>
+              </g>
+              <defs>
+                <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="arrow-head"/></marker>
+              </defs>
+              <style>.edge-hi-path { stroke: rgba(255,255,255,0.95); stroke-width: 1.6; }</style>
+              <line x1="156" y1="50" x2="174" y2="50" class="arrow-line" marker-end="url(#ar2)"/>
+              <text class="label-dim" x="165" y="44" text-anchor="middle">fill</text>
+              <text class="label-dim" x="165" y="68" text-anchor="middle">matrix</text>
+              <!-- right: distance heatmap -->
+              <g transform="translate(176, 22)">
+                <text class="label-dim" x="30" y="-4" text-anchor="middle">D (NxN)</text>
+                <rect x="0" y="0" width="60" height="60" fill="url(#geoHm)"/>
+                <rect class="heatmap-cell" x="0" y="22" width="60" height="8" fill="none" stroke="#fff" stroke-width="1.5"/>
+                <text class="label-mini" x="-2" y="29" text-anchor="end">i</text>
+                <text class="label-dim" x="30" y="74" text-anchor="middle">brighter = farther</text>
+              </g>
+              <defs>
+                <linearGradient id="geoHm" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#000"/>
+                  <stop offset="0.5" stop-color="#8b5fbf"/>
+                  <stop offset="1" stop-color="#f5cf6e"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+
+        <div class="opt">
+          <h3>Isomap step 4 · Double-center</h3>
+          <div class="opt-canvas">
+            <svg viewBox="0 0 240 160">
+              <g transform="translate(6, 30)">
+                <text class="label-dim" x="30" y="-4" text-anchor="middle">D²</text>
+                <rect x="0" y="0" width="60" height="60" fill="url(#dchm1)"/>
+                <text class="label-dim" x="30" y="74" text-anchor="middle">squared</text>
+              </g>
+              <line x1="68" y1="60" x2="86" y2="60" class="arrow-line" marker-end="url(#ar3)"/>
+              <text class="label-dim" x="77" y="54" text-anchor="middle">subtract</text>
+              <text class="label-dim" x="77" y="76" text-anchor="middle">row/col</text>
+              <text class="label-dim" x="77" y="88" text-anchor="middle">means</text>
+              <g transform="translate(90, 30)">
+                <text class="label-dim" x="30" y="-4" text-anchor="middle">D² − μ</text>
+                <rect x="0" y="0" width="60" height="60" fill="url(#dchm2)"/>
+                <text class="label-dim" x="30" y="74" text-anchor="middle">intermediate</text>
+              </g>
+              <line x1="156" y1="60" x2="174" y2="60" class="arrow-line" marker-end="url(#ar3)"/>
+              <text class="label-dim" x="165" y="54" text-anchor="middle">×(−1/2)</text>
+              <text class="label-dim" x="165" y="76" text-anchor="middle">+ grand</text>
+              <text class="label-dim" x="165" y="88" text-anchor="middle">mean</text>
+              <g transform="translate(176, 30)">
+                <text class="label-dim" x="30" y="-4" text-anchor="middle">B</text>
+                <rect x="0" y="0" width="60" height="60" fill="url(#dchm3)"/>
+                <text class="label-dim" x="30" y="74" text-anchor="middle">Gram matrix</text>
+              </g>
+              <defs>
+                <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="arrow-head"/></marker>
+                <linearGradient id="dchm1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#000"/><stop offset="0.5" stop-color="#8b5fbf"/><stop offset="1" stop-color="#f5cf6e"/></linearGradient>
+                <linearGradient id="dchm2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5b3a8c"/><stop offset="0.5" stop-color="#000"/><stop offset="1" stop-color="#c179d3"/></linearGradient>
+                <linearGradient id="dchm3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c179d3"/><stop offset="0.5" stop-color="#000"/><stop offset="1" stop-color="#5b3a8c"/></linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="note">All three steps share the input → intermediate → output strip. PCA covariance uses readable numeric cells (3x3 is small). Isomap geodesic and double-center use heatmaps; the geodesic version highlights one row to anchor the "row i = distances from point i" intuition.</div>
+    </div>
+
+    <!-- ========== PATTERN 4: 4A iteration ========== -->
+    <div class="pattern">
+      <h2>Pattern 4 · Spectral decomposition (4A iteration with spectral mini bottom-right)</h2>
+      <div class="pattern-desc">At step 5, the main viewport already shows the 2D projection placed in 3D context. The spectral info (PCA principal axes / Isomap eigenvalue bar chart) sits in a small overlay in the bottom-right corner of the main viewport.</div>
+
+      <div class="grid-2">
+        <div class="opt">
+          <h3>PCA step 5 · projection plane + PC arrows mini</h3>
+          <div class="opt-canvas">
+            <svg viewBox="0 0 320 220">
+              <!-- 3D-perspective axes -->
+              <line class="axis" x1="40" y1="180" x2="280" y2="180"/>
+              <line class="axis" x1="40" y1="180" x2="40" y2="40"/>
+              <line class="axis" x1="40" y1="180" x2="100" y2="220"/>
+              <text class="axis-label" x="282" y="184">x</text>
+              <text class="axis-label" x="36" y="36">y</text>
+              <text class="axis-label" x="100" y="226">z</text>
+
+              <!-- projection plane drawn as parallelogram -->
+              <polygon points="80,170 260,140 250,90 70,120" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+              <text class="label-dim" x="262" y="138">PC1-PC2 plane</text>
+
+              <!-- 3D cloud (faded) -->
+              <g class="ghost">
+                <circle cx="110" cy="138" r="2.5"/><circle cx="124" cy="118" r="2.5"/><circle cx="140" cy="132" r="2.5"/>
+                <circle cx="156" cy="108" r="2.5"/><circle cx="172" cy="122" r="2.5"/><circle cx="184" cy="100" r="2.5"/>
+                <circle cx="200" cy="116" r="2.5"/><circle cx="216" cy="96" r="2.5"/><circle cx="232" cy="110" r="2.5"/>
+                <circle cx="118" cy="158" r="2.5"/><circle cx="132" cy="138" r="2.5"/><circle cx="148" cy="152" r="2.5"/>
+                <circle cx="164" cy="128" r="2.5"/><circle cx="180" cy="142" r="2.5"/><circle cx="196" cy="120" r="2.5"/>
+                <circle cx="212" cy="136" r="2.5"/><circle cx="228" cy="116" r="2.5"/><circle cx="244" cy="130" r="2.5"/>
+              </g>
+
+              <!-- projected points on plane (brighter, lying flat) -->
+              <g class="point">
+                <circle cx="108" cy="148" r="2.6"/><circle cx="128" cy="138" r="2.6"/><circle cx="148" cy="146" r="2.6"/>
+                <circle cx="168" cy="130" r="2.6"/><circle cx="188" cy="138" r="2.6"/><circle cx="208" cy="124" r="2.6"/>
+                <circle cx="228" cy="132" r="2.6"/><circle cx="116" cy="156" r="2.6"/><circle cx="136" cy="146" r="2.6"/>
+                <circle cx="156" cy="154" r="2.6"/><circle cx="176" cy="138" r="2.6"/><circle cx="196" cy="146" r="2.6"/>
+                <circle cx="216" cy="132" r="2.6"/><circle cx="236" cy="140" r="2.6"/>
+              </g>
+
+              <!-- thin lines from cloud to projection for a couple of points -->
+              <line x1="124" y1="118" x2="128" y2="138" stroke="rgba(255,255,255,0.2)" stroke-dasharray="2 2"/>
+              <line x1="184" y1="100" x2="188" y2="138" stroke="rgba(255,255,255,0.2)" stroke-dasharray="2 2"/>
+              <line x1="232" y1="110" x2="236" y2="140" stroke="rgba(255,255,255,0.2)" stroke-dasharray="2 2"/>
+
+              <text class="label-dim" x="40" y="20">3D cloud + projection onto PC1-PC2 plane</text>
+            </svg>
+            <div class="mini-corner">
+              <svg viewBox="0 0 110 70">
+                <text class="label-mini" x="55" y="9" text-anchor="middle">principal axes</text>
+                <line class="axis" x1="10" y1="50" x2="100" y2="50"/>
+                <line class="axis" x1="55" y1="14" x2="55" y2="64"/>
+                <defs>
+                  <marker id="aPC1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ff9f43"/></marker>
+                  <marker id="aPC2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#54a0ff"/></marker>
+                  <marker id="aPC3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6bd47b"/></marker>
+                </defs>
+                <line x1="55" y1="50" x2="88" y2="38" stroke="#ff9f43" stroke-width="1.5" marker-end="url(#aPC1)"/>
+                <line x1="55" y1="50" x2="68" y2="64" stroke="#54a0ff" stroke-width="1.5" marker-end="url(#aPC2)"/>
+                <line x1="55" y1="50" x2="50" y2="36" stroke="#6bd47b" stroke-width="1.3" marker-end="url(#aPC3)"/>
+                <text class="label-mini" x="86" y="36">PC1</text>
+                <text class="label-mini" x="68" y="68">PC2</text>
+                <text class="label-mini" x="42" y="34">PC3</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="opt">
+          <h3>Isomap step 5 · 3D cloud (colored by v1) + eigenvalue mini</h3>
+          <div class="opt-canvas">
+            <svg viewBox="0 0 320 220">
+              <line class="axis" x1="40" y1="180" x2="280" y2="180"/>
+              <line class="axis" x1="40" y1="180" x2="40" y2="40"/>
+              <line class="axis" x1="40" y1="180" x2="100" y2="220"/>
+              <text class="axis-label" x="282" y="184">x</text>
+              <text class="axis-label" x="36" y="36">y</text>
+              <text class="axis-label" x="100" y="226">z</text>
+
+              <!-- 3D cloud colored by v1 value (rainbow along an axis) -->
+              <circle cx="108" cy="148" r="3" fill="#000"/>
+              <circle cx="124" cy="138" r="3" fill="#3a1a6e"/>
+              <circle cx="140" cy="132" r="3" fill="#5b3a8c"/>
+              <circle cx="156" cy="124" r="3" fill="#8b5fbf"/>
+              <circle cx="172" cy="118" r="3" fill="#c179d3"/>
+              <circle cx="188" cy="112" r="3" fill="#e8a37f"/>
+              <circle cx="204" cy="108" r="3" fill="#f5cf6e"/>
+              <circle cx="220" cy="102" r="3" fill="#f9eb6b"/>
+              <circle cx="118" cy="168" r="3" fill="#1d0e3a"/>
+              <circle cx="134" cy="158" r="3" fill="#4a2778"/>
+              <circle cx="150" cy="150" r="3" fill="#6e4ba3"/>
+              <circle cx="166" cy="142" r="3" fill="#9b6acb"/>
+              <circle cx="182" cy="134" r="3" fill="#cb88c8"/>
+              <circle cx="198" cy="128" r="3" fill="#ecb175"/>
+              <circle cx="214" cy="124" r="3" fill="#f6da6a"/>
+              <circle cx="230" cy="118" r="3" fill="#f9eb6b"/>
+
+              <text class="label-dim" x="40" y="20">3D cloud, points coloured by top-1 eigenvector v_1</text>
+              <text class="label-dim" x="40" y="200">v_1 entries become the first embedding coordinate</text>
+            </svg>
+            <div class="mini-corner">
+              <svg viewBox="0 0 110 70">
+                <text class="label-mini" x="55" y="9" text-anchor="middle">eigenvalues</text>
+                <rect x="10" y="18" width="6" height="38" fill="#fff"/>
+                <rect x="20" y="26" width="6" height="30" fill="#fff"/>
+                <rect x="30" y="40" width="6" height="16" fill="rgba(255,255,255,0.45)"/>
+                <rect x="40" y="46" width="6" height="10" fill="rgba(255,255,255,0.45)"/>
+                <rect x="50" y="49" width="6" height="7" fill="rgba(255,255,255,0.45)"/>
+                <rect x="60" y="51" width="6" height="5" fill="rgba(255,255,255,0.45)"/>
+                <rect x="70" y="52" width="6" height="4" fill="rgba(255,255,255,0.45)"/>
+                <rect x="80" y="53" width="6" height="3" fill="rgba(255,255,255,0.45)"/>
+                <text class="label-mini" x="13" y="66">λ1</text>
+                <text class="label-mini" x="23" y="66">λ2</text>
+                <text class="label-mini" x="42" y="66">...</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="note">PCA: 3D cloud + the PC1-PC2 plane drawn through it + projected points on the plane; mini shows the 3 principal axis arrows. Isomap: 3D cloud with points colored by the top-1 eigenvector value (a preview of how the first embedding coordinate is computed); mini shows the eigenvalue spectrum with the top 2 highlighted.</div>
+    </div>
+
+    <div class="pattern">
+      <h2>Notes and open questions</h2>
+      <ul>
+        <li>For pattern 2 hover, hovering uses the actual algorithm's adjacency list at runtime. The mockup shows fewer points than the real page for clarity.</li>
+        <li>For pattern 4 PCA, the projection plane is rendered as a thin parallelogram in 3D space. Dashed connector lines from a few sample points to their projections communicate the "drop perpendicular" intuition. At step 6, the 3D context fades away and only the 2D scatter remains.</li>
+        <li>For pattern 4 Isomap, the 3D cloud stays as primary content with points colored by v1; the mini shows the eigenvalue spectrum. The actual 2D scatter (step 6) is one step ahead.</li>
+        <li>If you want the Isomap pattern 4 to also include a 2D inset (the actual scatter) instead of just colored 3D points, say so and I'll add a second mini.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const knn = document.getElementById('knn-svg');
+    if (knn) {
+      const allEdges = Array.from(knn.querySelectorAll('.edge'));
+      knn.querySelectorAll('.knn-node').forEach(node => {
+        node.addEventListener('mouseenter', () => {
+          const i = node.dataset.i;
+          allEdges.forEach(e => {
+            const connected = e.dataset.from === i || e.dataset.to === i;
+            e.classList.toggle('hi', connected);
+            e.classList.toggle('dim', !connected);
+          });
+        });
+        node.addEventListener('mouseleave', () => {
+          allEdges.forEach(e => { e.classList.remove('hi'); e.classList.remove('dim'); });
+        });
+      });
+    }
+  </script>
+</body>
+</html>
