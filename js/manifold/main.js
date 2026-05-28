@@ -14,7 +14,7 @@ const ALGORITHMS_BY_ID = Object.fromEntries(ALGORITHMS.map(a => [a.id, a]));
 
 const defaults = {
   datasetId: 'swiss_roll',
-  datasetParams: { samples: 300, noise: 0.0, seed: 7 },
+  datasetParams: { samples: 150, noise: 0.0, seed: 7 },
   leftAlgoId: 'pca',
   rightAlgoId: 'isomap',
   algoParams: { pca: {}, isomap: { k: 10 } },
@@ -76,6 +76,7 @@ function init() {
   const rightThumb = createViz3d(rightVizHost, { width: 140, height: 110, isThumbnail: true });
   hideEl(leftVizHost, '.viz2d'); hideEl(rightVizHost, '.viz2d');
   hideEl(leftVizHost, '.viz3d-thumb'); hideEl(rightVizHost, '.viz3d-thumb');
+  appendLoading(leftVizHost); appendLoading(rightVizHost);
 
   const stepIndicator = createStepIndicator(stepHost, {
     onJump: (target) => {
@@ -221,6 +222,10 @@ function init() {
     const rightSub = nearestSub(s.currentSubStep, right.presentSubSteps);
     const leftState = left.steps.get(leftSub);
     const rightState = right.steps.get(rightSub);
+    const leftLoading = !leftState && left.pending && left.pending.has(leftSub);
+    const rightLoading = !rightState && right.pending && right.pending.has(rightSub);
+    toggleLoading(leftVizHost, leftLoading);
+    toggleLoading(rightVizHost, rightLoading);
 
     const isFinal = s.currentSubStep === '6';
     setStep6Mode(leftVizHost, isFinal && leftState && leftState.embed2d);
@@ -283,6 +288,20 @@ function setStep6Mode(host, isFinal) {
 function hideEl(host, sel) {
   const el = host.querySelector(sel);
   if (el) el.style.display = 'none';
+}
+
+function appendLoading(host) {
+  const el = document.createElement('div');
+  el.className = 'viz-loading';
+  el.textContent = 'Computing...';
+  el.style.display = 'none';
+  host.appendChild(el);
+}
+
+function toggleLoading(host, isLoading) {
+  const el = host.querySelector('.viz-loading');
+  if (!el) return;
+  el.style.display = isLoading ? 'flex' : 'none';
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

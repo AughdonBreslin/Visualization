@@ -27,6 +27,8 @@ export function createState({ algorithmsById, defaults }) {
   function recompute() {
     const k = key();
     if (state.cache.key === k) return;
+    if (state.cache.left && state.cache.left.cancel) state.cache.left.cancel();
+    if (state.cache.right && state.cache.right.cancel) state.cache.right.cancel();
     const ds = DATASETS_BY_ID[state.datasetId];
     const data = ds.generate({ ...state.datasetParams, csvRows: state.csvRows });
     if (data.empty) {
@@ -36,6 +38,10 @@ export function createState({ algorithmsById, defaults }) {
     const left = algorithmsById[state.leftAlgoId].run(data, state.leftAlgoParams);
     const right = algorithmsById[state.rightAlgoId].run(data, state.rightAlgoParams);
     state.cache = { dataset: data, left, right, key: k };
+    const onLeftProgress = () => { if (state.cache.left === left) emit(); };
+    const onRightProgress = () => { if (state.cache.right === right) emit(); };
+    if (left.start) left.start(onLeftProgress);
+    if (right.start) right.start(onRightProgress);
   }
 
   function subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); }
