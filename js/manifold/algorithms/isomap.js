@@ -4,6 +4,7 @@ export const ISOMAP = {
   id: 'isomap',
   label: 'Isomap',
   params: [{ name: 'k', type: 'int', default: 10, min: 2, max: 50 }],
+  presentSubSteps: ['0', '2', '3', '4', '5', '6'],
   pseudocode: [
     { id: 'isomap-knn', title: '1. Build kNN graph', steps: ['2'],
       lines: ['for each i: neighbours_i ← k points with smallest ||x_j − x_i||',
