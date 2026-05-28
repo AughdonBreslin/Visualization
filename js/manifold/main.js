@@ -213,7 +213,10 @@ function init() {
       return;
     }
     const present = unionSubSteps(left.presentSubSteps, right.presentSubSteps);
-    if (!present.includes(s.currentSubStep)) s.currentSubStep = present[0];
+    if (!present.includes(s.currentSubStep)) {
+      store.setStep(present[0]);
+      return;
+    }
     const leftSub = nearestSub(s.currentSubStep, left.presentSubSteps);
     const rightSub = nearestSub(s.currentSubStep, right.presentSubSteps);
     const leftState = left.steps.get(leftSub);

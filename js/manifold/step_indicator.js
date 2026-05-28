@@ -86,7 +86,7 @@ export function createStepIndicator(container, { onJump }) {
     }
     const top = Math.max(0, (maxA - 1) * gap);
     const bot = Math.max(0, (maxB - 1) * gap);
-    const H = railBY + bot + 24;
+    const H = railBY + bot + 40;
     svg.attr('viewBox', `0 -${top} ${W} ${H + top}`);
     svg.selectAll('*').remove();
 
