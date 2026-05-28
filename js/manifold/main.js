@@ -2,8 +2,7 @@ import { DATASETS, parseCSV } from './datasets.js';
 import { PCA } from './algorithms/pca.js';
 import { ISOMAP } from './algorithms/isomap.js';
 import { createState } from './state.js';
-import { createViz3d } from './viz3d.js';
-import { createViz2d } from './viz2d.js';
+import { createStepViz } from './step_viz.js';
 import { createStepIndicator } from './step_indicator.js';
 import { createIFW } from './ifw.js';
 import { createPseudocode } from './pseudocode.js';
@@ -68,14 +67,8 @@ function init() {
 
   const store = createState({ algorithmsById: ALGORITHMS_BY_ID, defaults });
 
-  const leftViz = createViz3d(leftVizHost, {});
-  const rightViz = createViz3d(rightVizHost, {});
-  const leftViz2d = createViz2d(leftVizHost, {});
-  const rightViz2d = createViz2d(rightVizHost, {});
-  const leftThumb = createViz3d(leftVizHost, { width: 140, height: 110, isThumbnail: true });
-  const rightThumb = createViz3d(rightVizHost, { width: 140, height: 110, isThumbnail: true });
-  hideEl(leftVizHost, '.viz2d'); hideEl(rightVizHost, '.viz2d');
-  hideEl(leftVizHost, '.viz3d-thumb'); hideEl(rightVizHost, '.viz3d-thumb');
+  const leftStepViz = createStepViz(leftVizHost);
+  const rightStepViz = createStepViz(rightVizHost);
   appendLoading(leftVizHost); appendLoading(rightVizHost);
 
   const stepIndicator = createStepIndicator(stepHost, {
@@ -227,22 +220,8 @@ function init() {
     toggleLoading(leftVizHost, leftLoading);
     toggleLoading(rightVizHost, rightLoading);
 
-    const isFinal = s.currentSubStep === '6';
-    setStep6Mode(leftVizHost, isFinal && leftState && leftState.embed2d);
-    setStep6Mode(rightVizHost, isFinal && rightState && rightState.embed2d);
-
-    if (isFinal && leftState && leftState.embed2d) {
-      leftViz2d.setState({ embed2d: leftState.embed2d, colors: leftState.colors, t: leftState.t });
-      leftThumb.setState({ points: leftState.points, t: leftState.t, edges: null, colors: null });
-    } else if (leftState) {
-      leftViz.setState({ points: leftState.points, t: leftState.t, edges: leftState.edges, colors: leftState.colors });
-    }
-    if (isFinal && rightState && rightState.embed2d) {
-      rightViz2d.setState({ embed2d: rightState.embed2d, colors: rightState.colors, t: rightState.t });
-      rightThumb.setState({ points: rightState.points, t: rightState.t, edges: null, colors: null });
-    } else if (rightState) {
-      rightViz.setState({ points: rightState.points, t: rightState.t, edges: rightState.edges, colors: rightState.colors });
-    }
+    if (leftState) leftStepViz.update(leftState);
+    if (rightState) rightStepViz.update(rightState);
 
     stepIndicator.render({
       leftLabel: ALGORITHMS_BY_ID[s.leftAlgoId].label,
@@ -267,22 +246,6 @@ function nearestSub(target, present) {
   let best = sorted[0];
   for (const id of sorted) if (compareSubSteps(id, target) <= 0) best = id;
   return best;
-}
-
-function setStep6Mode(host, isFinal) {
-  const v3d = host.querySelector('.viz3d');
-  const v2d = host.querySelector('.viz2d');
-  const thumb = host.querySelector('.viz3d-thumb');
-  if (!v3d || !v2d) return;
-  if (isFinal) {
-    v3d.style.display = 'none';
-    v2d.style.display = '';
-    if (thumb) thumb.style.display = '';
-  } else {
-    v3d.style.display = '';
-    v2d.style.display = 'none';
-    if (thumb) thumb.style.display = 'none';
-  }
 }
 
 function hideEl(host, sel) {
