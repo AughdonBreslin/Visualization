@@ -82,3 +82,5 @@
 .manifold .ifw-worked-body { background: rgba(0,0,0,0.4); border-left: 2px solid rgba(255,255,255,0.25); padding: 8px 12px; border-radius: 0 4px 4px 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; }
 .manifold .ifw-worked-body.math { font-family: inherit; font-size: 0.95rem; padding-top: 6px; padding-bottom: 6px; }
 .manifold .viz-centering { position: absolute; inset: 0; }
+.manifold .viz-knn { position: absolute; inset: 0; }
+.manifold .knn-node:hover { stroke: rgba(255,255,255,0.95); stroke-width: 1.5; }
