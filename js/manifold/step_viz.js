@@ -2,6 +2,7 @@ import { createViz3d } from './viz3d.js';
 import { createViz2d } from './viz2d.js';
 import { mountCentering } from './viz/viz_centering.js';
 import { mountKnn } from './viz/viz_knn.js';
+import { mountWeightedKnn } from './viz/viz_weighted_knn.js';
 import { mountMatrixStrip } from './viz/viz_matrix_strip.js';
 import { mountSpectral } from './viz/viz_spectral.js';
 
@@ -60,6 +61,11 @@ export function createStepViz(host) {
       setVisible('.viz2d', false);
       setVisible('.viz3d-thumb', false);
       active = mountKnn(host, state);
+    } else if (kind === 'weighted_knn') {
+      setVisible('.viz3d', false);
+      setVisible('.viz2d', false);
+      setVisible('.viz3d-thumb', false);
+      active = mountWeightedKnn(host, state);
     } else if (kind === 'matrix_strip') {
       setVisible('.viz3d', false);
       setVisible('.viz2d', false);
