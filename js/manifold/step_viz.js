@@ -35,7 +35,7 @@ export function createStepViz(host) {
     if (!state) return;
     const kind = state.vizKind || 'point_cloud';
 
-    if (active && activeKind !== kind && active.unmount) {
+    if (active && active.unmount) {
       active.unmount();
       active = null;
     }
