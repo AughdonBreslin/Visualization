@@ -98,6 +98,21 @@ function init() {
       const wrap = document.createElement('label');
       wrap.className = 'mf-param';
       wrap.textContent = `${p.name} = `;
+      if (p.type === 'enum') {
+        const sel = document.createElement('select');
+        for (const opt of p.options) {
+          const o = document.createElement('option');
+          o.value = opt; o.textContent = opt;
+          if ((current[p.name] || p.default) === opt) o.selected = true;
+          sel.appendChild(o);
+        }
+        sel.addEventListener('change', () => {
+          onChange({ ...current, [p.name]: sel.value });
+        });
+        wrap.appendChild(sel);
+        host.appendChild(wrap);
+        continue;
+      }
       const input = document.createElement('input');
       input.type = p.type === 'int' || p.type === 'float' ? 'number' : 'text';
       if (p.min !== undefined) input.min = p.min;
