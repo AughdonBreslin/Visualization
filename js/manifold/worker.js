@@ -1,7 +1,11 @@
 import { PCA } from './algorithms/pca.js';
 import { ISOMAP } from './algorithms/isomap.js';
+import { MDS } from './algorithms/mds.js';
+import { LLE } from './algorithms/lle.js';
+import { LAPLACIAN } from './algorithms/laplacian.js';
+import { KPCA } from './algorithms/kpca.js';
 
-const ALGORITHMS = { pca: PCA, isomap: ISOMAP };
+const ALGORITHMS = { pca: PCA, isomap: ISOMAP, mds: MDS, lle: LLE, laplacian: LAPLACIAN, kpca: KPCA };
 const runs = new Map();
 
 self.onmessage = (event) => {

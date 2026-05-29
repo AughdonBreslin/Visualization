@@ -1,6 +1,10 @@
 import { DATASETS, parseCSV } from './datasets.js';
 import { PCA } from './algorithms/pca.js';
 import { ISOMAP } from './algorithms/isomap.js';
+import { MDS } from './algorithms/mds.js';
+import { LLE } from './algorithms/lle.js';
+import { LAPLACIAN } from './algorithms/laplacian.js';
+import { KPCA } from './algorithms/kpca.js';
 import { createState } from './state.js';
 import { createStepViz } from './step_viz.js';
 import { createStepIndicator } from './step_indicator.js';
@@ -8,15 +12,22 @@ import { createIFW } from './ifw.js';
 import { createPseudocode } from './pseudocode.js';
 import { compareSubSteps, unionSubSteps } from './canonical_steps.js';
 
-const ALGORITHMS = [PCA, ISOMAP];
+const ALGORITHMS = [PCA, ISOMAP, MDS, LLE, LAPLACIAN, KPCA];
 const ALGORITHMS_BY_ID = Object.fromEntries(ALGORITHMS.map(a => [a.id, a]));
 
 const defaults = {
   datasetId: 'swiss_roll',
-  datasetParams: { samples: 150, noise: 0.0, seed: 7 },
+  datasetParams: { samples: 1000, noise: 0.0, seed: 7 },
   leftAlgoId: 'pca',
   rightAlgoId: 'isomap',
-  algoParams: { pca: {}, isomap: { k: 10 } },
+  algoParams: {
+    pca: {},
+    isomap: { k: 10 },
+    mds: {},
+    lle: { k: 10, reg: 1e-3 },
+    laplacian: { k: 10, sigma: 1.0 },
+    kpca: { kernel: 'rbf', gamma: 0.5, degree: 3 },
+  },
 };
 
 function init() {
@@ -92,12 +103,36 @@ function init() {
   const leftPseudo = createPseudocode(leftPseudoHost, 'a');
   const rightPseudo = createPseudocode(rightPseudoHost, 'b');
 
-  function renderParamHost(host, algo, current, onChange) {
+  function renderParamHost(host, algo, getCurrent, onChange) {
     host.innerHTML = '';
-    for (const p of algo.params) {
+    const current = getCurrent();
+    const visible = algo.params.filter(p => {
+      if (!p.dependsOn) return true;
+      for (const k of Object.keys(p.dependsOn)) {
+        if (current[k] !== p.dependsOn[k]) return false;
+      }
+      return true;
+    });
+    for (const p of visible) {
       const wrap = document.createElement('label');
       wrap.className = 'mf-param';
       wrap.textContent = `${p.name} = `;
+      if (p.type === 'enum') {
+        const sel = document.createElement('select');
+        for (const opt of p.options) {
+          const o = document.createElement('option');
+          o.value = opt; o.textContent = opt;
+          if ((current[p.name] || p.default) === opt) o.selected = true;
+          sel.appendChild(o);
+        }
+        sel.addEventListener('change', () => {
+          onChange({ ...getCurrent(), [p.name]: sel.value });
+          renderParamHost(host, algo, getCurrent, onChange);
+        });
+        wrap.appendChild(sel);
+        host.appendChild(wrap);
+        continue;
+      }
       const input = document.createElement('input');
       input.type = p.type === 'int' || p.type === 'float' ? 'number' : 'text';
       if (p.min !== undefined) input.min = p.min;
@@ -106,18 +141,18 @@ function init() {
       input.value = current[p.name] !== undefined ? current[p.name] : p.default;
       input.addEventListener('change', () => {
         const v = p.type === 'int' ? parseInt(input.value, 10) : parseFloat(input.value);
-        onChange({ ...current, [p.name]: v });
+        onChange({ ...getCurrent(), [p.name]: v });
       });
       wrap.appendChild(input);
       host.appendChild(wrap);
     }
-    if (algo.params.length === 0) host.innerHTML = '<span class="mf-noparams">No parameters</span>';
+    if (visible.length === 0) host.innerHTML = '<span class="mf-noparams">No parameters</span>';
   }
 
   function rebindParamHosts() {
-    renderParamHost(leftParamsHost, ALGORITHMS_BY_ID[store.state.leftAlgoId], store.state.leftAlgoParams,
+    renderParamHost(leftParamsHost, ALGORITHMS_BY_ID[store.state.leftAlgoId], () => store.state.leftAlgoParams,
       (next) => store.set({ leftAlgoParams: next }));
-    renderParamHost(rightParamsHost, ALGORITHMS_BY_ID[store.state.rightAlgoId], store.state.rightAlgoParams,
+    renderParamHost(rightParamsHost, ALGORITHMS_BY_ID[store.state.rightAlgoId], () => store.state.rightAlgoParams,
       (next) => store.set({ rightAlgoParams: next }));
   }
   rebindParamHosts();

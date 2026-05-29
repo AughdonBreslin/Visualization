@@ -1,11 +1,15 @@
 const VIRIDIS = ['#000000', '#3a1a6e', '#5b3a8c', '#8b5fbf', '#c179d3', '#e8a37f', '#f5cf6e', '#f9eb6b'];
+const VIRIDIS_RGB = VIRIDIS.map(hex => {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
+});
 
-function colorScale(min, max, v) {
-  if (max - min < 1e-12) return VIRIDIS[0];
+function colorIdx(min, max, v) {
+  if (!Number.isFinite(v) || max - min < 1e-12) return 0;
   const u = Math.max(0, Math.min(1, (v - min) / (max - min)));
   const idx = u * (VIRIDIS.length - 1);
   const lo = Math.floor(idx), hi = Math.min(VIRIDIS.length - 1, lo + 1);
-  return idx - lo < 0.5 ? VIRIDIS[lo] : VIRIDIS[hi];
+  return idx - lo < 0.5 ? lo : hi;
 }
 
 function matmul(A, B) {
@@ -48,9 +52,16 @@ function mountOrbitablePane(svg, pane, x, y, w, h) {
   paneG.append('text').attr('x', w / 2).attr('y', -6).attr('text-anchor', 'middle')
     .attr('fill', 'rgba(255,255,255,0.55)').attr('font-size', '10').text(pane.label || '');
 
-  const content = paneG.append('g');
-  const hit = paneG.append('rect').attr('width', w).attr('height', h)
-    .attr('fill', 'transparent').style('cursor', 'grab').style('touch-action', 'none');
+  const fo = paneG.append('foreignObject').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h);
+  const canvas = document.createElement('canvas');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+  canvas.style.cursor = 'grab';
+  canvas.style.touchAction = 'none';
+  fo.node().appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
 
   const points = pane.kind === 'cloud_thumb' ? pane.data : pane.data.points;
   const { ax, ay, az, r } = paneBounds(points);
@@ -59,39 +70,53 @@ function mountOrbitablePane(svg, pane, x, y, w, h) {
   let R = [[0.886, 0.0, 0.464], [-0.163, 0.937, 0.311], [-0.434, -0.348, 0.831]];
 
   function redraw() {
-    content.html('');
+    ctx.clearRect(0, 0, w, h);
     const proj = project3DFrom(R, points, ax, ay, az, scale, cxp, cyp);
     if (pane.kind === 'graph_thumb' || pane.kind === 'graph_thumb_with_path') {
-      pane.data.edges.forEach(([a, b]) => {
-        content.append('line').attr('x1', proj[a].sx).attr('y1', proj[a].sy)
-          .attr('x2', proj[b].sx).attr('y2', proj[b].sy)
-          .attr('stroke', 'rgba(255,255,255,0.18)').attr('stroke-width', 0.6);
-      });
-      if (pane.kind === 'graph_thumb_with_path') {
-        pane.data.pathEdges.forEach(([a, b]) => {
-          if (proj[a] && proj[b]) {
-            content.append('line').attr('x1', proj[a].sx).attr('y1', proj[a].sy)
-              .attr('x2', proj[b].sx).attr('y2', proj[b].sy)
-              .attr('stroke', 'rgba(255,255,255,0.95)').attr('stroke-width', 1.6);
-          }
-        });
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      for (const [a, b] of pane.data.edges) {
+        ctx.moveTo(proj[a].sx, proj[a].sy);
+        ctx.lineTo(proj[b].sx, proj[b].sy);
       }
-      proj.forEach(p => content.append('circle').attr('cx', p.sx).attr('cy', p.sy).attr('r', 1.4)
-        .attr('fill', 'rgba(255,255,255,0.85)'));
+      ctx.stroke();
+      if (pane.kind === 'graph_thumb_with_path') {
+        ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        for (const [a, b] of pane.data.pathEdges) {
+          if (proj[a] && proj[b]) {
+            ctx.moveTo(proj[a].sx, proj[a].sy);
+            ctx.lineTo(proj[b].sx, proj[b].sy);
+          }
+        }
+        ctx.stroke();
+      }
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      for (const p of proj) {
+        ctx.beginPath();
+        ctx.arc(p.sx, p.sy, 1.4, 0, 6.283185307179586);
+        ctx.fill();
+      }
     } else {
-      proj.forEach(p => content.append('circle').attr('cx', p.sx).attr('cy', p.sy).attr('r', 1.6)
-        .attr('fill', 'rgba(255,255,255,0.85)'));
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      for (const p of proj) {
+        ctx.beginPath();
+        ctx.arc(p.sx, p.sy, 1.6, 0, 6.283185307179586);
+        ctx.fill();
+      }
     }
   }
   redraw();
 
   let dragging = false, lastX = 0, lastY = 0;
-  hit.on('pointerdown', (event) => {
+  canvas.addEventListener('pointerdown', (event) => {
     dragging = true; lastX = event.clientX; lastY = event.clientY;
-    hit.style('cursor', 'grabbing');
-    try { hit.node().setPointerCapture(event.pointerId); } catch (e) {}
+    canvas.style.cursor = 'grabbing';
+    try { canvas.setPointerCapture(event.pointerId); } catch (e) {}
   });
-  hit.on('pointermove', (event) => {
+  canvas.addEventListener('pointermove', (event) => {
     if (!dragging) return;
     const dx = (event.clientX - lastX) * 0.01;
     const dy = (event.clientY - lastY) * 0.01;
@@ -100,12 +125,12 @@ function mountOrbitablePane(svg, pane, x, y, w, h) {
     redraw();
   });
   function endDrag(event) {
-    dragging = false; hit.style('cursor', 'grab');
-    try { hit.node().releasePointerCapture(event.pointerId); } catch (e) {}
+    dragging = false; canvas.style.cursor = 'grab';
+    try { canvas.releasePointerCapture(event.pointerId); } catch (e) {}
   }
-  hit.on('pointerup', endDrag);
-  hit.on('pointercancel', endDrag);
-  hit.on('pointerleave', endDrag);
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('pointerleave', endDrag);
 }
 
 function mountStaticPane(svg, pane, x, y, w, h) {
@@ -132,19 +157,30 @@ function mountStaticPane(svg, pane, x, y, w, h) {
       const v = matrix[i];
       if (Number.isFinite(v)) { if (v < lo) lo = v; if (v > hi) hi = v; }
     }
-    const cellSize = Math.max(1, Math.floor(Math.min(w, h) / N));
-    const total = cellSize * N;
+    const total = Math.min(w, h);
     const ox = (w - total) / 2;
     const oy = (h - total) / 2;
-    for (let r = 0; r < N; r++) {
-      for (let c = 0; c < N; c++) {
-        const v = matrix[r * N + c];
-        g.append('rect').attr('x', ox + c * cellSize).attr('y', oy + r * cellSize)
-          .attr('width', cellSize).attr('height', cellSize)
-          .attr('fill', colorScale(lo, hi, v));
-      }
+
+    const fo = g.append('foreignObject').attr('x', ox).attr('y', oy).attr('width', total).attr('height', total);
+    const canvas = document.createElement('canvas');
+    canvas.width = N; canvas.height = N;
+    canvas.style.width = total + 'px';
+    canvas.style.height = total + 'px';
+    canvas.style.imageRendering = 'pixelated';
+    canvas.style.display = 'block';
+    fo.node().appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    const img = ctx.createImageData(N, N);
+    const buf = img.data;
+    for (let i = 0; i < N * N; i++) {
+      const rgb = VIRIDIS_RGB[colorIdx(lo, hi, matrix[i])];
+      const k = i * 4;
+      buf[k] = rgb[0]; buf[k + 1] = rgb[1]; buf[k + 2] = rgb[2]; buf[k + 3] = 255;
     }
+    ctx.putImageData(img, 0, 0);
+
     if (highlightRow !== undefined && highlightRow < N) {
+      const cellSize = total / N;
       g.append('rect').attr('x', ox).attr('y', oy + highlightRow * cellSize)
         .attr('width', total).attr('height', cellSize)
         .attr('fill', 'none').attr('stroke', '#fff').attr('stroke-width', 1.5);
