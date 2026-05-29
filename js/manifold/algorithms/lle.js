@@ -72,6 +72,7 @@ export const LLE = {
       const mem = {};
       const tasks = [
         () => {
+          const t0 = Date.now();
           const { adj, edges } = knnGraph(X, k);
           mem.adj = adj;
           mem.edges = edges;
@@ -90,8 +91,11 @@ export const LLE = {
               worked: workedSections(inputBlock, '$$w^{\\text{edge}}_{ij} = \\| x_j - x_i \\|$$', outputBlock),
             },
           });
-          pending.delete('2');
-          if (onProgress) onProgress('2');
+          setTimeout(() => {
+            if (cancelled) return;
+            pending.delete('2');
+            if (onProgress) onProgress('2');
+          }, Math.max(0, 5000 - (Date.now() - t0)));
         },
         () => {
           const adj = mem.adj;

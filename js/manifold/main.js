@@ -17,7 +17,7 @@ const ALGORITHMS_BY_ID = Object.fromEntries(ALGORITHMS.map(a => [a.id, a]));
 
 const defaults = {
   datasetId: 'swiss_roll',
-  datasetParams: { samples: 150, noise: 0.0, seed: 7 },
+  datasetParams: { samples: 1000, noise: 0.0, seed: 7 },
   leftAlgoId: 'pca',
   rightAlgoId: 'isomap',
   algoParams: {
