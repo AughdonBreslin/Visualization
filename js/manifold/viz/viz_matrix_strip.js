@@ -8,7 +8,29 @@ function colorScale(min, max, v) {
   return idx - lo < 0.5 ? VIRIDIS[lo] : VIRIDIS[hi];
 }
 
-function project3D(points, width, height) {
+function matmul(A, B) {
+  const C = [[0,0,0],[0,0,0],[0,0,0]];
+  for (let i = 0; i < 3; i++)
+    for (let j = 0; j < 3; j++)
+      for (let k = 0; k < 3; k++) C[i][j] += A[i][k] * B[k][j];
+  return C;
+}
+function rotX(a) { const c = Math.cos(a), s = Math.sin(a); return [[1,0,0],[0,c,-s],[0,s,c]]; }
+function rotY(a) { const c = Math.cos(a), s = Math.sin(a); return [[c,0,s],[0,1,0],[-s,0,c]]; }
+
+function project3DFrom(R, points, ax, ay, az, scale, cx, cy) {
+  const N = points.length / 3;
+  const out = new Array(N);
+  for (let i = 0; i < N; i++) {
+    const x = points[i * 3] - ax, y = points[i * 3 + 1] - ay, z = points[i * 3 + 2] - az;
+    const px = R[0][0]*x + R[0][1]*y + R[0][2]*z;
+    const py = R[1][0]*x + R[1][1]*y + R[1][2]*z;
+    out[i] = { i, sx: cx + scale * px, sy: cy - scale * py };
+  }
+  return out;
+}
+
+function paneBounds(points) {
   const N = points.length / 3;
   let xmn = Infinity, xmx = -Infinity, ymn = Infinity, ymx = -Infinity, zmn = Infinity, zmx = -Infinity;
   for (let i = 0; i < N; i++) {
@@ -17,49 +39,81 @@ function project3D(points, width, height) {
     if (points[i * 3 + 2] < zmn) zmn = points[i * 3 + 2]; if (points[i * 3 + 2] > zmx) zmx = points[i * 3 + 2];
   }
   const r = Math.max(xmx - xmn, ymx - ymn, zmx - zmn, 1e-6) / 2;
-  const R = [[0.886, 0.0, 0.464], [-0.163, 0.937, 0.311], [-0.434, -0.348, 0.831]];
-  const s = (Math.min(width, height) / 2 - 8) / r;
-  const cx = width / 2, cy = height / 2;
-  const ax = (xmn + xmx) / 2, ay = (ymn + ymx) / 2, az = (zmn + zmx) / 2;
-  const out = new Array(N);
-  for (let i = 0; i < N; i++) {
-    const x = points[i * 3] - ax, y = points[i * 3 + 1] - ay, z = points[i * 3 + 2] - az;
-    const px = R[0][0]*x + R[0][1]*y + R[0][2]*z;
-    const py = R[1][0]*x + R[1][1]*y + R[1][2]*z;
-    out[i] = { i, sx: cx + s * px, sy: cy - s * py };
-  }
-  return out;
+  return { ax: (xmn + xmx) / 2, ay: (ymn + ymx) / 2, az: (zmn + zmx) / 2, r };
 }
 
-function renderPane(svg, pane, x, y, w, h) {
+function mountOrbitablePane(svg, pane, x, y, w, h) {
   const d3 = window.d3;
+  const paneG = svg.append('g').attr('transform', `translate(${x}, ${y})`);
+  paneG.append('text').attr('x', w / 2).attr('y', -6).attr('text-anchor', 'middle')
+    .attr('fill', 'rgba(255,255,255,0.55)').attr('font-size', '10').text(pane.label || '');
+
+  const content = paneG.append('g');
+  const hit = paneG.append('rect').attr('width', w).attr('height', h)
+    .attr('fill', 'transparent').style('cursor', 'grab').style('touch-action', 'none');
+
+  const points = pane.kind === 'cloud_thumb' ? pane.data : pane.data.points;
+  const { ax, ay, az, r } = paneBounds(points);
+  const scale = (Math.min(w, h) / 2 - 6) / r;
+  const cxp = w / 2, cyp = h / 2;
+  let R = [[0.886, 0.0, 0.464], [-0.163, 0.937, 0.311], [-0.434, -0.348, 0.831]];
+
+  function redraw() {
+    content.html('');
+    const proj = project3DFrom(R, points, ax, ay, az, scale, cxp, cyp);
+    if (pane.kind === 'graph_thumb' || pane.kind === 'graph_thumb_with_path') {
+      pane.data.edges.forEach(([a, b]) => {
+        content.append('line').attr('x1', proj[a].sx).attr('y1', proj[a].sy)
+          .attr('x2', proj[b].sx).attr('y2', proj[b].sy)
+          .attr('stroke', 'rgba(255,255,255,0.18)').attr('stroke-width', 0.6);
+      });
+      if (pane.kind === 'graph_thumb_with_path') {
+        pane.data.pathEdges.forEach(([a, b]) => {
+          if (proj[a] && proj[b]) {
+            content.append('line').attr('x1', proj[a].sx).attr('y1', proj[a].sy)
+              .attr('x2', proj[b].sx).attr('y2', proj[b].sy)
+              .attr('stroke', 'rgba(255,255,255,0.95)').attr('stroke-width', 1.6);
+          }
+        });
+      }
+      proj.forEach(p => content.append('circle').attr('cx', p.sx).attr('cy', p.sy).attr('r', 1.4)
+        .attr('fill', 'rgba(255,255,255,0.85)'));
+    } else {
+      proj.forEach(p => content.append('circle').attr('cx', p.sx).attr('cy', p.sy).attr('r', 1.6)
+        .attr('fill', 'rgba(255,255,255,0.85)'));
+    }
+  }
+  redraw();
+
+  let dragging = false, lastX = 0, lastY = 0;
+  hit.on('pointerdown', (event) => {
+    dragging = true; lastX = event.clientX; lastY = event.clientY;
+    hit.style('cursor', 'grabbing');
+    try { hit.node().setPointerCapture(event.pointerId); } catch (e) {}
+  });
+  hit.on('pointermove', (event) => {
+    if (!dragging) return;
+    const dx = (event.clientX - lastX) * 0.01;
+    const dy = (event.clientY - lastY) * 0.01;
+    lastX = event.clientX; lastY = event.clientY;
+    R = matmul(matmul(rotX(dy), rotY(dx)), R);
+    redraw();
+  });
+  function endDrag(event) {
+    dragging = false; hit.style('cursor', 'grab');
+    try { hit.node().releasePointerCapture(event.pointerId); } catch (e) {}
+  }
+  hit.on('pointerup', endDrag);
+  hit.on('pointercancel', endDrag);
+  hit.on('pointerleave', endDrag);
+}
+
+function mountStaticPane(svg, pane, x, y, w, h) {
   const g = svg.append('g').attr('transform', `translate(${x}, ${y})`);
   g.append('text').attr('x', w / 2).attr('y', -6).attr('text-anchor', 'middle')
    .attr('fill', 'rgba(255,255,255,0.55)').attr('font-size', '10').text(pane.label || '');
 
-  if (pane.kind === 'cloud_thumb') {
-    const proj = project3D(pane.data, w, h);
-    proj.forEach(p => g.append('circle').attr('cx', p.sx).attr('cy', p.sy).attr('r', 1.6)
-      .attr('fill', 'rgba(255,255,255,0.85)'));
-  } else if (pane.kind === 'graph_thumb' || pane.kind === 'graph_thumb_with_path') {
-    const proj = project3D(pane.data.points, w, h);
-    pane.data.edges.forEach(([a, b]) => {
-      g.append('line').attr('x1', proj[a].sx).attr('y1', proj[a].sy)
-        .attr('x2', proj[b].sx).attr('y2', proj[b].sy)
-        .attr('stroke', 'rgba(255,255,255,0.18)').attr('stroke-width', 0.6);
-    });
-    if (pane.kind === 'graph_thumb_with_path') {
-      pane.data.pathEdges.forEach(([a, b]) => {
-        if (proj[a] && proj[b]) {
-          g.append('line').attr('x1', proj[a].sx).attr('y1', proj[a].sy)
-            .attr('x2', proj[b].sx).attr('y2', proj[b].sy)
-            .attr('stroke', 'rgba(255,255,255,0.95)').attr('stroke-width', 1.6);
-        }
-      });
-    }
-    proj.forEach(p => g.append('circle').attr('cx', p.sx).attr('cy', p.sy).attr('r', 1.4)
-      .attr('fill', 'rgba(255,255,255,0.85)'));
-  } else if (pane.kind === 'matrix_numbers') {
+  if (pane.kind === 'matrix_numbers') {
     const M = pane.data;
     const cw = w / M[0].length, ch = h / M.length;
     g.append('rect').attr('width', w).attr('height', h).attr('fill', 'rgba(255,255,255,0.08)')
@@ -95,6 +149,14 @@ function renderPane(svg, pane, x, y, w, h) {
         .attr('width', total).attr('height', cellSize)
         .attr('fill', 'none').attr('stroke', '#fff').attr('stroke-width', 1.5);
     }
+  }
+}
+
+function renderPane(svg, pane, x, y, w, h) {
+  if (pane.kind === 'cloud_thumb' || pane.kind === 'graph_thumb' || pane.kind === 'graph_thumb_with_path') {
+    mountOrbitablePane(svg, pane, x, y, w, h);
+  } else {
+    mountStaticPane(svg, pane, x, y, w, h);
   }
 }
 

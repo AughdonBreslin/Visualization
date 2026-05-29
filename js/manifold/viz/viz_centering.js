@@ -11,6 +11,12 @@ function project(R, X, scale, cx, cy) {
   return out;
 }
 
+function projectVec(R, v, scale, cx, cy) {
+  const px = R[0][0]*v[0] + R[0][1]*v[1] + R[0][2]*v[2];
+  const py = R[1][0]*v[0] + R[1][1]*v[1] + R[1][2]*v[2];
+  return [cx + scale*px, cy - scale*py];
+}
+
 function rainbow(t, tMin, tMax) {
   const u = (t - tMin) / Math.max(1e-9, tMax - tMin);
   const h = (1 - u) * 240;
@@ -42,6 +48,39 @@ export function mountCentering(container, state, { width = 480, height = 360 } =
   const scale = (Math.min(width, height) / 2 - 18) / radius;
   const cx = width / 2, cy = height / 2;
 
+  const axLen = radius * 1.25;
+  const axes = [
+    { v: [1, 0, 0], color: 'rgba(255,107,107,0.45)', label: 'x' },
+    { v: [0, 1, 0], color: 'rgba(107,212,123,0.45)', label: 'y' },
+    { v: [0, 0, 1], color: 'rgba(107,182,255,0.45)', label: 'z' },
+  ];
+  const gAxes = svg.append('g');
+  axes.forEach(({ v, color, label }) => {
+    const a = projectVec(R, [-axLen * v[0], -axLen * v[1], -axLen * v[2]], scale, cx, cy);
+    const b = projectVec(R, [axLen * v[0], axLen * v[1], axLen * v[2]], scale, cx, cy);
+    gAxes.append('line').attr('x1', a[0]).attr('y1', a[1]).attr('x2', b[0]).attr('y2', b[1])
+      .attr('stroke', color).attr('stroke-width', 1);
+    gAxes.append('text').attr('x', b[0] + 4).attr('y', b[1] + 3)
+      .attr('fill', color).attr('font-size', '10').text(label);
+  });
+
+  const gridStep = radius / 2;
+  const gGrid = svg.append('g');
+  for (let s = -1; s <= 1; s++) {
+    if (s === 0) continue;
+    const offset = s * gridStep;
+    [['x', 'z'], ['z', 'x']].forEach(([varAxis, fixed]) => {
+      const a = projectVec(R,
+        varAxis === 'x' ? [-axLen, 0, offset] : [offset, 0, -axLen],
+        scale, cx, cy);
+      const b = projectVec(R,
+        varAxis === 'x' ? [axLen, 0, offset] : [offset, 0, axLen],
+        scale, cx, cy);
+      gGrid.append('line').attr('x1', a[0]).attr('y1', a[1]).attr('x2', b[0]).attr('y2', b[1])
+        .attr('stroke', 'rgba(255,255,255,0.06)').attr('stroke-width', 1);
+    });
+  }
+
   const rawProj = project(R, raw, scale, cx, cy);
   const centeredProj = project(R, centered, scale, cx, cy);
   let tMin = Infinity, tMax = -Infinity;
@@ -49,10 +88,9 @@ export function mountCentering(container, state, { width = 480, height = 360 } =
   const colorOf = (i) => t ? rainbow(t[i], tMin, tMax) : '#7ec8ff';
 
   const gGhost = svg.append('g');
-  rawProj.forEach(p => {
+  const ghostCircles = rawProj.map(p =>
     gGhost.append('circle').attr('cx', p.sx).attr('cy', p.sy).attr('r', 2.6)
-      .attr('fill', colorOf(p.i)).attr('opacity', 0.28);
-  });
+      .attr('fill', colorOf(p.i)).attr('opacity', 0.32));
 
   const gPoints = svg.append('g');
   const circles = centeredProj.map(p => gPoints.append('circle')
@@ -63,6 +101,9 @@ export function mountCentering(container, state, { width = 480, height = 360 } =
     circles.forEach((c, i) => {
       c.transition().duration(1000).ease(d3.easeCubicInOut)
         .attr('cx', centeredProj[i].sx).attr('cy', centeredProj[i].sy);
+    });
+    ghostCircles.forEach(c => {
+      c.transition().duration(900).ease(d3.easeCubicInOut).attr('opacity', 0);
     });
   }, 60);
 
