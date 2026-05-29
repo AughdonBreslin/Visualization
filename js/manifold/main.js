@@ -103,8 +103,9 @@ function init() {
   const leftPseudo = createPseudocode(leftPseudoHost, 'a');
   const rightPseudo = createPseudocode(rightPseudoHost, 'b');
 
-  function renderParamHost(host, algo, current, onChange) {
+  function renderParamHost(host, algo, getCurrent, onChange) {
     host.innerHTML = '';
+    const current = getCurrent();
     for (const p of algo.params) {
       const wrap = document.createElement('label');
       wrap.className = 'mf-param';
@@ -118,7 +119,7 @@ function init() {
           sel.appendChild(o);
         }
         sel.addEventListener('change', () => {
-          onChange({ ...current, [p.name]: sel.value });
+          onChange({ ...getCurrent(), [p.name]: sel.value });
         });
         wrap.appendChild(sel);
         host.appendChild(wrap);
@@ -132,7 +133,7 @@ function init() {
       input.value = current[p.name] !== undefined ? current[p.name] : p.default;
       input.addEventListener('change', () => {
         const v = p.type === 'int' ? parseInt(input.value, 10) : parseFloat(input.value);
-        onChange({ ...current, [p.name]: v });
+        onChange({ ...getCurrent(), [p.name]: v });
       });
       wrap.appendChild(input);
       host.appendChild(wrap);
@@ -141,9 +142,9 @@ function init() {
   }
 
   function rebindParamHosts() {
-    renderParamHost(leftParamsHost, ALGORITHMS_BY_ID[store.state.leftAlgoId], store.state.leftAlgoParams,
+    renderParamHost(leftParamsHost, ALGORITHMS_BY_ID[store.state.leftAlgoId], () => store.state.leftAlgoParams,
       (next) => store.set({ leftAlgoParams: next }));
-    renderParamHost(rightParamsHost, ALGORITHMS_BY_ID[store.state.rightAlgoId], store.state.rightAlgoParams,
+    renderParamHost(rightParamsHost, ALGORITHMS_BY_ID[store.state.rightAlgoId], () => store.state.rightAlgoParams,
       (next) => store.set({ rightAlgoParams: next }));
   }
   rebindParamHosts();
