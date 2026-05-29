@@ -43,9 +43,9 @@ export const KPCA = {
   label: 'Kernel PCA',
   params: [
     { name: 'kernel', type: 'enum', options: ['rbf', 'polynomial', 'linear'], default: 'rbf' },
-    { name: 'gamma', type: 'float', default: 0.5, min: 0.01, max: 20 },
-    { name: 'degree', type: 'int', default: 3, min: 1, max: 10 },
-    { name: 'constant', type: 'float', default: 1, min: 0, max: 10 },
+    { name: 'gamma', type: 'float', default: 0.5, min: 0.01, max: 20, dependsOn: { kernel: 'rbf' } },
+    { name: 'degree', type: 'int', default: 3, min: 1, max: 10, dependsOn: { kernel: 'polynomial' } },
+    { name: 'constant', type: 'float', default: 1, min: 0, max: 10, dependsOn: { kernel: 'polynomial' } },
   ],
   presentSubSteps: ['0', '3', '4', '5', '6'],
   pseudocode: [
