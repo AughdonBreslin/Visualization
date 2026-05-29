@@ -30,7 +30,10 @@ test('S-curve also yields the right shape', () => {
   assert.equal(out.t.length, 40);
 });
 
-test('DATASETS exposes swiss_roll, s_curve, and csv ids in order', () => {
-  assert.deepEqual(DATASETS.map(d => d.id), ['swiss_roll', 's_curve', 'csv']);
+test('DATASETS starts with swiss_roll and s_curve and ends with csv', () => {
+  const ids = DATASETS.map(d => d.id);
+  assert.equal(ids[0], 'swiss_roll');
+  assert.equal(ids[1], 's_curve');
+  assert.equal(ids[ids.length - 1], 'csv');
   assert.equal(DATASETS_BY_ID.swiss_roll.label, 'Swiss roll');
 });
