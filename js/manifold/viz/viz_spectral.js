@@ -200,7 +200,7 @@ export function mountSpectral(container, state, { width = 480, height = 360 } = 
     .style('width', '100%').style('height', '100%');
 
   if (state.algoId === 'pca') mountPcaSpectral(svg, state, width, height);
-  else if (state.algoId === 'isomap') mountIsomapSpectral(svg, state, width, height);
+  else mountIsomapSpectral(svg, state, width, height);
 
   return {
     unmount() { wrap.remove(); }

@@ -132,8 +132,8 @@ function mountStaticPane(svg, pane, x, y, w, h) {
       const v = matrix[i];
       if (Number.isFinite(v)) { if (v < lo) lo = v; if (v > hi) hi = v; }
     }
-    const cellSize = Math.max(1, Math.floor(Math.min(w, h) / N));
-    const total = cellSize * N;
+    const total = Math.min(w, h);
+    const cellSize = total / N;
     const ox = (w - total) / 2;
     const oy = (h - total) / 2;
     for (let r = 0; r < N; r++) {
