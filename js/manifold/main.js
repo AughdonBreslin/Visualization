@@ -1,4 +1,4 @@
-import { DATASETS, parseCSV } from './datasets.js';
+import { DATASETS, DATASETS_BY_ID, parseCSV } from './datasets.js';
 import { PCA } from './algorithms/pca.js';
 import { ISOMAP } from './algorithms/isomap.js';
 import { MDS } from './algorithms/mds.js';
@@ -39,6 +39,7 @@ function init() {
   const reseedBtn = $('mfReseed');
   const csvInput = $('mfCsvInput');
   const csvLabel = $('mfCsvLabel');
+  const datasetParamsHost = $('mfDatasetParams');
   const leftSelect = $('mfAlgoLeft');
   const rightSelect = $('mfAlgoRight');
   const leftParamsHost = $('mfAlgoLeftParams');
@@ -157,11 +158,23 @@ function init() {
   }
   rebindParamHosts();
 
+  function renderDatasetParams() {
+    const ds = DATASETS_BY_ID[store.state.datasetId];
+    if (!ds || !ds.params || ds.params.length === 0) {
+      datasetParamsHost.innerHTML = '';
+      return;
+    }
+    renderParamHost(datasetParamsHost, ds, () => store.state.datasetParams,
+      (next) => store.set({ datasetParams: next }));
+  }
+  renderDatasetParams();
+
   function updateSyntheticVisibility() {
     const isCsv = store.state.datasetId === 'csv';
     samplesControl.style.display = isCsv ? 'none' : '';
     noiseControl.style.display = isCsv ? 'none' : '';
     seedControl.style.display = isCsv ? 'none' : '';
+    datasetParamsHost.style.display = isCsv ? 'none' : '';
     csvLabel.textContent = isCsv ? (store.state.csvFileName ? `Loaded: ${store.state.csvFileName} (${store.state.csvRows ? store.state.csvRows.length : 0} rows)` : '') : '';
   }
 
@@ -172,8 +185,16 @@ function init() {
       csvInput.click();
       return;
     }
-    store.set({ datasetId: id, csvRows: null, csvFileName: '' });
+    const ds = DATASETS_BY_ID[id];
+    const dp = {
+      samples: store.state.datasetParams.samples,
+      noise: store.state.datasetParams.noise,
+      seed: store.state.datasetParams.seed,
+    };
+    if (ds && ds.params) for (const p of ds.params) dp[p.name] = p.default;
+    store.set({ datasetId: id, csvRows: null, csvFileName: '', datasetParams: dp });
     updateSyntheticVisibility();
+    renderDatasetParams();
   });
   csvInput.addEventListener('change', () => {
     const file = csvInput.files && csvInput.files[0];
