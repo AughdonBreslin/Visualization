@@ -266,3 +266,66 @@ export function topKSymmetricEig(M, N, k, iters = 120) {
   }
   return { lambda: lambdaOut, vectors: vectorsOut };
 }
+
+export function bottomKSymmetricEig(M, N, k, { skipFirst = 0 } = {}) {
+  if (N <= 16) {
+    const matrix = [];
+    for (let i = 0; i < N; i++) {
+      const row = new Array(N);
+      for (let j = 0; j < N; j++) row[j] = M[i * N + j];
+      matrix.push(row);
+    }
+    const eig = jacobiEigSym(matrix);
+    const order = Array.from({ length: N }, (_, i) => i).sort((a, b) => eig.lambda[a] - eig.lambda[b]);
+    const sliced = order.slice(skipFirst, skipFirst + k);
+    const outLambda = new Float64Array(k);
+    const outVecs = [];
+    for (let i = 0; i < k; i++) {
+      outLambda[i] = eig.lambda[sliced[i]];
+      const v = new Float64Array(N);
+      for (let r = 0; r < N; r++) v[r] = eig.vectors[sliced[i]][r];
+      outVecs.push(v);
+    }
+    return { lambda: outLambda, vectors: outVecs };
+  }
+  const probe = new Float64Array(N);
+  for (let i = 0; i < N; i++) probe[i] = Math.sin(i * 1.3 + 0.7);
+  let nrm = 0;
+  for (let i = 0; i < N; i++) nrm += probe[i] * probe[i];
+  nrm = Math.sqrt(nrm);
+  if (nrm > 0) for (let i = 0; i < N; i++) probe[i] /= nrm;
+  const Mv = new Float64Array(N);
+  for (let iter = 0; iter < 40; iter++) {
+    for (let i = 0; i < N; i++) {
+      let s = 0;
+      for (let j = 0; j < N; j++) s += M[i * N + j] * probe[j];
+      Mv[i] = s;
+    }
+    let mag = 0;
+    for (let i = 0; i < N; i++) mag += Mv[i] * Mv[i];
+    mag = Math.sqrt(mag);
+    if (mag < 1e-12) break;
+    for (let i = 0; i < N; i++) probe[i] = Mv[i] / mag;
+  }
+  let muEstimate = 0;
+  for (let i = 0; i < N; i++) {
+    let s = 0;
+    for (let j = 0; j < N; j++) s += M[i * N + j] * probe[j];
+    muEstimate += probe[i] * s;
+  }
+  const mu = Math.abs(muEstimate) * 1.1 + 1.0;
+  const S = new Float64Array(N * N);
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      S[i * N + j] = (i === j ? mu : 0) - M[i * N + j];
+    }
+  }
+  const { lambda: shifted, vectors } = topKSymmetricEig(S, N, k + skipFirst);
+  const outLambda = new Float64Array(k);
+  const outVecs = [];
+  for (let i = 0; i < k; i++) {
+    outLambda[i] = mu - shifted[skipFirst + i];
+    outVecs.push(vectors[skipFirst + i]);
+  }
+  return { lambda: outLambda, vectors: outVecs };
+}
