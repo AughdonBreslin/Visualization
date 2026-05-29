@@ -202,12 +202,18 @@ export const ISOMAP = {
             '\ngrand mean g = ' + grand.toFixed(3);
           const sample = 'example B[1][2] = −1/2 · (' + D2[N + 2].toFixed(3) + ' − ' + rowMean[1].toFixed(3) + ' − ' + colMean[2].toFixed(3) + ' + ' + grand.toFixed(3) + ') = ' + B[N + 2].toFixed(3);
           const outputBlock = sample + '\n\nB (4 of N=' + N + ' rows):\n' + formatMatrix(outExcerpt, { digits: 3 });
+          const D2c = new Float64Array(N * N);
+          for (let i = 0; i < N; i++) {
+            for (let j = 0; j < N; j++) {
+              D2c[i * N + j] = D2[i * N + j] - rowMean[i] - colMean[j];
+            }
+          }
           steps.set('4', {
             points: X.slice(), t, edges: mem.edges, colors: null,
             vizKind: 'matrix_strip',
             panes: [
               { kind: 'heatmap', label: 'D²', data: { matrix: D2, N } },
-              { kind: 'heatmap', label: 'D² − μ', data: { matrix: B, N } },
+              { kind: 'heatmap', label: 'D² − μ', data: { matrix: D2c, N } },
               { kind: 'heatmap', label: 'B', data: { matrix: B, N } },
             ],
             paneOpLabels: ['subtract row/col means', '× (−1/2) + grand mean'],
