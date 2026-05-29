@@ -52,9 +52,16 @@ function mountOrbitablePane(svg, pane, x, y, w, h) {
   paneG.append('text').attr('x', w / 2).attr('y', -6).attr('text-anchor', 'middle')
     .attr('fill', 'rgba(255,255,255,0.55)').attr('font-size', '10').text(pane.label || '');
 
-  const content = paneG.append('g');
-  const hit = paneG.append('rect').attr('width', w).attr('height', h)
-    .attr('fill', 'transparent').style('cursor', 'grab').style('touch-action', 'none');
+  const fo = paneG.append('foreignObject').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h);
+  const canvas = document.createElement('canvas');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+  canvas.style.cursor = 'grab';
+  canvas.style.touchAction = 'none';
+  fo.node().appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
 
   const points = pane.kind === 'cloud_thumb' ? pane.data : pane.data.points;
   const { ax, ay, az, r } = paneBounds(points);
@@ -63,39 +70,53 @@ function mountOrbitablePane(svg, pane, x, y, w, h) {
   let R = [[0.886, 0.0, 0.464], [-0.163, 0.937, 0.311], [-0.434, -0.348, 0.831]];
 
   function redraw() {
-    content.html('');
+    ctx.clearRect(0, 0, w, h);
     const proj = project3DFrom(R, points, ax, ay, az, scale, cxp, cyp);
     if (pane.kind === 'graph_thumb' || pane.kind === 'graph_thumb_with_path') {
-      pane.data.edges.forEach(([a, b]) => {
-        content.append('line').attr('x1', proj[a].sx).attr('y1', proj[a].sy)
-          .attr('x2', proj[b].sx).attr('y2', proj[b].sy)
-          .attr('stroke', 'rgba(255,255,255,0.18)').attr('stroke-width', 0.6);
-      });
-      if (pane.kind === 'graph_thumb_with_path') {
-        pane.data.pathEdges.forEach(([a, b]) => {
-          if (proj[a] && proj[b]) {
-            content.append('line').attr('x1', proj[a].sx).attr('y1', proj[a].sy)
-              .attr('x2', proj[b].sx).attr('y2', proj[b].sy)
-              .attr('stroke', 'rgba(255,255,255,0.95)').attr('stroke-width', 1.6);
-          }
-        });
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      for (const [a, b] of pane.data.edges) {
+        ctx.moveTo(proj[a].sx, proj[a].sy);
+        ctx.lineTo(proj[b].sx, proj[b].sy);
       }
-      proj.forEach(p => content.append('circle').attr('cx', p.sx).attr('cy', p.sy).attr('r', 1.4)
-        .attr('fill', 'rgba(255,255,255,0.85)'));
+      ctx.stroke();
+      if (pane.kind === 'graph_thumb_with_path') {
+        ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        for (const [a, b] of pane.data.pathEdges) {
+          if (proj[a] && proj[b]) {
+            ctx.moveTo(proj[a].sx, proj[a].sy);
+            ctx.lineTo(proj[b].sx, proj[b].sy);
+          }
+        }
+        ctx.stroke();
+      }
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      for (const p of proj) {
+        ctx.beginPath();
+        ctx.arc(p.sx, p.sy, 1.4, 0, 6.283185307179586);
+        ctx.fill();
+      }
     } else {
-      proj.forEach(p => content.append('circle').attr('cx', p.sx).attr('cy', p.sy).attr('r', 1.6)
-        .attr('fill', 'rgba(255,255,255,0.85)'));
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      for (const p of proj) {
+        ctx.beginPath();
+        ctx.arc(p.sx, p.sy, 1.6, 0, 6.283185307179586);
+        ctx.fill();
+      }
     }
   }
   redraw();
 
   let dragging = false, lastX = 0, lastY = 0;
-  hit.on('pointerdown', (event) => {
+  canvas.addEventListener('pointerdown', (event) => {
     dragging = true; lastX = event.clientX; lastY = event.clientY;
-    hit.style('cursor', 'grabbing');
-    try { hit.node().setPointerCapture(event.pointerId); } catch (e) {}
+    canvas.style.cursor = 'grabbing';
+    try { canvas.setPointerCapture(event.pointerId); } catch (e) {}
   });
-  hit.on('pointermove', (event) => {
+  canvas.addEventListener('pointermove', (event) => {
     if (!dragging) return;
     const dx = (event.clientX - lastX) * 0.01;
     const dy = (event.clientY - lastY) * 0.01;
@@ -104,12 +125,12 @@ function mountOrbitablePane(svg, pane, x, y, w, h) {
     redraw();
   });
   function endDrag(event) {
-    dragging = false; hit.style('cursor', 'grab');
-    try { hit.node().releasePointerCapture(event.pointerId); } catch (e) {}
+    dragging = false; canvas.style.cursor = 'grab';
+    try { canvas.releasePointerCapture(event.pointerId); } catch (e) {}
   }
-  hit.on('pointerup', endDrag);
-  hit.on('pointercancel', endDrag);
-  hit.on('pointerleave', endDrag);
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('pointerleave', endDrag);
 }
 
 function mountStaticPane(svg, pane, x, y, w, h) {
