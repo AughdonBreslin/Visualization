@@ -219,7 +219,7 @@ export const ISOMAP = {
             paneOpLabels: ['subtract row/col means', '× (−1/2) + grand mean'],
             label: 'Double-centered Gram matrix',
             ifw: {
-              intuition: '<p>Classical MDS converts pairwise squared distances into an inner-product matrix B via double centering.</p>',
+              intuition: '<p>The geodesic distance matrix tells us how far apart every pair of points is along the manifold, but eigendecomposition needs a different form. Double-centering subtracts the row mean, the column mean, and re-adds the grand mean from every squared distance, then scales by minus one half. The result is the matrix B, whose entries look like inner products between points relative to the centre of the cloud. This matrix is what the next step decomposes to recover embedding coordinates.</p>',
               formula: '$$B = -\\tfrac{1}{2} H D^{(2)} H, \\quad H = I - \\tfrac{1}{N}\\mathbf{1}\\mathbf{1}^{\\top}$$',
               worked: workedSections(inputBlock, '$$B_{ij} = -\\tfrac{1}{2}\\bigl(D^2_{ij} - r_i - c_j + g\\bigr)$$', outputBlock),
             },

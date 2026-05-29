@@ -10,23 +10,16 @@ function nearestSub(target, present) {
 
 export function createStepIndicator(container, { onJump }) {
   const d3 = window.d3;
-  const root = d3.select(container).append('div').attr('class', 'sp-frame');
+  const root = d3.select(container);
 
-  const panels = root.append('div').attr('class', 'sp-panels');
-  const panelA = panels.append('div').attr('class', 'sp-panel');
-  const headerA = panelA.append('div').attr('class', 'sp-panel-header');
-  const barA = panelA.append('div').attr('class', 'sp-bar');
-  const detailA = panelA.append('div').attr('class', 'sp-detail');
+  const barA = root.select('.sp-bar[data-side="a"]');
+  const barB = root.select('.sp-bar[data-side="b"]');
+  const detailA = root.select('.sp-detail[data-side="a"]');
+  const detailB = root.select('.sp-detail[data-side="b"]');
+  const prevBtn = root.select('.step-prev');
+  const nextBtn = root.select('.step-next');
+  const descEl = root.select('.step-desc');
 
-  const panelB = panels.append('div').attr('class', 'sp-panel');
-  const headerB = panelB.append('div').attr('class', 'sp-panel-header');
-  const barB = panelB.append('div').attr('class', 'sp-bar');
-  const detailB = panelB.append('div').attr('class', 'sp-detail');
-
-  const navRow = root.append('div').attr('class', 'sp-nav');
-  const prevBtn = navRow.append('button').attr('class', 'step-prev').attr('type', 'button').text('◀ Prev');
-  const descEl = navRow.append('div').attr('class', 'step-desc');
-  const nextBtn = navRow.append('button').attr('class', 'step-next').attr('type', 'button').text('Next ▶');
   prevBtn.on('click', () => onJump('prev'));
   nextBtn.on('click', () => onJump('next'));
 
@@ -69,8 +62,7 @@ export function createStepIndicator(container, { onJump }) {
         label = cid + ' · not used';
       } else {
         const cmp = compareSubSteps(cid, nearest);
-        if (cid === nearest && cid === globalCurrent) rowClass += ' current';
-        else if (cmp < 0) rowClass += ' past';
+        if (cmp < 0) rowClass += ' past';
         else if (cmp === 0) rowClass += ' current';
         else rowClass += ' future';
         label = cid + ' · ' + step.label;
@@ -83,9 +75,6 @@ export function createStepIndicator(container, { onJump }) {
   }
 
   function render({ leftLabel, rightLabel, leftSubSteps, rightSubSteps, currentSubStep }) {
-    headerA.text('A · ' + leftLabel);
-    headerB.text('B · ' + rightLabel);
-
     const leftNearest = nearestSub(currentSubStep, leftSubSteps);
     const rightNearest = nearestSub(currentSubStep, rightSubSteps);
 

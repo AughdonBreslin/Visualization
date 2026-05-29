@@ -9,8 +9,7 @@
 .manifold .mf-algo-header { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
 .manifold .mf-algo-header select { flex: 1; min-width: 0; }
 .manifold .mf-algo-side { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: 0 0 24px; border-radius: 50%; font-weight: 700; background: rgba(255,255,255,0.12); font-size: 0.9rem; }
-.manifold .mf-algo-side-a { background: #ff9f43; color: #2a1700; }
-.manifold .mf-algo-side-b { background: #54a0ff; color: #06182f; }
+.manifold .mf-algo-side-a, .manifold .mf-algo-side-b { background: rgba(255,255,255,0.18); color: rgba(255,255,255,0.85); }
 .manifold .mf-algo-params { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.9rem; }
 .manifold .mf-param { display: inline-flex; align-items: center; gap: 4px; }
 .manifold .mf-param input { width: 5.5em; }

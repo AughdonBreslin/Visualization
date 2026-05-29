@@ -54,28 +54,33 @@
         <input id="mfCsvInput" type="file" accept=".csv,text/csv" style="display:none" />
         <div id="mfCsvLabel" class="mf-csv-name"></div>
       </section>
-      <section class="panel">
+      <section class="panel sp-frame" id="mfAlgoStepPanel">
         <h2>Algorithms</h2>
-        <div class="mf-algos-row">
-          <div class="mf-algo-card">
-            <div class="mf-algo-header">
-              <span class="mf-algo-side mf-algo-side-a">A</span>
+        <div class="sp-panels">
+          <div class="mf-algo-card sp-panel">
+            <div class="sp-panel-header">
+              <span class="mf-algo-side">A</span>
               <select id="mfAlgoLeft" class="mf-algo-select"></select>
             </div>
             <div id="mfAlgoLeftParams" class="mf-algo-params"></div>
+            <div class="sp-bar" data-side="a"></div>
+            <div class="sp-detail" data-side="a"></div>
           </div>
-          <div class="mf-algo-card">
-            <div class="mf-algo-header">
-              <span class="mf-algo-side mf-algo-side-b">B</span>
+          <div class="mf-algo-card sp-panel">
+            <div class="sp-panel-header">
+              <span class="mf-algo-side">B</span>
               <select id="mfAlgoRight" class="mf-algo-select"></select>
             </div>
             <div id="mfAlgoRightParams" class="mf-algo-params"></div>
+            <div class="sp-bar" data-side="b"></div>
+            <div class="sp-detail" data-side="b"></div>
           </div>
         </div>
-      </section>
-      <section class="panel">
-        <h2>Step</h2>
-        <div id="mfStep"></div>
+        <div class="sp-nav">
+          <button class="step-prev" type="button">◀ Prev</button>
+          <div class="step-desc"></div>
+          <button class="step-next" type="button">Next ▶</button>
+        </div>
       </section>
       <section class="panel">
         <h2>Visualization</h2>
