@@ -108,10 +108,9 @@ export const PCA = {
             vizKind: 'matrix_strip',
             panes: [
               { kind: 'cloud_thumb', label: 'X_c (centered)', data: Xc },
-              { kind: 'matrix_numbers', label: 'X_cᵀ X_c (raw sum)', data: C.map(row => row.map(v => v * (N - 1))) },
-              { kind: 'matrix_numbers', label: 'C = ÷ (N − 1)', data: C },
+              { kind: 'matrix_numbers', label: 'C', data: C },
             ],
-            paneOpLabels: ['X_cᵀ X_c', '÷ (N − 1)'],
+            paneOpLabels: ['(1 / (N − 1)) · X_cᵀ X_c'],
             label: 'Covariance matrix',
             ifw: {
               intuition: '<p>The 3x3 covariance matrix summarises how the centred coordinates co-vary. Its eigenvectors are the directions of maximal variance.</p>',

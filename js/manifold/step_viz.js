@@ -8,6 +8,7 @@ import { mountSpectral } from './viz/viz_spectral.js';
 export function createStepViz(host) {
   let activeKind = null;
   let active = null;
+  let lastState = null;
   const host3dThumb = host;
   let viz3d = null;
   let viz2d = null;
@@ -33,6 +34,8 @@ export function createStepViz(host) {
 
   function update(state) {
     if (!state) return;
+    if (state === lastState) return;
+    lastState = state;
     const kind = state.vizKind || 'point_cloud';
 
     if (active && active.unmount) {
