@@ -26,15 +26,15 @@ function rowOf(X, i) {
   return [X[i * 3], X[i * 3 + 1], X[i * 3 + 2]];
 }
 
-function kernelLabel(kernel, gamma, degree, constant) {
+function kernelLabel(kernel, gamma, degree) {
   if (kernel === 'rbf') return 'K_{ij} = exp(-' + gamma + ' ||x_i - x_j||^2)';
-  if (kernel === 'polynomial') return 'K_{ij} = (x_i . x_j + ' + constant + ')^' + degree;
+  if (kernel === 'polynomial') return 'K_{ij} = (x_i . x_j + 1)^' + degree;
   return 'K_{ij} = x_i . x_j';
 }
 
 function kernelFormula(kernel) {
   if (kernel === 'rbf') return '$$K_{ij} = \\exp(-\\gamma \\| x_i - x_j \\|^2)$$';
-  if (kernel === 'polynomial') return '$$K_{ij} = (x_i \\cdot x_j + c)^d$$';
+  if (kernel === 'polynomial') return '$$K_{ij} = (x_i \\cdot x_j + 1)^d$$';
   return '$$K_{ij} = x_i \\cdot x_j$$';
 }
 
@@ -45,13 +45,12 @@ export const KPCA = {
     { name: 'kernel', type: 'enum', options: ['rbf', 'polynomial', 'linear'], default: 'rbf' },
     { name: 'gamma', type: 'float', default: 0.5, min: 0.01, max: 20, dependsOn: { kernel: 'rbf' } },
     { name: 'degree', type: 'int', default: 3, min: 1, max: 10, dependsOn: { kernel: 'polynomial' } },
-    { name: 'constant', type: 'float', default: 1, min: 0, max: 10, dependsOn: { kernel: 'polynomial' } },
   ],
   presentSubSteps: ['0', '3', '4', '5', '6'],
   pseudocode: [
     { id: 'kpca-K', title: '1. Compute kernel matrix K', steps: ['3'],
       lines: ['rbf: K_{ij} = exp(-gamma ||x_i - x_j||^2)',
-              'polynomial: K_{ij} = (x_i . x_j + c)^d',
+              'polynomial: K_{ij} = (x_i . x_j + 1)^d',
               'linear: K_{ij} = x_i . x_j'] },
     { id: 'kpca-center', title: '2. Center K', steps: ['4'],
       lines: ['K_c = K - 1_N K - K 1_N + 1_N K 1_N'] },
@@ -67,7 +66,7 @@ export const KPCA = {
     const kernel = params.kernel || 'rbf';
     const gamma = params.gamma || 0.5;
     const degree = params.degree || 3;
-    const constant = params.constant || 1;
+    const constant = 1;
     const steps = new Map();
     const presentSubSteps = ['0', '3', '4', '5', '6'];
     const pending = new Set(['3', '4', '5', '6']);
@@ -114,7 +113,7 @@ export const KPCA = {
           const exampleK = K[i0 * N + j0];
           const inputBlock = 'sample points (3 of N=' + N + '):\n' +
             samples.map(i => 'x_' + i + ' = ' + formatVec3(rowOf(X, i))).join('\n') +
-            '\n\nkernel = ' + kernel + ', gamma = ' + gamma + ', degree = ' + degree + ', constant = ' + constant;
+            '\n\nkernel = ' + kernel + ', gamma = ' + gamma + ', degree = ' + degree;
           const excerpt = [];
           for (let r = 0; r < 4 && r < N; r++) {
             const row = [];
@@ -130,7 +129,7 @@ export const KPCA = {
               { kind: 'cloud_thumb', label: 'X', data: X.slice() },
               { kind: 'heatmap', label: 'K (N x N)', data: { matrix: K, N } },
             ],
-            paneOpLabels: [kernelLabel(kernel, gamma, degree, constant)],
+            paneOpLabels: [kernelLabel(kernel, gamma, degree)],
             label: 'Kernel matrix K',
             ifw: {
               intuition: '<p>The kernel function K(x, y) measures similarity in an implicit feature space. The full kernel matrix replaces the data matrix in the rest of the pipeline.</p>',

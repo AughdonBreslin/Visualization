@@ -26,7 +26,7 @@ const defaults = {
     mds: {},
     lle: { k: 10, reg: 1e-3 },
     laplacian: { k: 10, sigma: 1.0 },
-    kpca: { kernel: 'rbf', gamma: 0.5, degree: 3, constant: 1 },
+    kpca: { kernel: 'rbf', gamma: 0.5, degree: 3 },
   },
 };
 
