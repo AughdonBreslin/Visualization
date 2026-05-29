@@ -19,6 +19,7 @@ self.onmessage = (event) => {
     const dataset = {
       X: new Float64Array(msg.X),
       t: new Float64Array(msg.t),
+      colors: msg.colors || null,
     };
     const result = algo.run(dataset, msg.params);
     runs.set(msg.runId, result);
