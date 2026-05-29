@@ -106,7 +106,14 @@ function init() {
   function renderParamHost(host, algo, getCurrent, onChange) {
     host.innerHTML = '';
     const current = getCurrent();
-    for (const p of algo.params) {
+    const visible = algo.params.filter(p => {
+      if (!p.dependsOn) return true;
+      for (const k of Object.keys(p.dependsOn)) {
+        if (current[k] !== p.dependsOn[k]) return false;
+      }
+      return true;
+    });
+    for (const p of visible) {
       const wrap = document.createElement('label');
       wrap.className = 'mf-param';
       wrap.textContent = `${p.name} = `;
@@ -120,6 +127,7 @@ function init() {
         }
         sel.addEventListener('change', () => {
           onChange({ ...getCurrent(), [p.name]: sel.value });
+          renderParamHost(host, algo, getCurrent, onChange);
         });
         wrap.appendChild(sel);
         host.appendChild(wrap);
@@ -138,7 +146,7 @@ function init() {
       wrap.appendChild(input);
       host.appendChild(wrap);
     }
-    if (algo.params.length === 0) host.innerHTML = '<span class="mf-noparams">No parameters</span>';
+    if (visible.length === 0) host.innerHTML = '<span class="mf-noparams">No parameters</span>';
   }
 
   function rebindParamHosts() {
