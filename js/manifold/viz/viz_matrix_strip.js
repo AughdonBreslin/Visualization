@@ -1,11 +1,15 @@
 const VIRIDIS = ['#000000', '#3a1a6e', '#5b3a8c', '#8b5fbf', '#c179d3', '#e8a37f', '#f5cf6e', '#f9eb6b'];
+const VIRIDIS_RGB = VIRIDIS.map(hex => {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
+});
 
-function colorScale(min, max, v) {
-  if (max - min < 1e-12) return VIRIDIS[0];
+function colorIdx(min, max, v) {
+  if (!Number.isFinite(v) || max - min < 1e-12) return 0;
   const u = Math.max(0, Math.min(1, (v - min) / (max - min)));
   const idx = u * (VIRIDIS.length - 1);
   const lo = Math.floor(idx), hi = Math.min(VIRIDIS.length - 1, lo + 1);
-  return idx - lo < 0.5 ? VIRIDIS[lo] : VIRIDIS[hi];
+  return idx - lo < 0.5 ? lo : hi;
 }
 
 function matmul(A, B) {
@@ -133,18 +137,29 @@ function mountStaticPane(svg, pane, x, y, w, h) {
       if (Number.isFinite(v)) { if (v < lo) lo = v; if (v > hi) hi = v; }
     }
     const total = Math.min(w, h);
-    const cellSize = total / N;
     const ox = (w - total) / 2;
     const oy = (h - total) / 2;
-    for (let r = 0; r < N; r++) {
-      for (let c = 0; c < N; c++) {
-        const v = matrix[r * N + c];
-        g.append('rect').attr('x', ox + c * cellSize).attr('y', oy + r * cellSize)
-          .attr('width', cellSize).attr('height', cellSize)
-          .attr('fill', colorScale(lo, hi, v));
-      }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = N; canvas.height = N;
+    const ctx = canvas.getContext('2d');
+    const img = ctx.createImageData(N, N);
+    const buf = img.data;
+    for (let i = 0; i < N * N; i++) {
+      const rgb = VIRIDIS_RGB[colorIdx(lo, hi, matrix[i])];
+      const k = i * 4;
+      buf[k] = rgb[0]; buf[k + 1] = rgb[1]; buf[k + 2] = rgb[2]; buf[k + 3] = 255;
     }
+    ctx.putImageData(img, 0, 0);
+    g.append('image').attr('x', ox).attr('y', oy)
+      .attr('width', total).attr('height', total)
+      .attr('preserveAspectRatio', 'none')
+      .attr('image-rendering', 'pixelated')
+      .style('image-rendering', 'pixelated')
+      .attr('href', canvas.toDataURL());
+
     if (highlightRow !== undefined && highlightRow < N) {
+      const cellSize = total / N;
       g.append('rect').attr('x', ox).attr('y', oy + highlightRow * cellSize)
         .attr('width', total).attr('height', cellSize)
         .attr('fill', 'none').attr('stroke', '#fff').attr('stroke-width', 1.5);
