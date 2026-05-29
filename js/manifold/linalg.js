@@ -329,3 +329,34 @@ export function bottomKSymmetricEig(M, N, k, { skipFirst = 0 } = {}) {
   }
   return { lambda: outLambda, vectors: outVecs };
 }
+
+export function solveLinearSystem(A, b) {
+  const n = A.length;
+  const M = [];
+  for (let i = 0; i < n; i++) {
+    const row = new Array(n + 1);
+    for (let j = 0; j < n; j++) row[j] = A[i][j];
+    row[n] = b[i];
+    M.push(row);
+  }
+  for (let p = 0; p < n; p++) {
+    let max = Math.abs(M[p][p]);
+    let idx = p;
+    for (let i = p + 1; i < n; i++) {
+      if (Math.abs(M[i][p]) > max) { max = Math.abs(M[i][p]); idx = i; }
+    }
+    if (idx !== p) { const tmp = M[p]; M[p] = M[idx]; M[idx] = tmp; }
+    if (Math.abs(M[p][p]) < 1e-12) return null;
+    for (let i = p + 1; i < n; i++) {
+      const f = M[i][p] / M[p][p];
+      for (let j = p; j <= n; j++) M[i][j] -= f * M[p][j];
+    }
+  }
+  const x = new Array(n);
+  for (let i = n - 1; i >= 0; i--) {
+    let s = M[i][n];
+    for (let j = i + 1; j < n; j++) s -= M[i][j] * x[j];
+    x[i] = s / M[i][i];
+  }
+  return x;
+}
