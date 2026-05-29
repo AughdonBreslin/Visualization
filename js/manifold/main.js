@@ -32,7 +32,7 @@ function init() {
   const rightSelect = $('mfAlgoRight');
   const leftParamsHost = $('mfAlgoLeftParams');
   const rightParamsHost = $('mfAlgoRightParams');
-  const stepHost = $('mfStep');
+  const stepHost = $('mfAlgoStepPanel');
   const leftVizHost = $('mfLeftViz');
   const rightVizHost = $('mfRightViz');
   const leftIfwHost = $('mfLeftIfw');
