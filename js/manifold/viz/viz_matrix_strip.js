@@ -161,8 +161,14 @@ function mountStaticPane(svg, pane, x, y, w, h) {
     const ox = (w - total) / 2;
     const oy = (h - total) / 2;
 
+    const fo = g.append('foreignObject').attr('x', ox).attr('y', oy).attr('width', total).attr('height', total);
     const canvas = document.createElement('canvas');
     canvas.width = N; canvas.height = N;
+    canvas.style.width = total + 'px';
+    canvas.style.height = total + 'px';
+    canvas.style.imageRendering = 'pixelated';
+    canvas.style.display = 'block';
+    fo.node().appendChild(canvas);
     const ctx = canvas.getContext('2d');
     const img = ctx.createImageData(N, N);
     const buf = img.data;
@@ -172,12 +178,6 @@ function mountStaticPane(svg, pane, x, y, w, h) {
       buf[k] = rgb[0]; buf[k + 1] = rgb[1]; buf[k + 2] = rgb[2]; buf[k + 3] = 255;
     }
     ctx.putImageData(img, 0, 0);
-    g.append('image').attr('x', ox).attr('y', oy)
-      .attr('width', total).attr('height', total)
-      .attr('preserveAspectRatio', 'none')
-      .attr('image-rendering', 'pixelated')
-      .style('image-rendering', 'pixelated')
-      .attr('href', canvas.toDataURL());
 
     if (highlightRow !== undefined && highlightRow < N) {
       const cellSize = total / N;
