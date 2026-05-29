@@ -1,6 +1,10 @@
 import { DATASETS, parseCSV } from './datasets.js';
 import { PCA } from './algorithms/pca.js';
 import { ISOMAP } from './algorithms/isomap.js';
+import { MDS } from './algorithms/mds.js';
+import { LLE } from './algorithms/lle.js';
+import { LAPLACIAN } from './algorithms/laplacian.js';
+import { KPCA } from './algorithms/kpca.js';
 import { createState } from './state.js';
 import { createStepViz } from './step_viz.js';
 import { createStepIndicator } from './step_indicator.js';
@@ -8,7 +12,7 @@ import { createIFW } from './ifw.js';
 import { createPseudocode } from './pseudocode.js';
 import { compareSubSteps, unionSubSteps } from './canonical_steps.js';
 
-const ALGORITHMS = [PCA, ISOMAP];
+const ALGORITHMS = [PCA, ISOMAP, MDS, LLE, LAPLACIAN, KPCA];
 const ALGORITHMS_BY_ID = Object.fromEntries(ALGORITHMS.map(a => [a.id, a]));
 
 const defaults = {
@@ -16,7 +20,14 @@ const defaults = {
   datasetParams: { samples: 150, noise: 0.0, seed: 7 },
   leftAlgoId: 'pca',
   rightAlgoId: 'isomap',
-  algoParams: { pca: {}, isomap: { k: 10 } },
+  algoParams: {
+    pca: {},
+    isomap: { k: 10 },
+    mds: {},
+    lle: { k: 10, reg: 1e-3 },
+    laplacian: { k: 10, sigma: 1.0 },
+    kpca: { kernel: 'rbf', gamma: 0.5, degree: 3, constant: 1 },
+  },
 };
 
 function init() {
