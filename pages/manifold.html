@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Manifold Learning: Step-by-Step Comparison</title>
+  <link rel="preconnect" href="https://d3js.org">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/article.css">
+  <link rel="stylesheet" href="../styles/manifold.css">
+  <script defer src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script type="module" src="../js/manifold/main.js"></script>
+</head>
+<body>
+  <div class="container article manifold">
+    <header>
+      <h1>Manifold Learning</h1>
+      <div class="subtitle">Step-by-step comparison of two algorithms on a shared dataset</div>
+      <div class="home-link"><a href="../index.html">← Home</a></div>
+    </header>
+    <main class="article-body">
+      <section class="panel">
+        <h2>Dataset</h2>
+        <div class="mf-controls-row">
+          <div class="mf-control">
+            <label for="mfDataset">Dataset</label>
+            <select id="mfDataset"></select>
+          </div>
+          <div class="mf-control" id="mfSamplesControl">
+            <label for="mfSamples">Samples</label>
+            <input id="mfSamples" type="number" min="20" max="1000" step="20" value="150" />
+          </div>
+          <div class="mf-control" id="mfNoiseControl">
+            <label for="mfNoise">Noise σ</label>
+            <input id="mfNoise" type="number" min="0" step="0.05" value="0" />
+          </div>
+          <div class="mf-control" id="mfSeedControl">
+            <label for="mfSeed">Seed</label>
+            <input id="mfSeed" type="number" step="1" value="7" />
+          </div>
+          <div class="mf-control mf-control-action">
+            <span>&nbsp;</span>
+            <button id="mfReseed" type="button">↻ Reseed</button>
+          </div>
+        </div>
+        <input id="mfCsvInput" type="file" accept=".csv,text/csv" style="display:none" />
+        <div id="mfCsvLabel" class="mf-csv-name"></div>
+      </section>
+      <section class="panel sp-frame" id="mfAlgoStepPanel">
+        <h2>Algorithms</h2>
+        <div class="sp-panels">
+          <div class="mf-algo-card sp-panel">
+            <div class="sp-panel-header">
+              <select id="mfAlgoLeft" class="mf-algo-select"></select>
+            </div>
+            <div id="mfAlgoLeftParams" class="mf-algo-params"></div>
+            <div class="sp-bar" data-side="a"></div>
+            <div class="sp-detail" data-side="a"></div>
+          </div>
+          <div class="mf-algo-card sp-panel">
+            <div class="sp-panel-header">
+              <select id="mfAlgoRight" class="mf-algo-select"></select>
+            </div>
+            <div id="mfAlgoRightParams" class="mf-algo-params"></div>
+            <div class="sp-bar" data-side="b"></div>
+            <div class="sp-detail" data-side="b"></div>
+          </div>
+        </div>
+        <div class="sp-nav">
+          <button class="step-prev" type="button">◀ Prev</button>
+          <div class="step-desc"></div>
+          <button class="step-next" type="button">Next ▶</button>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Visualization</h2>
+        <div class="mf-viz-row">
+          <div class="mf-viz-card">
+            <h3 class="h3-tight">Left: <span id="mfLeftTitle">A</span></h3>
+            <div id="mfLeftViz" class="mf-viz-host"></div>
+          </div>
+          <div class="mf-viz-card">
+            <h3 class="h3-tight">Right: <span id="mfRightTitle">B</span></h3>
+            <div id="mfRightViz" class="mf-viz-host"></div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Step notes</h2>
+        <div class="mf-ifw-row">
+          <div class="mf-ifw-card" id="mfLeftIfw"></div>
+          <div class="mf-ifw-card" id="mfRightIfw"></div>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Full pseudocode</h2>
+        <div class="mf-pseudo-row">
+          <div class="mf-pseudo-card" id="mfLeftPseudo"></div>
+          <div class="mf-pseudo-card" id="mfRightPseudo"></div>
+        </div>
+      </section>
+    </main>
+    <footer class="footer">
+      <p class="footer-tag">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></p>
+    </footer>
+  </div>
+</body>
+</html>
