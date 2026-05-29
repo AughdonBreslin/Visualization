@@ -60,6 +60,7 @@ export function createState({ algorithmsById, defaults }) {
       type: 'run', runId, algoId,
       X: data.X.buffer.slice(0),
       t: data.t.buffer.slice(0),
+      colors: data.colors || null,
       params,
     });
     return {
