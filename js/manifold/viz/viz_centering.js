@@ -1,3 +1,13 @@
+function matmul(A, B) {
+  const C = [[0,0,0],[0,0,0],[0,0,0]];
+  for (let i = 0; i < 3; i++)
+    for (let j = 0; j < 3; j++)
+      for (let k = 0; k < 3; k++) C[i][j] += A[i][k] * B[k][j];
+  return C;
+}
+function rotX(a) { const c = Math.cos(a), s = Math.sin(a); return [[1,0,0],[0,c,-s],[0,s,c]]; }
+function rotY(a) { const c = Math.cos(a), s = Math.sin(a); return [[c,0,s],[0,1,0],[-s,0,c]]; }
+
 function project(R, X, scale, cx, cy) {
   const N = X.length / 3;
   const out = new Array(N);
@@ -29,7 +39,8 @@ export function mountCentering(container, state, { width = 480, height = 360 } =
   const svg = wrap.append('svg')
     .attr('viewBox', `0 0 ${width} ${height}`)
     .attr('preserveAspectRatio', 'xMidYMid meet')
-    .style('width', '100%').style('height', '100%');
+    .style('width', '100%').style('height', '100%')
+    .style('touch-action', 'none').style('cursor', 'grab');
 
   const raw = state.rawPoints || state.points;
   const centered = state.points;
@@ -44,68 +55,117 @@ export function mountCentering(container, state, { width = 480, height = 360 } =
     if (z < zmn) zmn = z; if (z > zmx) zmx = z;
   }
   const radius = Math.max(xmx - xmn, ymx - ymn, zmx - zmn, 1e-6) / 2;
-  const R = [[0.886, 0.0, 0.464], [-0.163, 0.937, 0.311], [-0.434, -0.348, 0.831]];
+  let R = [[0.886, 0.0, 0.464], [-0.163, 0.937, 0.311], [-0.434, -0.348, 0.831]];
   const scale = (Math.min(width, height) / 2 - 18) / radius;
   const cx = width / 2, cy = height / 2;
-
   const axLen = radius * 1.25;
   const axes = [
     { v: [1, 0, 0], color: 'rgba(255,107,107,0.45)', label: 'x' },
     { v: [0, 1, 0], color: 'rgba(107,212,123,0.45)', label: 'y' },
     { v: [0, 0, 1], color: 'rgba(107,182,255,0.45)', label: 'z' },
   ];
-  const gAxes = svg.append('g');
-  axes.forEach(({ v, color, label }) => {
-    const a = projectVec(R, [-axLen * v[0], -axLen * v[1], -axLen * v[2]], scale, cx, cy);
-    const b = projectVec(R, [axLen * v[0], axLen * v[1], axLen * v[2]], scale, cx, cy);
-    gAxes.append('line').attr('x1', a[0]).attr('y1', a[1]).attr('x2', b[0]).attr('y2', b[1])
-      .attr('stroke', color).attr('stroke-width', 1);
-    gAxes.append('text').attr('x', b[0] + 4).attr('y', b[1] + 3)
-      .attr('fill', color).attr('font-size', '10').text(label);
-  });
 
-  const gridStep = radius / 2;
   const gGrid = svg.append('g');
-  for (let s = -1; s <= 1; s++) {
-    if (s === 0) continue;
-    const offset = s * gridStep;
-    [['x', 'z'], ['z', 'x']].forEach(([varAxis, fixed]) => {
-      const a = projectVec(R,
-        varAxis === 'x' ? [-axLen, 0, offset] : [offset, 0, -axLen],
-        scale, cx, cy);
-      const b = projectVec(R,
-        varAxis === 'x' ? [axLen, 0, offset] : [offset, 0, axLen],
-        scale, cx, cy);
-      gGrid.append('line').attr('x1', a[0]).attr('y1', a[1]).attr('x2', b[0]).attr('y2', b[1])
-        .attr('stroke', 'rgba(255,255,255,0.06)').attr('stroke-width', 1);
-    });
-  }
+  const gAxes = svg.append('g');
+  const gGhost = svg.append('g');
+  const gPoints = svg.append('g');
 
-  const rawProj = project(R, raw, scale, cx, cy);
-  const centeredProj = project(R, centered, scale, cx, cy);
   let tMin = Infinity, tMax = -Infinity;
   if (t) for (let i = 0; i < t.length; i++) { if (t[i] < tMin) tMin = t[i]; if (t[i] > tMax) tMax = t[i]; }
   const colorOf = (i) => t ? rainbow(t[i], tMin, tMax) : '#7ec8ff';
 
-  const gGhost = svg.append('g');
+  function drawAxesAndGrid() {
+    gAxes.html('');
+    gGrid.html('');
+    axes.forEach(({ v, color, label }) => {
+      const a = projectVec(R, [-axLen * v[0], -axLen * v[1], -axLen * v[2]], scale, cx, cy);
+      const b = projectVec(R, [axLen * v[0], axLen * v[1], axLen * v[2]], scale, cx, cy);
+      gAxes.append('line').attr('x1', a[0]).attr('y1', a[1]).attr('x2', b[0]).attr('y2', b[1])
+        .attr('stroke', color).attr('stroke-width', 1);
+      gAxes.append('text').attr('x', b[0] + 4).attr('y', b[1] + 3)
+        .attr('fill', color).attr('font-size', '10').text(label);
+    });
+    const gridStep = radius / 2;
+    for (let s = -1; s <= 1; s++) {
+      if (s === 0) continue;
+      const offset = s * gridStep;
+      [['x', 'z'], ['z', 'x']].forEach(([varAxis]) => {
+        const a = projectVec(R,
+          varAxis === 'x' ? [-axLen, 0, offset] : [offset, 0, -axLen],
+          scale, cx, cy);
+        const b = projectVec(R,
+          varAxis === 'x' ? [axLen, 0, offset] : [offset, 0, axLen],
+          scale, cx, cy);
+        gGrid.append('line').attr('x1', a[0]).attr('y1', a[1]).attr('x2', b[0]).attr('y2', b[1])
+          .attr('stroke', 'rgba(255,255,255,0.06)').attr('stroke-width', 1);
+      });
+    }
+  }
+
+  drawAxesAndGrid();
+
+  const rawProj = project(R, raw, scale, cx, cy);
+  const centeredProj = project(R, centered, scale, cx, cy);
+
   const ghostCircles = rawProj.map(p =>
     gGhost.append('circle').attr('cx', p.sx).attr('cy', p.sy).attr('r', 2.6)
       .attr('fill', colorOf(p.i)).attr('opacity', 0.32));
 
-  const gPoints = svg.append('g');
   const circles = centeredProj.map(p => gPoints.append('circle')
     .attr('cx', rawProj[p.i].sx).attr('cy', rawProj[p.i].sy)
     .attr('r', 2.8).attr('fill', colorOf(p.i)).attr('opacity', 0.95));
 
-  setTimeout(() => {
+  const playAnimation = !state.centeringAnimated;
+  if (playAnimation) state.centeringAnimated = true;
+
+  let animationDone = !playAnimation;
+
+  if (playAnimation) {
+    setTimeout(() => {
+      circles.forEach((c, i) => {
+        c.transition().duration(1000).ease(d3.easeCubicInOut)
+          .attr('cx', centeredProj[i].sx).attr('cy', centeredProj[i].sy)
+          .on('end', i === circles.length - 1 ? () => { animationDone = true; } : null);
+      });
+      ghostCircles.forEach(c => {
+        c.transition().duration(900).ease(d3.easeCubicInOut).attr('opacity', 0);
+      });
+    }, 60);
+  } else {
+    circles.forEach((c, i) => c.attr('cx', centeredProj[i].sx).attr('cy', centeredProj[i].sy));
+    ghostCircles.forEach(c => c.attr('opacity', 0));
+  }
+
+  function redrawAfterOrbit() {
+    drawAxesAndGrid();
+    const proj = project(R, centered, scale, cx, cy);
     circles.forEach((c, i) => {
-      c.transition().duration(1000).ease(d3.easeCubicInOut)
-        .attr('cx', centeredProj[i].sx).attr('cy', centeredProj[i].sy);
+      c.attr('cx', proj[i].sx).attr('cy', proj[i].sy);
     });
-    ghostCircles.forEach(c => {
-      c.transition().duration(900).ease(d3.easeCubicInOut).attr('opacity', 0);
-    });
-  }, 60);
+  }
+
+  let dragging = false, lastX = 0, lastY = 0;
+  svg.on('pointerdown', (event) => {
+    if (!animationDone) return;
+    dragging = true; lastX = event.clientX; lastY = event.clientY;
+    svg.style('cursor', 'grabbing');
+    try { svg.node().setPointerCapture(event.pointerId); } catch (e) {}
+  });
+  svg.on('pointermove', (event) => {
+    if (!dragging) return;
+    const dx = (event.clientX - lastX) * 0.008;
+    const dy = (event.clientY - lastY) * 0.008;
+    lastX = event.clientX; lastY = event.clientY;
+    R = matmul(matmul(rotX(dy), rotY(dx)), R);
+    redrawAfterOrbit();
+  });
+  function endDrag(event) {
+    dragging = false; svg.style('cursor', 'grab');
+    try { svg.node().releasePointerCapture(event.pointerId); } catch (e) {}
+  }
+  svg.on('pointerup', endDrag);
+  svg.on('pointercancel', endDrag);
+  svg.on('pointerleave', endDrag);
 
   return {
     unmount() { wrap.remove(); }

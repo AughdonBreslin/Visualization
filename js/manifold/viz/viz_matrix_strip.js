@@ -169,28 +169,28 @@ export function mountMatrixStrip(container, state, { width = 480, height = 280 }
     .style('width', '100%').style('height', '100%');
 
   const panes = state.panes || [];
-  const opLabels = state.paneOpLabels || ['', ''];
-
-  const paneW = (width - 80) / 3;
+  const opLabels = state.paneOpLabels || [];
+  const paneCount = Math.max(1, panes.length);
+  const gapW = 36;
+  const sideMargin = 10;
+  const paneW = (width - 2 * sideMargin - gapW * (paneCount - 1)) / paneCount;
   const paneH = height - 70;
   const paneY = 30;
 
   panes.forEach((pane, i) => {
-    const x = 10 + i * (paneW + 30);
+    const x = sideMargin + i * (paneW + gapW);
     renderPane(svg, pane, x, paneY, paneW, paneH);
-    svg.append('text').attr('x', x + paneW / 2).attr('y', paneY + paneH + 18)
-      .attr('text-anchor', 'middle').attr('fill', 'rgba(255,255,255,0.5)').attr('font-size', '9')
-      .text(pane.label || '');
   });
 
-  for (let k = 0; k < 2; k++) {
-    const ax = 10 + (k + 1) * paneW + (k * 30) + 8;
+  for (let k = 0; k < panes.length - 1; k++) {
+    const paneRightEdge = sideMargin + (k + 1) * paneW + k * gapW;
+    const arrowMid = paneRightEdge + gapW / 2;
     const ay = paneY + paneH / 2;
-    svg.append('line').attr('x1', ax).attr('y1', ay).attr('x2', ax + 14).attr('y2', ay)
+    svg.append('line').attr('x1', arrowMid - 7).attr('y1', ay).attr('x2', arrowMid + 7).attr('y2', ay)
       .attr('stroke', 'rgba(255,255,255,0.7)').attr('stroke-width', 1.4)
       .attr('marker-end', 'url(#strip-arrow)');
-    svg.append('text').attr('x', ax + 7).attr('y', ay - 4).attr('text-anchor', 'middle')
-      .attr('fill', 'rgba(255,255,255,0.6)').attr('font-size', '9').text(opLabels[k] || '');
+    svg.append('text').attr('x', arrowMid).attr('y', paneY + paneH + 14).attr('text-anchor', 'middle')
+      .attr('fill', 'rgba(255,255,255,0.65)').attr('font-size', '10').text(opLabels[k] || '');
   }
 
   const defs = svg.append('defs');

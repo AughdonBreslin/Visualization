@@ -120,41 +120,74 @@ function mountIsomapSpectral(svg, state, width, height) {
   const cx = width / 2, cy = height / 2;
 
   const v1 = state.v1Values || new Float64Array(points.length / 3);
-  let lo = Infinity, hi = -Infinity;
-  for (let i = 0; i < v1.length; i++) { if (v1[i] < lo) lo = v1[i]; if (v1[i] > hi) hi = v1[i]; }
+  const allVecs = state.topEigvecs || [v1];
 
   const gCloud = svg.append('g');
+  let highlightedK = null;
+
+  function activeVec() {
+    if (highlightedK !== null && allVecs[highlightedK]) return allVecs[highlightedK];
+    return v1;
+  }
 
   function redraw() {
     gCloud.html('');
+    const vec = activeVec();
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i < vec.length; i++) { if (vec[i] < lo) lo = vec[i]; if (vec[i] > hi) hi = vec[i]; }
     const N = points.length / 3;
     for (let i = 0; i < N; i++) {
       const x = points[i * 3] - ax, y = points[i * 3 + 1] - ay, z = points[i * 3 + 2] - az;
       const px = R[0][0]*x + R[0][1]*y + R[0][2]*z;
       const py = R[1][0]*x + R[1][1]*y + R[1][2]*z;
       gCloud.append('circle').attr('cx', cx + scale*px).attr('cy', cy - scale*py)
-        .attr('r', 2.6).attr('fill', colorFromValue(v1[i], lo, hi));
+        .attr('r', 2.6).attr('fill', colorFromValue(vec[i], lo, hi));
     }
   }
   redraw();
   attachOrbit(svg, () => R, (newR) => { R = newR; }, redraw);
 
-  const mini = svg.append('g').attr('transform', `translate(${width - 150}, ${height - 90})`);
-  mini.append('rect').attr('width', 142).attr('height', 80).attr('fill', 'rgba(0,0,0,0.7)')
+  const mini = svg.append('g').attr('transform', `translate(${width - 168}, ${height - 102})`);
+  mini.append('rect').attr('width', 160).attr('height', 96).attr('fill', 'rgba(0,0,0,0.72)')
     .attr('stroke', 'rgba(255,255,255,0.25)').attr('rx', 4);
-  mini.append('text').attr('x', 71).attr('y', 12).attr('text-anchor', 'middle')
+  mini.append('text').attr('x', 80).attr('y', 12).attr('text-anchor', 'middle')
     .attr('fill', 'rgba(255,255,255,0.85)').attr('font-size', '9').text('eigenvalues');
+  const valueLabel = mini.append('text').attr('x', 80).attr('y', 90).attr('text-anchor', 'middle')
+    .attr('fill', 'rgba(255,255,255,0.95)').attr('font-size', '10').text('');
+
   const eig = state.topEigvals || new Float64Array(8);
   let lam0 = 1;
   for (let i = 0; i < eig.length; i++) lam0 = Math.max(lam0, Math.abs(eig[i]));
-  const barW = 14;
-  const maxH = 56;
+  const barW = 17;
+  const maxH = 52;
+  const baseFill = (i) => i < 2 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.5)';
+  const bars = [];
   for (let i = 0; i < 8; i++) {
     const v = Math.abs(eig[i] || 0);
     const h = maxH * (v / Math.max(1e-9, lam0));
-    mini.append('rect').attr('x', 10 + i * barW).attr('y', 18 + (maxH - h))
+    const bar = mini.append('rect').attr('x', 10 + i * barW).attr('y', 18 + (maxH - h))
       .attr('width', barW - 2).attr('height', h)
-      .attr('fill', i < 2 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.5)');
+      .attr('fill', baseFill(i))
+      .style('cursor', 'pointer');
+    const hitBar = mini.append('rect').attr('x', 10 + i * barW).attr('y', 18)
+      .attr('width', barW - 2).attr('height', maxH)
+      .attr('fill', 'transparent').style('cursor', 'pointer');
+    bars.push(bar);
+    const k = i;
+    function onEnter() {
+      highlightedK = k;
+      bars.forEach((b, j) => b.attr('fill', j === k ? '#ff9f43' : baseFill(j)));
+      valueLabel.text('λ_' + (k + 1) + ' = ' + (eig[k] || 0).toFixed(3));
+      redraw();
+    }
+    function onLeave() {
+      highlightedK = null;
+      bars.forEach((b, j) => b.attr('fill', baseFill(j)));
+      valueLabel.text('');
+      redraw();
+    }
+    bar.on('mouseenter', onEnter).on('mouseleave', onLeave);
+    hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave);
   }
 }
 

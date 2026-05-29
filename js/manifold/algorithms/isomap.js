@@ -26,45 +26,6 @@ function rowOf(X, i) {
   return [X[i * 3], X[i * 3 + 1], X[i * 3 + 2]];
 }
 
-function topKEigvals(M, N, k) {
-  const Mwork = new Float64Array(M);
-  const out = new Float64Array(k);
-  const Mv = new Float64Array(N);
-  for (let kk = 0; kk < k; kk++) {
-    const v = new Float64Array(N);
-    for (let i = 0; i < N; i++) v[i] = Math.sin((i + 1) * 1.3 + kk * 0.7);
-    let norm = 0;
-    for (let i = 0; i < N; i++) norm += v[i] * v[i];
-    norm = Math.sqrt(norm);
-    if (norm > 0) for (let i = 0; i < N; i++) v[i] /= norm;
-    for (let it = 0; it < 60; it++) {
-      for (let i = 0; i < N; i++) {
-        let s = 0;
-        for (let j = 0; j < N; j++) s += Mwork[i * N + j] * v[j];
-        Mv[i] = s;
-      }
-      let mag = 0;
-      for (let i = 0; i < N; i++) mag += Mv[i] * Mv[i];
-      mag = Math.sqrt(mag);
-      if (mag < 1e-12) break;
-      for (let i = 0; i < N; i++) v[i] = Mv[i] / mag;
-    }
-    for (let i = 0; i < N; i++) {
-      let s = 0;
-      for (let j = 0; j < N; j++) s += Mwork[i * N + j] * v[j];
-      Mv[i] = s;
-    }
-    let lam = 0;
-    for (let i = 0; i < N; i++) lam += v[i] * Mv[i];
-    out[kk] = lam;
-    for (let i = 0; i < N; i++) {
-      const lv = lam * v[i];
-      for (let j = 0; j < N; j++) Mwork[i * N + j] -= lv * v[j];
-    }
-  }
-  return out;
-}
-
 export const ISOMAP = {
   id: 'isomap',
   label: 'Isomap',
@@ -228,10 +189,10 @@ export const ISOMAP = {
           if (onProgress) onProgress('4');
         },
         () => {
-          const { lambda, vectors } = topKSymmetricEig(mem.B, N, 2);
+          const { lambda, vectors } = topKSymmetricEig(mem.B, N, 8);
           mem.lambda = lambda;
           mem.vectors = vectors;
-          const topEig = topKEigvals(mem.B, N, 8);
+          const topEig = lambda;
           const excerpt = [];
           for (let r = 0; r < 4 && r < N; r++) {
             const row = [];
@@ -248,6 +209,7 @@ export const ISOMAP = {
             algoId: 'isomap',
             v1Values: vectors[0],
             topEigvals: topEig,
+            topEigvecs: vectors,
             label: 'Top-2 eigendecomposition',
             ifw: {
               intuition: '<p>The top eigenvectors of B reveal the dominant geometry of the geodesic distances.</p>',
