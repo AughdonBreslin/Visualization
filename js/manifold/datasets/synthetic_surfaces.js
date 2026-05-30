@@ -17,6 +17,30 @@ function writeSpherePoint(out, i, theta, phi) {
   out.X[i * 3 + 2] = Math.cos(phi);
 }
 
+function hilbertPoint3D(h, order) {
+  const n = 3;
+  const X = [0, 0, 0];
+  for (let p = 0; p < n * order; p++) {
+    const bit = (h >> (n * order - 1 - p)) & 1;
+    const dim = p % n;
+    const lvl = order - 1 - ((p / n) | 0);
+    if (bit) X[dim] |= (1 << lvl);
+  }
+  const N = 1 << order;
+  const tg = X[n - 1] >> 1;
+  for (let i = n - 1; i > 0; i--) X[i] ^= X[i - 1];
+  X[0] ^= tg;
+  for (let Q = 2; Q !== N; Q <<= 1) {
+    const P = Q - 1;
+    for (let i = n - 1; i >= 0; i--) {
+      if (X[i] & Q) X[0] ^= P;
+      else { const tmp = (X[0] ^ X[i]) & P; X[0] ^= tmp; X[i] ^= tmp; }
+    }
+  }
+  return X;
+}
+
+
 export const TWIN_PEAKS = {
   id: 'twin_peaks',
   label: 'Twin peaks',
@@ -102,21 +126,23 @@ export const SEVERED_SPHERE = {
   },
 };
 
-export const PUNCTURED_SPHERE = {
-  id: 'punctured_sphere',
-  label: 'Punctured sphere',
-  params: [{ name: 'holeRadius', type: 'float', default: 0.4, min: 0, max: 1.5 }],
-  generate({ samples, noise, seed, holeRadius }) {
-    const HR = holeRadius === undefined ? 0.4 : holeRadius;
+export const HILBERT = {
+  id: 'hilbert',
+  label: 'Hilbert curve',
+  params: [{ name: 'order', type: 'int', default: 4, min: 2, max: 5 }],
+  generate({ samples, noise, seed, order }) {
+    const ord = order || 4;
+    const L = 1 << (3 * ord);
+    const grid = (1 << ord) - 1;
     const rand = mulberry32(seed);
     const out = allocate(samples);
-    let i = 0;
-    while (i < samples) {
-      const { theta, phi } = sampleSphere(rand);
-      if (phi < HR) continue;
-      writeSpherePoint(out, i, theta, phi);
-      out.t[i] = theta;
-      i++;
+    for (let i = 0; i < samples; i++) {
+      const h = samples === 1 ? 0 : Math.round(i * (L - 1) / (samples - 1));
+      const p = hilbertPoint3D(h, ord);
+      out.X[i * 3 + 0] = (p[0] / grid) * 2 - 1;
+      out.X[i * 3 + 1] = (p[1] / grid) * 2 - 1;
+      out.X[i * 3 + 2] = (p[2] / grid) * 2 - 1;
+      out.t[i] = h / (L - 1);
     }
     addNoise(out.X, noise, rand);
     return out;

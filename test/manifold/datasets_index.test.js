@@ -4,7 +4,7 @@ import { DATASETS, DATASETS_BY_ID, parseCSV } from '../../js/manifold/datasets/i
 
 const EXPECTED_ORDER = [
   'swiss_roll', 's_curve', 'helix', 'trefoil_knot', 'toroidal_helix', 'spiral_disk',
-  'twin_peaks', 'saddle', 'cylinder', 'severed_sphere', 'punctured_sphere', 'full_sphere',
+  'twin_peaks', 'saddle', 'cylinder', 'severed_sphere', 'hilbert', 'full_sphere',
   'clusters_3d', 'csv',
 ];
 
