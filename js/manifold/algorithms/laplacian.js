@@ -31,7 +31,7 @@ export const LAPLACIAN = {
   label: 'Laplacian Eigenmaps',
   params: [
     { name: 'k', type: 'int', default: 10, min: 2, max: 50 },
-    { name: 'sigma', type: 'float', default: 1.0, min: 0.1, max: 10 },
+    { name: 'sigma', type: 'float', default: 3.0, min: 0.1, max: 10 },
   ],
   presentSubSteps: ['0', '2', '3', '4', '5', '6'],
   pseudocode: [
@@ -51,7 +51,7 @@ export const LAPLACIAN = {
     const t = dataset.t;
     const N = X.length / 3;
     const k = Math.max(2, Math.min(params.k || 10, N - 1));
-    const sigma = params.sigma || 1.0;
+    const sigma = params.sigma || 3.0;
     const steps = new Map();
     const presentSubSteps = ['0', '2', '3', '4', '5', '6'];
     const pending = new Set(['2', '3', '4', '5', '6']);
