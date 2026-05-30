@@ -186,15 +186,7 @@ function mountIsomapSpectral(svg, state, width, height) {
   const allVecs = state.topEigvecs || [v1];
 
   const gCloud = svg.append('g');
-  const gArrow = svg.append('g');
   const N = points.length / 3;
-  let mx = 0, my = 0, mz = 0;
-  for (let i = 0; i < N; i++) { mx += points[i * 3]; my += points[i * 3 + 1]; mz += points[i * 3 + 2]; }
-  mx /= N; my /= N; mz /= N;
-  const defs = svg.append('defs');
-  defs.append('marker').attr('id', 'spec-arrow').attr('viewBox', '0 0 10 10').attr('refX', 9)
-    .attr('refY', 5).attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto-start-reverse')
-    .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z').attr('fill', '#ff9f43');
   let highlightedK = null;
 
   function activeVec() {
@@ -213,27 +205,6 @@ function mountIsomapSpectral(svg, state, width, height) {
       const py = R[1][0]*x + R[1][1]*y + R[1][2]*z;
       gCloud.append('circle').attr('cx', cx + scale*px).attr('cy', cy - scale*py)
         .attr('r', 2.6).attr('fill', colorFromValue(vec[i], lo, hi));
-    }
-    // Arrow along the 3D direction in which the active eigenvector varies most:
-    // d = sum_i vec_i (x_i - mean). The eigenvector itself lives in R^N (one
-    // value per point, shown by the coloring); this is its dominant axis in space.
-    gArrow.html('');
-    let dx = 0, dy = 0, dz = 0;
-    for (let i = 0; i < N; i++) {
-      const wgt = vec[i];
-      dx += wgt * (points[i * 3] - mx);
-      dy += wgt * (points[i * 3 + 1] - my);
-      dz += wgt * (points[i * 3 + 2] - mz);
-    }
-    const dn = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    if (dn > 1e-9) {
-      const len = r * 0.95;
-      const end = projectVec(R, [dx / dn * len, dy / dn * len, dz / dn * len], scale, cx, cy);
-      gArrow.append('line').attr('x1', cx).attr('y1', cy).attr('x2', end[0]).attr('y2', end[1])
-        .attr('stroke', '#ff9f43').attr('stroke-width', 2.6).attr('marker-end', 'url(#spec-arrow)');
-      gArrow.append('text').attr('x', end[0] + 6).attr('y', end[1] - 4)
-        .attr('fill', '#ff9f43').attr('font-size', '11')
-        .text('v' + ((highlightedK !== null ? highlightedK : 0) + 1));
     }
   }
   redraw();
