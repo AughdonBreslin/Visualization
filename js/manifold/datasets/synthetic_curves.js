@@ -1,4 +1,4 @@
-import { mulberry32, gaussian } from '../rng.js';
+import { mulberry32 } from '../rng.js';
 import { allocate, addNoise } from './shared.js';
 
 export const SWISS_ROLL = {
@@ -118,7 +118,7 @@ export const SPIRAL_DISK = {
       const r = r0 * Math.exp(b * theta);
       out.X[i * 3 + 0] = r * Math.cos(theta);
       out.X[i * 3 + 1] = r * Math.sin(theta);
-      out.X[i * 3 + 2] = 0.02 * gaussian(rand);
+      out.X[i * 3 + 2] = 0.2 * r * r;
       out.t[i] = theta;
     }
     addNoise(out.X, noise, rand);
