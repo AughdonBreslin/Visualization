@@ -24,8 +24,8 @@ const defaults = {
     pca: {},
     isomap: { k: 10 },
     mds: {},
-    lle: { k: 8, reg: 1e-3 },
-    laplacian: { k: 10, sigma: 1.0 },
+    lle: { k: 12, reg: 1e-3 },
+    laplacian: { k: 10, sigma: 3.0 },
     kpca: { kernel: 'rbf', gamma: 1.0, degree: 3 },
   },
 };
