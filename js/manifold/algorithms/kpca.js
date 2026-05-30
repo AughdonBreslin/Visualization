@@ -27,7 +27,7 @@ function rowOf(X, i) {
 }
 
 function kernelLabel(kernel, gamma, degree) {
-  if (kernel === 'rbf') return 'K_{ij} = exp(-' + gamma + ' ||x_i - x_j||^2)';
+  if (kernel === 'rbf') return 'K_{ij} = exp(-' + gamma.toFixed(3) + ' ||x_i - x_j||^2)';
   if (kernel === 'polynomial') return 'K_{ij} = (x_i . x_j + 1)^' + degree;
   return 'K_{ij} = x_i . x_j';
 }
@@ -43,7 +43,7 @@ export const KPCA = {
   label: 'Kernel PCA',
   params: [
     { name: 'kernel', type: 'enum', options: ['rbf', 'polynomial', 'linear'], default: 'rbf' },
-    { name: 'gamma', type: 'float', default: 0.5, min: 0.01, max: 20, dependsOn: { kernel: 'rbf' } },
+    { name: 'gamma', type: 'float', default: 1.0, min: 0.05, max: 10, dependsOn: { kernel: 'rbf' } },
     { name: 'degree', type: 'int', default: 3, min: 1, max: 10, dependsOn: { kernel: 'polynomial' } },
   ],
   presentSubSteps: ['0', '3', '4', '5', '6'],
@@ -64,9 +64,21 @@ export const KPCA = {
     const t = dataset.t;
     const N = X.length / 3;
     const kernel = params.kernel || 'rbf';
-    const gamma = params.gamma || 0.5;
+    const gamma = params.gamma || 1.0;
     const degree = params.degree || 3;
     const constant = 1;
+    // auto-scale the RBF gamma to the data's mean squared pairwise distance so
+    // the kernel adapts to each dataset's coordinate scale.
+    let cx = 0, cy = 0, cz = 0;
+    for (let i = 0; i < N; i++) { cx += X[i * 3]; cy += X[i * 3 + 1]; cz += X[i * 3 + 2]; }
+    cx /= N; cy /= N; cz /= N;
+    let varSum = 0;
+    for (let i = 0; i < N; i++) {
+      const a = X[i * 3] - cx, b = X[i * 3 + 1] - cy, c = X[i * 3 + 2] - cz;
+      varSum += a * a + b * b + c * c;
+    }
+    const meanSqDist = (2 * varSum / N) || 1;
+    const gammaEff = gamma / meanSqDist;
     const steps = new Map();
     const presentSubSteps = ['0', '3', '4', '5', '6'];
     const pending = new Set(['3', '4', '5', '6']);
@@ -107,13 +119,16 @@ export const KPCA = {
       const mem = {};
       const tasks = [
         () => {
-          const K = computeKernel(kernel, gamma, degree, constant);
+          const K = computeKernel(kernel, gammaEff, degree, constant);
           mem.K = K;
           const i0 = samples[0], j0 = samples[1];
           const exampleK = K[i0 * N + j0];
+          const gammaNote = kernel === 'rbf'
+            ? ', gamma = ' + gamma + ' / meanSqDist ' + meanSqDist.toFixed(2) + ' = ' + gammaEff.toFixed(4)
+            : '';
           const inputBlock = 'sample points (3 of N=' + N + '):\n' +
             samples.map(i => 'x_' + i + ' = ' + formatVec3(rowOf(X, i))).join('\n') +
-            '\n\nkernel = ' + kernel + ', gamma = ' + gamma + ', degree = ' + degree;
+            '\n\nkernel = ' + kernel + gammaNote + ', degree = ' + degree;
           const excerpt = [];
           for (let r = 0; r < 4 && r < N; r++) {
             const row = [];
@@ -129,7 +144,7 @@ export const KPCA = {
               { kind: 'cloud_thumb', label: 'X', data: X.slice() },
               { kind: 'heatmap', label: 'K (N x N)', data: { matrix: K, N } },
             ],
-            paneOpLabels: [kernelLabel(kernel, gamma, degree)],
+            paneOpLabels: [kernelLabel(kernel, gammaEff, degree)],
             label: 'Kernel matrix K',
             ifw: {
               intuition: '<p>The kernel function K(x, y) measures similarity in an implicit feature space. The full kernel matrix replaces the data matrix in the rest of the pipeline.</p>',

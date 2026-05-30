@@ -50,7 +50,7 @@ export const LLE = {
     const X = dataset.X;
     const t = dataset.t;
     const N = X.length / 3;
-    const k = Math.max(2, Math.min(params.k || 10, N - 1));
+    const k = Math.max(2, Math.min(params.k || 8, N - 1));
     const reg = params.reg !== undefined ? params.reg : 1e-3;
     const steps = new Map();
     const presentSubSteps = ['0', '2', '3', '5', '6'];
