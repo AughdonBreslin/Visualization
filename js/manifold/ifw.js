@@ -4,6 +4,8 @@ const TABS = [
   { key: 'worked', label: 'Worked example' },
 ];
 
+import { typesetMath } from './mathjax.js';
+
 export function createIFW(container, side) {
   const d3 = window.d3;
   const root = d3.select(container).append('div').attr('class', `ifw side-${side}`);
@@ -29,9 +31,7 @@ export function createIFW(container, side) {
     }
     const html = current[active] || '<div class="ifw-empty">No content for this step.</div>';
     content.html(html);
-    if (window.MathJax && window.MathJax.typesetPromise) {
-      window.MathJax.typesetPromise([content.node()]).catch(() => {});
-    }
+    typesetMath(content.node());
   }
 
   function setStep(ifw) {
