@@ -145,6 +145,15 @@ function mountPcaSpectral(svg, state, width, height) {
   const maxH = 52;
   const baseFill = (i) => i < 2 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.5)';
   const bars = [];
+  let pinnedK = null;
+  function paint() {
+    bars.forEach((b, j) => b
+      .attr('fill', (j === highlightedK || j === pinnedK) ? colors[j] : baseFill(j))
+      .attr('stroke', j === pinnedK ? '#fff' : 'none')
+      .attr('stroke-width', j === pinnedK ? 1.5 : 0));
+    const k = highlightedK !== null ? highlightedK : pinnedK;
+    valueLabel.text(k !== null ? ('λ_' + (k + 1) + ' = ' + (lam[k] || 0).toFixed(3)) : '');
+  }
   for (let i = 0; i < nb; i++) {
     const v = Math.abs(lam[i] || 0);
     const h = maxH * (v / Math.max(1e-9, lam0));
@@ -156,20 +165,11 @@ function mountPcaSpectral(svg, state, width, height) {
       .attr('fill', 'transparent').style('cursor', 'pointer');
     bars.push(bar);
     const k = i;
-    function onEnter() {
-      highlightedK = k;
-      bars.forEach((b, j) => b.attr('fill', j === k ? colors[k] : baseFill(j)));
-      valueLabel.text('λ_' + (k + 1) + ' = ' + (lam[k] || 0).toFixed(3));
-      redraw();
-    }
-    function onLeave() {
-      highlightedK = null;
-      bars.forEach((b, j) => b.attr('fill', baseFill(j)));
-      valueLabel.text('');
-      redraw();
-    }
-    bar.on('mouseenter', onEnter).on('mouseleave', onLeave);
-    hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave);
+    function onEnter() { highlightedK = k; paint(); redraw(); }
+    function onLeave() { highlightedK = pinnedK; paint(); redraw(); }
+    function onClick() { pinnedK = pinnedK === k ? null : k; highlightedK = pinnedK; paint(); redraw(); }
+    bar.on('mouseenter', onEnter).on('mouseleave', onLeave).on('click', onClick);
+    hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave).on('click', onClick);
   }
 }
 
@@ -252,6 +252,15 @@ function mountIsomapSpectral(svg, state, width, height) {
   const maxH = 52;
   const baseFill = (i) => i < 2 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.5)';
   const bars = [];
+  let pinnedK = null;
+  function paint() {
+    bars.forEach((b, j) => b
+      .attr('fill', (j === highlightedK || j === pinnedK) ? '#ff9f43' : baseFill(j))
+      .attr('stroke', j === pinnedK ? '#fff' : 'none')
+      .attr('stroke-width', j === pinnedK ? 1.5 : 0));
+    const k = highlightedK !== null ? highlightedK : pinnedK;
+    valueLabel.text(k !== null ? ('λ_' + (k + 1) + ' = ' + (eig[k] || 0).toFixed(3)) : '');
+  }
   for (let i = 0; i < 8; i++) {
     const v = Math.abs(eig[i] || 0);
     const h = maxH * (v / Math.max(1e-9, lam0));
@@ -264,20 +273,11 @@ function mountIsomapSpectral(svg, state, width, height) {
       .attr('fill', 'transparent').style('cursor', 'pointer');
     bars.push(bar);
     const k = i;
-    function onEnter() {
-      highlightedK = k;
-      bars.forEach((b, j) => b.attr('fill', j === k ? '#ff9f43' : baseFill(j)));
-      valueLabel.text('λ_' + (k + 1) + ' = ' + (eig[k] || 0).toFixed(3));
-      redraw();
-    }
-    function onLeave() {
-      highlightedK = null;
-      bars.forEach((b, j) => b.attr('fill', baseFill(j)));
-      valueLabel.text('');
-      redraw();
-    }
-    bar.on('mouseenter', onEnter).on('mouseleave', onLeave);
-    hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave);
+    function onEnter() { highlightedK = k; paint(); redraw(); }
+    function onLeave() { highlightedK = pinnedK; paint(); redraw(); }
+    function onClick() { pinnedK = pinnedK === k ? null : k; highlightedK = pinnedK; paint(); redraw(); }
+    bar.on('mouseenter', onEnter).on('mouseleave', onLeave).on('click', onClick);
+    hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave).on('click', onClick);
   }
 }
 
