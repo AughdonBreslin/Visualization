@@ -96,8 +96,13 @@ export const LAPLACIAN = {
         },
         () => {
           const adj = mem.adj;
+          const dists = [];
+          for (let p = 0; p < N; p++) for (const [, d] of adj[p]) dists.push(d);
+          dists.sort((a, b) => a - b);
+          const medianDist = dists.length ? dists[Math.floor(dists.length / 2)] : 1;
+          const effSigma = sigma * (medianDist || 1);
           const W = new Float64Array(N * N);
-          const sig2 = 2 * sigma * sigma;
+          const sig2 = 2 * effSigma * effSigma;
           for (let i = 0; i < N; i++) {
             for (const [j, dist] of adj[i]) {
               const w = Math.exp(-dist * dist / sig2);
@@ -108,7 +113,7 @@ export const LAPLACIAN = {
           mem.W = W;
           const sampleI = samples[0];
           const wRow = adj[sampleI].slice(0, Math.min(5, k)).map(([j, dist]) => [j, dist.toFixed(3), Math.exp(-dist * dist / sig2).toFixed(4)]);
-          const inputBlock = 'sample point i = ' + sampleI + ', sigma = ' + sigma + '\nkNN distances visible above.';
+          const inputBlock = 'sample point i = ' + sampleI + ', sigma = ' + sigma + ' x median dist ' + medianDist.toFixed(3) + ' = ' + effSigma.toFixed(3) + '\nkNN distances visible above.';
           const outputBlock = 'W_ij for first ' + Math.min(5, k) + ' neighbours of ' + sampleI + ':\n' +
             formatTable(['j', '||x_j - x_i||', 'W_ij'], wRow);
           steps.set('3', {
