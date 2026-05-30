@@ -36,15 +36,15 @@ export const LLE = {
   presentSubSteps: ['0', '2', '3', '5', '6'],
   pseudocode: [
     { id: 'lle-knn', title: '1. Build kNN graph', steps: ['2'],
-      lines: ['neighbours_i = k points with smallest ||x_j - x_i||'] },
+      lines: ['$\\mathcal{N}_i = k$ points with smallest $\\| x_j - x_i \\|$'] },
     { id: 'lle-W', title: '2. Reconstruction weights W', steps: ['3'],
-      lines: ['for each i: solve min_w || x_i - sum_j w_j x_{n_j} ||^2',
-              'subject to sum w_j = 1',
-              'store W[i][n_j] = w_j'] },
+      lines: ['for each $i$: minimise $\\bigl\\| x_i - \\sum_j w_j x_{n_j} \\bigr\\|^2$',
+              'subject to $\\sum_j w_j = 1$',
+              'store $W_{i, n_j} = w_j$'] },
     { id: 'lle-eig', title: '3. Smallest non-trivial eigenvectors of M', steps: ['5'],
-      lines: ['M = (I - W)^T (I - W)', 'M v_k = lambda_k v_k (skip lambda_0 = 0)'] },
+      lines: ['$M = (I - W)^{\\top} (I - W)$', '$M v_k = \\lambda_k v_k$ (skip $\\lambda_0 = 0$)'] },
     { id: 'lle-embed', title: '4. Form 2D embedding', steps: ['6'],
-      lines: ['Y = [v_1, v_2]'] },
+      lines: ['$Y = [\\, v_1 \\;\\; v_2 \\,]$'] },
   ],
   run(dataset, params) {
     const X = dataset.X;

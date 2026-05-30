@@ -1,3 +1,5 @@
+import { typesetMath } from './mathjax.js';
+
 export function createPseudocode(container, side) {
   const d3 = window.d3;
   const root = d3.select(container).append('div').attr('class', `pseudocode side-${side}`);
@@ -31,9 +33,15 @@ export function createPseudocode(container, side) {
       header.on('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); }
       });
-      const body = sec.append('pre').attr('class', 'pc-section-body');
-      if (open) body.text(section.lines.join('\n'));
-      else body.style('display', 'none');
+      const body = sec.append('div').attr('class', 'pc-section-body');
+      if (open) {
+        for (const line of section.lines) {
+          body.append('div').attr('class', 'pc-line').html(line);
+        }
+        typesetMath(body.node());
+      } else {
+        body.style('display', 'none');
+      }
     });
   }
 

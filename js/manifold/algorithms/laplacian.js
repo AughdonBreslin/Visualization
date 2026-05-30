@@ -36,15 +36,15 @@ export const LAPLACIAN = {
   presentSubSteps: ['0', '2', '3', '4', '5', '6'],
   pseudocode: [
     { id: 'lap-knn', title: '1. Build kNN graph', steps: ['2'],
-      lines: ['neighbours_i = k nearest by Euclidean distance'] },
+      lines: ['$\\mathcal{N}_i = k$ nearest by Euclidean distance'] },
     { id: 'lap-W', title: '2. Heat-kernel affinity W', steps: ['3'],
-      lines: ['W_{ij} = exp(-||x_i - x_j||^2 / (2 sigma^2)) for kNN edges, else 0'] },
+      lines: ['$W_{ij} = \\exp(-\\| x_i - x_j \\|^2 / 2\\sigma^2)$ for kNN edges, else $0$'] },
     { id: 'lap-L', title: '3. Graph Laplacian L = D - W', steps: ['4'],
-      lines: ['D_{ii} = sum_j W_{ij}', 'L = D - W'] },
+      lines: ['$D_{ii} = \\sum_j W_{ij}$', '$L = D - W$'] },
     { id: 'lap-eig', title: '4. Smallest non-trivial eigenvectors', steps: ['5'],
-      lines: ['L v_k = lambda_k v_k (skip lambda_0 = 0)'] },
+      lines: ['$L v_k = \\lambda_k v_k$ (skip $\\lambda_0 = 0$)'] },
     { id: 'lap-embed', title: '5. Form 2D embedding', steps: ['6'],
-      lines: ['Y = [v_1, v_2]'] },
+      lines: ['$Y = [\\, v_1 \\;\\; v_2 \\,]$'] },
   ],
   run(dataset, params) {
     const X = dataset.X;
