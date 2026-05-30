@@ -168,8 +168,10 @@ function mountPcaSpectral(svg, state, width, height) {
     function onEnter() { highlightedK = k; paint(); redraw(); }
     function onLeave() { highlightedK = pinnedK; paint(); redraw(); }
     function onClick() { pinnedK = pinnedK === k ? null : k; highlightedK = pinnedK; paint(); redraw(); }
-    bar.on('mouseenter', onEnter).on('mouseleave', onLeave).on('click', onClick);
-    hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave).on('click', onClick);
+    bar.on('mouseenter', onEnter).on('mouseleave', onLeave)
+      .on('pointerdown', (event) => { event.stopPropagation(); onClick(); });
+    hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave)
+      .on('pointerdown', (event) => { event.stopPropagation(); onClick(); });
   }
 }
 
@@ -276,8 +278,10 @@ function mountIsomapSpectral(svg, state, width, height) {
     function onEnter() { highlightedK = k; paint(); redraw(); }
     function onLeave() { highlightedK = pinnedK; paint(); redraw(); }
     function onClick() { pinnedK = pinnedK === k ? null : k; highlightedK = pinnedK; paint(); redraw(); }
-    bar.on('mouseenter', onEnter).on('mouseleave', onLeave).on('click', onClick);
-    hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave).on('click', onClick);
+    bar.on('mouseenter', onEnter).on('mouseleave', onLeave)
+      .on('pointerdown', (event) => { event.stopPropagation(); onClick(); });
+    hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave)
+      .on('pointerdown', (event) => { event.stopPropagation(); onClick(); });
   }
 }
 
