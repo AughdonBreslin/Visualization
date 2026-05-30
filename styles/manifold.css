@@ -10,10 +10,13 @@
 .manifold .mf-algo-header select { flex: 1; min-width: 0; }
 .manifold .mf-algo-side { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: 0 0 24px; border-radius: 50%; font-weight: 700; background: rgba(255,255,255,0.12); font-size: 0.9rem; }
 .manifold .mf-algo-side-a, .manifold .mf-algo-side-b { background: rgba(255,255,255,0.18); color: rgba(255,255,255,0.85); }
-.manifold .mf-algo-params { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.9rem; }
-.manifold .mf-param { display: inline-flex; align-items: center; gap: 4px; }
-.manifold .mf-param input { width: 5.5em; }
-.manifold .mf-noparams { opacity: 0.6; font-style: italic; }
+.manifold .mf-algo-params { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.85rem; margin-top: 8px; }
+.manifold .mf-param { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 11px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; color: rgba(255,255,255,0.72); letter-spacing: 0.01em; }
+.manifold .mf-param input, .manifold .mf-param select { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; color: #fff; padding: 2px 6px; font-size: 0.85rem; }
+.manifold .mf-param input { width: 4.5em; }
+.manifold .mf-param select { cursor: pointer; }
+.manifold .mf-param input:focus, .manifold .mf-param select:focus { outline: none; border-color: rgba(255,255,255,0.5); }
+.manifold .mf-noparams { opacity: 0.5; font-style: italic; font-size: 0.85rem; }
 .manifold .mf-viz-row, .manifold .mf-ifw-row, .manifold .mf-pseudo-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .manifold .mf-viz-card, .manifold .mf-ifw-card, .manifold .mf-pseudo-card { background: var(--surface-inset); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 10px 12px; min-width: 0; }
 .manifold .mf-viz-host { position: relative; width: 100%; aspect-ratio: 4 / 3; background: rgba(0,0,0,0.25); border-radius: var(--radius-sm); overflow: hidden; }
