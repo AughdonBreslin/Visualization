@@ -30,27 +30,31 @@ export const LLE = {
   id: 'lle',
   label: 'LLE',
   params: [
-    { name: 'k', type: 'int', default: 10, min: 2, max: 50 },
-    { name: 'reg', type: 'float', default: 1e-3, min: 0, max: 0.1 },
+    { name: 'k', type: 'int', default: 12, min: 2, max: 50,
+      label: 'Neighbors (k)',
+      desc: 'How many nearest neighbors define each point\'s local neighborhood. Smaller k captures finer local detail but can fragment the manifold; larger k is smoother but may link points across separate folds.' },
+    { name: 'reg', type: 'float', default: 1e-3, min: 0, max: 0.1,
+      label: 'Regularization',
+      desc: 'Stabilizes the per-point least-squares weight solve when a point\'s neighbors are nearly coplanar. Larger values make the reconstruction weights smoother and more uniform; too large washes out the local geometry.' },
   ],
   presentSubSteps: ['0', '2', '3', '5', '6'],
   pseudocode: [
     { id: 'lle-knn', title: '1. Build kNN graph', steps: ['2'],
-      lines: ['neighbours_i = k points with smallest ||x_j - x_i||'] },
+      lines: ['$\\mathcal{N}_i = k$ points with smallest $\\| x_j - x_i \\|$'] },
     { id: 'lle-W', title: '2. Reconstruction weights W', steps: ['3'],
-      lines: ['for each i: solve min_w || x_i - sum_j w_j x_{n_j} ||^2',
-              'subject to sum w_j = 1',
-              'store W[i][n_j] = w_j'] },
+      lines: ['for each $i$: minimise $\\bigl\\| x_i - \\sum_j w_j x_{n_j} \\bigr\\|^2$',
+              'subject to $\\sum_j w_j = 1$',
+              'store $W_{i, n_j} = w_j$'] },
     { id: 'lle-eig', title: '3. Smallest non-trivial eigenvectors of M', steps: ['5'],
-      lines: ['M = (I - W)^T (I - W)', 'M v_k = lambda_k v_k (skip lambda_0 = 0)'] },
+      lines: ['$M = (I - W)^{\\top} (I - W)$', '$M v_k = \\lambda_k v_k$ (skip $\\lambda_0 = 0$)'] },
     { id: 'lle-embed', title: '4. Form 2D embedding', steps: ['6'],
-      lines: ['Y = [v_1, v_2]'] },
+      lines: ['$Y = [\\, v_1 \\;\\; v_2 \\,]$'] },
   ],
   run(dataset, params) {
     const X = dataset.X;
     const t = dataset.t;
     const N = X.length / 3;
-    const k = Math.max(2, Math.min(params.k || 10, N - 1));
+    const k = Math.max(2, Math.min(params.k || 12, N - 1));
     const reg = params.reg !== undefined ? params.reg : 1e-3;
     const steps = new Map();
     const presentSubSteps = ['0', '2', '3', '5', '6'];

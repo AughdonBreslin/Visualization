@@ -1,4 +1,4 @@
-import { DATASETS, parseCSV } from './datasets.js';
+import { DATASETS, DATASETS_BY_ID, parseCSV } from './datasets.js';
 import { PCA } from './algorithms/pca.js';
 import { ISOMAP } from './algorithms/isomap.js';
 import { MDS } from './algorithms/mds.js';
@@ -11,6 +11,7 @@ import { createStepIndicator } from './step_indicator.js';
 import { createIFW } from './ifw.js';
 import { createPseudocode } from './pseudocode.js';
 import { compareSubSteps, unionSubSteps } from './canonical_steps.js';
+import { attachTooltip } from './param_tooltip.js';
 
 const ALGORITHMS = [PCA, ISOMAP, MDS, LLE, LAPLACIAN, KPCA];
 const ALGORITHMS_BY_ID = Object.fromEntries(ALGORITHMS.map(a => [a.id, a]));
@@ -24,9 +25,9 @@ const defaults = {
     pca: {},
     isomap: { k: 10 },
     mds: {},
-    lle: { k: 10, reg: 1e-3 },
-    laplacian: { k: 10, sigma: 1.0 },
-    kpca: { kernel: 'rbf', gamma: 0.5, degree: 3 },
+    lle: { k: 12, reg: 1e-3 },
+    laplacian: { k: 10, sigma: 3.0 },
+    kpca: { kernel: 'rbf', gamma: 1.0, degree: 3 },
   },
 };
 
@@ -39,6 +40,7 @@ function init() {
   const reseedBtn = $('mfReseed');
   const csvInput = $('mfCsvInput');
   const csvLabel = $('mfCsvLabel');
+  const datasetParamsHost = $('mfDatasetParams');
   const leftSelect = $('mfAlgoLeft');
   const rightSelect = $('mfAlgoRight');
   const leftParamsHost = $('mfAlgoLeftParams');
@@ -113,10 +115,33 @@ function init() {
       }
       return true;
     });
+    if (visible.length === 0) {
+      host.innerHTML = '<span class="mf-noparams">No parameters</span>';
+      return;
+    }
+    const grid = document.createElement('div');
+    grid.className = 'mf-param-grid';
     for (const p of visible) {
-      const wrap = document.createElement('label');
-      wrap.className = 'mf-param';
-      wrap.textContent = `${p.name} = `;
+      const lbl = document.createElement('div');
+      lbl.className = 'mf-param-label';
+      if (p.desc) {
+        const info = document.createElement('span');
+        info.className = 'mf-param-info';
+        info.textContent = 'i';
+        const rangeText = p.type === 'enum'
+          ? p.options.join(' / ')
+          : (p.min !== undefined && p.max !== undefined ? `range ${p.min} to ${p.max}` : '');
+        attachTooltip(info, { label: p.label || p.name, desc: p.desc, rangeText });
+        lbl.appendChild(info);
+      }
+      const name = document.createElement('span');
+      name.className = 'mf-param-name';
+      name.textContent = p.label || p.name;
+      lbl.appendChild(name);
+      grid.appendChild(lbl);
+
+      const cell = document.createElement('div');
+      cell.className = 'mf-param-control';
       if (p.type === 'enum') {
         const sel = document.createElement('select');
         for (const opt of p.options) {
@@ -129,24 +154,23 @@ function init() {
           onChange({ ...getCurrent(), [p.name]: sel.value });
           renderParamHost(host, algo, getCurrent, onChange);
         });
-        wrap.appendChild(sel);
-        host.appendChild(wrap);
-        continue;
+        cell.appendChild(sel);
+      } else {
+        const input = document.createElement('input');
+        input.type = p.type === 'int' || p.type === 'float' ? 'number' : 'text';
+        if (p.min !== undefined) input.min = p.min;
+        if (p.max !== undefined) input.max = p.max;
+        input.step = p.type === 'int' ? 1 : 'any';
+        input.value = current[p.name] !== undefined ? current[p.name] : p.default;
+        input.addEventListener('change', () => {
+          const v = p.type === 'int' ? parseInt(input.value, 10) : parseFloat(input.value);
+          onChange({ ...getCurrent(), [p.name]: v });
+        });
+        cell.appendChild(input);
       }
-      const input = document.createElement('input');
-      input.type = p.type === 'int' || p.type === 'float' ? 'number' : 'text';
-      if (p.min !== undefined) input.min = p.min;
-      if (p.max !== undefined) input.max = p.max;
-      input.step = p.type === 'int' ? 1 : 'any';
-      input.value = current[p.name] !== undefined ? current[p.name] : p.default;
-      input.addEventListener('change', () => {
-        const v = p.type === 'int' ? parseInt(input.value, 10) : parseFloat(input.value);
-        onChange({ ...getCurrent(), [p.name]: v });
-      });
-      wrap.appendChild(input);
-      host.appendChild(wrap);
+      grid.appendChild(cell);
     }
-    if (visible.length === 0) host.innerHTML = '<span class="mf-noparams">No parameters</span>';
+    host.appendChild(grid);
   }
 
   function rebindParamHosts() {
@@ -157,11 +181,23 @@ function init() {
   }
   rebindParamHosts();
 
+  function renderDatasetParams() {
+    const ds = DATASETS_BY_ID[store.state.datasetId];
+    if (!ds || !ds.params || ds.params.length === 0) {
+      datasetParamsHost.innerHTML = '';
+      return;
+    }
+    renderParamHost(datasetParamsHost, ds, () => store.state.datasetParams,
+      (next) => store.set({ datasetParams: next }));
+  }
+  renderDatasetParams();
+
   function updateSyntheticVisibility() {
     const isCsv = store.state.datasetId === 'csv';
     samplesControl.style.display = isCsv ? 'none' : '';
     noiseControl.style.display = isCsv ? 'none' : '';
     seedControl.style.display = isCsv ? 'none' : '';
+    datasetParamsHost.style.display = isCsv ? 'none' : '';
     csvLabel.textContent = isCsv ? (store.state.csvFileName ? `Loaded: ${store.state.csvFileName} (${store.state.csvRows ? store.state.csvRows.length : 0} rows)` : '') : '';
   }
 
@@ -172,8 +208,16 @@ function init() {
       csvInput.click();
       return;
     }
-    store.set({ datasetId: id, csvRows: null, csvFileName: '' });
+    const ds = DATASETS_BY_ID[id];
+    const dp = {
+      samples: store.state.datasetParams.samples,
+      noise: store.state.datasetParams.noise,
+      seed: store.state.datasetParams.seed,
+    };
+    if (ds && ds.params) for (const p of ds.params) dp[p.name] = p.default;
+    store.set({ datasetId: id, csvRows: null, csvFileName: '', datasetParams: dp });
     updateSyntheticVisibility();
+    renderDatasetParams();
   });
   csvInput.addEventListener('change', () => {
     const file = csvInput.files && csvInput.files[0];

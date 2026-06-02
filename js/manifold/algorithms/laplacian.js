@@ -30,28 +30,32 @@ export const LAPLACIAN = {
   id: 'laplacian',
   label: 'Laplacian Eigenmaps',
   params: [
-    { name: 'k', type: 'int', default: 10, min: 2, max: 50 },
-    { name: 'sigma', type: 'float', default: 1.0, min: 0.1, max: 10 },
+    { name: 'k', type: 'int', default: 10, min: 2, max: 50,
+      label: 'Neighbors (k)',
+      desc: 'How many nearest neighbors define each point\'s local neighborhood. Smaller k captures finer local detail but can fragment the manifold; larger k is smoother but may link points across separate folds.' },
+    { name: 'sigma', type: 'float', default: 3.0, min: 0.1, max: 10,
+      label: 'Bandwidth (σ)',
+      desc: 'Width of the heat kernel that turns neighbor distances into edge weights, as a multiple of the median neighbor distance. Larger σ makes neighbor weights more uniform and the embedding smoother; smaller σ sharpens the falloff.' },
   ],
   presentSubSteps: ['0', '2', '3', '4', '5', '6'],
   pseudocode: [
     { id: 'lap-knn', title: '1. Build kNN graph', steps: ['2'],
-      lines: ['neighbours_i = k nearest by Euclidean distance'] },
+      lines: ['$\\mathcal{N}_i = k$ nearest by Euclidean distance'] },
     { id: 'lap-W', title: '2. Heat-kernel affinity W', steps: ['3'],
-      lines: ['W_{ij} = exp(-||x_i - x_j||^2 / (2 sigma^2)) for kNN edges, else 0'] },
+      lines: ['$W_{ij} = \\exp(-\\| x_i - x_j \\|^2 / 2\\sigma^2)$ for kNN edges, else $0$'] },
     { id: 'lap-L', title: '3. Graph Laplacian L = D - W', steps: ['4'],
-      lines: ['D_{ii} = sum_j W_{ij}', 'L = D - W'] },
+      lines: ['$D_{ii} = \\sum_j W_{ij}$', '$L = D - W$'] },
     { id: 'lap-eig', title: '4. Smallest non-trivial eigenvectors', steps: ['5'],
-      lines: ['L v_k = lambda_k v_k (skip lambda_0 = 0)'] },
+      lines: ['$L v_k = \\lambda_k v_k$ (skip $\\lambda_0 = 0$)'] },
     { id: 'lap-embed', title: '5. Form 2D embedding', steps: ['6'],
-      lines: ['Y = [v_1, v_2]'] },
+      lines: ['$Y = [\\, v_1 \\;\\; v_2 \\,]$'] },
   ],
   run(dataset, params) {
     const X = dataset.X;
     const t = dataset.t;
     const N = X.length / 3;
     const k = Math.max(2, Math.min(params.k || 10, N - 1));
-    const sigma = params.sigma || 1.0;
+    const sigma = params.sigma || 3.0;
     const steps = new Map();
     const presentSubSteps = ['0', '2', '3', '4', '5', '6'];
     const pending = new Set(['2', '3', '4', '5', '6']);
@@ -96,8 +100,13 @@ export const LAPLACIAN = {
         },
         () => {
           const adj = mem.adj;
+          const dists = [];
+          for (let p = 0; p < N; p++) for (const [, d] of adj[p]) dists.push(d);
+          dists.sort((a, b) => a - b);
+          const medianDist = dists.length ? dists[Math.floor(dists.length / 2)] : 1;
+          const effSigma = sigma * (medianDist || 1);
           const W = new Float64Array(N * N);
-          const sig2 = 2 * sigma * sigma;
+          const sig2 = 2 * effSigma * effSigma;
           for (let i = 0; i < N; i++) {
             for (const [j, dist] of adj[i]) {
               const w = Math.exp(-dist * dist / sig2);
@@ -108,7 +117,7 @@ export const LAPLACIAN = {
           mem.W = W;
           const sampleI = samples[0];
           const wRow = adj[sampleI].slice(0, Math.min(5, k)).map(([j, dist]) => [j, dist.toFixed(3), Math.exp(-dist * dist / sig2).toFixed(4)]);
-          const inputBlock = 'sample point i = ' + sampleI + ', sigma = ' + sigma + '\nkNN distances visible above.';
+          const inputBlock = 'sample point i = ' + sampleI + ', sigma = ' + sigma + ' x median dist ' + medianDist.toFixed(3) + ' = ' + effSigma.toFixed(3) + '\nkNN distances visible above.';
           const outputBlock = 'W_ij for first ' + Math.min(5, k) + ' neighbours of ' + sampleI + ':\n' +
             formatTable(['j', '||x_j - x_i||', 'W_ij'], wRow);
           steps.set('3', {

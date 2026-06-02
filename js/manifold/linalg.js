@@ -288,44 +288,115 @@ export function bottomKSymmetricEig(M, N, k, { skipFirst = 0 } = {}) {
     }
     return { lambda: outLambda, vectors: outVecs };
   }
-  const probe = new Float64Array(N);
-  for (let i = 0; i < N; i++) probe[i] = Math.sin(i * 1.3 + 0.7);
-  let nrm = 0;
-  for (let i = 0; i < N; i++) nrm += probe[i] * probe[i];
-  nrm = Math.sqrt(nrm);
-  if (nrm > 0) for (let i = 0; i < N; i++) probe[i] /= nrm;
-  const Mv = new Float64Array(N);
-  for (let iter = 0; iter < 40; iter++) {
+
+  // Large N: inverse iteration on (M + eps I). The largest eigenvalues of
+  // (M + eps I)^{-1} are the smallest of M, and that spectral transform leaves
+  // the bottom modes with large, well-separated ratios so power iteration
+  // converges. A plain (cI - M) shift leaves the bottom modes near-degenerate
+  // (all close to c), which is why it could not separate v_1 from v_2.
+  const want = k + skipFirst;
+  let trace = 0;
+  for (let i = 0; i < N; i++) trace += M[i * N + i];
+  const eps = 1e-7 * (trace / N) + 1e-12;
+
+  // LU factorization (Doolittle, partial pivoting) of A = M + eps I, in place.
+  const A = new Float64Array(N * N);
+  for (let i = 0; i < N * N; i++) A[i] = M[i];
+  for (let i = 0; i < N; i++) A[i * N + i] += eps;
+  const piv = new Int32Array(N);
+  for (let i = 0; i < N; i++) piv[i] = i;
+  for (let col = 0; col < N; col++) {
+    let pmax = col, vmax = Math.abs(A[col * N + col]);
+    for (let r = col + 1; r < N; r++) {
+      const a = Math.abs(A[r * N + col]);
+      if (a > vmax) { vmax = a; pmax = r; }
+    }
+    if (pmax !== col) {
+      for (let j = 0; j < N; j++) {
+        const tmp = A[col * N + j]; A[col * N + j] = A[pmax * N + j]; A[pmax * N + j] = tmp;
+      }
+      const tp = piv[col]; piv[col] = piv[pmax]; piv[pmax] = tp;
+    }
+    const diag = A[col * N + col] || 1e-300;
+    for (let r = col + 1; r < N; r++) {
+      const f = A[r * N + col] / diag;
+      A[r * N + col] = f;
+      if (f !== 0) {
+        const rowR = r * N, rowC = col * N;
+        for (let j = col + 1; j < N; j++) A[rowR + j] -= f * A[rowC + j];
+      }
+    }
+  }
+
+  const pb = new Float64Array(N);
+  function solveLU(b, x) {
+    for (let i = 0; i < N; i++) pb[i] = b[piv[i]];
     for (let i = 0; i < N; i++) {
-      let s = 0;
-      for (let j = 0; j < N; j++) s += M[i * N + j] * probe[j];
-      Mv[i] = s;
+      let s = pb[i];
+      const row = i * N;
+      for (let j = 0; j < i; j++) s -= A[row + j] * x[j];
+      x[i] = s;
     }
-    let mag = 0;
-    for (let i = 0; i < N; i++) mag += Mv[i] * Mv[i];
-    mag = Math.sqrt(mag);
-    if (mag < 1e-12) break;
-    for (let i = 0; i < N; i++) probe[i] = Mv[i] / mag;
+    for (let i = N - 1; i >= 0; i--) {
+      let s = x[i];
+      const row = i * N;
+      for (let j = i + 1; j < N; j++) s -= A[row + j] * x[j];
+      x[i] = s / (A[row + i] || 1e-300);
+    }
   }
-  let muEstimate = 0;
-  for (let i = 0; i < N; i++) {
+
+  function normalizeVec(vec) {
     let s = 0;
-    for (let j = 0; j < N; j++) s += M[i * N + j] * probe[j];
-    muEstimate += probe[i] * s;
+    for (let i = 0; i < N; i++) s += vec[i] * vec[i];
+    s = Math.sqrt(s);
+    if (s > 0) { const inv = 1 / s; for (let i = 0; i < N; i++) vec[i] *= inv; }
+    return s;
   }
-  const mu = Math.abs(muEstimate) * 1.1 + 1.0;
-  const S = new Float64Array(N * N);
-  for (let i = 0; i < N; i++) {
-    for (let j = 0; j < N; j++) {
-      S[i * N + j] = (i === j ? mu : 0) - M[i * N + j];
+
+  // Inverse power iteration with Gram-Schmidt deflation against found vectors.
+  const found = [];
+  const v = new Float64Array(N);
+  const w = new Float64Array(N);
+  const iters = 100;
+  for (let c = 0; c < want; c++) {
+    for (let i = 0; i < N; i++) v[i] = Math.sin((i + 1) * (c + 1) * 0.7) + 0.1;
+    for (let p = 0; p < c; p++) {
+      const vp = found[p];
+      let dot = 0; for (let i = 0; i < N; i++) dot += vp[i] * v[i];
+      for (let i = 0; i < N; i++) v[i] -= dot * vp[i];
     }
+    normalizeVec(v);
+    let prev = 0;
+    for (let it = 0; it < iters; it++) {
+      solveLU(v, w);
+      for (let p = 0; p < c; p++) {
+        const vp = found[p];
+        let dot = 0; for (let i = 0; i < N; i++) dot += vp[i] * w[i];
+        for (let i = 0; i < N; i++) w[i] -= dot * vp[i];
+      }
+      const mag = normalizeVec(w);
+      for (let i = 0; i < N; i++) v[i] = w[i];
+      if (mag < 1e-300) break;
+      if (it > 5 && Math.abs(mag - prev) < 1e-9 * mag) break;
+      prev = mag;
+    }
+    found.push(v.slice());
   }
-  const { lambda: shifted, vectors } = topKSymmetricEig(S, N, k + skipFirst);
+
+  // Rayleigh quotients on the original M for the kept eigenvalues.
   const outLambda = new Float64Array(k);
   const outVecs = [];
-  for (let i = 0; i < k; i++) {
-    outLambda[i] = mu - shifted[skipFirst + i];
-    outVecs.push(vectors[skipFirst + i]);
+  const Mv = new Float64Array(N);
+  for (let t = 0; t < k; t++) {
+    const vec = found[skipFirst + t];
+    for (let i = 0; i < N; i++) {
+      let acc = 0; const row = i * N;
+      for (let j = 0; j < N; j++) acc += M[row + j] * vec[j];
+      Mv[i] = acc;
+    }
+    let s = 0; for (let i = 0; i < N; i++) s += vec[i] * Mv[i];
+    outLambda[t] = s;
+    outVecs.push(vec);
   }
   return { lambda: outLambda, vectors: outVecs };
 }
