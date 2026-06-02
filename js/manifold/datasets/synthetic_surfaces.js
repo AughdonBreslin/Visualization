@@ -86,7 +86,9 @@ export const SADDLE = {
 export const CYLINDER = {
   id: 'cylinder',
   label: 'Cylinder',
-  params: [{ name: 'height', type: 'float', default: 2, min: 0.5, max: 5 }],
+  params: [{ name: 'height', type: 'float', default: 2, min: 0.5, max: 5,
+    label: 'Height',
+    desc: 'Height of the open cylinder. Taller values stretch the tube along its axis.' }],
   generate({ samples, noise, seed, height }) {
     const H = height || 2;
     const rand = mulberry32(seed);
@@ -107,7 +109,9 @@ export const CYLINDER = {
 export const SEVERED_SPHERE = {
   id: 'severed_sphere',
   label: 'Severed sphere',
-  params: [{ name: 'cap', type: 'float', default: 0.35, min: 0, max: 0.9 }],
+  params: [{ name: 'cap', type: 'float', default: 0.35, min: 0, max: 0.9,
+    label: 'Cap size',
+    desc: 'Fraction of the sphere removed at the north pole, measured along the polar angle. Larger values cut away more of the top.' }],
   generate({ samples, noise, seed, cap }) {
     const C = cap === undefined ? 0.35 : cap;
     const minPhi = C * Math.PI;
@@ -129,7 +133,9 @@ export const SEVERED_SPHERE = {
 export const HILBERT = {
   id: 'hilbert',
   label: 'Hilbert curve',
-  params: [{ name: 'order', type: 'int', default: 4, min: 2, max: 5 }],
+  params: [{ name: 'order', type: 'int', default: 4, min: 2, max: 5,
+    label: 'Order',
+    desc: 'Recursion depth of the Hilbert curve. Each step subdivides the cube into a finer grid (2^order cells per side), so higher order packs the curve more densely.' }],
   generate({ samples, noise, seed, order }) {
     const ord = order || 4;
     const L = 1 << (3 * ord);

@@ -44,7 +44,9 @@ export const S_CURVE = {
 export const HELIX = {
   id: 'helix',
   label: 'Helix',
-  params: [{ name: 'turns', type: 'int', default: 3, min: 1, max: 8 }],
+  params: [{ name: 'turns', type: 'int', default: 3, min: 1, max: 8,
+    label: 'Turns',
+    desc: 'Number of full turns of the helix. More turns make a longer, tighter coil.' }],
   generate({ samples, noise, seed, turns }) {
     const T = turns || 3;
     const rand = mulberry32(seed);
@@ -83,7 +85,9 @@ export const TREFOIL_KNOT = {
 export const TOROIDAL_HELIX = {
   id: 'toroidal_helix',
   label: 'Toroidal helix',
-  params: [{ name: 'q', type: 'int', default: 7, min: 2, max: 15 }],
+  params: [{ name: 'q', type: 'int', default: 7, min: 2, max: 15,
+    label: 'Winding (q)',
+    desc: 'How many times the helix winds around the torus tube per loop around the ring. Higher q coils more tightly.' }],
   generate({ samples, noise, seed, q }) {
     const Q = q || 7;
     const R = 2, r = 0.7;
@@ -105,7 +109,9 @@ export const TOROIDAL_HELIX = {
 export const SPIRAL_DISK = {
   id: 'spiral_disk',
   label: 'Spiral disk',
-  params: [{ name: 'turns', type: 'int', default: 3, min: 1, max: 6 }],
+  params: [{ name: 'turns', type: 'int', default: 3, min: 1, max: 6,
+    label: 'Turns',
+    desc: 'Number of turns of the spiral arm. More turns wind it tighter toward the center.' }],
   generate({ samples, noise, seed, turns }) {
     const T = turns || 3;
     const rand = mulberry32(seed);
