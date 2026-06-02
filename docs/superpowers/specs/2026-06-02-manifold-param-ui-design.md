@@ -94,6 +94,15 @@ Parameter ranges (for the derived tooltip range line), from current code:
 - kernel: rbf / polynomial / linear; gamma: 0.05 to 10; degree: 1 to 10
 - turns (helix): 1 to 8; q: 2 to 15; turns (spiral_disk): 1 to 6; height: 0.5 to 5; cap: 0 to 0.9; order: 2 to 5; clusters: 2 to 8; sep: 0.5 to 5
 
+## Additional fix: LLE default k consistency
+
+While editing the LLE descriptor for labels and tooltips, also fix a pre-existing default mismatch. The intended default neighbor count is 12. Current state:
+- `js/manifold/algorithms/lle.js` descriptor: `default: 10` (wrong)
+- `js/manifold/algorithms/lle.js` run fallback: `params.k || 12` (already correct)
+- `js/manifold/main.js` defaults: `lle: { k: 12, ... }` (already correct)
+
+Change the descriptor `default` from 10 to 12 so all three agree on 12. No other value changes.
+
 ## Components and data flow
 
 - `renderParamHost(host, owner, getCurrent, onChange)` is unchanged in signature. Internally it builds a grid container, and for each visible param appends a label cell (info icon + label) and a control cell. The control wiring (number parsing, enum change, `dependsOn` re-render, commit via `onChange`) is unchanged.
