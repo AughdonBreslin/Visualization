@@ -5,8 +5,12 @@ export const CLUSTERS_3D = {
   id: 'clusters_3d',
   label: '3D Gaussian clusters',
   params: [
-    { name: 'clusters', type: 'int', default: 5, min: 2, max: 8 },
-    { name: 'sep', type: 'float', default: 2, min: 0.5, max: 5 },
+    { name: 'clusters', type: 'int', default: 5, min: 2, max: 8,
+      label: 'Clusters',
+      desc: 'Number of Gaussian blobs, with centers spread evenly on a sphere.' },
+    { name: 'sep', type: 'float', default: 2, min: 0.5, max: 5,
+      label: 'Separation',
+      desc: 'Radius of the sphere the cluster centers sit on. Larger values push the blobs farther apart.' },
   ],
   generate({ samples, noise, seed, clusters, sep }) {
     const K = clusters || 5;
