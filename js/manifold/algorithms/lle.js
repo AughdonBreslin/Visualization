@@ -30,8 +30,12 @@ export const LLE = {
   id: 'lle',
   label: 'LLE',
   params: [
-    { name: 'k', type: 'int', default: 10, min: 2, max: 50 },
-    { name: 'reg', type: 'float', default: 1e-3, min: 0, max: 0.1 },
+    { name: 'k', type: 'int', default: 12, min: 2, max: 50,
+      label: 'Neighbors (k)',
+      desc: 'How many nearest neighbors define each point\'s local neighborhood. Smaller k captures finer local detail but can fragment the manifold; larger k is smoother but may link points across separate folds.' },
+    { name: 'reg', type: 'float', default: 1e-3, min: 0, max: 0.1,
+      label: 'Regularization',
+      desc: 'Stabilizes the per-point least-squares weight solve when a point\'s neighbors are nearly coplanar. Larger values make the reconstruction weights smoother and more uniform; too large washes out the local geometry.' },
   ],
   presentSubSteps: ['0', '2', '3', '5', '6'],
   pseudocode: [
