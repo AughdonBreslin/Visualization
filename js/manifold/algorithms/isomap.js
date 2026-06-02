@@ -29,7 +29,9 @@ function rowOf(X, i) {
 export const ISOMAP = {
   id: 'isomap',
   label: 'Isomap',
-  params: [{ name: 'k', type: 'int', default: 10, min: 2, max: 50 }],
+  params: [{ name: 'k', type: 'int', default: 10, min: 2, max: 50,
+    label: 'Neighbors (k)',
+    desc: 'How many nearest neighbors define each point\'s local neighborhood. Smaller k captures finer local detail but can fragment the manifold; larger k is smoother but may link points across separate folds.' }],
   presentSubSteps: ['0', '2', '3', '4', '5', '6'],
   pseudocode: [
     { id: 'isomap-knn', title: '1. Build kNN graph', steps: ['2'],

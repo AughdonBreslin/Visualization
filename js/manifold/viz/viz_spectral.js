@@ -74,30 +74,49 @@ function mountPcaSpectral(svg, state, width, height) {
   const colors = ['#ff9f43', '#54a0ff', '#6bd47b'];
   const labels = ['PC1', 'PC2', 'PC3'];
 
+  const N = points.length / 3;
+  const axesV = state.pcAxes ? [state.pcAxes.v1, state.pcAxes.v2, state.pcAxes.v3] : [];
+  const lam = (state.pcAxes && state.pcAxes.lambda) || [1, 1, 1];
+  // Per-point projection onto each principal component (the per-point form of
+  // the covariance eigenvector), used to color the cloud when a bar is hovered.
+  let mx = 0, my = 0, mz = 0;
+  for (let i = 0; i < N; i++) { mx += points[i * 3]; my += points[i * 3 + 1]; mz += points[i * 3 + 2]; }
+  mx /= N; my /= N; mz /= N;
+  const proj = axesV.map(v => {
+    const arr = new Float64Array(N);
+    if (v) for (let i = 0; i < N; i++) {
+      arr[i] = (points[i * 3] - mx) * v[0] + (points[i * 3 + 1] - my) * v[1] + (points[i * 3 + 2] - mz) * v[2];
+    }
+    return arr;
+  });
+  let highlightedK = null;
+
   function redraw() {
     gCloud.html('');
     gAxes.html('');
-    const N = points.length / 3;
+    const vec = highlightedK !== null ? proj[highlightedK] : null;
+    let lo = Infinity, hi = -Infinity;
+    if (vec) for (let i = 0; i < N; i++) { if (vec[i] < lo) lo = vec[i]; if (vec[i] > hi) hi = vec[i]; }
     for (let i = 0; i < N; i++) {
       const x = points[i * 3] - ax, y = points[i * 3 + 1] - ay, z = points[i * 3 + 2] - az;
       const px = R[0][0]*x + R[0][1]*y + R[0][2]*z;
       const py = R[1][0]*x + R[1][1]*y + R[1][2]*z;
       gCloud.append('circle').attr('cx', cx + scale*px).attr('cy', cy - scale*py)
-        .attr('r', 2.4).attr('fill', 'rgba(255,255,255,0.55)');
+        .attr('r', 2.4).attr('fill', vec ? colorFromValue(vec[i], lo, hi) : 'rgba(255,255,255,0.55)');
     }
     if (state.pcAxes) {
-      const lam = state.pcAxes.lambda || [1, 1, 1];
       const top = Math.max(Math.abs(lam[0]) || 1, 1e-9);
-      ['v1', 'v2', 'v3'].forEach((key, k) => {
-        const v = state.pcAxes[key];
+      axesV.forEach((v, k) => {
         if (!v) return;
         const len = r * 0.95 * Math.sqrt(Math.max(0, Math.abs(lam[k] || 0)) / top);
         const end = projectVec(R, [v[0] * len, v[1] * len, v[2] * len], scale, cx, cy);
+        const emph = highlightedK === k;
+        const dim = highlightedK !== null && !emph;
         gAxes.append('line').attr('x1', cx).attr('y1', cy).attr('x2', end[0]).attr('y2', end[1])
-          .attr('stroke', colors[k]).attr('stroke-width', 2.2)
+          .attr('stroke', colors[k]).attr('stroke-width', emph ? 3.4 : 2.2).attr('opacity', dim ? 0.25 : 1)
           .attr('marker-end', `url(#pc-arrow-${k})`);
         gAxes.append('text').attr('x', end[0] + 6).attr('y', end[1] - 4)
-          .attr('fill', colors[k]).attr('font-size', '11').text(labels[k]);
+          .attr('fill', colors[k]).attr('font-size', '11').attr('opacity', dim ? 0.25 : 1).text(labels[k]);
       });
     }
   }
@@ -110,6 +129,50 @@ function mountPcaSpectral(svg, state, width, height) {
   }
   redraw();
   attachOrbit(svg, () => R, (newR) => { R = newR; }, redraw);
+
+  const nb = Math.min(3, axesV.length || 3);
+  const mini = svg.append('g').attr('transform', `translate(${width - 168}, ${height - 102})`);
+  mini.append('rect').attr('width', 160).attr('height', 96).attr('fill', 'rgba(0,0,0,0.72)')
+    .attr('stroke', 'rgba(255,255,255,0.25)').attr('rx', 4);
+  mini.append('text').attr('x', 80).attr('y', 12).attr('text-anchor', 'middle')
+    .attr('fill', 'rgba(255,255,255,0.85)').attr('font-size', '9').text('eigenvalues');
+  const valueLabel = mini.append('text').attr('x', 80).attr('y', 90).attr('text-anchor', 'middle')
+    .attr('fill', 'rgba(255,255,255,0.95)').attr('font-size', '10').text('');
+
+  let lam0 = 1;
+  for (let i = 0; i < nb; i++) lam0 = Math.max(lam0, Math.abs(lam[i] || 0));
+  const barW = 30;
+  const maxH = 52;
+  const baseFill = (i) => i < 2 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.5)';
+  const bars = [];
+  let pinnedK = null;
+  function paint() {
+    bars.forEach((b, j) => b
+      .attr('fill', (j === highlightedK || j === pinnedK) ? colors[j] : baseFill(j))
+      .attr('stroke', j === pinnedK ? '#fff' : 'none')
+      .attr('stroke-width', j === pinnedK ? 1.5 : 0));
+    const k = highlightedK !== null ? highlightedK : pinnedK;
+    valueLabel.text(k !== null ? ('λ_' + (k + 1) + ' = ' + (lam[k] || 0).toFixed(3)) : '');
+  }
+  for (let i = 0; i < nb; i++) {
+    const v = Math.abs(lam[i] || 0);
+    const h = maxH * (v / Math.max(1e-9, lam0));
+    const bar = mini.append('rect').attr('x', 16 + i * (barW + 6)).attr('y', 18 + (maxH - h))
+      .attr('width', barW).attr('height', h)
+      .attr('fill', baseFill(i)).style('cursor', 'pointer');
+    const hitBar = mini.append('rect').attr('x', 16 + i * (barW + 6)).attr('y', 18)
+      .attr('width', barW).attr('height', maxH)
+      .attr('fill', 'transparent').style('cursor', 'pointer');
+    bars.push(bar);
+    const k = i;
+    function onEnter() { highlightedK = k; paint(); redraw(); }
+    function onLeave() { highlightedK = pinnedK; paint(); redraw(); }
+    function onClick() { pinnedK = pinnedK === k ? null : k; highlightedK = pinnedK; paint(); redraw(); }
+    bar.on('mouseenter', onEnter).on('mouseleave', onLeave)
+      .on('pointerdown', (event) => { event.stopPropagation(); onClick(); });
+    hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave)
+      .on('pointerdown', (event) => { event.stopPropagation(); onClick(); });
+  }
 }
 
 function mountIsomapSpectral(svg, state, width, height) {
@@ -123,6 +186,7 @@ function mountIsomapSpectral(svg, state, width, height) {
   const allVecs = state.topEigvecs || [v1];
 
   const gCloud = svg.append('g');
+  const N = points.length / 3;
   let highlightedK = null;
 
   function activeVec() {
@@ -135,7 +199,6 @@ function mountIsomapSpectral(svg, state, width, height) {
     const vec = activeVec();
     let lo = Infinity, hi = -Infinity;
     for (let i = 0; i < vec.length; i++) { if (vec[i] < lo) lo = vec[i]; if (vec[i] > hi) hi = vec[i]; }
-    const N = points.length / 3;
     for (let i = 0; i < N; i++) {
       const x = points[i * 3] - ax, y = points[i * 3 + 1] - ay, z = points[i * 3 + 2] - az;
       const px = R[0][0]*x + R[0][1]*y + R[0][2]*z;
@@ -162,6 +225,15 @@ function mountIsomapSpectral(svg, state, width, height) {
   const maxH = 52;
   const baseFill = (i) => i < 2 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.5)';
   const bars = [];
+  let pinnedK = null;
+  function paint() {
+    bars.forEach((b, j) => b
+      .attr('fill', (j === highlightedK || j === pinnedK) ? '#ff9f43' : baseFill(j))
+      .attr('stroke', j === pinnedK ? '#fff' : 'none')
+      .attr('stroke-width', j === pinnedK ? 1.5 : 0));
+    const k = highlightedK !== null ? highlightedK : pinnedK;
+    valueLabel.text(k !== null ? ('λ_' + (k + 1) + ' = ' + (eig[k] || 0).toFixed(3)) : '');
+  }
   for (let i = 0; i < 8; i++) {
     const v = Math.abs(eig[i] || 0);
     const h = maxH * (v / Math.max(1e-9, lam0));
@@ -174,20 +246,13 @@ function mountIsomapSpectral(svg, state, width, height) {
       .attr('fill', 'transparent').style('cursor', 'pointer');
     bars.push(bar);
     const k = i;
-    function onEnter() {
-      highlightedK = k;
-      bars.forEach((b, j) => b.attr('fill', j === k ? '#ff9f43' : baseFill(j)));
-      valueLabel.text('λ_' + (k + 1) + ' = ' + (eig[k] || 0).toFixed(3));
-      redraw();
-    }
-    function onLeave() {
-      highlightedK = null;
-      bars.forEach((b, j) => b.attr('fill', baseFill(j)));
-      valueLabel.text('');
-      redraw();
-    }
-    bar.on('mouseenter', onEnter).on('mouseleave', onLeave);
-    hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave);
+    function onEnter() { highlightedK = k; paint(); redraw(); }
+    function onLeave() { highlightedK = pinnedK; paint(); redraw(); }
+    function onClick() { pinnedK = pinnedK === k ? null : k; highlightedK = pinnedK; paint(); redraw(); }
+    bar.on('mouseenter', onEnter).on('mouseleave', onLeave)
+      .on('pointerdown', (event) => { event.stopPropagation(); onClick(); });
+    hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave)
+      .on('pointerdown', (event) => { event.stopPropagation(); onClick(); });
   }
 }
 
