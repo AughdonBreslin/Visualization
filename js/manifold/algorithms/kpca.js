@@ -42,9 +42,15 @@ export const KPCA = {
   id: 'kpca',
   label: 'Kernel PCA',
   params: [
-    { name: 'kernel', type: 'enum', options: ['rbf', 'polynomial', 'linear'], default: 'rbf' },
-    { name: 'gamma', type: 'float', default: 1.0, min: 0.05, max: 10, dependsOn: { kernel: 'rbf' } },
-    { name: 'degree', type: 'int', default: 3, min: 1, max: 10, dependsOn: { kernel: 'polynomial' } },
+    { name: 'kernel', type: 'enum', options: ['rbf', 'polynomial', 'linear'], default: 'rbf',
+      label: 'Kernel',
+      desc: 'The similarity function. Kernel PCA runs ordinary PCA in the implicit feature space this kernel defines, so the choice sets what kind of nonlinear structure it can unfold.' },
+    { name: 'gamma', type: 'float', default: 1.0, min: 0.05, max: 10, dependsOn: { kernel: 'rbf' },
+      label: 'RBF width (γ)',
+      desc: 'Width of the RBF (Gaussian) kernel, auto-scaled to the data\'s spread. Larger γ makes similarity drop off faster (very local, fine detail); smaller γ is broad and smooth.' },
+    { name: 'degree', type: 'int', default: 3, min: 1, max: 10, dependsOn: { kernel: 'polynomial' },
+      label: 'Polynomial degree (d)',
+      desc: 'Degree of the polynomial kernel. Degree 1 is linear; higher degrees capture higher-order interactions among coordinates, bending the feature space more.' },
   ],
   presentSubSteps: ['0', '3', '4', '5', '6'],
   pseudocode: [

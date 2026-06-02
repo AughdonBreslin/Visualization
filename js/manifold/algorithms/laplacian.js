@@ -30,8 +30,12 @@ export const LAPLACIAN = {
   id: 'laplacian',
   label: 'Laplacian Eigenmaps',
   params: [
-    { name: 'k', type: 'int', default: 10, min: 2, max: 50 },
-    { name: 'sigma', type: 'float', default: 3.0, min: 0.1, max: 10 },
+    { name: 'k', type: 'int', default: 10, min: 2, max: 50,
+      label: 'Neighbors (k)',
+      desc: 'How many nearest neighbors define each point\'s local neighborhood. Smaller k captures finer local detail but can fragment the manifold; larger k is smoother but may link points across separate folds.' },
+    { name: 'sigma', type: 'float', default: 3.0, min: 0.1, max: 10,
+      label: 'Bandwidth (σ)',
+      desc: 'Width of the heat kernel that turns neighbor distances into edge weights, as a multiple of the median neighbor distance. Larger σ makes neighbor weights more uniform and the embedding smoother; smaller σ sharpens the falloff.' },
   ],
   presentSubSteps: ['0', '2', '3', '4', '5', '6'],
   pseudocode: [
