@@ -628,23 +628,25 @@
       if (basis === 'fourier') {
         recon = 'f[x,y] \\approx \\frac{1}{N^2} \\sum_{u^2+v^2 \\le ' + val + '^2} F[u,v]\\, e^{\\,i 2\\pi(ux+vy)/N}';
         basisFn = '\\varphi_{u,v}[x,y] = e^{\\,i 2\\pi(ux+vy)/N}';
-        const dc = fftRe ? fftRe[0] : 0;
-        worked = 'F[0,0] = \\sum_{x,y} f[x,y] = ' + fmtCoeff(dc) + ', \\qquad \\frac{1}{N^2}\\,F[0,0] = ' + (dc / N2).toFixed(2) + '\\ \\ (\\text{average brightness})';
+        const re = fftRe ? fftRe[N + 1] : 0;
+        const im = fftIm ? fftIm[N + 1] : 0;
+        const mag = Math.sqrt(re * re + im * im);
+        worked = 'F[1,1] = ' + fmtCoeff(re) + (im >= 0 ? ' + ' : ' - ') + fmtCoeff(Math.abs(im)) + 'i, \\qquad |F[1,1]| = ' + fmtCoeff(mag) + '\\ \\ (\\text{lowest diagonal wave})';
       } else if (basis === 'poly') {
         recon = 'f(x,y) \\approx \\sum_{j=0}^{' + val + '} \\sum_{k=0}^{' + val + '} C[j,k]\\, P_j(\\tilde x)\\, P_k(\\tilde y)';
         basisFn = 'P_j(\\tilde x) = \\frac{1}{2^j\\, j!}\\,\\frac{d^j}{d\\tilde x^{\\,j}}\\big(\\tilde x^2 - 1\\big)^j, \\quad \\tilde x = \\tfrac{2x}{N-1} - 1';
-        const c = polyC ? polyC[0] : 0;
-        worked = 'C[0,0] = ' + fmtCoeff(c) + ', \\qquad C[0,0]\\, P_0(\\tilde x)\\, P_0(\\tilde y) = ' + fmtCoeff(c) + '\\ \\ (\\text{constant level, since } P_0 = 1)';
+        const c = polyC ? polyC[N + 1] : 0;
+        worked = 'C[1,1] = ' + fmtCoeff(c) + ', \\qquad C[1,1]\\, P_1(\\tilde x)\\, P_1(\\tilde y) = ' + fmtCoeff(c) + '\\,\\tilde x\\,\\tilde y \\ \\ (P_1(\\tilde x) = \\tilde x)';
       } else if (basis === 'cheb') {
         recon = 'f(x,y) \\approx \\sum_{j=0}^{' + val + '} \\sum_{k=0}^{' + val + '} C[j,k]\\, T_j(\\tilde x)\\, T_k(\\tilde y)';
         basisFn = 'T_j(\\tilde x) = \\cos\\!\\big(j \\arccos \\tilde x\\big), \\quad \\tilde x = \\tfrac{2x+1}{N} - 1';
-        const c = chebC ? chebC[0] : 0;
-        worked = 'C[0,0] = ' + fmtCoeff(c) + ', \\qquad C[0,0]\\, T_0(\\tilde x)\\, T_0(\\tilde y) = ' + fmtCoeff(c) + '\\ \\ (\\text{constant level, since } T_0 = 1)';
+        const c = chebC ? chebC[N + 1] : 0;
+        worked = 'C[1,1] = ' + fmtCoeff(c) + ', \\qquad C[1,1]\\, T_1(\\tilde x)\\, T_1(\\tilde y) = ' + fmtCoeff(c) + '\\,\\tilde x\\,\\tilde y \\ \\ (T_1(\\tilde x) = \\tilde x)';
       } else {
         recon = 'f(x,y) \\approx A_{' + val + '} + \\sum_{\\ell=1}^{' + val + '} \\big( LH_\\ell + HL_\\ell + HH_\\ell \\big)';
         basisFn = '\\psi(t) = \\begin{cases} +1 & 0 \\le t < \\tfrac12 \\\\ -1 & \\tfrac12 \\le t < 1 \\\\ 0 & \\text{otherwise} \\end{cases}, \\quad \\psi_{j,m}(t) = 2^{j/2}\\psi(2^j t - m)';
-        const a = haarC ? haarC[0] : 0;
-        worked = 'a_{0,0} = ' + fmtCoeff(a) + '\\ \\ (\\text{coarsest approximation level; each detail subband adds on top})';
+        const a = haarC ? haarC[N + 1] : 0;
+        worked = 'd^{\\,HH}_{1,1} = ' + fmtCoeff(a) + '\\ \\ (\\text{coarsest diagonal detail coefficient})';
       }
       formulaBox.innerHTML =
         '<div class="formulas">' +
