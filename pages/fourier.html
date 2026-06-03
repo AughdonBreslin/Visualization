@@ -462,6 +462,7 @@
           <button type="button" class="fourier-tab" data-tab="extrap" role="tab" aria-selected="false">Extrapolation</button>
           <button type="button" class="fourier-tab" data-tab="overshoot" role="tab" aria-selected="false">Overshoot colors</button>
           <button type="button" class="fourier-tab" data-tab="center" role="tab" aria-selected="false">Center panel</button>
+          <button type="button" class="fourier-tab" data-tab="poly" role="tab" aria-selected="false">Polynomial bases</button>
         </div>
 
         <div class="fourier-tabpanel is-active" data-tab="gibbs" role="tabpanel">
@@ -608,6 +609,43 @@
             what it discards, and the visual concentration of energy tells you
             whether the chosen basis is a good or bad match for the current
             image.
+          </p>
+        </div>
+
+        <div class="fourier-tabpanel" data-tab="poly" role="tabpanel">
+          <p>
+            The Legendre and Chebyshev bases are built from one-dimensional
+            polynomials, one family per axis. The 2D building block is a
+            basis product: a polynomial of degree $k$ in the horizontal
+            coordinate times a polynomial of degree $j$ in the vertical
+            coordinate, $P_k(\tilde x)\,P_j(\tilde y)$ for Legendre and
+            $T_k(\tilde x)\,T_j(\tilde y)$ for Chebyshev. The tilde marks the
+            pixel coordinate rescaled to the polynomials' natural domain
+            $[-1, 1]$. Degree $(0, 0)$ is a flat constant; increasing $k$ adds
+            oscillations across the image, increasing $j$ adds them down it.
+            The reconstruction is a weighted sum of these products up to the
+            chosen degree.
+          </p>
+          <p>
+            The weight $C[j, k]$ is the projection of the image onto one basis
+            product: how strongly the picture resembles that degree-$(j, k)$
+            pattern. Because the basis is separable, the 2D projection
+            factorizes into a one-dimensional transform along $x$ followed by
+            one along $y$, which is exactly how the demo computes it. Large
+            low-degree weights mean a smooth image that the basis captures with
+            few terms; energy spread to high degrees means the basis is
+            struggling to match sharp features.
+          </p>
+          <p>
+            The two families differ in the inner product that defines the
+            projection. Legendre polynomials are orthogonal under a uniform
+            weight across $[-1, 1]$, so every position counts equally.
+            Chebyshev polynomials are orthogonal under the weight
+            $1/\sqrt{1 - \tilde x^2}$, which emphasizes the edges of the
+            domain; sampling at midpoint nodes avoids the singularity at
+            $\tilde x = \pm 1$. That edge emphasis is why Chebyshev resists the
+            wild boundary swings (Runge's phenomenon) that high-degree Legendre
+            fits suffer from.
           </p>
         </div>
       </section>
