@@ -620,7 +620,12 @@
     }
     function fmtCoeff(x) {
       if (!isFinite(x)) return '0';
-      return Math.abs(x) >= 1000 ? Math.round(x).toLocaleString() : (+x).toFixed(2);
+      // Group large integers with LaTeX thin spaces (\,) instead of commas, which
+      // MathJax would render as punctuation with a trailing space.
+      if (Math.abs(x) >= 1000) {
+        return String(Math.round(x)).replace(/\B(?=(\d{3})+(?!\d))/g, '\\,');
+      }
+      return (+x).toFixed(2);
     }
     function updateFormula(basis, val) {
       if (!formulaBox) return;
