@@ -626,10 +626,10 @@
         basisFn = '\\varphi_{u,v}[x,y] = e^{\\,i 2\\pi(ux+vy)/N}';
       } else if (basis === 'poly') {
         recon = 'f(x,y) \\approx \\sum_{j=0}^{' + val + '} \\sum_{k=0}^{' + val + '} C[j,k]\\, P_j(\\tilde x)\\, P_k(\\tilde y)';
-        basisFn = 'P_j(\\tilde x):\\ \\text{Legendre polynomial of degree } j,\\ \\tilde x \\in [-1, 1]';
+        basisFn = 'P_j(\\tilde x) = \\frac{1}{2^j\\, j!}\\,\\frac{d^j}{d\\tilde x^{\\,j}}\\big(\\tilde x^2 - 1\\big)^j, \\quad \\tilde x = \\tfrac{2x}{N-1} - 1';
       } else if (basis === 'cheb') {
         recon = 'f(x,y) \\approx \\sum_{j=0}^{' + val + '} \\sum_{k=0}^{' + val + '} C[j,k]\\, T_j(\\tilde x)\\, T_k(\\tilde y)';
-        basisFn = 'T_j(\\tilde x) = \\cos\\!\\big(j \\arccos \\tilde x\\big)';
+        basisFn = 'T_j(\\tilde x) = \\cos\\!\\big(j \\arccos \\tilde x\\big), \\quad \\tilde x = \\tfrac{2x+1}{N} - 1';
       } else {
         recon = 'f(x,y) \\approx A_{' + val + '} + \\sum_{\\ell=1}^{' + val + '} \\big( LH_\\ell + HL_\\ell + HH_\\ell \\big)';
         basisFn = '\\psi(t) = \\begin{cases} +1 & 0 \\le t < \\tfrac12 \\\\ -1 & \\tfrac12 \\le t < 1 \\\\ 0 & \\text{otherwise} \\end{cases}, \\quad \\psi_{j,m}(t) = 2^{j/2}\\psi(2^j t - m)';
