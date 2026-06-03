@@ -84,7 +84,7 @@ export const PCA = {
             rawPoints: X.slice(),
             label: 'Centered data',
             ifw: {
-              intuition: '<p>PCA looks for directions of maximum variance, which is only meaningful around a fixed origin. We subtract the sample mean so the cloud is centred at the origin.</p>',
+              intuition: '<p>PCA looks for directions of maximum variance, which is only meaningful around a fixed origin. We subtract the sample mean so the cloud is centered at the origin.</p>',
               formula: '$$\\bar{x} = \\frac{1}{N}\\sum_i x_i, \\qquad x_i \\leftarrow x_i - \\bar{x}$$',
               worked: workedSections(inputBlock, '$$x_i \\leftarrow x_i - \\mu$$', outputBlock),
             },
@@ -113,7 +113,7 @@ export const PCA = {
             paneOpLabels: ['(1 / (N − 1)) · X_cᵀ X_c'],
             label: 'Covariance matrix',
             ifw: {
-              intuition: '<p>The 3x3 covariance matrix summarises how the centred coordinates co-vary. Its eigenvectors are the directions of maximal variance.</p>',
+              intuition: '<p>The 3x3 covariance matrix summarises how the centered coordinates co-vary. Its eigenvectors are the directions of maximal variance.</p>',
               formula: '$$C = \\frac{1}{N-1} X_c^{\\top} X_c$$',
               worked: workedSections(inputBlock, '$$C_{ab} = \\frac{1}{N-1}\\sum_i x_{i,a}\\, x_{i,b}$$', outputBlock),
             },
@@ -166,7 +166,7 @@ export const PCA = {
             vizKind: 'embedding',
             label: 'Projected to 2D',
             ifw: {
-              intuition: '<p>Each centred point is projected onto the plane spanned by the top two principal directions.</p>',
+              intuition: '<p>Each centered point is projected onto the plane spanned by the top two principal directions.</p>',
               formula: '$$y_i = (v_1^{\\top} x_i,\\; v_2^{\\top} x_i)$$',
               worked: workedSections(inputBlock, '$$y_{i,k} = v_k^{\\top} x_i$$', outputBlock),
             },
