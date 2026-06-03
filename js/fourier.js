@@ -635,8 +635,10 @@
         basisFn = '\\psi(t) = \\begin{cases} +1 & 0 \\le t < \\tfrac12 \\\\ -1 & \\tfrac12 \\le t < 1 \\\\ 0 & \\text{otherwise} \\end{cases}, \\quad \\psi_{j,m}(t) = 2^{j/2}\\psi(2^j t - m)';
       }
       formulaBox.innerHTML =
-        '<div class="fourier-formula-line"><div class="fourier-formula-label">Reconstruction</div>$$' + recon + '$$</div>' +
-        '<div class="fourier-formula-line"><div class="fourier-formula-label">Basis function</div>$$' + basisFn + '$$</div>';
+        '<div class="formulas">' +
+          '<div class="formula"><div class="fourier-formula-label">Reconstruction</div>$$' + recon + '$$</div>' +
+          '<div class="formula"><div class="fourier-formula-label">Basis function</div>$$' + basisFn + '$$</div>' +
+        '</div>';
       typesetFormula();
     }
 

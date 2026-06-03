@@ -271,10 +271,6 @@
 }
 
 /* Live reconstruction formula (own panel below the visualization) */
-.fourier .fourier-formula-box {
-  overflow-x: auto;
-}
-.fourier .fourier-formula-line { margin: 6px 0; }
 .fourier .fourier-formula-label {
   color: var(--text-muted);
   font-size: 0.8rem;
