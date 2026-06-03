@@ -276,3 +276,42 @@
   font-size: 0.8rem;
   margin-bottom: 2px;
 }
+
+/* Info icons + tooltip in the reconstruction formula panel */
+.fourier .fourier-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 9px;
+  line-height: 1;
+  font-style: italic;
+  cursor: help;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+.fourier .fourier-info:hover {
+  border-color: rgba(74, 163, 255, 0.9);
+  color: rgba(74, 163, 255, 0.9);
+}
+.fourier-tip {
+  position: fixed;
+  max-width: 320px;
+  background: #0a0c10;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #e8e8ec;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  padding: 9px 11px;
+  border-radius: 8px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s;
+  z-index: 1000;
+  white-space: pre-line;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
