@@ -640,12 +640,12 @@
       } else if (basis === 'poly') {
         recon = 'f(x,y) \\approx \\sum_{j=0}^{' + val + '} \\sum_{k=0}^{' + val + '} C[j,k]\\, P_j(\\tilde x)\\, P_k(\\tilde y)';
         basisFn = 'P_j(\\tilde x) = \\frac{1}{2^j\\, j!}\\,\\frac{d^j}{d\\tilde x^{\\,j}}\\big(\\tilde x^2 - 1\\big)^j, \\quad \\tilde x = \\tfrac{2x}{N-1} - 1';
-        const c = polyC ? polyC[N + 1] : 0;
+        const c = polyC ? polyC[(MAX_POLY_DEG + 1) + 1] : 0;
         worked = 'C[1,1] = ' + fmtCoeff(c) + ', \\qquad C[1,1]\\, P_1(\\tilde x)\\, P_1(\\tilde y) = ' + fmtCoeff(c) + '\\,\\tilde x\\,\\tilde y \\ \\ (P_1(\\tilde x) = \\tilde x)';
       } else if (basis === 'cheb') {
         recon = 'f(x,y) \\approx \\sum_{j=0}^{' + val + '} \\sum_{k=0}^{' + val + '} C[j,k]\\, T_j(\\tilde x)\\, T_k(\\tilde y)';
         basisFn = 'T_j(\\tilde x) = \\cos\\!\\big(j \\arccos \\tilde x\\big), \\quad \\tilde x = \\tfrac{2x+1}{N} - 1';
-        const c = chebC ? chebC[N + 1] : 0;
+        const c = chebC ? chebC[(MAX_CHEB_DEG + 1) + 1] : 0;
         worked = 'C[1,1] = ' + fmtCoeff(c) + ', \\qquad C[1,1]\\, T_1(\\tilde x)\\, T_1(\\tilde y) = ' + fmtCoeff(c) + '\\,\\tilde x\\,\\tilde y \\ \\ (T_1(\\tilde x) = \\tilde x)';
       } else {
         recon = 'f(x,y) \\approx A_{' + val + '} + \\sum_{\\ell=1}^{' + val + '} \\big( LH_\\ell + HL_\\ell + HH_\\ell \\big)';
