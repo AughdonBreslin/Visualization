@@ -229,3 +229,31 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Interpretation tabs (post-visualization explanations) */
+.fourier .fourier-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 14px;
+}
+.fourier .fourier-tab {
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.95rem;
+}
+.fourier .fourier-tab:hover { color: var(--text); }
+.fourier .fourier-tab.is-active {
+  color: var(--text);
+  border-bottom-color: rgba(74, 163, 255, 0.9);
+  font-weight: 650;
+}
+.fourier .fourier-tabpanel { display: none; }
+.fourier .fourier-tabpanel.is-active { display: block; }
