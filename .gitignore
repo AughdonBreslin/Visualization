@@ -1,1 +1,7 @@
 *.csv
+
+# Brainstorming visual-companion mockups (local, ephemeral)
+.superpowers/
+
+# Personal local Claude Code settings
+.claude/settings.local.json
