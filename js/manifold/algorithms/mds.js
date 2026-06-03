@@ -48,7 +48,7 @@ export const MDS = {
     const steps = new Map();
     const presentSubSteps = ['0', '3', '4', '5', '6'];
     const pending = new Set(['3', '4', '5', '6']);
-    let cancelled = false;
+    let canceled = false;
     const samples = sampleIndices(N);
 
     steps.set('0', {
@@ -159,7 +159,7 @@ export const MDS = {
             paneOpLabels: ['subtract row/col means', 'x (-1/2) + grand mean'],
             label: 'Double-centered Gram matrix',
             ifw: {
-              intuition: '<p>Double-centering converts the pairwise squared distance matrix D squared into the Gram matrix B, which contains inner products relative to the centre of the cloud. The next step decomposes B to obtain the embedding.</p>',
+              intuition: '<p>Double-centering converts the pairwise squared distance matrix D squared into the Gram matrix B, which contains inner products relative to the center of the cloud. The next step decomposes B to obtain the embedding.</p>',
               formula: '$$B = -\\tfrac{1}{2} H D^{(2)} H, \\quad H = I - \\tfrac{1}{N}\\mathbf{1}\\mathbf{1}^{\\top}$$',
               worked: workedSections(inputBlock, '$$B_{ij} = -\\tfrac{1}{2}\\bigl(D^2_{ij} - r_i - c_j + g\\bigr)$$', outputBlock),
             },
@@ -230,14 +230,14 @@ export const MDS = {
 
       let i = 0;
       const tick = () => {
-        if (cancelled || i >= tasks.length) return;
+        if (canceled || i >= tasks.length) return;
         try { tasks[i++](); } catch (e) { console.error('MDS pipeline error:', e); return; }
         if (i < tasks.length) setTimeout(tick, 0);
       };
       setTimeout(tick, 0);
     }
 
-    function cancel() { cancelled = true; }
+    function cancel() { canceled = true; }
 
     return { steps, presentSubSteps, pending, start, cancel };
   },

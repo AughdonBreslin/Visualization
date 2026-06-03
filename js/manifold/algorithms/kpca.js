@@ -88,7 +88,7 @@ export const KPCA = {
     const steps = new Map();
     const presentSubSteps = ['0', '3', '4', '5', '6'];
     const pending = new Set(['3', '4', '5', '6']);
-    let cancelled = false;
+    let canceled = false;
     const samples = sampleIndices(N);
 
     steps.set('0', {
@@ -268,14 +268,14 @@ export const KPCA = {
 
       let i = 0;
       const tick = () => {
-        if (cancelled || i >= tasks.length) return;
+        if (canceled || i >= tasks.length) return;
         try { tasks[i++](); } catch (e) { console.error('KPCA pipeline error:', e); return; }
         if (i < tasks.length) setTimeout(tick, 0);
       };
       setTimeout(tick, 0);
     }
 
-    function cancel() { cancelled = true; }
+    function cancel() { canceled = true; }
 
     return { steps, presentSubSteps, pending, start, cancel };
   },

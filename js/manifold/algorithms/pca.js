@@ -48,7 +48,7 @@ export const PCA = {
     const steps = new Map();
     const presentSubSteps = ['0', '1', '3', '5', '6'];
     const pending = new Set(['1', '3', '5', '6']);
-    let cancelled = false;
+    let canceled = false;
     const samples = sampleIndices(N);
 
     steps.set('0', {
@@ -56,7 +56,7 @@ export const PCA = {
       vizKind: 'point_cloud',
       label: 'Raw data',
       ifw: {
-        intuition: '<p>The raw 3D point cloud as the algorithm receives it. Points are coloured by an intrinsic parameter along the data manifold so that we can later see whether the embedding preserves that ordering.</p>',
+        intuition: '<p>The raw 3D point cloud as the algorithm receives it. Points are colored by an intrinsic parameter along the data manifold so that we can later see whether the embedding preserves that ordering.</p>',
         formula: null,
         worked: null,
       },
@@ -113,7 +113,7 @@ export const PCA = {
             paneOpLabels: ['(1 / (N − 1)) · X_cᵀ X_c'],
             label: 'Covariance matrix',
             ifw: {
-              intuition: '<p>The 3x3 covariance matrix summarises how the centered coordinates co-vary. Its eigenvectors are the directions of maximal variance.</p>',
+              intuition: '<p>The 3x3 covariance matrix summarizes how the centered coordinates co-vary. Its eigenvectors are the directions of maximal variance.</p>',
               formula: '$$C = \\frac{1}{N-1} X_c^{\\top} X_c$$',
               worked: workedSections(inputBlock, '$$C_{ab} = \\frac{1}{N-1}\\sum_i x_{i,a}\\, x_{i,b}$$', outputBlock),
             },
@@ -178,14 +178,14 @@ export const PCA = {
 
       let i = 0;
       const tick = () => {
-        if (cancelled || i >= tasks.length) return;
+        if (canceled || i >= tasks.length) return;
         try { tasks[i++](); } catch (e) { console.error('PCA pipeline error:', e); return; }
         if (i < tasks.length) setTimeout(tick, 0);
       };
       setTimeout(tick, 0);
     }
 
-    function cancel() { cancelled = true; }
+    function cancel() { canceled = true; }
 
     return { steps, presentSubSteps, pending, start, cancel };
   },

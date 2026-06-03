@@ -35,7 +35,7 @@ export const ISOMAP = {
   presentSubSteps: ['0', '2', '3', '4', '5', '6'],
   pseudocode: [
     { id: 'isomap-knn', title: '1. Build kNN graph', steps: ['2'],
-      lines: ['for each i: neighbours_i ← k points with smallest ||x_j − x_i||',
+      lines: ['for each i: neighbors_i ← k points with smallest ||x_j − x_i||',
               'edge weight w_{ij} ← ||x_j − x_i||'] },
     { id: 'isomap-geo', title: '2. Compute geodesic distances', steps: ['3'],
       lines: ['for each i: run Dijkstra from i on the kNN graph',
@@ -55,7 +55,7 @@ export const ISOMAP = {
     const steps = new Map();
     const presentSubSteps = ['0', '2', '3', '4', '5', '6'];
     const pending = new Set(['2', '3', '4', '5', '6']);
-    let cancelled = false;
+    let canceled = false;
     const samples = sampleIndices(N);
 
     steps.set('0', {
@@ -74,22 +74,22 @@ export const ISOMAP = {
           mem.adj = adj;
           mem.edges = edges;
           const sampleI = samples[0];
-          const neighbours = adj[sampleI].slice(0, k).map(([j, w]) => [j, w.toFixed(3)]);
+          const neighbors = adj[sampleI].slice(0, k).map(([j, w]) => [j, w.toFixed(3)]);
           const inputBlock = 'sample point i = ' + sampleI + ', x_i = ' + formatVec3(rowOf(X, sampleI)) + '\nN = ' + N + ', k = ' + k;
-          const outputBlock = 'neighbours of point ' + sampleI + ':\n' +
-            formatTable(['j', '|| x_j − x_i ||'], neighbours) + '\n\ntotal undirected edges = ' + edges.length;
+          const outputBlock = 'neighbors of point ' + sampleI + ':\n' +
+            formatTable(['j', '|| x_j − x_i ||'], neighbors) + '\n\ntotal undirected edges = ' + edges.length;
           steps.set('2', {
             points: X.slice(), t, edges, colors: null,
             vizKind: 'knn_graph',
             label: 'kNN graph (k = ' + k + ')',
             ifw: {
-              intuition: '<p>Connecting each point to its k nearest Euclidean neighbours approximates the manifold by a graph whose edges follow the local surface.</p>',
+              intuition: '<p>Connecting each point to its k nearest Euclidean neighbors approximates the manifold by a graph whose edges follow the local surface.</p>',
               formula: '$$\\mathcal{N}_i = \\{ j : \\|x_j - x_i\\| \\text{ among the } k \\text{ smallest}\\}$$',
               worked: workedSections(inputBlock, '$$w_{ij} = \\| x_j - x_i \\|$$', outputBlock),
             },
           });
           setTimeout(() => {
-            if (cancelled) return;
+            if (canceled) return;
             pending.delete('2');
             if (onProgress) onProgress('2');
           }, Math.max(0, 5000 - (Date.now() - t0)));
@@ -186,7 +186,7 @@ export const ISOMAP = {
             paneOpLabels: ['subtract row/col means', '× (−1/2) + grand mean'],
             label: 'Double-centered Gram matrix',
             ifw: {
-              intuition: '<p>The geodesic distance matrix tells us how far apart every pair of points is along the manifold, but eigendecomposition needs a different form. Double-centering subtracts the row mean, the column mean, and re-adds the grand mean from every squared distance, then scales by minus one half. The result is the matrix B, whose entries look like inner products between points relative to the centre of the cloud. This matrix is what the next step decomposes to recover embedding coordinates.</p>',
+              intuition: '<p>The geodesic distance matrix tells us how far apart every pair of points is along the manifold, but eigendecomposition needs a different form. Double-centering subtracts the row mean, the column mean, and re-adds the grand mean from every squared distance, then scales by minus one half. The result is the matrix B, whose entries look like inner products between points relative to the center of the cloud. This matrix is what the next step decomposes to recover embedding coordinates.</p>',
               formula: '$$B = -\\tfrac{1}{2} H D^{(2)} H, \\quad H = I - \\tfrac{1}{N}\\mathbf{1}\\mathbf{1}^{\\top}$$',
               worked: workedSections(inputBlock, '$$B_{ij} = -\\tfrac{1}{2}\\bigl(D^2_{ij} - r_i - c_j + g\\bigr)$$', outputBlock),
             },
@@ -258,14 +258,14 @@ export const ISOMAP = {
 
       let i = 0;
       const tick = () => {
-        if (cancelled || i >= tasks.length) return;
+        if (canceled || i >= tasks.length) return;
         try { tasks[i++](); } catch (e) { console.error('Isomap pipeline error:', e); return; }
         if (i < tasks.length) setTimeout(tick, 0);
       };
       setTimeout(tick, 0);
     }
 
-    function cancel() { cancelled = true; }
+    function cancel() { canceled = true; }
 
     return { steps, presentSubSteps, pending, start, cancel };
   },

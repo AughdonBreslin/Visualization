@@ -59,7 +59,7 @@ export const LAPLACIAN = {
     const steps = new Map();
     const presentSubSteps = ['0', '2', '3', '4', '5', '6'];
     const pending = new Set(['2', '3', '4', '5', '6']);
-    let cancelled = false;
+    let canceled = false;
     const samples = sampleIndices(N);
 
     steps.set('0', {
@@ -78,22 +78,22 @@ export const LAPLACIAN = {
           mem.adj = adj;
           mem.edges = edges;
           const sampleI = samples[0];
-          const neighbours = adj[sampleI].slice(0, k).map(([j, w]) => [j, w.toFixed(3)]);
+          const neighbors = adj[sampleI].slice(0, k).map(([j, w]) => [j, w.toFixed(3)]);
           const inputBlock = 'sample point i = ' + sampleI + ', x_i = ' + formatVec3(rowOf(X, sampleI)) + '\nN = ' + N + ', k = ' + k;
-          const outputBlock = 'neighbours of point ' + sampleI + ':\n' +
-            formatTable(['j', '||x_j - x_i||'], neighbours) + '\n\ntotal undirected edges = ' + edges.length;
+          const outputBlock = 'neighbors of point ' + sampleI + ':\n' +
+            formatTable(['j', '||x_j - x_i||'], neighbors) + '\n\ntotal undirected edges = ' + edges.length;
           steps.set('2', {
             points: X.slice(), t, edges, colors: dataset.colors || null,
             vizKind: 'knn_graph',
             label: 'kNN graph (k = ' + k + ')',
             ifw: {
-              intuition: '<p>The kNN graph captures local neighbourhood structure that the heat kernel will weight in the next step.</p>',
+              intuition: '<p>The kNN graph captures local neighborhood structure that the heat kernel will weight in the next step.</p>',
               formula: '$$\\mathcal{N}_i = \\{ j : \\|x_j - x_i\\| \\text{ among the } k \\text{ smallest}\\}$$',
               worked: workedSections(inputBlock, '$$w^{\\text{edge}}_{ij} = \\| x_j - x_i \\|$$', outputBlock),
             },
           });
           setTimeout(() => {
-            if (cancelled) return;
+            if (canceled) return;
             pending.delete('2');
             if (onProgress) onProgress('2');
           }, Math.max(0, 5000 - (Date.now() - t0)));
@@ -118,7 +118,7 @@ export const LAPLACIAN = {
           const sampleI = samples[0];
           const wRow = adj[sampleI].slice(0, Math.min(5, k)).map(([j, dist]) => [j, dist.toFixed(3), Math.exp(-dist * dist / sig2).toFixed(4)]);
           const inputBlock = 'sample point i = ' + sampleI + ', sigma = ' + sigma + ' x median dist ' + medianDist.toFixed(3) + ' = ' + effSigma.toFixed(3) + '\nkNN distances visible above.';
-          const outputBlock = 'W_ij for first ' + Math.min(5, k) + ' neighbours of ' + sampleI + ':\n' +
+          const outputBlock = 'W_ij for first ' + Math.min(5, k) + ' neighbors of ' + sampleI + ':\n' +
             formatTable(['j', '||x_j - x_i||', 'W_ij'], wRow);
           steps.set('3', {
             points: X.slice(), t, edges: mem.edges, colors: dataset.colors || null,
@@ -246,14 +246,14 @@ export const LAPLACIAN = {
 
       let i = 0;
       const tick = () => {
-        if (cancelled || i >= tasks.length) return;
+        if (canceled || i >= tasks.length) return;
         try { tasks[i++](); } catch (e) { console.error('Laplacian pipeline error:', e); return; }
         if (i < tasks.length) setTimeout(tick, 0);
       };
       setTimeout(tick, 0);
     }
 
-    function cancel() { cancelled = true; }
+    function cancel() { canceled = true; }
 
     return { steps, presentSubSteps, pending, start, cancel };
   },
