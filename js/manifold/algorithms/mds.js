@@ -218,7 +218,7 @@ export const MDS = {
             vizKind: 'embedding',
             label: 'MDS embedding',
             ifw: {
-              intuition: '<p>The 2D coordinates approximately preserve the original Euclidean distances. The result is identical to PCA when the data is centred, but MDS reaches it through the distance matrix instead of the covariance matrix.</p>',
+              intuition: '<p>The 2D coordinates approximately preserve the original Euclidean distances. The result is identical to PCA when the data is centered, but MDS reaches it through the distance matrix instead of the covariance matrix.</p>',
               formula: '$$y_i = \\big(\\sqrt{\\lambda_1}\\, v_{1,i},\\; \\sqrt{\\lambda_2}\\, v_{2,i}\\big)$$',
               worked: workedSections(inputBlock, '$$y_{i,k} = \\sqrt{\\lambda_k}\\, v_{k,i}$$', outputBlock),
             },
