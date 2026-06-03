@@ -42,7 +42,7 @@ export const LLE = {
     { id: 'lle-knn', title: '1. Build kNN graph', steps: ['2'],
       lines: ['$\\mathcal{N}_i = k$ points with smallest $\\| x_j - x_i \\|$'] },
     { id: 'lle-W', title: '2. Reconstruction weights W', steps: ['3'],
-      lines: ['for each $i$: minimise $\\bigl\\| x_i - \\sum_j w_j x_{n_j} \\bigr\\|^2$',
+      lines: ['for each $i$: minimize $\\bigl\\| x_i - \\sum_j w_j x_{n_j} \\bigr\\|^2$',
               'subject to $\\sum_j w_j = 1$',
               'store $W_{i, n_j} = w_j$'] },
     { id: 'lle-eig', title: '3. Smallest non-trivial eigenvectors of M', steps: ['5'],
@@ -59,7 +59,7 @@ export const LLE = {
     const steps = new Map();
     const presentSubSteps = ['0', '2', '3', '5', '6'];
     const pending = new Set(['2', '3', '5', '6']);
-    let cancelled = false;
+    let canceled = false;
     const samples = sampleIndices(N);
 
     steps.set('0', {
@@ -67,7 +67,7 @@ export const LLE = {
       vizKind: 'point_cloud',
       label: 'Raw data',
       ifw: {
-        intuition: '<p>LLE reconstructs each point as a weighted sum of its k nearest neighbours, then finds a low-dimensional embedding that preserves those same weights.</p>',
+        intuition: '<p>LLE reconstructs each point as a weighted sum of its k nearest neighbors, then finds a low-dimensional embedding that preserves those same weights.</p>',
         formula: null, worked: null,
       },
     });
@@ -81,22 +81,22 @@ export const LLE = {
           mem.adj = adj;
           mem.edges = edges;
           const sampleI = samples[0];
-          const neighbours = adj[sampleI].slice(0, k).map(([j, w]) => [j, w.toFixed(3)]);
+          const neighbors = adj[sampleI].slice(0, k).map(([j, w]) => [j, w.toFixed(3)]);
           const inputBlock = 'sample point i = ' + sampleI + ', x_i = ' + formatVec3(rowOf(X, sampleI)) + '\nN = ' + N + ', k = ' + k;
-          const outputBlock = 'neighbours of point ' + sampleI + ':\n' +
-            formatTable(['j', '||x_j - x_i||'], neighbours);
+          const outputBlock = 'neighbors of point ' + sampleI + ':\n' +
+            formatTable(['j', '||x_j - x_i||'], neighbors);
           steps.set('2', {
             points: X.slice(), t, edges, colors: dataset.colors || null,
             vizKind: 'knn_graph',
             label: 'kNN graph (k = ' + k + ')',
             ifw: {
-              intuition: '<p>LLE assumes each point lies on a locally linear patch defined by its k nearest neighbours. The kNN graph identifies those neighbourhoods.</p>',
+              intuition: '<p>LLE assumes each point lies on a locally linear patch defined by its k nearest neighbors. The kNN graph identifies those neighborhoods.</p>',
               formula: '$$\\mathcal{N}_i = \\{ j : \\|x_j - x_i\\| \\text{ among the } k \\text{ smallest}\\}$$',
               worked: workedSections(inputBlock, '$$w^{\\text{edge}}_{ij} = \\| x_j - x_i \\|$$', outputBlock),
             },
           });
           setTimeout(() => {
-            if (cancelled) return;
+            if (canceled) return;
             pending.delete('2');
             if (onProgress) onProgress('2');
           }, Math.max(0, 5000 - (Date.now() - t0)));
@@ -105,14 +105,14 @@ export const LLE = {
           const adj = mem.adj;
           const W = new Float64Array(N * N);
           for (let i = 0; i < N; i++) {
-            const neighbours = adj[i].slice(0, k).map(([j]) => j);
+            const neighbors = adj[i].slice(0, k).map(([j]) => j);
             const G = [];
-            for (let a = 0; a < neighbours.length; a++) {
-              const row = new Array(neighbours.length);
-              const na = neighbours[a];
+            for (let a = 0; a < neighbors.length; a++) {
+              const row = new Array(neighbors.length);
+              const na = neighbors[a];
               const ax = X[na * 3] - X[i * 3], ay = X[na * 3 + 1] - X[i * 3 + 1], az = X[na * 3 + 2] - X[i * 3 + 2];
-              for (let b = 0; b < neighbours.length; b++) {
-                const nb = neighbours[b];
+              for (let b = 0; b < neighbors.length; b++) {
+                const nb = neighbors[b];
                 const bx = X[nb * 3] - X[i * 3], by = X[nb * 3 + 1] - X[i * 3 + 1], bz = X[nb * 3 + 2] - X[i * 3 + 2];
                 row[b] = ax * bx + ay * by + az * bz;
               }
@@ -122,15 +122,15 @@ export const LLE = {
             for (let a = 0; a < G.length; a++) trace += G[a][a];
             const lambda = reg * Math.max(trace, 1e-12) / G.length;
             for (let a = 0; a < G.length; a++) G[a][a] += lambda;
-            const b = new Array(neighbours.length).fill(1);
+            const b = new Array(neighbors.length).fill(1);
             const w = solveLinearSystem(G, b);
             if (!w) continue;
             let sum = 0;
             for (let a = 0; a < w.length; a++) sum += w[a];
             if (Math.abs(sum) < 1e-12) continue;
             for (let a = 0; a < w.length; a++) w[a] /= sum;
-            for (let a = 0; a < neighbours.length; a++) {
-              W[i * N + neighbours[a]] = w[a];
+            for (let a = 0; a < neighbors.length; a++) {
+              W[i * N + neighbors[a]] = w[a];
             }
           }
           mem.W = W;
@@ -141,7 +141,7 @@ export const LLE = {
             if (v !== 0) wRow.push([j, v.toFixed(4)]);
           }
           const inputBlock = 'sample point i = ' + sampleI + ', k = ' + k + ', reg = ' + reg + '\nlocal Gram matrix G has size k x k.';
-          const outputBlock = 'W_ij for the k = ' + wRow.length + ' neighbours of point ' + sampleI + ':\n' +
+          const outputBlock = 'W_ij for the k = ' + wRow.length + ' neighbors of point ' + sampleI + ':\n' +
             formatTable(['j', 'W_ij'], wRow.slice(0, 8)) +
             (wRow.length > 8 ? '\n... (' + (wRow.length - 8) + ' more)' : '');
           steps.set('3', {
@@ -152,7 +152,7 @@ export const LLE = {
             selectedPoint: sampleI,
             label: 'Reconstruction weights',
             ifw: {
-              intuition: '<p>Each point is described as a weighted combination of its k neighbours. The weights are solved by a small linear system per point so that the linear combination best reconstructs the point, with the weights normalised to sum to 1.</p>',
+              intuition: '<p>Each point is described as a weighted combination of its k neighbors. The weights are solved by a small linear system per point so that the linear combination best reconstructs the point, with the weights normalized to sum to 1.</p>',
               formula: '$$\\min_{w_i}\\ \\bigl\\| x_i - \\sum_{j \\in \\mathcal{N}_i} w_{ij}\\, x_j \\bigr\\|^2,\\ \\sum_j w_{ij} = 1$$',
               worked: workedSections(inputBlock,
                 '$$G_{ab} = (x_{n_a} - x_i) \\cdot (x_{n_b} - x_i),\\ G\\,w = \\mathbf{1},\\ w \\leftarrow w / \\sum w$$',
@@ -201,7 +201,7 @@ export const LLE = {
             topEigvecs: vectors,
             label: 'Smallest non-trivial eigenvectors of M',
             ifw: {
-              intuition: '<p>The smallest non-trivial eigenvectors of M produce coordinates that minimise the embedding cost while keeping the same local reconstruction weights. The trivial zero eigenvalue (constant eigenvector) is dropped.</p>',
+              intuition: '<p>The smallest non-trivial eigenvectors of M produce coordinates that minimize the embedding cost while keeping the same local reconstruction weights. The trivial zero eigenvalue (constant eigenvector) is dropped.</p>',
               formula: '$$M\\, v_k = \\lambda_k\\, v_k,\\quad M = (I - W)^{\\top}(I - W)$$',
               worked: workedSections(inputBlock, '$$M\\, v_k = \\lambda_k\\, v_k$$', outputBlock),
             },
@@ -224,7 +224,7 @@ export const LLE = {
             vizKind: 'embedding',
             label: 'LLE embedding',
             ifw: {
-              intuition: '<p>The 2D coordinates are the values of v_1 and v_2 at each point. LLE does not scale by eigenvalues; the absolute scale is fixed by the cost-function normalisation.</p>',
+              intuition: '<p>The 2D coordinates are the values of v_1 and v_2 at each point. LLE does not scale by eigenvalues; the absolute scale is fixed by the cost-function normalization.</p>',
               formula: '$$y_i = (v_{1,i}, v_{2,i})$$',
               worked: workedSections('v_1 and v_2 from step 5.', '$$y_{i,k} = v_{k,i}$$', outputBlock),
             },
@@ -236,14 +236,14 @@ export const LLE = {
 
       let i = 0;
       const tick = () => {
-        if (cancelled || i >= tasks.length) return;
+        if (canceled || i >= tasks.length) return;
         try { tasks[i++](); } catch (e) { console.error('LLE pipeline error:', e); return; }
         if (i < tasks.length) setTimeout(tick, 0);
       };
       setTimeout(tick, 0);
     }
 
-    function cancel() { cancelled = true; }
+    function cancel() { canceled = true; }
 
     return { steps, presentSubSteps, pending, start, cancel };
   },
