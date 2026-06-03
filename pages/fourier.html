@@ -650,6 +650,46 @@
         </div>
       </section>
 
+      <section class="panel">
+        <h2>Summary</h2>
+        <p>
+          Every technique on this page rewrites the same image in a different
+          basis, a set of building-block patterns, and keeps only some of the
+          weights. Fourier uses global waves, Legendre and Chebyshev use
+          polynomials, and Haar uses localized wavelets. The transform itself
+          loses nothing; the approximation appears only when the cutoff
+          discards coefficients.
+        </p>
+        <p>
+          The DFT additionally assumes the image repeats forever, tiling it
+          into an infinite grid. When the image is not naturally periodic, the
+          seams between tiles act like sharp edges: they push energy into the
+          corners of the spectrum and ring around every discontinuity through
+          the Gibbs phenomenon. Smoothness and spectral compactness are two
+          sides of one coin. A smooth image has a rapidly decaying spectrum and
+          rebuilds well from a few terms, while a sharp edge spreads energy
+          across all frequencies.
+        </p>
+        <p>
+          No single basis is best. A basis suits an image when it concentrates
+          the image's energy into a few large coefficients, which is exactly
+          what the center panel lets you see. The bases also behave very
+          differently outside the original domain: Fourier tiles periodically,
+          polynomials diverge under Runge's phenomenon or $\cosh$ growth, and
+          Haar does not extend at all. Choosing a basis means choosing which
+          structure you can represent cheaply and which artifacts you can
+          tolerate.
+        </p>
+        <p>
+          These ideas sit underneath image compression (JPEG uses a cosine
+          transform, JPEG 2000 uses wavelets), denoising, and low-pass
+          filtering, anywhere images are stored or sent by keeping only the
+          coefficients that matter. Recognizing why a reconstruction rings,
+          blurs, or checkerboards is what lets you pick the right transform and
+          read its output with confidence.
+        </p>
+      </section>
+
     </main>
 
     <footer class="footer">
