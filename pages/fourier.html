@@ -681,12 +681,25 @@
           tolerate.
         </p>
         <p>
-          These ideas sit underneath image compression (JPEG uses a cosine
-          transform, JPEG 2000 uses wavelets), denoising, and low-pass
-          filtering, anywhere images are stored or sent by keeping only the
-          coefficients that matter. Recognizing why a reconstruction rings,
-          blurs, or checkerboards is what lets you pick the right transform and
-          read its output with confidence.
+          The same machinery reaches well beyond still images. Image
+          compression is the familiar case (JPEG uses a cosine transform, JPEG
+          2000 uses wavelets), but multiplying spectra is convolution, so the
+          FFT also powers fast filtering, audio equalization, and the
+          convolutions inside neural networks. MRI and CT scanners collect
+          their raw data directly in the Fourier domain and invert it to form
+          an image, and X-ray crystallography measures the Fourier magnitudes
+          of a molecule. Wireless standards such as Wi-Fi and 4G/5G carry data
+          on FFT frequency bins (OFDM). Chebyshev and Legendre polynomials
+          underpin spectral methods that solve differential equations to very
+          high accuracy, and wavelets drive multiresolution denoising and edge
+          detection.
+        </p>
+        <p>
+          What ties all of it together is a single move: represent data in a
+          basis whose patterns match the data's structure, then keep the few
+          coefficients that carry the most. Compression, imaging,
+          communication, and numerical computation are all variations on that
+          one idea.
         </p>
       </section>
 
