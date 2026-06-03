@@ -238,6 +238,8 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(0, 0, 0, 0.16);
   margin-bottom: 16px;
+  border-radius: 5px;
+  overflow: hidden;
 }
 .fourier .fourier-tab {
   appearance: none;
