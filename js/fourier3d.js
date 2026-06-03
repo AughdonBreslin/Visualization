@@ -8,16 +8,16 @@
     if (!canvas) return;
 
     if (typeof THREE === 'undefined') {
-      console.error('[fourier3d] Three.js failed to load — 3D Surface View disabled.');
+      console.error('[fourier3d] Three.js failed to load. 3D Surface View disabled.');
       return;
     }
     if (typeof THREE.OrbitControls === 'undefined') {
-      console.error('[fourier3d] OrbitControls failed to load — 3D Surface View disabled.');
+      console.error('[fourier3d] OrbitControls failed to load. 3D Surface View disabled.');
       return;
     }
     const hasFlyControls = typeof THREE.PointerLockControls !== 'undefined';
     if (!hasFlyControls) {
-      console.warn('[fourier3d] PointerLockControls failed to load — Fly mode disabled.');
+      console.warn('[fourier3d] PointerLockControls failed to load. Fly mode disabled.');
     }
     // On touch devices PointerLock + WASD is unusable. Fall back to enabling
     // OrbitControls panning so a two-finger drag translates the camera.
