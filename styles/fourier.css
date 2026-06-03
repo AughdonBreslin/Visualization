@@ -269,3 +269,19 @@
 @media (max-width: 800px) {
   .fourier .fourier-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Live reconstruction formula box (under the decomposition controls) */
+.fourier .fourier-formula-box {
+  margin: 4px 0 2px;
+  padding: 10px 16px;
+  background: var(--surface-inset);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+.fourier .fourier-formula-line { margin: 6px 0; }
+.fourier .fourier-formula-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+}
