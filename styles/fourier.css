@@ -159,7 +159,7 @@
   gap: 6px;
 }
 
-/* 3D View: fixed 4-column layout — radios, radios, sliders, toggles */
+/* 3D View: fixed 4-column layout (radios, radios, sliders, toggles) */
 .fourier .fourier-3d-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: start;
