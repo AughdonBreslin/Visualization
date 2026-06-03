@@ -170,24 +170,40 @@
     // The OOR_COMPRESSION factor sets how much vertical room each decade
     // of overshoot occupies, measured in units of heightScale.
     const OOR_COMPRESSION = 0.25;
+    // Out-of-range values within this many units of [0, 255] keep the same linear
+    // slope as the in-range surface, so modest Gibbs overshoot stays a smooth,
+    // proportionate bump instead of a sharp spike. Only larger excursions
+    // (high-degree Legendre / Chebyshev blow-ups, up to 10^20) are compressed
+    // logarithmically so they remain on screen.
+    const LINEAR_OOR_MARGIN = 255;
+
+    function oorHeight(excess) {
+      // Added height beyond the linear margin, for excess >= 0.
+      return OOR_COMPRESSION * heightScale * Math.log10(1 + Math.min(excess, 1e20));
+    }
 
     function applyPixels(pixels) {
       currentPixels = pixels;
       const pos = geometry.attributes.position;
       const col = geometry.attributes.color;
 
+      const slope = heightScale / 255;
       for (let i = 0; i < N * N; i++) {
         const v = pixels[i];
 
         let h;
-        if (v < 0) {
-          const excess = Math.min(-v, 1e20);
-          h = -OOR_COMPRESSION * heightScale * Math.log10(1 + excess);
-        } else if (v > 255) {
-          const excess = Math.min(v - 255, 1e20);
-          h = heightScale + OOR_COMPRESSION * heightScale * Math.log10(1 + excess);
+        if (v > 255) {
+          const over = v - 255;
+          h = over <= LINEAR_OOR_MARGIN
+            ? heightScale + over * slope
+            : heightScale + LINEAR_OOR_MARGIN * slope + oorHeight(over - LINEAR_OOR_MARGIN);
+        } else if (v < 0) {
+          const under = -v;
+          h = under <= LINEAR_OOR_MARGIN
+            ? v * slope
+            : -(LINEAR_OOR_MARGIN * slope + oorHeight(under - LINEAR_OOR_MARGIN));
         } else {
-          h = (v / 255) * heightScale;
+          h = v * slope;
         }
         pos.setY(i, h);
 
