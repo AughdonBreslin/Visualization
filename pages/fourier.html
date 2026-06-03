@@ -101,10 +101,12 @@
           $$g(t) \approx \sum_{k=0}^{K} c_k e^{i 2\pi k t / T}$$
         </div>
         <p>
-          For an $N \times N$ image, the natural frequencies are integer
-          multiples of $1/N$. Each $(u, v)$ index in the transform
-          corresponds to a 2D wave with $u$ cycles across the image
-          horizontally and $v$ cycles vertically.
+          For an $N \times N$ image, the natural frequencies (cycles per image) along each axis are the whole numbers
+          up to $N/2$. This is because the highest frequency wave that can be represented on an image
+          is one that can complete a full cycle within two pixels (ie. alternating between bright and dark every pixel).
+          Anything faster does not have enough room to show
+          its shape between pixels. This upper limit is called the
+          Nyquist frequency. The lower limit is zero, which represents a constant value with no oscillation.
         </p>
       </section>
 
@@ -112,15 +114,29 @@
         <h2>The Discrete Fourier Transform</h2>
         <p>
           The 2D Discrete Fourier Transform turns an $N \times N$ image
-          $f[x, y]$ into an $N \times N$ matrix of complex weights, one for
-          each 2D sine-wave frequency:
+          $f[x, y]$, where $x$ and $y$ are pixel coordinates, into an $N \times N$ matrix of complex weights. $f[x, y]$ gives the individual pixel value at coordinates $x$ and $y$.
         </p>
         <div class="formula">
           $$F[u, v] = \sum_{x=0}^{N-1} \sum_{y=0}^{N-1} f[x, y]\,e^{-i 2\pi(ux + vy)/N}$$
         </div>
+        <p class="note">
+          Note: The summations span $0$ to $N-1$ instead of $0$ to $N/2$. 
+          Indices $0$ to $N/2$ are those natural frequencies;
+          indices $N/2$ to $N-1$ are their complex conjugates. For a real image, the
+          conjugate half is redundant, carrying the same magnitude
+          information as the positive half, but it is still required in the
+          reconstruction sum so the imaginary parts cancel out and the rebuilt
+          image comes out real-valued.
+        </p>
         <p>
           Each $F[u, v]$ tells you how much of the wave
-          $e^{i 2\pi(ux + vy)/N}$ is present. The inverse transform rebuilds
+          $e^{i 2\pi(ux + vy)/N}$ is present, and its squared magnitude
+          $|F[u, v]|^2$, called the spectral energy at frequency
+          $(u, v)$, measures how much of the image's total energy sits
+          in that one wave.
+        </p>
+        <p>
+          The inverse transform rebuilds
           the image by summing the waves back together:
         </p>
         <div class="formula">
@@ -436,153 +452,252 @@
       </section>
 
       <section class="panel">
-        <h2>Gibbs Phenomenon and Edge Discontinuities</h2>
-        <p>
-          The ringing seen in a low-pass Fourier reconstruction is called the
-          Gibbs phenomenon. Near any jump discontinuity, a
-          truncated Fourier series overshoots the true value by
-          approximately 9% of the jump height, regardless of how many terms
-          are included. The overshoot does not vanish as you add terms; it
-          just gets narrower. In 2D the effect produces concentric rings
-          around every sharp edge.
-        </p>
-        <p>
-          When the image is not naturally periodic, the DFT also rings
-          around the artificial edges at tile boundaries. The
-          Quadrant preset is the extreme case: its periodic extension is an
-          infinite checkerboard, and most of its spectral energy sits at the
-          corners of frequency space (the $(N/2, N/2)$ component), because
-          the checkerboard oscillates at the Nyquist frequency in both
-          directions simultaneously. Small filter radii cannot reach that
-          energy, so they produce a smooth blob with no checkerboard
-          structure at all. As $r$ approaches 128, the step-like edges begin
-          to emerge; the corner energy needs $r \approx 181$ (the diagonal
-          Nyquist) for exact reconstruction.
-        </p>
-        <p>
-          The Gaussian preset shows the opposite story. Its smooth fall-off
-          near the edges means the periodic extension has almost no
-          discontinuity, almost no high-frequency energy, and almost no
-          Gibbs ringing. The connection between spatial smoothness and
-          spectral compactness is everywhere in Fourier analysis: smooth
-          images have rapidly decaying spectra, and their low-frequency
-          approximations are correspondingly accurate.
-        </p>
-        <p>
-          A common remedy when working with non-periodic data is
-          windowing: multiplying the image by a smooth taper (Hann,
-          Tukey, or a Gaussian envelope) before transforming, so the
-          implicit periodic extension is nearly continuous. The cost is a
-          small smearing in the frequency domain, but the dramatic
-          reduction in ringing is usually worth it.
-        </p>
+        <h2>Reconstruction Formula</h2>
+        <div id="fourierFormulaBox" class="fourier-formula-box" aria-live="polite"></div>
       </section>
 
       <section class="panel">
-        <h2>Extrapolation Beyond the Domain</h2>
-        <p>
-          The demo's "Show periodic extension" toggle, and its
-          basis-dependent equivalents, reveal what happens outside the
-          original image domain. Each basis tells a different story.
-        </p>
-        <p>
-          Fourier extends periodically by construction. The
-          reconstructed image outside $[0, N)^2$ is a verbatim copy of the
-          inside, tiled in a $2 \times 2$ pattern. The red dashed lines mark
-          the tile boundaries.
-        </p>
-        <p>
-          Legendre extends as whatever polynomial was fit
-          inside. Inside the domain the fit looks reasonable. Just past the
-          boundary, high-degree fits diverge fast under Runge's phenomenon,
-          and the values shoot up or down into the overshoot bands.
-        </p>
-        <p>
-          Chebyshev extends with $\cosh$ growth, faster
-          still than Legendre. The exponential factor in $k$ means even
-          modestly high degrees produce enormous values just past the
-          boundary.
-        </p>
-        <p>
-          Haar does not extend at all. The basis is defined
-          inside the image only, so there is nothing to evaluate outside it.
-        </p>
+        <div class="fourier-tabs" role="tablist">
+          <button type="button" class="fourier-tab is-active" data-tab="gibbs" role="tab" aria-selected="true">Gibbs ringing</button>
+          <button type="button" class="fourier-tab" data-tab="extrap" role="tab" aria-selected="false">Extrapolation</button>
+          <button type="button" class="fourier-tab" data-tab="overshoot" role="tab" aria-selected="false">Overshoot colors</button>
+          <button type="button" class="fourier-tab" data-tab="center" role="tab" aria-selected="false">Center panel</button>
+          <button type="button" class="fourier-tab" data-tab="poly" role="tab" aria-selected="false">Polynomial bases</button>
+        </div>
+
+        <div class="fourier-tabpanel is-active" data-tab="gibbs" role="tabpanel">
+          <p>
+            With the Fourier basis, the ringing in a low-pass reconstruction is
+            called the Gibbs phenomenon. Near any jump discontinuity, a
+            truncated Fourier series overshoots the true value by
+            approximately 9% of the jump height, regardless of how many terms
+            are included. The overshoot does not vanish as you add terms; it
+            just gets narrower. In 2D the effect produces concentric rings
+            around every sharp edge.
+          </p>
+          <p>
+            When the image is not naturally periodic, the DFT also rings
+            around the artificial edges at tile boundaries. The
+            Quadrant preset is the extreme case: its periodic extension is an
+            infinite checkerboard, and most of its spectral energy sits at the
+            corners of frequency space (the $(N/2, N/2)$ components), because
+            the checkerboard oscillates at the Nyquist frequency in both
+            directions simultaneously. Small filter radii cannot reach that
+            energy, so they produce a smooth blob with no checkerboard
+            structure at all. As $r$ approaches 128, the step-like edges begin
+            to emerge; the corner energy needs $r \approx 181$ (the diagonal
+            Nyquist) for exact reconstruction.
+          </p>
+          <p>
+            The Gaussian preset shows the opposite story. Its smooth fall-off
+            near the edges means the periodic extension has almost no
+            discontinuity, almost no high-frequency energy, and almost no
+            Gibbs ringing. The connection between spatial smoothness and
+            spectral compactness is everywhere in Fourier analysis: smooth
+            images have rapidly decaying spectra, and their low-frequency
+            approximations are correspondingly accurate.
+          </p>
+          <p>
+            A common remedy when working with non-periodic data is
+            windowing: multiplying the image by a smooth taper (Hann,
+            Tukey, or a Gaussian envelope) before transforming, so the
+            implicit periodic extension is nearly continuous. The cost is a
+            small smearing in the frequency domain, but the dramatic
+            reduction in ringing is usually worth it.
+          </p>
+        </div>
+
+        <div class="fourier-tabpanel" data-tab="extrap" role="tabpanel">
+          <p>
+            The demo's "Show periodic extension" toggle, and its
+            basis-dependent equivalents, reveal what happens outside the
+            original image domain. Each basis tells a different story.
+          </p>
+          <p>
+            Fourier extends periodically by construction. The
+            reconstructed image outside $[0, N)^2$ is a verbatim copy of the
+            inside, tiled in a $2 \times 2$ pattern. The red dashed lines mark
+            the tile boundaries.
+          </p>
+          <p>
+            Legendre extends as whatever polynomial was fit
+            inside. Inside the domain the fit looks reasonable. Just past the
+            boundary, high-degree fits diverge fast under Runge's phenomenon,
+            and the values shoot up or down into the overshoot bands.
+          </p>
+          <p>
+            Chebyshev extends with $\cosh$ growth, faster
+            still than Legendre. The exponential factor in $k$ means even
+            modestly high degrees produce enormous values just past the
+            boundary.
+          </p>
+          <p>
+            Haar does not extend at all. The basis is defined
+            inside the image only, so there is nothing to evaluate outside it.
+          </p>
+        </div>
+
+        <div class="fourier-tabpanel" data-tab="overshoot" role="tabpanel">
+          <p>
+            Reconstructions, especially extrapolated ones, can produce pixel
+            values outside the natural 0 to 255 grayscale range. The demo
+            colors these explicitly.
+            Red shading marks pixels
+            above 255 (overshoot), and
+            blue shading marks pixels
+            below 0 (undershoot). Saturation ramps up with the magnitude, so a
+            small overshoot is faint and an extreme one is fully saturated.
+          </p>
+          <p>
+            Gibbs ringing inside the domain produces overshoot of its own.
+            Truncated Fourier reconstructions of a black-to-white step always
+            overshoot the jump by roughly 9%, so you will see a thin red rim
+            just inside the bright side and a thin blue rim just inside the
+            dark side. These are real reconstruction errors, not just
+            extrapolation artifacts.
+          </p>
+          <p>
+            In the 3D surface view, out-of-range pixels also tint the surface
+            using the same convention. They can be hidden entirely with the
+            "Hide overshoot regions" toggle, which drops every triangle
+            whose vertices are not all in the in-range band. Hiding is
+            sometimes the only way to read the in-range structure cleanly,
+            because high-degree Legendre or Chebyshev extrapolation can
+            produce magnitudes large enough to stretch triangles across the
+            entire viewport.
+          </p>
+        </div>
+
+        <div class="fourier-tabpanel" data-tab="center" role="tabpanel">
+          <p>
+            The center panel of the demo changes per basis, but every variant
+            answers the same question: where is this basis concentrating the
+            image's energy?
+          </p>
+          <p>
+            For Fourier, it shows the magnitude spectrum on a
+            log scale, with the DC (zero-frequency) component at the center
+            and increasing frequencies radiating outward. Bright pixels mean
+            strong frequency components. The blue circle marks the low-pass
+            filter radius: frequencies inside the circle are kept, those
+            outside are zeroed. Smooth images concentrate energy near the
+            center; sharp images spread it outward.
+          </p>
+          <p>
+            For Legendre and Chebyshev, it
+            shows the coefficient matrix $|C[j, k]|$, where $j$ is the degree
+            in $y$ and $k$ is the degree in $x$. The top-left corner is the
+            $(0, 0)$ coefficient (a constant), and degrees grow downward and
+            rightward. The blue rectangle marks the coefficients retained at
+            the current degree cutoff; everything outside is dimmed. Smooth
+            images concentrate energy near the top-left; oscillatory images
+            spread it further out.
+          </p>
+          <p>
+            For Haar, it shows the wavelet pyramid: the
+            coarsest approximation sits in the top-left, with detail subbands
+            surrounding it in concentric shells. At each level the detail
+            bands capture vertical edges (LH), horizontal edges (HL), and
+            diagonal detail (HH) at that scale. Each subband is normalized
+            independently so detail at every scale remains visible. The blue
+            rectangle marks the coarsest levels retained at the current
+            setting; subbands inside it are used, the rest are zeroed before
+            the inverse transform.
+          </p>
+          <p>
+            In every case the blue marker traces what the slider keeps and
+            what it discards, and the visual concentration of energy tells you
+            whether the chosen basis is a good or bad match for the current
+            image.
+          </p>
+        </div>
+
+        <div class="fourier-tabpanel" data-tab="poly" role="tabpanel">
+          <p>
+            The Legendre and Chebyshev bases are built from one-dimensional
+            polynomials, one family per axis. The 2D building block is a
+            basis product: a polynomial of degree $k$ in the horizontal
+            coordinate times a polynomial of degree $j$ in the vertical
+            coordinate, $P_k(\tilde x)\,P_j(\tilde y)$ for Legendre and
+            $T_k(\tilde x)\,T_j(\tilde y)$ for Chebyshev. The tilde marks the
+            pixel coordinate rescaled to the polynomials' natural domain
+            $[-1, 1]$. Degree $(0, 0)$ is a flat constant; increasing $k$ adds
+            oscillations across the image, increasing $j$ adds them down it.
+            The reconstruction is a weighted sum of these products up to the
+            chosen degree.
+          </p>
+          <p>
+            The weight $C[j, k]$ is the projection of the image onto one basis
+            product: how strongly the picture resembles that degree-$(j, k)$
+            pattern. Because the basis is separable, the 2D projection
+            factorizes into a one-dimensional transform along $x$ followed by
+            one along $y$, which is exactly how the demo computes it. Large
+            low-degree weights mean a smooth image that the basis captures with
+            few terms; energy spread to high degrees means the basis is
+            struggling to match sharp features.
+          </p>
+          <p>
+            The two families differ in the inner product that defines the
+            projection. Legendre polynomials are orthogonal under a uniform
+            weight across $[-1, 1]$, so every position counts equally.
+            Chebyshev polynomials are orthogonal under the weight
+            $1/\sqrt{1 - \tilde x^2}$, which emphasizes the edges of the
+            domain; sampling at midpoint nodes avoids the singularity at
+            $\tilde x = \pm 1$. That edge emphasis is why Chebyshev resists the
+            wild boundary swings (Runge's phenomenon) that high-degree Legendre
+            fits suffer from.
+          </p>
+        </div>
       </section>
 
       <section class="panel">
-        <h2>Reading the Overshoot Indicators</h2>
+        <h2>Summary</h2>
         <p>
-          Reconstructions, especially extrapolated ones, can produce pixel
-          values outside the natural 0 to 255 grayscale range. The demo
-          colors these explicitly.
-          <span class="fourier-legend-red">Red</span> shading marks pixels
-          above 255 (overshoot), and
-          <span class="fourier-legend-blue">blue</span> shading marks pixels
-          below 0 (undershoot). Saturation ramps up with the magnitude, so a
-          small overshoot is faint and an extreme one is fully saturated.
+          Every technique on this page rewrites the same image in a different
+          basis, a set of building-block patterns, and keeps only some of the
+          weights. Fourier uses global waves, Legendre and Chebyshev use
+          polynomials, and Haar uses localized wavelets. The transform itself
+          loses nothing; the approximation appears only when the cutoff
+          discards coefficients.
         </p>
         <p>
-          Gibbs ringing inside the domain produces overshoot of its own.
-          Truncated Fourier reconstructions of a black-to-white step always
-          overshoot the jump by roughly 9%, so you will see a thin red rim
-          just inside the bright side and a thin blue rim just inside the
-          dark side. These are real reconstruction errors, not just
-          extrapolation artifacts.
+          The DFT additionally assumes the image repeats forever, tiling it
+          into an infinite grid. When the image is not naturally periodic, the
+          seams between tiles act like sharp edges: they push energy into the
+          corners of the spectrum and ring around every discontinuity through
+          the Gibbs phenomenon. Smoothness and spectral compactness are two
+          sides of one coin. A smooth image has a rapidly decaying spectrum and
+          rebuilds well from a few terms, while a sharp edge spreads energy
+          across all frequencies.
         </p>
         <p>
-          In the 3D surface view, out-of-range pixels also tint the surface
-          using the same convention. They can be hidden entirely with the
-          "Hide overshoot regions" toggle, which drops every triangle
-          whose vertices are not all in the in-range band. Hiding is
-          sometimes the only way to read the in-range structure cleanly,
-          because high-degree Legendre or Chebyshev extrapolation can
-          produce magnitudes large enough to stretch triangles across the
-          entire viewport.
-        </p>
-      </section>
-
-      <section class="panel">
-        <h2>Reading the Center Panel</h2>
-        <p>
-          The center panel of the demo changes per basis, but every variant
-          answers the same question: where is this basis concentrating the
-          image's energy?
+          No single basis is best. A basis suits an image when it concentrates
+          the image's energy into a few large coefficients, which is exactly
+          what the center panel lets you see. The bases also behave very
+          differently outside the original domain: Fourier tiles periodically,
+          polynomials diverge under Runge's phenomenon or $\cosh$ growth, and
+          Haar does not extend at all. Choosing a basis means choosing which
+          structure you can represent cheaply and which artifacts you can
+          tolerate.
         </p>
         <p>
-          For Fourier, it shows the magnitude spectrum on a
-          log scale, with the DC (zero-frequency) component at the center
-          and increasing frequencies radiating outward. Bright pixels mean
-          strong frequency components. The blue circle marks the low-pass
-          filter radius: frequencies inside the circle are kept, those
-          outside are zeroed. Smooth images concentrate energy near the
-          center; sharp images spread it outward.
+          Image compression is the familiar case (JPEG uses a cosine transform,
+          JPEG 2000 uses wavelets), but multiplying spectra is convolution, so the
+          FFT also powers fast filtering, audio equalization, and the
+          convolutions inside neural networks. MRI and CT scanners collect
+          their raw data directly in the Fourier domain and invert it to form
+          an image, and X-ray crystallography measures the Fourier magnitudes
+          of a molecule. Wireless standards such as Wi-Fi and 4G/5G carry data
+          on FFT frequency bins (OFDM). Chebyshev and Legendre polynomials
+          underpin spectral methods that solve differential equations to very
+          high accuracy, and wavelets drive multiresolution denoising and edge
+          detection.
         </p>
         <p>
-          For Legendre and Chebyshev, it
-          shows the coefficient matrix $|C[j, k]|$, where $j$ is the degree
-          in $y$ and $k$ is the degree in $x$. The top-left corner is the
-          $(0, 0)$ coefficient (a constant), and degrees grow downward and
-          rightward. The blue rectangle marks the coefficients retained at
-          the current degree cutoff; everything outside is dimmed. Smooth
-          images concentrate energy near the top-left; oscillatory images
-          spread it further out.
-        </p>
-        <p>
-          For Haar, it shows the wavelet pyramid: the
-          coarsest approximation sits in the top-left, with detail subbands
-          surrounding it in concentric shells. At each level the detail
-          bands capture horizontal (LH), vertical (HL), and diagonal (HH)
-          edge structure at that scale. Each subband is normalized
-          independently so detail at every scale remains visible. The blue
-          rectangle marks the coarsest levels retained at the current
-          setting; subbands inside it are used, the rest are zeroed before
-          the inverse transform.
-        </p>
-        <p>
-          In every case the blue marker traces what the slider keeps and
-          what it discards, and the visual concentration of energy tells you
-          whether the chosen basis is a good or bad match for the current
-          image.
+          Compression, imaging, communication, and numerical computation are
+          all variations on one idea: represent data in a basis whose patterns
+          match its structure, then keep the few coefficients that carry the
+          most information.
         </p>
       </section>
 
@@ -595,6 +710,25 @@
       </p>
     </footer>
   </div>
+  <script>
+    (function () {
+      var tabs = document.querySelectorAll('.fourier-tab');
+      var panels = document.querySelectorAll('.fourier-tabpanel');
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          var key = tab.getAttribute('data-tab');
+          tabs.forEach(function (t) {
+            var on = t === tab;
+            t.classList.toggle('is-active', on);
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+          });
+          panels.forEach(function (p) {
+            p.classList.toggle('is-active', p.getAttribute('data-tab') === key);
+          });
+        });
+      });
+    })();
+  </script>
 </body>
 
 </html>

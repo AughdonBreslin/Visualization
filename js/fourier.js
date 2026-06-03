@@ -527,7 +527,59 @@
     const radiusSl       = document.getElementById('fourierRadius');
     const radiusOut      = document.getElementById('fourierRadiusValue');
     const radiusLabel    = document.getElementById('fourierRadiusLabel');
+    const formulaBox     = document.getElementById('fourierFormulaBox');
     const tilingChk      = document.getElementById('fourierTiling');
+
+    // Definitions for the formula-panel info icons, keyed by basis then by which
+    // formula block (recon / basis / worked). Shown in a floating tooltip.
+    const FORMULA_TERMS = {
+      fourier: {
+        recon: 'f[x,y]: the reconstructed pixel value.\nF[u,v]: the Fourier coefficient (complex) of the wave with u cycles across x and v across y.\n1 / N^2: normalization (N = 256).\nThe sum keeps every frequency inside the filter radius r.',
+        basis: 'phi_{u,v}[x,y] = e^{i 2 pi (u x + v y) / N}: a 2D wave. Analysis uses its conjugate (e^{-i...}) to measure how much of each wave is present; synthesis adds the waves back, each scaled by F[u,v].',
+        worked: 'F[1,1]: the coefficient of the lowest diagonal wave (one cycle in each direction). It is complex, and |F[1,1]| is its magnitude.'
+      },
+      poly: {
+        recon: 'f(x,y): the reconstructed pixel value.\nC[j,k]: the weight of the basis product of Legendre degree j (in y) and k (in x), found by projecting the image onto that product.\nThe sum keeps all degrees up to the cutoff d.',
+        basis: 'P_j: the Legendre polynomial of degree j (P_0 = 1, P_1 = x, P_2 = (3x^2 - 1)/2, ...).\nx-tilde: the pixel coordinate rescaled from [0, N) to [-1, 1].',
+        worked: 'C[1,1]: the weight of P_1(x-tilde) P_1(y-tilde) = x-tilde * y-tilde, the diagonal tilt (saddle) term. It is large for the Quadrant image.'
+      },
+      cheb: {
+        recon: 'f(x,y): the reconstructed pixel value.\nC[j,k]: the weight of the Chebyshev product of degree j (in y) and k (in x), from projecting the image onto it.\nThe sum keeps all degrees up to the cutoff d.',
+        basis: 'T_j: the Chebyshev polynomial, T_j(x) = cos(j arccos x) (T_0 = 1, T_1 = x, T_2 = 2x^2 - 1, ...).\nx-tilde: the pixel coordinate rescaled to [-1, 1] using midpoint nodes.',
+        worked: 'C[1,1]: the weight of T_1(x-tilde) T_1(y-tilde) = x-tilde * y-tilde, the diagonal tilt term.'
+      },
+      haar: {
+        recon: 'f(x,y): the reconstructed pixel value.\nA_L: the coarse approximation kept at level L, the repeatedly averaged low-pass band (a low-resolution version of the image).\nLH_l, HL_l, HH_l: the detail subbands at level l, capturing vertical, horizontal, and diagonal edges. The sum adds detail from level 1 up to L.',
+        basis: 'psi: the Haar wavelet, +1 on the first half of its interval and -1 on the second.\nphi: the scaling function (the averaging box) behind the A_L term.\npsi_{j,m}(t) = 2^{j/2} psi(2^j t - m): the wavelet at scale j and position m. Each 2D subband multiplies one of psi or phi per axis.',
+        worked: 'd^{HH}_{1,1}: the coarsest-scale HH (diagonal) detail coefficient, the projection of the image onto psi(x) psi(y) over the whole image (the diagonal contrast between opposite quadrants).'
+      }
+    };
+    let formulaTip = null;
+    function ensureFormulaTip() {
+      if (formulaTip) return formulaTip;
+      formulaTip = document.createElement('div');
+      formulaTip.className = 'fourier-tip';
+      document.body.appendChild(formulaTip);
+      return formulaTip;
+    }
+    if (formulaBox) {
+      formulaBox.addEventListener('mousemove', function (e) {
+        const icon = e.target.closest ? e.target.closest('.fourier-info') : null;
+        if (!icon) { if (formulaTip) formulaTip.style.opacity = '0'; return; }
+        const defs = FORMULA_TERMS[basisSel.value];
+        const tip = ensureFormulaTip();
+        tip.textContent = (defs && defs[icon.getAttribute('data-term')]) || '';
+        tip.style.opacity = '1';
+        let x = e.clientX + 14, y = e.clientY + 14;
+        if (x + 330 > window.innerWidth) x = e.clientX - 334;
+        if (y + 180 > window.innerHeight) y = e.clientY - 180;
+        tip.style.left = x + 'px';
+        tip.style.top = y + 'px';
+      });
+      formulaBox.addEventListener('mouseleave', function () {
+        if (formulaTip) formulaTip.style.opacity = '0';
+      });
+    }
     const tilingText     = document.getElementById('fourierTilingText');
     const origLabel      = document.getElementById('fourierOrigLabel');
     const specLabel      = document.getElementById('fourierSpecLabel');
@@ -601,6 +653,66 @@
       render();
     }
 
+    // Live formula box: reconstruction sum (with the current cutoff substituted)
+    // plus the basis function for the selected basis. Debounced so dragging the
+    // cutoff slider does not re-typeset MathJax on every tick.
+    let formulaTimer = null;
+    function scheduleFormula(basis, val) {
+      if (!formulaBox) return;
+      if (formulaTimer) clearTimeout(formulaTimer);
+      formulaTimer = setTimeout(function () { updateFormula(basis, val); }, 80);
+    }
+    function typesetFormula() {
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([formulaBox]).catch(function () {});
+      } else {
+        setTimeout(typesetFormula, 150);
+      }
+    }
+    function fmtCoeff(x) {
+      if (!isFinite(x)) return '0';
+      // Group large integers with LaTeX thin spaces (\,) instead of commas, which
+      // MathJax would render as punctuation with a trailing space.
+      if (Math.abs(x) >= 1000) {
+        return String(Math.round(x)).replace(/\B(?=(\d{3})+(?!\d))/g, '\\,');
+      }
+      return (+x).toFixed(2);
+    }
+    function updateFormula(basis, val) {
+      if (!formulaBox) return;
+      let recon, basisFn, worked;
+      if (basis === 'fourier') {
+        recon = 'f[x,y] \\approx \\frac{1}{N^2} \\sum_{u^2+v^2 \\le ' + val + '^2} F[u,v]\\, e^{\\,i 2\\pi(ux+vy)/N}';
+        basisFn = '\\varphi_{u,v}[x,y] = e^{\\,i 2\\pi(ux+vy)/N}';
+        const re = fftRe ? fftRe[N + 1] : 0;
+        const im = fftIm ? fftIm[N + 1] : 0;
+        const mag = Math.sqrt(re * re + im * im);
+        worked = 'F[1,1] = ' + fmtCoeff(re) + (im >= 0 ? ' + ' : ' - ') + fmtCoeff(Math.abs(im)) + 'i, \\qquad |F[1,1]| = ' + fmtCoeff(mag) + '\\ \\ (\\text{lowest diagonal wave})';
+      } else if (basis === 'poly') {
+        recon = 'f(x,y) \\approx \\sum_{j=0}^{' + val + '} \\sum_{k=0}^{' + val + '} C[j,k]\\, P_j(\\tilde x)\\, P_k(\\tilde y)';
+        basisFn = 'P_j(\\tilde x) = \\frac{1}{2^j\\, j!}\\,\\frac{d^j}{d\\tilde x^{\\,j}}\\big(\\tilde x^2 - 1\\big)^j, \\quad \\tilde x = \\tfrac{2x}{N-1} - 1';
+        const c = polyC ? polyC[(MAX_POLY_DEG + 1) + 1] : 0;
+        worked = 'C[1,1] = ' + fmtCoeff(c) + ', \\qquad C[1,1]\\, P_1(\\tilde x)\\, P_1(\\tilde y) = ' + fmtCoeff(c) + '\\,\\tilde x\\,\\tilde y \\ \\ (P_1(\\tilde x) = \\tilde x)';
+      } else if (basis === 'cheb') {
+        recon = 'f(x,y) \\approx \\sum_{j=0}^{' + val + '} \\sum_{k=0}^{' + val + '} C[j,k]\\, T_j(\\tilde x)\\, T_k(\\tilde y)';
+        basisFn = 'T_j(\\tilde x) = \\cos\\!\\big(j \\arccos \\tilde x\\big), \\quad \\tilde x = \\tfrac{2x+1}{N} - 1';
+        const c = chebC ? chebC[(MAX_CHEB_DEG + 1) + 1] : 0;
+        worked = 'C[1,1] = ' + fmtCoeff(c) + ', \\qquad C[1,1]\\, T_1(\\tilde x)\\, T_1(\\tilde y) = ' + fmtCoeff(c) + '\\,\\tilde x\\,\\tilde y \\ \\ (T_1(\\tilde x) = \\tilde x)';
+      } else {
+        recon = 'f(x,y) \\approx A_{' + val + '} + \\sum_{\\ell=1}^{' + val + '} \\big( LH_\\ell + HL_\\ell + HH_\\ell \\big)';
+        basisFn = '\\psi(t) = \\begin{cases} +1 & 0 \\le t < \\tfrac12 \\\\ -1 & \\tfrac12 \\le t < 1 \\\\ 0 & \\text{otherwise} \\end{cases}, \\quad \\psi_{j,m}(t) = 2^{j/2}\\psi(2^j t - m)';
+        const a = haarC ? haarC[N + 1] : 0;
+        worked = 'd^{\\,HH}_{1,1} = ' + fmtCoeff(a) + '\\ \\ (\\text{coarsest diagonal detail coefficient})';
+      }
+      formulaBox.innerHTML =
+        '<div class="formulas">' +
+          '<div class="formula"><div class="fourier-formula-label">Reconstruction <span class="fourier-info" data-term="recon">i</span></div>$$' + recon + '$$</div>' +
+          '<div class="formula"><div class="fourier-formula-label">Basis function <span class="fourier-info" data-term="basis">i</span></div>$$' + basisFn + '$$</div>' +
+        '</div>' +
+        '<div class="formula fourier-formula-example"><div class="fourier-formula-label">Worked example (current image) <span class="fourier-info" data-term="worked">i</span></div>$$' + worked + '$$</div>';
+      typesetFormula();
+    }
+
     function render() {
       const basis      = basisSel.value;
       const val        = parseInt(radiusSl.value, 10);
@@ -620,6 +732,9 @@
         const n = (val + 1) ** 2;
         radiusOut.textContent = `degree = ${val}  (${n} coefficients, ${Math.round(n/N2*100)}% of ${N}×${N})`;
       }
+
+      // --- live reconstruction formula box ---
+      scheduleFormula(basis, val);
 
       // --- left panel: original or extension/extrapolation ---
       if (showExt) {

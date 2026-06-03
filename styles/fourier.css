@@ -159,7 +159,7 @@
   gap: 6px;
 }
 
-/* 3D View: fixed 4-column layout — radios, radios, sliders, toggles */
+/* 3D View: fixed 4-column layout (radios, radios, sliders, toggles) */
 .fourier .fourier-3d-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: start;
@@ -228,4 +228,90 @@
   .fourier .fourier-canvas-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* Interpretation tabs (post-visualization explanations) */
+.fourier .fourier-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.16);
+  margin-bottom: 16px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.fourier .fourier-tab {
+  appearance: none;
+  border: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  border-radius: 0;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.fourier .fourier-tab:last-child { border-right: 0; }
+.fourier .fourier-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+}
+.fourier .fourier-tab.is-active {
+  background: rgba(74, 163, 255, 0.18);
+  color: rgba(255, 255, 255, 0.96);
+  box-shadow: inset 0 -2px 0 rgba(74, 163, 255, 0.7);
+}
+.fourier .fourier-tabpanel { display: none; }
+.fourier .fourier-tabpanel.is-active { display: block; }
+@media (max-width: 800px) {
+  .fourier .fourier-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Live reconstruction formula (own panel below the visualization) */
+.fourier .fourier-formula-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+}
+
+/* Info icons + tooltip in the reconstruction formula panel */
+.fourier .fourier-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 9px;
+  line-height: 1;
+  font-style: italic;
+  cursor: help;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+.fourier .fourier-info:hover {
+  border-color: rgba(74, 163, 255, 0.9);
+  color: rgba(74, 163, 255, 0.9);
+}
+.fourier-tip {
+  position: fixed;
+  max-width: 320px;
+  background: #0a0c10;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #e8e8ec;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  padding: 9px 11px;
+  border-radius: 8px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s;
+  z-index: 1000;
+  white-space: pre-line;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
 }
