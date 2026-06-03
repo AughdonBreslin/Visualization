@@ -527,6 +527,7 @@
     const radiusSl       = document.getElementById('fourierRadius');
     const radiusOut      = document.getElementById('fourierRadiusValue');
     const radiusLabel    = document.getElementById('fourierRadiusLabel');
+    const formulaBox     = document.getElementById('fourierFormulaBox');
     const tilingChk      = document.getElementById('fourierTiling');
     const tilingText     = document.getElementById('fourierTilingText');
     const origLabel      = document.getElementById('fourierOrigLabel');
@@ -601,6 +602,44 @@
       render();
     }
 
+    // Live formula box: reconstruction sum (with the current cutoff substituted)
+    // plus the basis function for the selected basis. Debounced so dragging the
+    // cutoff slider does not re-typeset MathJax on every tick.
+    let formulaTimer = null;
+    function scheduleFormula(basis, val) {
+      if (!formulaBox) return;
+      if (formulaTimer) clearTimeout(formulaTimer);
+      formulaTimer = setTimeout(function () { updateFormula(basis, val); }, 80);
+    }
+    function typesetFormula() {
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([formulaBox]).catch(function () {});
+      } else {
+        setTimeout(typesetFormula, 150);
+      }
+    }
+    function updateFormula(basis, val) {
+      if (!formulaBox) return;
+      let recon, basisFn;
+      if (basis === 'fourier') {
+        recon = 'f[x,y] \\approx \\frac{1}{N^2} \\sum_{u^2+v^2 \\le ' + val + '^2} F[u,v]\\, e^{\\,i 2\\pi(ux+vy)/N}';
+        basisFn = '\\varphi_{u,v}[x,y] = e^{\\,i 2\\pi(ux+vy)/N}';
+      } else if (basis === 'poly') {
+        recon = 'f(x,y) \\approx \\sum_{j=0}^{' + val + '} \\sum_{k=0}^{' + val + '} C[j,k]\\, P_j(\\tilde x)\\, P_k(\\tilde y)';
+        basisFn = 'P_j(\\tilde x):\\ \\text{Legendre polynomial of degree } j,\\ \\tilde x \\in [-1, 1]';
+      } else if (basis === 'cheb') {
+        recon = 'f(x,y) \\approx \\sum_{j=0}^{' + val + '} \\sum_{k=0}^{' + val + '} C[j,k]\\, T_j(\\tilde x)\\, T_k(\\tilde y)';
+        basisFn = 'T_j(\\tilde x) = \\cos\\!\\big(j \\arccos \\tilde x\\big)';
+      } else {
+        recon = 'f(x,y) \\approx A_{' + val + '} + \\sum_{\\ell=1}^{' + val + '} \\big( LH_\\ell + HL_\\ell + HH_\\ell \\big)';
+        basisFn = '\\psi(t) = \\begin{cases} +1 & 0 \\le t < \\tfrac12 \\\\ -1 & \\tfrac12 \\le t < 1 \\\\ 0 & \\text{otherwise} \\end{cases}, \\quad \\psi_{j,m}(t) = 2^{j/2}\\psi(2^j t - m)';
+      }
+      formulaBox.innerHTML =
+        '<div class="fourier-formula-line"><div class="fourier-formula-label">Reconstruction</div>$$' + recon + '$$</div>' +
+        '<div class="fourier-formula-line"><div class="fourier-formula-label">Basis function</div>$$' + basisFn + '$$</div>';
+      typesetFormula();
+    }
+
     function render() {
       const basis      = basisSel.value;
       const val        = parseInt(radiusSl.value, 10);
@@ -620,6 +659,9 @@
         const n = (val + 1) ** 2;
         radiusOut.textContent = `degree = ${val}  (${n} coefficients, ${Math.round(n/N2*100)}% of ${N}×${N})`;
       }
+
+      // --- live reconstruction formula box ---
+      scheduleFormula(basis, val);
 
       // --- left panel: original or extension/extrapolation ---
       if (showExt) {
