@@ -5,3 +5,6 @@
 
 # Personal local Claude Code settings
 .claude/settings.local.json
+
+# Python virtualenvs
+manimexp/.venv/
