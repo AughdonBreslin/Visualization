@@ -146,8 +146,9 @@ class IsomapWalkthrough(ThreeDScene):
 
         bmat = B.matrix_grid(self.data["excerpt_B"], highlight_negative=True)
         bmat.scale(SCALE).move_to([0, Y_BOT, 0])
+        bmat.set_opacity(0)
         self.add_fixed_in_frame_mobjects(bmat)
-        self.play(ReplacementTransform(dmat.copy(), bmat, run_time=S.T_SLOW))
+        self.play(bmat.animate.set_opacity(1.0), run_time=S.T_SLOW)
         self.set_caption("The result B behaves like inner products about the center.")
         self.formula_dc, self.bmat, self.dmat = f, bmat, dmat
         self.wait(S.T_HOLD)
