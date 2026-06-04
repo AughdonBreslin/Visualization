@@ -120,7 +120,11 @@ fixes back to the animator until it is met.
 
 ## Manim pipeline and repository structure
 
-- `manim/` (new): the Python render project.
+Note: the Python render project directory is `manimexp/` (a directory named `manim/` would
+collide with the manim library package and break `from manim import *`). The asset output path
+`assets/manim/isomap/` is unchanged. The text below uses `manimexp/`.
+
+- `manimexp/` (new): the Python render project.
   - One `Scene` per step (six scenes), in one file or a small module per step.
   - Shared helpers: Swiss roll generation, kNN, geodesic (Dijkstra), double-centering, and the
     worked-number computations, plus shared styling/colors. These mirror the math already in

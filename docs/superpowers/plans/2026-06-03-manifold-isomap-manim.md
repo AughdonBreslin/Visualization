@@ -19,7 +19,16 @@
 
 ## File Structure
 
-- `manim/` (new Python render project, dev-time only)
+> **Naming correction (applied during execution):** the Python render project directory is
+> `manimexp/`, NOT `manim/`. A directory named `manim/` collides with the manim library package
+> and breaks `from manim import *` in the scenes. Everywhere below that shows `manim/<...>` for
+> the project (requirements, README, isomap/, tests/, render.sh, .venv), read it as
+> `manimexp/<...>`. The asset output path `assets/manim/isomap/` is unchanged (no import
+> conflict). The walkthrough scene uses absolute imports (`from manimexp.isomap import style as
+> S, builders as B`; `from manimexp.isomap.data import build_dataset`) and is rendered from the
+> repo root with `PYTHONPATH=.` so both the manim library and the project package resolve.
+
+- `manimexp/` (new Python render project, dev-time only)
   - `manim/requirements.txt` - pinned deps (manim, numpy, scipy).
   - `manim/isomap/__init__.py`
   - `manim/isomap/style.py` - palette, fonts, timing constants (one visual system).
