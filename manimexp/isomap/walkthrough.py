@@ -20,7 +20,7 @@ import numpy as np
 from manim import (
     ThreeDScene, ThreeDAxes, DEGREES, FadeIn, FadeOut, Create, Write,
     ReplacementTransform, DOWN, UP, RIGHT, LEFT, IN, OUT,
-    LaggedStart, AnimationGroup, Dot, VGroup, Line,
+    LaggedStart, AnimationGroup, Dot, Dot3D, VGroup, Line,
     Text, MathTex, interpolate_color,
 )
 from manim.scene.section import DefaultSectionType
@@ -147,37 +147,34 @@ class IsomapWalkthrough(ThreeDScene):
         center_edges = self.data["center_edges"]  # list of (j, weight) sorted by weight
 
         # Dim the cloud so the center node pops.
-        center_dot = Dot(
-            point=pts[center],
-            radius=S.DOT_RADIUS * 3.0,
-            fill_opacity=1.0,
-            color=S.ACCENT,
-        )
+        # Fix 1: use a real 3D sphere for the center node at local scale (~10 objects total).
+        center_sphere = B.knn_sphere(pts[center], radius=0.06, color=S.ACCENT)
         self.play(
             self.cloud.animate.set_opacity(0.18),
             run_time=S.T_FAST,
         )
-        self.play(FadeIn(center_dot, run_time=S.T_FAST))
+        self.play(FadeIn(center_sphere, run_time=S.T_FAST))
 
-        # Refinement 1: zoom in hard so the center node and its neighbors fill the frame.
-        # The neighborhood radius is ~0.4 scene units; zoom=10 makes it span most of the
-        # view. Use a flatter phi (more top-down) so the star of edges is clearly legible.
+        # Fix 2: zoom in much more (zoom=18) so the neighborhood fills the frame.
+        # phi~30 deg gives a near-top-down view so the star of edges spreads out clearly.
         self.move_camera(
             phi=30 * DEGREES,
             theta=30 * DEGREES,
-            zoom=10,
+            zoom=18,
             frame_center=pts[center],
             run_time=S.T_NORMAL,
         )
 
-        # Draw neighbor edges one at a time with world-space weight labels.
-        # Labels are 3D Text placed at the midpoint of each edge, offset slightly
-        # perpendicular to the edge so they do not sit on the line.
+        # Fix 3 and Fix 4: reveal each edge with its neighbor sphere and distance label
+        # strictly one at a time. Labels are placed at the edge midpoint, offset
+        # perpendicular to the edge direction so they sit beside the line (not on it).
+        # At zoom=18 the label font_size needs to be scaled down by 1/18.
         neighbor_lines = VGroup()
         neighbor_labels = VGroup()
-        neighbor_dots = VGroup()
+        neighbor_spheres = VGroup()
 
-        edge_anims = []
+        self.set_caption("Each point links to its nearest neighbors, weighted by distance.")
+
         for idx, (j, w) in enumerate(center_edges):
             seg = Line(
                 start=pts[center],
@@ -185,17 +182,14 @@ class IsomapWalkthrough(ThreeDScene):
                 stroke_width=2.5,
                 color=S.ACCENT,
             ).set_opacity(0.85)
-            neighbor_dot = Dot(
-                point=pts[j],
-                radius=S.DOT_RADIUS * 2.2,
-                fill_opacity=0.9,
-                color=S.WARM,
-            )
-            # Weight label at world-space midpoint, offset slightly off the edge line.
-            # Alternate the offset direction (left/right) by index to reduce overlaps.
+
+            # Fix 1: real 3D sphere for each neighbor.
+            nbr_sphere = B.knn_sphere(pts[j], radius=0.05, color=S.WARM)
+
+            # Fix 3: label midpoint + perpendicular offset in world space.
             mid = (pts[center] + pts[j]) / 2.0
             edge_vec = pts[j] - pts[center]
-            # Perpendicular in the XZ plane (cross with Y-up).
+            # Perpendicular in the XZ plane (cross with Y-up gives a vector in XZ).
             perp = np.array([-edge_vec[2], 0.0, edge_vec[0]])
             perp_len = np.linalg.norm(perp)
             if perp_len > 1e-9:
@@ -203,30 +197,36 @@ class IsomapWalkthrough(ThreeDScene):
             else:
                 perp = np.array([0.0, 0.0, 1.0])
             sign = 1.0 if idx % 2 == 0 else -1.0
-            # Offset is in world units; 0.03 units is visible at zoom=10.
-            offset = perp * 0.03 * sign
+            # Offset 0.018 world units at zoom=18 places the label clearly beside the line.
+            offset = perp * 0.018 * sign
             label_pos = mid + offset
-            # Scale down by 1/zoom so the label appears at a readable size on screen.
-            # At zoom=10, a font_size=14 Text appears 10x larger than intended, so
-            # we scale by 0.1 to compensate. The result looks like ~font_size 14 on screen.
-            lbl = Text(f"{w:.2f}", font_size=14, color=S.INK).scale(0.1).move_to(label_pos)
+            # Scale: font_size=24 scaled by 1/18 so on-screen it reads as a comfortable size.
+            lbl = Text(f"{w:.2f}", font_size=24, color=S.INK).scale(1.0 / 18.0).move_to(label_pos)
 
             neighbor_lines.add(seg)
             neighbor_labels.add(lbl)
-            neighbor_dots.add(neighbor_dot)
-            # Each edge anim: create the line and neighbor dot together.
-            edge_anims.append(AnimationGroup(
-                Create(seg, run_time=0.25),
-                FadeIn(neighbor_dot, run_time=0.25),
-            ))
+            neighbor_spheres.add(nbr_sphere)
 
-        self.set_caption("Each point links to its nearest neighbors, weighted by distance.")
-        self.play(LaggedStart(*edge_anims, lag_ratio=0.35))
-        # Fade in weight labels after edges are drawn (cleaner read).
-        self.play(*(FadeIn(lbl, run_time=S.T_FAST) for lbl in neighbor_labels))
+            # Fix 4: one sequential self.play per edge -- edge + sphere + label together.
+            self.play(
+                Create(seg),
+                FadeIn(nbr_sphere),
+                FadeIn(lbl),
+                run_time=0.5,
+            )
+
         self.wait(S.T_HOLD)
 
-        # Zoom back out before the full-graph beat; restore working orientation.
+        # Fade out all local kNN objects before restoring the camera.
+        self.play(
+            FadeOut(center_sphere),
+            FadeOut(neighbor_lines),
+            FadeOut(neighbor_spheres),
+            FadeOut(neighbor_labels),
+            run_time=S.T_FAST,
+        )
+
+        # Zoom back out; restore working orientation for the full-graph beat.
         self.move_camera(
             phi=65 * DEGREES,
             theta=30 * DEGREES,
@@ -235,14 +235,10 @@ class IsomapWalkthrough(ThreeDScene):
             run_time=S.T_NORMAL,
         )
 
-        # Pan back out: restore cloud opacity, fade all local demo elements.
+        # Restore cloud opacity.
         self.play(
             self.cloud.animate.set_opacity(1.0),
-            FadeOut(center_dot),
-            FadeOut(neighbor_lines),
-            FadeOut(neighbor_dots),
-            FadeOut(neighbor_labels),
-            run_time=S.T_NORMAL,
+            run_time=S.T_FAST,
         )
 
         # Now show the full graph edges for all points.

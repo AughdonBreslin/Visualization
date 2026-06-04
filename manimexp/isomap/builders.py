@@ -13,7 +13,7 @@ Manim 0.18.1 API notes (adaptations from the design spec):
 - Table.get_entries((r, c)) uses 1-based (row, col) indices.
 """
 import numpy as np
-from manim import VGroup, Dot, Line, Line3D, Text, MathTex, Table, interpolate_color, DOWN, LEFT
+from manim import VGroup, Dot, Dot3D, Line, Line3D, Text, MathTex, Table, interpolate_color, DOWN, LEFT, UL
 from . import style as S
 
 # Thickness for Line3D (scene units, ~0.01-0.04 range)
@@ -31,17 +31,31 @@ def point_cloud(points, t):
 
     Dot is a VMobject (fast to render) that can live anywhere in 3D space
     inside a ThreeDScene. DOT_RADIUS is in scene units.
+
+    A radial sheen highlight (set_sheen) gives each flat circle a spherical
+    appearance without the cost of a true 3D surface mesh.
     """
     tmin, tmax = float(np.min(t)), float(np.max(t))
-    return VGroup(*[
-        Dot(
+    dots = []
+    for i in range(points.shape[0]):
+        dot = Dot(
             point=points[i],
             radius=S.DOT_RADIUS,
             fill_opacity=1.0,
             color=color_for_t(t[i], tmin, tmax),
         )
-        for i in range(points.shape[0])
-    ])
+        dot.set_sheen(0.5, direction=UL)
+        dots.append(dot)
+    return VGroup(*dots)
+
+
+def knn_sphere(point, radius, color):
+    """A true 3D Dot3D sphere for the local kNN beat.
+
+    Only used for the ~10 objects in the local neighborhood where the cost is
+    acceptable and the spherical look is visually important at high zoom.
+    """
+    return Dot3D(point=point, radius=radius, color=color)
 
 
 def graph_edges(points, edges, color=None, opacity=S.EDGE_OPACITY):
