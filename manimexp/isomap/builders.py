@@ -12,8 +12,10 @@ Manim 0.18.1 API notes (adaptations from the design spec):
 - Line stroke_width applies normally to 2D Line VMobjects.
 - Table.get_entries((r, c)) uses 1-based (row, col) indices.
 """
+import textwrap
 import numpy as np
-from manim import VGroup, Dot, Dot3D, Line, Line3D, Text, MathTex, Table, interpolate_color, DOWN, LEFT, UL
+from manim import (VGroup, Dot, Dot3D, Line, Line3D, Text, MathTex, Table,
+                   interpolate_color, config, DOWN, LEFT, UL)
 from . import style as S
 
 # Thickness for Line3D (scene units, ~0.01-0.04 range)
@@ -139,7 +141,14 @@ def recolor_cloud_by_values(cloud, values, c_lo, c_hi):
 
 
 def caption(text):
-    return Text(text, font_size=S.CAPTION_SIZE, color=S.INK)
+    # Wrap long captions to keep them inside the frame, then hard-cap the width
+    # so nothing overflows off-screen.
+    wrapped = "\n".join(textwrap.wrap(text, width=42)) or text
+    mob = Text(wrapped, font_size=S.CAPTION_SIZE, color=S.INK, line_spacing=0.6)
+    max_w = config.frame_width - 1.2
+    if mob.width > max_w:
+        mob.scale_to_fit_width(max_w)
+    return mob
 
 
 def formula(tex):
