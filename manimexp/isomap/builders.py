@@ -13,7 +13,7 @@ Manim 0.18.1 API notes (adaptations from the design spec):
 - Table.get_entries((r, c)) uses 1-based (row, col) indices.
 """
 import numpy as np
-from manim import VGroup, Dot, Line, Line3D, Text, MathTex, Table, interpolate_color
+from manim import VGroup, Dot, Line, Line3D, Text, MathTex, Table, interpolate_color, DOWN, LEFT
 from . import style as S
 
 # Thickness for Line3D (scene units, ~0.01-0.04 range)
@@ -65,23 +65,33 @@ def graph_edges(points, edges, color=None, opacity=S.EDGE_OPACITY):
     return lines
 
 
-def path_polyline(points, path, color=None):
+def path_polyline(points, path, gradient=True):
     """VGroup of Line3D segments for the highlighted geodesic path.
 
     Using Line3D here (cylinder surface) because it is a single path with
     few segments and the thick 3D cylinder look makes it visually salient
     against the thin 2D edge lines.
+
+    When gradient=True, each segment is colored by its fractional position
+    along the path (from GOOD at the start to WARM at the end).
     """
-    color = color or S.GOOD
-    return VGroup(*[
-        Line3D(
-            start=points[path[a]],
-            end=points[path[a + 1]],
-            thickness=PATH_THICKNESS,
-            color=color,
+    n_segs = len(path) - 1
+    segs = []
+    for a in range(n_segs):
+        if gradient and n_segs > 1:
+            frac = a / (n_segs - 1)
+            seg_color = interpolate_color(S.GOOD, S.WARM, frac)
+        else:
+            seg_color = S.GOOD
+        segs.append(
+            Line3D(
+                start=points[path[a]],
+                end=points[path[a + 1]],
+                thickness=PATH_THICKNESS,
+                color=seg_color,
+            )
         )
-        for a in range(len(path) - 1)
-    ])
+    return VGroup(*segs)
 
 
 def straight_line(start, end, color=None):
@@ -108,3 +118,39 @@ def matrix_grid(values, highlight_negative=True):
                     # get_entries uses 1-based (row, col) indices
                     tbl.get_entries((r + 1, c + 1)).set_color(S.WARM)
     return tbl
+
+
+def pseudocode_panel(active_index):
+    """Build a small fixed-in-frame pseudocode panel for the top-left corner.
+
+    Lines are rendered as plain Text (not MathTex) for speed. The active line
+    is shown in ACCENT at full opacity; the others are dimmed to MUTED at 0.35.
+
+    Parameters
+    ----------
+    active_index : int (0-5), which line to highlight.
+
+    Returns
+    -------
+    VGroup of Text mobjects, suitable for add_fixed_in_frame_mobjects.
+    """
+    lines = [
+        "0: input: points X, neighbors k",
+        "1: for each i: link k nearest; w(i,j)=||x_i - x_j||",
+        "2: D[i,j] = shortest path (Dijkstra)",
+        "3: B = -1/2 J D^2 J",
+        "4: B = V L V^T  (top eigenvectors)",
+        "5: Y = [sqrt(L1) v1, sqrt(L2) v2]",
+    ]
+    items = []
+    for idx, txt in enumerate(lines):
+        if idx == active_index:
+            t = Text(txt, font_size=18, color=S.ACCENT)
+            t.set_opacity(1.0)
+        else:
+            t = Text(txt, font_size=18, color=S.MUTED)
+            t.set_opacity(0.35)
+        items.append(t)
+
+    group = VGroup(*items).arrange(DOWN, aligned_edge=LEFT, buff=0.12)
+    return group
