@@ -8,3 +8,7 @@
 
 # Python virtualenvs
 manimexp/.venv/
+
+# Manim render output (ephemeral, large)
+media/
+manimexp/media/
