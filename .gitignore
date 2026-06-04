@@ -12,3 +12,10 @@ manimexp/.venv/
 # Manim render output (ephemeral, large)
 media/
 manimexp/media/
+# Installed agent skills (tooling, not site source)
+.agents/
+
+# Ephemeral preview renders
+assets/manim/isomap/preview/
+
+manimexp/.logs/

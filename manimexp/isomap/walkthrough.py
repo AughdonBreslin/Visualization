@@ -413,9 +413,9 @@ class IsomapWalkthrough(ThreeDScene):
         # X_SHIFT moves the column right to clear the pseudocode panel (top-left corner).
         SCALE = 0.45
         X_SHIFT = 1.8
-        Y_TOP = 2.5
-        Y_MID = 0.4
-        Y_BOT = -1.8
+        Y_TOP = 2.8
+        Y_MID = 0.7
+        Y_BOT = -1.0
 
         # Enhancement 6: use D_sample and B_sample (real geodesic distances among
         # the 4 sampled path points) instead of generic excerpt_D / excerpt_B.
@@ -434,7 +434,7 @@ class IsomapWalkthrough(ThreeDScene):
         self.add_fixed_in_frame_mobjects(f)
         self.play(Write(f, run_time=S.T_NORMAL))
         self.set_caption(
-            "Subtract the row and column means (double-center) to cancel the norm terms and fix the origin at the centroid."
+            "Center it: subtract the row and column means to fix the origin at the centroid."
         )
         self.wait(S.T_HOLD)
 
