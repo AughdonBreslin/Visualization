@@ -141,73 +141,89 @@ class IsomapWalkthrough(ThreeDScene):
         # Update pseudocode panel: step 1 highlighted.
         self.set_pseudo(1)
 
-        # Enhancement 3: local-first kNN demo.
-        pts = self.data["points"]
-        center = self.data["center"]
-        center_edges = self.data["center_edges"]  # list of (j, weight) sorted by weight
-
-        # Dim the cloud so the center node pops.
-        # Fix 1: use a real 3D sphere for the center node at local scale (~10 objects total).
-        center_sphere = B.knn_sphere(pts[center], radius=0.06, color=S.ACCENT)
+        # ------------------------------------------------------------------ #
+        # Beat 1: clear stage for the schematic illustration                  #
+        # ------------------------------------------------------------------ #
+        # Fade out the real dataset and axes so the schematic reads on a clean
+        # stage. Move camera to a front-on view so the synthetic star is centered.
         self.play(
-            self.cloud.animate.set_opacity(0.18),
+            FadeOut(self.cloud),
+            FadeOut(self.axes),
+            FadeOut(self.axes_labels),
             run_time=S.T_FAST,
         )
-        self.play(FadeIn(center_sphere, run_time=S.T_FAST))
-
-        # Fix 2: zoom in much more (zoom=18) so the neighborhood fills the frame.
-        # phi~30 deg gives a near-top-down view so the star of edges spreads out clearly.
         self.move_camera(
-            phi=30 * DEGREES,
-            theta=30 * DEGREES,
-            zoom=18,
-            frame_center=pts[center],
+            phi=65 * DEGREES,
+            theta=-90 * DEGREES,
+            zoom=1.0,
+            frame_center=[0, 0, 0],
             run_time=S.T_NORMAL,
         )
 
-        # Fix 3 and Fix 4: reveal each edge with its neighbor sphere and distance label
-        # strictly one at a time. Labels are placed at the edge midpoint, offset
-        # perpendicular to the edge direction so they sit beside the line (not on it).
-        # At zoom=18 the label font_size needs to be scaled down by 1/18.
-        neighbor_lines = VGroup()
-        neighbor_labels = VGroup()
-        neighbor_spheres = VGroup()
+        self.set_caption("To build the graph, link each point to its nearest neighbors.")
 
-        self.set_caption("Each point links to its nearest neighbors, weighted by distance.")
+        # ------------------------------------------------------------------ #
+        # Beat 2: synthetic center sphere at the origin                       #
+        # ------------------------------------------------------------------ #
+        center_pt = np.array([0.0, 0.0, 0.0])
+        center_sphere = Dot3D(point=center_pt, radius=0.14, color=S.ACCENT)
+        self.play(FadeIn(center_sphere, run_time=S.T_FAST))
+        self.wait(0.3)
 
-        for idx, (j, w) in enumerate(center_edges):
+        # ------------------------------------------------------------------ #
+        # Beat 3: 6 synthetic neighbor points at hand-picked offsets          #
+        # Camera phi=65, theta=-90: camera along -Y axis, so screen X=X,     #
+        # screen vertical ~= Z. Y is depth only.                              #
+        # Offsets use large X/Z spread and deliberately varied distances      #
+        # (1.0 to 2.2) so labels display distinct numeric values.             #
+        # ------------------------------------------------------------------ #
+        offsets = np.array([
+            [ 1.55,  0.20,  0.10],   # right,         d~1.56
+            [ 0.70,  0.30,  1.70],   # upper-right,   d~1.86
+            [-0.95,  0.35,  1.30],   # upper-left,    d~1.62
+            [-1.60, -0.25, -0.15],   # left,          d~1.62
+            [-0.65, -0.30, -1.50],   # lower-left,    d~1.66
+            [ 0.95,  0.40, -1.20],   # lower-right,   d~1.55
+        ], dtype=float)
+
+        neighbor_pts = [center_pt + off for off in offsets]
+        # Compute Euclidean distances for weight labels.
+        distances = [float(np.linalg.norm(off)) for off in offsets]
+
+        # ------------------------------------------------------------------ #
+        # Beat 4: draw edges one at a time with neighbor sphere + label       #
+        # ------------------------------------------------------------------ #
+        self.set_caption("Each link is weighted by the distance between the points.")
+
+        schematic_lines = VGroup()
+        schematic_spheres = VGroup()
+        schematic_labels = []
+
+        for idx, (nbr_pt, dist) in enumerate(zip(neighbor_pts, distances)):
+            # Edge from center to neighbor.
             seg = Line(
-                start=pts[center],
-                end=pts[j],
-                stroke_width=2.5,
+                start=center_pt,
+                end=nbr_pt,
+                stroke_width=2.8,
                 color=S.ACCENT,
             ).set_opacity(0.85)
 
-            # Fix 1: real 3D sphere for each neighbor.
-            nbr_sphere = B.knn_sphere(pts[j], radius=0.05, color=S.WARM)
+            # Neighbor sphere (Dot3D; small count, cheap).
+            nbr_sphere = Dot3D(point=nbr_pt, radius=0.11, color=S.WARM)
 
-            # Fix 3: label midpoint + perpendicular offset in world space.
-            mid = (pts[center] + pts[j]) / 2.0
-            edge_vec = pts[j] - pts[center]
-            # Perpendicular in the XZ plane (cross with Y-up gives a vector in XZ).
-            perp = np.array([-edge_vec[2], 0.0, edge_vec[0]])
-            perp_len = np.linalg.norm(perp)
-            if perp_len > 1e-9:
-                perp = perp / perp_len
-            else:
-                perp = np.array([0.0, 0.0, 1.0])
-            sign = 1.0 if idx % 2 == 0 else -1.0
-            # Offset 0.018 world units at zoom=18 places the label clearly beside the line.
-            offset = perp * 0.018 * sign
-            label_pos = mid + offset
-            # Scale: font_size=24 scaled by 1/18 so on-screen it reads as a comfortable size.
-            lbl = Text(f"{w:.2f}", font_size=24, color=S.INK).scale(1.0 / 18.0).move_to(label_pos)
+            # Weight label placed near the neighbor end of the edge, offset
+            # slightly outward (away from center) so it does not overlap the
+            # neighbor sphere. Each label ends up near its own neighbor and
+            # therefore far from every other edge's label.
+            edge_dir = (nbr_pt - center_pt) / dist  # unit vector center -> neighbor
+            label_pos = nbr_pt + edge_dir * 0.25
+            lbl = Text(f"{dist:.2f}", font_size=22, color=S.INK).move_to(label_pos)
 
-            neighbor_lines.add(seg)
-            neighbor_labels.add(lbl)
-            neighbor_spheres.add(nbr_sphere)
+            schematic_lines.add(seg)
+            schematic_spheres.add(nbr_sphere)
+            schematic_labels.append(lbl)
 
-            # Fix 4: one sequential self.play per edge -- edge + sphere + label together.
+            # Draw edge, fade in sphere and label; fully sequential.
             self.play(
                 Create(seg),
                 FadeIn(nbr_sphere),
@@ -215,18 +231,19 @@ class IsomapWalkthrough(ThreeDScene):
                 run_time=0.5,
             )
 
+        # ------------------------------------------------------------------ #
+        # Beat 5: hold so the finished star reads                             #
+        # ------------------------------------------------------------------ #
         self.wait(S.T_HOLD)
 
-        # Fade out all local kNN objects before restoring the camera.
-        self.play(
-            FadeOut(center_sphere),
-            FadeOut(neighbor_lines),
-            FadeOut(neighbor_spheres),
-            FadeOut(neighbor_labels),
-            run_time=S.T_FAST,
-        )
+        # ------------------------------------------------------------------ #
+        # Beat 6: fade out schematic, fade dataset and axes back in           #
+        # ------------------------------------------------------------------ #
+        schematic_all = VGroup(center_sphere, schematic_lines, schematic_spheres,
+                               *schematic_labels)
+        self.play(FadeOut(schematic_all), run_time=S.T_FAST)
 
-        # Zoom back out; restore working orientation for the full-graph beat.
+        # Restore working camera orientation and bring the real data back.
         self.move_camera(
             phi=65 * DEGREES,
             theta=30 * DEGREES,
@@ -234,20 +251,30 @@ class IsomapWalkthrough(ThreeDScene):
             frame_center=[0, 0, 0],
             run_time=S.T_NORMAL,
         )
-
-        # Restore cloud opacity.
         self.play(
-            self.cloud.animate.set_opacity(1.0),
+            FadeIn(self.cloud),
+            FadeIn(self.axes),
             run_time=S.T_FAST,
         )
+        self.add(self.axes_labels)
 
-        # Now show the full graph edges for all points.
+        # ------------------------------------------------------------------ #
+        # Beat 7: illuminate the full kNN graph with a progressive sweep      #
+        # ------------------------------------------------------------------ #
+        self.set_caption("Do this for every point and the graph lights up across the data.")
         self.edges_mob = B.graph_edges(self.data["points"], self.data["edges"])
-        self.play(FadeIn(self.edges_mob, run_time=S.T_SLOW))
-        self.set_caption("Do this for every point and the graph emerges.")
+        # LaggedStart with a small lag_ratio so edges appear in a sweeping wave.
+        self.play(
+            LaggedStart(
+                *[FadeIn(edge) for edge in self.edges_mob],
+                lag_ratio=0.004,
+                run_time=S.T_SLOW,
+            )
+        )
 
-        # Refinement 2: reorient the roll to stand up (long axis vertical) and orbit.
-        # The Swiss roll height is roughly the y axis; phi~80 deg gives a side-on view.
+        # ------------------------------------------------------------------ #
+        # Beat 8: roll the graph upright and orbit (existing behavior kept)   #
+        # ------------------------------------------------------------------ #
         orbit_time = 8.0
         self.move_camera(phi=80 * DEGREES, theta=30 * DEGREES, run_time=S.T_NORMAL)
         self.begin_ambient_camera_rotation(rate=2 * np.pi / orbit_time, about="theta")
