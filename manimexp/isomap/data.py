@@ -3,6 +3,7 @@
 Pure numpy/scipy. Deterministic given a seed so the rendered numbers are stable
 and unit-testable.
 """
+import heapq
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import shortest_path
@@ -66,6 +67,117 @@ def top2_eig(B):
     return vals[order], vecs[:, order]
 
 
+def neighbor_edges(points, adj, center):
+    """Return list of (j, weight) for every neighbor j of center in adj.
+
+    A neighbor is any node j != center where adj[center, j] > 0.
+    The list is sorted ascending by weight.
+
+    Parameters
+    ----------
+    points : ignored (reserved for future use; pass None if not needed)
+    adj    : NxN numpy array of edge weights (0 means no edge)
+    center : int, the query node index
+    """
+    n = adj.shape[0]
+    edges = [
+        (j, float(adj[center, j]))
+        for j in range(n)
+        if j != center and adj[center, j] > 0
+    ]
+    edges.sort(key=lambda x: x[1])
+    return edges
+
+
+def dijkstra_order(adj, src):
+    """Run Dijkstra from src on a dense weight matrix and record settle order.
+
+    Parameters
+    ----------
+    adj : NxN numpy array; adj[i, j] > 0 is the edge weight, 0 means no edge.
+    src : int, the source node.
+
+    Returns
+    -------
+    order : list of node indices in the order they are finalized (settled),
+            order[0] == src.
+    dist  : 1-D numpy array of final shortest distances from src.
+    """
+    n = adj.shape[0]
+    dist = np.full(n, np.inf)
+    dist[src] = 0.0
+    settled = [False] * n
+    order = []
+    # heap entries: (distance, node)
+    heap = [(0.0, src)]
+    while heap:
+        d, u = heapq.heappop(heap)
+        if settled[u]:
+            continue
+        settled[u] = True
+        order.append(u)
+        for v in range(n):
+            if v == u or adj[u, v] == 0:
+                continue
+            nd = d + adj[u, v]
+            if nd < dist[v]:
+                dist[v] = nd
+                heapq.heappush(heap, (nd, v))
+    return order, dist
+
+
+def power_iteration_trace(M, iters=10, seed=0):
+    """Trace power iteration for the dominant eigenvector of symmetric matrix M.
+
+    Parameters
+    ----------
+    M     : symmetric NxN numpy array
+    iters : number of iterations to run (result has iters+1 entries)
+    seed  : integer seed for the initial random vector
+
+    Returns
+    -------
+    vectors  : list of iters+1 unit-norm numpy arrays (the estimate after each
+               multiply-and-normalize step, starting from the seeded vector).
+    rayleigh : list of iters+1 Rayleigh quotients v^T M v (each v is unit norm).
+    """
+    rng = np.random.default_rng(seed)
+    v = rng.standard_normal(M.shape[0])
+    v = v / np.linalg.norm(v)
+    vectors = [v.copy()]
+    rayleigh = [float(v @ M @ v)]
+    for _ in range(iters):
+        v = M @ v
+        norm = np.linalg.norm(v)
+        if norm > 0:
+            v = v / norm
+        vectors.append(v.copy())
+        rayleigh.append(float(v @ M @ v))
+    return vectors, rayleigh
+
+
+def sample_along_path(path, m=4):
+    """Return m node indices spaced as evenly as possible along path.
+
+    Always includes path[0] and path[-1]. If len(path) <= m, returns all
+    elements (with first and last guaranteed at the boundaries).
+
+    Parameters
+    ----------
+    path : list of node indices
+    m    : desired number of samples
+
+    Returns
+    -------
+    list of m node indices (or len(path) if path is shorter than m)
+    """
+    L = len(path)
+    if L <= m:
+        return list(path)
+    indices = [round(i * (L - 1) / (m - 1)) for i in range(m)]
+    return [path[i] for i in indices]
+
+
 def build_dataset(n=1000, k=8, seed=0):
     roll = swiss_roll(n=n, seed=seed)
     points = roll["points"]
@@ -79,10 +191,36 @@ def build_dataset(n=1000, k=8, seed=0):
     B = double_center_squared(Dfix)
     eigvals, eigvecs = top2_eig(B)
     embedding = eigvecs * np.sqrt(np.maximum(eigvals, 0.0))
+
+    # Center: node closest to the centroid of all points (interior, typical node).
+    centroid = points.mean(axis=0)
+    center = int(np.argmin(np.linalg.norm(points - centroid, axis=1)))
+
+    center_edges = neighbor_edges(points, adj, center)
+
+    dijk_order, _ = dijkstra_order(adj, src)
+
+    power_vecs, power_rayleigh = power_iteration_trace(B, iters=10, seed=0)
+
+    sample_idx = sample_along_path(path, m=4)
+
+    D_sub = Dfix[np.ix_(sample_idx, sample_idx)]
+    D_sample = np.round(D_sub, 2).tolist()
+
+    B_sample = np.round(double_center_squared(D_sub), 2).tolist()
+
     return {
         "points": points, "t": roll["t"], "adj": adj, "edges": edges,
         "D": Dfix, "src": src, "tgt": tgt, "path": path,
         "B": B, "eigvals": eigvals, "eigvecs": eigvecs, "embedding": embedding,
         "excerpt_D": np.round(Dfix[:4, :4], 2).tolist(),
         "excerpt_B": np.round(B[:4, :4], 2).tolist(),
+        "center": center,
+        "center_edges": center_edges,
+        "dijkstra_order": dijk_order,
+        "power_vectors": power_vecs,
+        "power_rayleigh": power_rayleigh,
+        "sample_idx": sample_idx,
+        "D_sample": D_sample,
+        "B_sample": B_sample,
     }
