@@ -100,6 +100,30 @@ def straight_line(start, end, color=None):
     return Line3D(start=start, end=end, thickness=STRAIGHT_THICKNESS, color=color)
 
 
+def recolor_cloud_by_values(cloud, values, c_lo, c_hi):
+    """Animate-recolor a VGroup of Dots by a per-point scalar array.
+
+    Parameters
+    ----------
+    cloud : VGroup  -- the point cloud whose submobjects are Dot objects.
+    values : array-like  -- per-point scalar values (length must match cloud).
+    c_lo, c_hi : ManimColor  -- colors mapped to the minimum and maximum value.
+
+    Returns
+    -------
+    list of .animate expressions suitable for self.play(*...).
+    """
+    vals = np.asarray(values, dtype=float)
+    vmin, vmax = float(vals.min()), float(vals.max())
+    span = max(1e-9, vmax - vmin)
+    anims = []
+    for i, dot in enumerate(cloud.submobjects):
+        u = (vals[i] - vmin) / span
+        col = interpolate_color(c_lo, c_hi, u)
+        anims.append(dot.animate.set_color(col))
+    return anims
+
+
 def caption(text):
     return Text(text, font_size=S.CAPTION_SIZE, color=S.INK)
 

@@ -159,6 +159,13 @@ class IsomapWalkthrough(ThreeDScene):
         )
         self.play(FadeIn(center_dot, run_time=S.T_FAST))
 
+        # Refinement 1: zoom in on the center node so the neighborhood fills the frame.
+        self.move_camera(
+            zoom=2.2,
+            frame_center=pts[center],
+            run_time=S.T_NORMAL,
+        )
+
         # Draw neighbor edges one at a time with weight labels.
         neighbor_lines = VGroup()
         neighbor_labels = VGroup()
@@ -198,6 +205,13 @@ class IsomapWalkthrough(ThreeDScene):
         self.play(*(lbl.animate.set_opacity(1.0) for lbl in neighbor_labels), run_time=S.T_FAST)
         self.wait(S.T_HOLD)
 
+        # Refinement 1 cont: zoom back out before the full-graph beat.
+        self.move_camera(
+            zoom=0.9,
+            frame_center=[0, 0, 0],
+            run_time=S.T_NORMAL,
+        )
+
         # Pan back out: restore cloud opacity, fade local demo elements.
         self.play(
             self.cloud.animate.set_opacity(1.0),
@@ -212,6 +226,16 @@ class IsomapWalkthrough(ThreeDScene):
         self.edges_mob = B.graph_edges(self.data["points"], self.data["edges"])
         self.play(FadeIn(self.edges_mob, run_time=S.T_SLOW))
         self.set_caption("Do this for every point and the graph emerges.")
+
+        # Refinement 2: reorient the roll to stand up (long axis vertical) and orbit.
+        # The Swiss roll height is roughly the y axis; phi~80 deg gives a side-on view.
+        orbit_time = 8.0
+        self.move_camera(phi=80 * DEGREES, theta=30 * DEGREES, run_time=S.T_NORMAL)
+        self.begin_ambient_camera_rotation(rate=2 * np.pi / orbit_time, about="theta")
+        self.wait(orbit_time)
+        self.stop_ambient_camera_rotation()
+        # Return to the working orientation for continuity into step 3.
+        self.move_camera(phi=65 * DEGREES, theta=30 * DEGREES, zoom=0.9, run_time=S.T_NORMAL)
         self.wait(S.T_HOLD)
 
     # ------------------------------------------------------------------ #
@@ -253,7 +277,6 @@ class IsomapWalkthrough(ThreeDScene):
         self.wait(0.2)
 
         # Animate wavefront chunk by chunk.
-        settled_so_far = 0
         for chunk_start in range(0, n_nodes, chunk_size):
             chunk = dijk_order[chunk_start: chunk_start + chunk_size]
             if not chunk:
@@ -265,7 +288,6 @@ class IsomapWalkthrough(ThreeDScene):
             ]
             if anims:
                 self.play(AnimationGroup(*anims, lag_ratio=0.0), run_time=0.15)
-            settled_so_far += len(chunk)
 
         # Highlight src and tgt after wavefront.
         self.play(
@@ -274,11 +296,14 @@ class IsomapWalkthrough(ThreeDScene):
         )
         self.wait(S.T_HOLD)
 
-        # Restore cloud to normal colors for the path display.
-        # Rebuild the cloud in its original colors by fading it out and back in.
-        self.play(FadeOut(self.cloud), run_time=S.T_FAST)
-        self.cloud = B.point_cloud(self.data["points"], self.data["t"])
-        self.play(FadeIn(self.cloud, run_time=S.T_FAST))
+        # Refinement 4: recolor the whole cloud by geodesic distance from src.
+        dist = self.data["D"][self.data["src"]]
+        geo_color_anims = B.recolor_cloud_by_values(self.cloud, dist, S.ACCENT, S.WARM)
+        self.set_caption("Color shows geodesic distance from the source point.")
+        self.play(AnimationGroup(*geo_color_anims, lag_ratio=0.0), run_time=S.T_SLOW)
+        self.wait(S.T_HOLD)
+
+        # Keep the geodesic-distance coloring; do NOT rebuild with t colors.
         self.play(self.edges_mob.animate.set_opacity(0.06), run_time=S.T_FAST)
 
         # Straight line vs. geodesic path.
@@ -288,9 +313,17 @@ class IsomapWalkthrough(ThreeDScene):
 
         self.play(Create(straight, run_time=S.T_NORMAL))
         self.set_caption("Straight-line distance cuts through space, off the sheet.")
+
+        # Refinement 5: gentle orbit while showing straight-line and geodesic path.
+        orbit_time_paths = 8.0
+        self.begin_ambient_camera_rotation(rate=2 * np.pi / orbit_time_paths * 0.4, about="theta")
+
         self.wait(S.T_HOLD)
         self.play(Create(geo, run_time=S.T_SLOW))
         self.set_caption("Geodesic distance follows the graph along the sheet.")
+        self.wait(S.T_HOLD + S.T_SLOW)
+
+        self.stop_ambient_camera_rotation()
         self.geo, self.straight = geo, straight
         self.wait(S.T_HOLD)
 
@@ -336,20 +369,27 @@ class IsomapWalkthrough(ThreeDScene):
         dmat.scale(SCALE).move_to([X_SHIFT, Y_TOP, 0])
         self.add_fixed_in_frame_mobjects(dmat)
         self.play(FadeIn(dmat, run_time=S.T_NORMAL))
-        self.set_caption("Take the geodesic distances among these sampled points.")
+        # Refinement 6: explain the why with sequenced captions.
+        self.set_caption("Distances alone do not place points; we need inner products.")
+        self.wait(S.T_HOLD)
+        self.set_caption("Square the distances: |x_i - x_j|^2 expands into inner products plus norms.")
+        self.wait(S.T_HOLD)
 
         f = B.formula(r"B = -\tfrac{1}{2}\, J\, D^2\, J")
         f.scale(0.85).move_to([X_SHIFT, Y_MID, 0])
         self.add_fixed_in_frame_mobjects(f)
         self.play(Write(f, run_time=S.T_NORMAL))
-        self.set_caption("Subtract row and column means, re-add the grand mean, scale by -1/2.")
+        self.set_caption(
+            "Subtract the row and column means (double-center) to cancel the norm terms and fix the origin at the centroid."
+        )
+        self.wait(S.T_HOLD)
 
         bmat = B.matrix_grid(self.data["B_sample"], highlight_negative=True)
         bmat.scale(SCALE).move_to([X_SHIFT, Y_BOT, 0])
         bmat.set_opacity(0)
         self.add_fixed_in_frame_mobjects(bmat)
         self.play(bmat.animate.set_opacity(1.0), run_time=S.T_SLOW)
-        self.set_caption("The result B behaves like inner products about the center.")
+        self.set_caption("What remains is B: the inner products of centered points, ready to factor.")
         self.formula_dc, self.bmat, self.dmat = f, bmat, dmat
         self.wait(S.T_HOLD)
 
@@ -465,7 +505,21 @@ class IsomapWalkthrough(ThreeDScene):
         if scale > 1e-9:
             emb = emb / scale * 3.5
         pts3 = np.column_stack([emb[:, 0], emb[:, 1], np.zeros(emb.shape[0])])
-        flat = B.point_cloud(pts3, self.data["t"])
+        # Refinement 4 cont: color the embedded cloud by geodesic distance (consistent
+        # with the 3D cloud coloring introduced in section_geodesic).
+        dist = self.data["D"][self.data["src"]]
+        dist_arr = np.asarray(dist, dtype=float)
+        dmin, dmax = float(dist_arr.min()), float(dist_arr.max())
+        span = max(1e-9, dmax - dmin)
+        flat = VGroup(*[
+            Dot(
+                point=pts3[i],
+                radius=S.DOT_RADIUS,
+                fill_opacity=1.0,
+                color=interpolate_color(S.ACCENT, S.WARM, (dist_arr[i] - dmin) / span),
+            )
+            for i in range(pts3.shape[0])
+        ])
 
         # Place formula at top-right to avoid the pseudocode panel (top-left).
         f3 = B.formula(
@@ -476,5 +530,5 @@ class IsomapWalkthrough(ThreeDScene):
             FadeIn(flat, run_time=S.T_SLOW),
             Write(f3, run_time=S.T_NORMAL),
         )
-        self.set_caption("The sheet unrolls into 2D, geodesic distances preserved.")
+        self.set_caption("The sheet unrolls into 2D. Color shows geodesic distance from the source, preserved.")
         self.wait(S.T_SLOW)
