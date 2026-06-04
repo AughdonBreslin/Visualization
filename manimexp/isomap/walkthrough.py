@@ -19,7 +19,7 @@ import os
 import numpy as np
 from manim import (
     ThreeDScene, DEGREES, FadeIn, FadeOut, Create, Write,
-    ReplacementTransform, DOWN, UP,
+    ReplacementTransform, DOWN, UP, RIGHT, LEFT,
 )
 from manim.scene.section import DefaultSectionType
 from manimexp.isomap import style as S
@@ -54,10 +54,13 @@ class IsomapWalkthrough(ThreeDScene):
     def set_caption(self, text):
         new = B.caption(text).to_edge(DOWN)
         self.add_fixed_in_frame_mobjects(new)
+        new.set_opacity(0)
         if self.cap is None:
-            self.play(FadeIn(new, run_time=S.T_FAST))
+            self.play(new.animate.set_opacity(1.0), run_time=S.T_FAST)
         else:
-            self.play(ReplacementTransform(self.cap, new, run_time=S.T_NORMAL))
+            old = self.cap
+            self.play(FadeOut(old, shift=0.0), new.animate.set_opacity(1.0), run_time=S.T_FAST)
+            self.remove(old)
         self.cap = new
 
     # ------------------------------------------------------------------ #
@@ -122,21 +125,31 @@ class IsomapWalkthrough(ThreeDScene):
         )
         self.move_camera(phi=0, theta=-90 * DEGREES, zoom=1.0, run_time=S.T_NORMAL)
 
-        dmat = B.matrix_grid(self.data["excerpt_D"], highlight_negative=False).to_edge(UP)
+        # Scale all three objects to 0.45 and stack them with clear vertical separation
+        # so they never overlap during transitions.
+        SCALE = 0.45
+        Y_TOP = 2.8
+        Y_MID = 0.4
+        Y_BOT = -1.8
+
+        dmat = B.matrix_grid(self.data["excerpt_D"], highlight_negative=False)
+        dmat.scale(SCALE).move_to([0, Y_TOP, 0])
         self.add_fixed_in_frame_mobjects(dmat)
         self.play(FadeIn(dmat, run_time=S.T_NORMAL))
         self.set_caption("Take the geodesic distances, square them.")
 
-        f = B.formula(r"B = -\tfrac{1}{2}\, J\, D^2\, J").next_to(dmat, DOWN)
+        f = B.formula(r"B = -\tfrac{1}{2}\, J\, D^2\, J")
+        f.scale(0.85).move_to([0, Y_MID, 0])
         self.add_fixed_in_frame_mobjects(f)
         self.play(Write(f, run_time=S.T_NORMAL))
         self.set_caption("Subtract row and column means, re-add the grand mean, scale by -1/2.")
 
-        bmat = B.matrix_grid(self.data["excerpt_B"], highlight_negative=True).next_to(f, DOWN)
+        bmat = B.matrix_grid(self.data["excerpt_B"], highlight_negative=True)
+        bmat.scale(SCALE).move_to([0, Y_BOT, 0])
         self.add_fixed_in_frame_mobjects(bmat)
         self.play(ReplacementTransform(dmat.copy(), bmat, run_time=S.T_SLOW))
         self.set_caption("The result B behaves like inner products about the center.")
-        self.formula_dc, self.bmat = f, bmat
+        self.formula_dc, self.bmat, self.dmat = f, bmat, dmat
         self.wait(S.T_HOLD)
 
     # ------------------------------------------------------------------ #
@@ -147,16 +160,25 @@ class IsomapWalkthrough(ThreeDScene):
         self.next_section("step-5-eigendecomp", type=_SEC)
         l1, l2 = float(self.data["eigvals"][0]), float(self.data["eigvals"][1])
 
-        self.play(FadeOut(self.bmat), run_time=S.T_FAST)
+        # Fade out D and the formula; keep B on screen (eigen content derives from B).
+        self.play(
+            FadeOut(self.dmat),
+            FadeOut(self.formula_dc),
+            run_time=S.T_FAST,
+        )
 
-        f2 = B.formula(r"B v_i = \lambda_i v_i").to_edge(UP)
+        # Move B to the left side so the right side is free for eigen content.
+        self.play(self.bmat.animate.move_to([-3.2, 0, 0]), run_time=S.T_FAST)
+
+        # Eigen equation and eigenvalues placed to the right of B, no overlap.
+        f2 = B.formula(r"B v_i = \lambda_i v_i").move_to([1.5, 1.2, 0])
         self.add_fixed_in_frame_mobjects(f2)
-        self.play(ReplacementTransform(self.formula_dc, f2, run_time=S.T_NORMAL))
+        self.play(FadeIn(f2, run_time=S.T_NORMAL))
         self.set_caption("Find the eigenvectors of B; the largest eigenvalues carry the shape.")
 
         vals = B.formula(
             rf"\lambda_1 = {l1:.1f}\quad \lambda_2 = {l2:.1f}"
-        ).next_to(f2, DOWN)
+        ).move_to([1.5, -0.6, 0])
         self.add_fixed_in_frame_mobjects(vals)
         self.play(Write(vals, run_time=S.T_NORMAL))
         self.set_caption("Keep the top two: they span the recovered plane.")
@@ -169,7 +191,10 @@ class IsomapWalkthrough(ThreeDScene):
 
     def section_embedding(self):
         self.next_section("step-6-embedding", type=_SEC)
+        # Clear every remaining overlay (B matrix, eigen formula, eigenvalues)
+        # before the embedding so nothing overlaps the final arc.
         self.play(
+            FadeOut(self.bmat),
             FadeOut(self.formula_eig),
             FadeOut(self.vals),
             run_time=S.T_FAST,
@@ -178,7 +203,7 @@ class IsomapWalkthrough(ThreeDScene):
         emb = self.data["embedding"].copy()
         scale = np.abs(emb).max()
         if scale > 1e-9:
-            emb = emb / scale * 3.0
+            emb = emb / scale * 3.5
         pts3 = np.column_stack([emb[:, 0], emb[:, 1], np.zeros(emb.shape[0])])
         flat = B.point_cloud(pts3, self.data["t"])
 
