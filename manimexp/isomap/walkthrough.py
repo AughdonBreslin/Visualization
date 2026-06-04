@@ -18,8 +18,10 @@ Manim 0.18.1 API adaptations versus the design spec:
 import os
 import numpy as np
 from manim import (
-    ThreeDScene, DEGREES, FadeIn, FadeOut, Create, Write,
-    ReplacementTransform, DOWN, UP, RIGHT, LEFT,
+    ThreeDScene, ThreeDAxes, DEGREES, FadeIn, FadeOut, Create, Write,
+    ReplacementTransform, DOWN, UP, RIGHT, LEFT, IN, OUT,
+    LaggedStart, AnimationGroup, Dot, VGroup, Line,
+    Text, MathTex, interpolate_color,
 )
 from manim.scene.section import DefaultSectionType
 from manimexp.isomap import style as S
@@ -39,6 +41,7 @@ class IsomapWalkthrough(ThreeDScene):
         self.camera.background_color = S.BG
         self.data = build_dataset(n=N, k=K, seed=SEED)
         self.cap = None
+        self.pseudo = None
 
         self.section_raw()
         self.section_knn()
@@ -64,17 +67,67 @@ class IsomapWalkthrough(ThreeDScene):
         self.cap = new
 
     # ------------------------------------------------------------------ #
+    # Pseudocode panel helper (Enhancement 2)                             #
+    # ------------------------------------------------------------------ #
+
+    def set_pseudo(self, active_index):
+        """Show/update the pseudocode panel in the top-left corner.
+
+        Builds a new panel with the given line highlighted, fades out the old
+        one if present, then fades in the new one.
+        """
+        new_panel = B.pseudocode_panel(active_index)
+        # Place top-left: align top edge near +UP, left edge near screen left.
+        new_panel.to_corner(LEFT + UP, buff=0.15)
+        self.add_fixed_in_frame_mobjects(new_panel)
+        new_panel.set_opacity(0)
+        if self.pseudo is None:
+            self.play(new_panel.animate.set_opacity(1.0), run_time=S.T_FAST)
+        else:
+            old = self.pseudo
+            self.play(FadeOut(old, shift=0.0), new_panel.animate.set_opacity(1.0), run_time=S.T_FAST)
+            self.remove(old)
+        self.pseudo = new_panel
+
+    # ------------------------------------------------------------------ #
     # Section 1: raw point cloud on the Swiss roll                        #
     # ------------------------------------------------------------------ #
 
     def section_raw(self):
         self.next_section("step-1-raw", type=_SEC)
-        self.set_camera_orientation(phi=70 * DEGREES, theta=30 * DEGREES, zoom=0.9)
+        self.set_camera_orientation(phi=65 * DEGREES, theta=30 * DEGREES, zoom=0.9)
+
+        # Enhancement 1: ThreeDAxes behind the cloud (muted, thin).
+        self.axes = ThreeDAxes(
+            x_range=[-4, 4, 1],
+            y_range=[-4, 4, 1],
+            z_range=[-4, 4, 1],
+            x_length=8,
+            y_length=8,
+            z_length=8,
+            axis_config={"stroke_color": S.MUTED, "stroke_width": 0.8, "stroke_opacity": 0.45},
+        )
+        # Axis labels (cheap: small Text anchored to axis tips).
+        x_lbl = Text("x", font_size=20, color=S.MUTED).move_to(self.axes.x_axis.get_end() + RIGHT * 0.3)
+        y_lbl = Text("y", font_size=20, color=S.MUTED).move_to(self.axes.y_axis.get_end() + UP * 0.3)
+        z_lbl = Text("z", font_size=20, color=S.MUTED).move_to(self.axes.z_axis.get_end() + OUT * 0.3)
+        self.axes_labels = VGroup(x_lbl, y_lbl, z_lbl)
+
+        self.play(FadeIn(self.axes, run_time=S.T_FAST))
+        self.add(self.axes_labels)
+
         self.cloud = B.point_cloud(self.data["points"], self.data["t"])
         self.play(FadeIn(self.cloud, run_time=S.T_INTRO))
+
+        # Pseudocode panel: step 0 highlighted.
+        self.set_pseudo(0)
+
         self.set_caption("A 2D sheet rolled up in 3D. The goal: recover the flat sheet.")
-        self.begin_ambient_camera_rotation(rate=0.08)
-        self.wait(S.T_SLOW)
+        # Full slow orbit to show off the 3D structure, returning to the start
+        # orientation so the next step continues seamlessly.
+        orbit_time = 9.0
+        self.begin_ambient_camera_rotation(rate=2 * np.pi / orbit_time, about="theta")
+        self.wait(orbit_time)
         self.stop_ambient_camera_rotation()
         self.wait(S.T_HOLD)
 
@@ -84,11 +137,81 @@ class IsomapWalkthrough(ThreeDScene):
 
     def section_knn(self):
         self.next_section("step-2-knn", type=_SEC)
+
+        # Update pseudocode panel: step 1 highlighted.
+        self.set_pseudo(1)
+
+        # Enhancement 3: local-first kNN demo.
+        pts = self.data["points"]
+        center = self.data["center"]
+        center_edges = self.data["center_edges"]  # list of (j, weight) sorted by weight
+
+        # Dim the cloud so the center node pops.
+        center_dot = Dot(
+            point=pts[center],
+            radius=S.DOT_RADIUS * 3.0,
+            fill_opacity=1.0,
+            color=S.ACCENT,
+        )
+        self.play(
+            self.cloud.animate.set_opacity(0.18),
+            run_time=S.T_FAST,
+        )
+        self.play(FadeIn(center_dot, run_time=S.T_FAST))
+
+        # Draw neighbor edges one at a time with weight labels.
+        neighbor_lines = VGroup()
+        neighbor_labels = VGroup()
+        neighbor_dots = VGroup()
+
+        edge_anims = []
+        for j, w in center_edges:
+            seg = Line(
+                start=pts[center],
+                end=pts[j],
+                stroke_width=2.5,
+                color=S.ACCENT,
+            ).set_opacity(0.85)
+            neighbor_dot = Dot(
+                point=pts[j],
+                radius=S.DOT_RADIUS * 2.2,
+                fill_opacity=0.9,
+                color=S.WARM,
+            )
+            # Weight label: placed at the midpoint of the edge.
+            mid = (pts[center] + pts[j]) / 2.0
+            lbl = Text(f"{w:.2f}", font_size=14, color=S.INK).move_to(mid)
+            self.add_fixed_in_frame_mobjects(lbl)
+
+            neighbor_lines.add(seg)
+            neighbor_labels.add(lbl)
+            neighbor_dots.add(neighbor_dot)
+            # Each edge anim: create the line and neighbor dot together, then show label.
+            edge_anims.append(AnimationGroup(
+                Create(seg, run_time=0.25),
+                FadeIn(neighbor_dot, run_time=0.25),
+            ))
+
+        self.set_caption("Each point links to its nearest neighbors, weighted by distance.")
+        self.play(LaggedStart(*edge_anims, lag_ratio=0.35))
+        # Fade in weight labels after edges are drawn (cleaner read).
+        self.play(*(lbl.animate.set_opacity(1.0) for lbl in neighbor_labels), run_time=S.T_FAST)
+        self.wait(S.T_HOLD)
+
+        # Pan back out: restore cloud opacity, fade local demo elements.
+        self.play(
+            self.cloud.animate.set_opacity(1.0),
+            FadeOut(center_dot),
+            FadeOut(neighbor_lines),
+            FadeOut(neighbor_dots),
+            *(FadeOut(lbl) for lbl in neighbor_labels),
+            run_time=S.T_NORMAL,
+        )
+
+        # Now show the full graph edges for all points.
         self.edges_mob = B.graph_edges(self.data["points"], self.data["edges"])
-        # FadeIn instead of Create: avoids progressive stroke drawing overhead
-        # on potentially thousands of edge segments.
         self.play(FadeIn(self.edges_mob, run_time=S.T_SLOW))
-        self.set_caption("Connect each point to its k = 8 nearest neighbors.")
+        self.set_caption("Do this for every point and the graph emerges.")
         self.wait(S.T_HOLD)
 
     # ------------------------------------------------------------------ #
@@ -97,11 +220,72 @@ class IsomapWalkthrough(ThreeDScene):
 
     def section_geodesic(self):
         self.next_section("step-3-geodesic", type=_SEC)
+
+        # Update pseudocode panel: step 2 highlighted.
+        self.set_pseudo(2)
+
         pts, path = self.data["points"], self.data["path"]
         src, tgt = self.data["src"], self.data["tgt"]
+        dijk_order = self.data["dijkstra_order"]
+
         self.play(self.edges_mob.animate.set_opacity(0.06), run_time=S.T_FAST)
+
+        # Enhancement 4: geodesic definition caption, then Dijkstra wavefront.
+        self.set_caption("Geodesic: shortest distance along the surface, not straight through space.")
+        self.wait(S.T_HOLD)
+
+        # Dijkstra wavefront animation.
+        # Subsample: advance in ~25 chunks so animation is fast.
+        n_nodes = len(dijk_order)
+        n_chunks = min(25, n_nodes)
+        chunk_size = max(1, n_nodes // n_chunks)
+
+        # Color map: settled nodes recolor from ACCENT to a sweep color.
+        SWEEP_COLOR = S.GOOD
+
+        # Pre-build a dict: node index -> Dot in self.cloud (same ordering as points).
+        # self.cloud[i] is the Dot for points[i] (VGroup preserves insertion order).
+        cloud_dots = self.cloud.submobjects
+
+        # Mark src node specially before wavefront starts.
+        src_dot = cloud_dots[src]
+        self.play(src_dot.animate.set_color(S.ACCENT).set_opacity(1.0), run_time=S.T_FAST)
+        self.wait(0.2)
+
+        # Animate wavefront chunk by chunk.
+        settled_so_far = 0
+        for chunk_start in range(0, n_nodes, chunk_size):
+            chunk = dijk_order[chunk_start: chunk_start + chunk_size]
+            if not chunk:
+                continue
+            anims = [
+                cloud_dots[node].animate.set_color(SWEEP_COLOR).set_opacity(0.9)
+                for node in chunk
+                if node != src and node != tgt
+            ]
+            if anims:
+                self.play(AnimationGroup(*anims, lag_ratio=0.0), run_time=0.15)
+            settled_so_far += len(chunk)
+
+        # Highlight src and tgt after wavefront.
+        self.play(
+            cloud_dots[tgt].animate.set_color(S.WARM).set_opacity(1.0),
+            run_time=S.T_FAST,
+        )
+        self.wait(S.T_HOLD)
+
+        # Restore cloud to normal colors for the path display.
+        # Rebuild the cloud in its original colors by fading it out and back in.
+        self.play(FadeOut(self.cloud), run_time=S.T_FAST)
+        self.cloud = B.point_cloud(self.data["points"], self.data["t"])
+        self.play(FadeIn(self.cloud, run_time=S.T_FAST))
+        self.play(self.edges_mob.animate.set_opacity(0.06), run_time=S.T_FAST)
+
+        # Straight line vs. geodesic path.
         straight = B.straight_line(pts[src], pts[tgt])
-        geo = B.path_polyline(pts, path)
+        # Enhancement 5: gradient geodesic path.
+        geo = B.path_polyline(pts, path, gradient=True)
+
         self.play(Create(straight, run_time=S.T_NORMAL))
         self.set_caption("Straight-line distance cuts through space, off the sheet.")
         self.wait(S.T_HOLD)
@@ -116,6 +300,10 @@ class IsomapWalkthrough(ThreeDScene):
 
     def section_double_center(self):
         self.next_section("step-4-double-center", type=_SEC)
+
+        # Update pseudocode panel: step 3 highlighted.
+        self.set_pseudo(3)
+
         self.play(
             FadeOut(self.cloud),
             FadeOut(self.edges_mob),
@@ -123,29 +311,41 @@ class IsomapWalkthrough(ThreeDScene):
             FadeOut(self.straight),
             run_time=S.T_FAST,
         )
+
+        # Fade out axes when scene flattens to matrix view (Enhancement 1).
+        self.play(
+            FadeOut(self.axes),
+            FadeOut(self.axes_labels),
+            run_time=S.T_FAST,
+        )
+
         self.move_camera(phi=0, theta=-90 * DEGREES, zoom=1.0, run_time=S.T_NORMAL)
 
         # Scale all three objects to 0.45 and stack them with clear vertical separation
         # so they never overlap during transitions.
+        # X_SHIFT moves the column right to clear the pseudocode panel (top-left corner).
         SCALE = 0.45
-        Y_TOP = 2.8
+        X_SHIFT = 1.8
+        Y_TOP = 2.5
         Y_MID = 0.4
         Y_BOT = -1.8
 
-        dmat = B.matrix_grid(self.data["excerpt_D"], highlight_negative=False)
-        dmat.scale(SCALE).move_to([0, Y_TOP, 0])
+        # Enhancement 6: use D_sample and B_sample (real geodesic distances among
+        # the 4 sampled path points) instead of generic excerpt_D / excerpt_B.
+        dmat = B.matrix_grid(self.data["D_sample"], highlight_negative=False)
+        dmat.scale(SCALE).move_to([X_SHIFT, Y_TOP, 0])
         self.add_fixed_in_frame_mobjects(dmat)
         self.play(FadeIn(dmat, run_time=S.T_NORMAL))
-        self.set_caption("Take the geodesic distances, square them.")
+        self.set_caption("Take the geodesic distances among these sampled points.")
 
         f = B.formula(r"B = -\tfrac{1}{2}\, J\, D^2\, J")
-        f.scale(0.85).move_to([0, Y_MID, 0])
+        f.scale(0.85).move_to([X_SHIFT, Y_MID, 0])
         self.add_fixed_in_frame_mobjects(f)
         self.play(Write(f, run_time=S.T_NORMAL))
         self.set_caption("Subtract row and column means, re-add the grand mean, scale by -1/2.")
 
-        bmat = B.matrix_grid(self.data["excerpt_B"], highlight_negative=True)
-        bmat.scale(SCALE).move_to([0, Y_BOT, 0])
+        bmat = B.matrix_grid(self.data["B_sample"], highlight_negative=True)
+        bmat.scale(SCALE).move_to([X_SHIFT, Y_BOT, 0])
         bmat.set_opacity(0)
         self.add_fixed_in_frame_mobjects(bmat)
         self.play(bmat.animate.set_opacity(1.0), run_time=S.T_SLOW)
@@ -159,7 +359,12 @@ class IsomapWalkthrough(ThreeDScene):
 
     def section_eigendecomp(self):
         self.next_section("step-5-eigendecomp", type=_SEC)
+
+        # Update pseudocode panel: step 4 highlighted.
+        self.set_pseudo(4)
+
         l1, l2 = float(self.data["eigvals"][0]), float(self.data["eigvals"][1])
+        power_rayleigh = self.data["power_rayleigh"]
 
         # Fade out D and the formula; keep B on screen (eigen content derives from B).
         self.play(
@@ -170,6 +375,56 @@ class IsomapWalkthrough(ThreeDScene):
 
         # Move B to the left side so the right side is free for eigen content.
         self.play(self.bmat.animate.move_to([-3.2, 0, 0]), run_time=S.T_FAST)
+
+        # Enhancement 7: show power iteration finding the top eigenvector.
+        # Update rule label placed above the Rayleigh counter.
+        update_rule = B.formula(r"v \leftarrow Bv\,/\,\|Bv\|").move_to([1.5, 1.8, 0])
+        self.add_fixed_in_frame_mobjects(update_rule)
+        self.play(FadeIn(update_rule, run_time=S.T_NORMAL))
+        self.set_caption("Power iteration: multiply B by a vector, normalize, repeat.")
+        self.wait(S.T_HOLD)
+
+        # Rayleigh quotient display: show number climbing toward lambda1.
+        # We'll show a selection of iterations for readability.
+        # Show iterations: 0 (initial), 1, 2, then 10 (converged).
+        show_iters = [0, 1, 2, len(power_rayleigh) - 1]
+        rayleigh_label = None
+        for it in show_iters:
+            rq_val = power_rayleigh[it]
+            new_rq = B.formula(
+                rf"v^T B v = {rq_val:.1f}"
+            ).move_to([1.5, 0.6, 0])
+            self.add_fixed_in_frame_mobjects(new_rq)
+            if rayleigh_label is None:
+                new_rq.set_opacity(0)
+                self.play(new_rq.animate.set_opacity(1.0), run_time=S.T_FAST)
+            else:
+                old_rq = rayleigh_label
+                self.play(
+                    FadeOut(old_rq, shift=0.0),
+                    new_rq.animate.set_opacity(1.0) if new_rq.get_opacity() == 1.0 else new_rq.animate.set_opacity(1.0),
+                    run_time=S.T_FAST,
+                )
+                self.remove(old_rq)
+            rayleigh_label = new_rq
+            self.wait(0.45)
+
+        # Dashed line marking lambda1 (target).
+        target_label = B.formula(
+            rf"\lambda_1 = {l1:.1f}"
+        ).move_to([1.5, -0.3, 0]).set_color(S.ACCENT)
+        self.add_fixed_in_frame_mobjects(target_label)
+        self.play(FadeIn(target_label, run_time=S.T_FAST))
+        self.set_caption("The Rayleigh quotient converges to the dominant eigenvalue.")
+        self.wait(S.T_HOLD)
+
+        # Keep only the top two eigenvalues stated.
+        self.play(
+            FadeOut(update_rule),
+            FadeOut(rayleigh_label),
+            FadeOut(target_label),
+            run_time=S.T_FAST,
+        )
 
         # Eigen equation and eigenvalues placed to the right of B, no overlap.
         f2 = B.formula(r"B v_i = \lambda_i v_i").move_to([1.5, 1.2, 0])
@@ -192,6 +447,10 @@ class IsomapWalkthrough(ThreeDScene):
 
     def section_embedding(self):
         self.next_section("step-6-embedding", type=_SEC)
+
+        # Update pseudocode panel: step 5 highlighted.
+        self.set_pseudo(5)
+
         # Clear every remaining overlay (B matrix, eigen formula, eigenvalues)
         # before the embedding so nothing overlaps the final arc.
         self.play(
@@ -208,9 +467,10 @@ class IsomapWalkthrough(ThreeDScene):
         pts3 = np.column_stack([emb[:, 0], emb[:, 1], np.zeros(emb.shape[0])])
         flat = B.point_cloud(pts3, self.data["t"])
 
+        # Place formula at top-right to avoid the pseudocode panel (top-left).
         f3 = B.formula(
             r"Y = [\sqrt{\lambda_1}\,v_1,\ \sqrt{\lambda_2}\,v_2]"
-        ).to_edge(UP)
+        ).to_corner(RIGHT + UP, buff=0.3)
         self.add_fixed_in_frame_mobjects(f3)
         self.play(
             FadeIn(flat, run_time=S.T_SLOW),
