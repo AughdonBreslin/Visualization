@@ -159,20 +159,26 @@ class IsomapWalkthrough(ThreeDScene):
         )
         self.play(FadeIn(center_dot, run_time=S.T_FAST))
 
-        # Refinement 1: zoom in on the center node so the neighborhood fills the frame.
+        # Refinement 1: zoom in hard so the center node and its neighbors fill the frame.
+        # The neighborhood radius is ~0.4 scene units; zoom=10 makes it span most of the
+        # view. Use a flatter phi (more top-down) so the star of edges is clearly legible.
         self.move_camera(
-            zoom=2.2,
+            phi=30 * DEGREES,
+            theta=30 * DEGREES,
+            zoom=10,
             frame_center=pts[center],
             run_time=S.T_NORMAL,
         )
 
-        # Draw neighbor edges one at a time with weight labels.
+        # Draw neighbor edges one at a time with world-space weight labels.
+        # Labels are 3D Text placed at the midpoint of each edge, offset slightly
+        # perpendicular to the edge so they do not sit on the line.
         neighbor_lines = VGroup()
         neighbor_labels = VGroup()
         neighbor_dots = VGroup()
 
         edge_anims = []
-        for j, w in center_edges:
+        for idx, (j, w) in enumerate(center_edges):
             seg = Line(
                 start=pts[center],
                 end=pts[j],
@@ -185,15 +191,30 @@ class IsomapWalkthrough(ThreeDScene):
                 fill_opacity=0.9,
                 color=S.WARM,
             )
-            # Weight label: placed at the midpoint of the edge.
+            # Weight label at world-space midpoint, offset slightly off the edge line.
+            # Alternate the offset direction (left/right) by index to reduce overlaps.
             mid = (pts[center] + pts[j]) / 2.0
-            lbl = Text(f"{w:.2f}", font_size=14, color=S.INK).move_to(mid)
-            self.add_fixed_in_frame_mobjects(lbl)
+            edge_vec = pts[j] - pts[center]
+            # Perpendicular in the XZ plane (cross with Y-up).
+            perp = np.array([-edge_vec[2], 0.0, edge_vec[0]])
+            perp_len = np.linalg.norm(perp)
+            if perp_len > 1e-9:
+                perp = perp / perp_len
+            else:
+                perp = np.array([0.0, 0.0, 1.0])
+            sign = 1.0 if idx % 2 == 0 else -1.0
+            # Offset is in world units; 0.03 units is visible at zoom=10.
+            offset = perp * 0.03 * sign
+            label_pos = mid + offset
+            # Scale down by 1/zoom so the label appears at a readable size on screen.
+            # At zoom=10, a font_size=14 Text appears 10x larger than intended, so
+            # we scale by 0.1 to compensate. The result looks like ~font_size 14 on screen.
+            lbl = Text(f"{w:.2f}", font_size=14, color=S.INK).scale(0.1).move_to(label_pos)
 
             neighbor_lines.add(seg)
             neighbor_labels.add(lbl)
             neighbor_dots.add(neighbor_dot)
-            # Each edge anim: create the line and neighbor dot together, then show label.
+            # Each edge anim: create the line and neighbor dot together.
             edge_anims.append(AnimationGroup(
                 Create(seg, run_time=0.25),
                 FadeIn(neighbor_dot, run_time=0.25),
@@ -202,23 +223,25 @@ class IsomapWalkthrough(ThreeDScene):
         self.set_caption("Each point links to its nearest neighbors, weighted by distance.")
         self.play(LaggedStart(*edge_anims, lag_ratio=0.35))
         # Fade in weight labels after edges are drawn (cleaner read).
-        self.play(*(lbl.animate.set_opacity(1.0) for lbl in neighbor_labels), run_time=S.T_FAST)
+        self.play(*(FadeIn(lbl, run_time=S.T_FAST) for lbl in neighbor_labels))
         self.wait(S.T_HOLD)
 
-        # Refinement 1 cont: zoom back out before the full-graph beat.
+        # Zoom back out before the full-graph beat; restore working orientation.
         self.move_camera(
+            phi=65 * DEGREES,
+            theta=30 * DEGREES,
             zoom=0.9,
             frame_center=[0, 0, 0],
             run_time=S.T_NORMAL,
         )
 
-        # Pan back out: restore cloud opacity, fade local demo elements.
+        # Pan back out: restore cloud opacity, fade all local demo elements.
         self.play(
             self.cloud.animate.set_opacity(1.0),
             FadeOut(center_dot),
             FadeOut(neighbor_lines),
             FadeOut(neighbor_dots),
-            *(FadeOut(lbl) for lbl in neighbor_labels),
+            FadeOut(neighbor_labels),
             run_time=S.T_NORMAL,
         )
 
@@ -314,9 +337,14 @@ class IsomapWalkthrough(ThreeDScene):
         self.play(Create(straight, run_time=S.T_NORMAL))
         self.set_caption("Straight-line distance cuts through space, off the sheet.")
 
-        # Refinement 5: gentle orbit while showing straight-line and geodesic path.
-        orbit_time_paths = 8.0
-        self.begin_ambient_camera_rotation(rate=2 * np.pi / orbit_time_paths * 0.4, about="theta")
+        # Orbit visibly while showing the straight-line and geodesic beats so the
+        # depth contrast between the chord and the surface path is obvious.
+        # Target roughly a half revolution over the combined duration.
+        # Duration: T_HOLD (wait after straight) + T_SLOW (create geo) + set_caption
+        # overhead + T_HOLD + T_SLOW (wait after geo caption) ~ 7-8 s total.
+        # Rate = pi / 7.5 ~ 0.42 rad/s gives ~half revolution; clearly perceptible.
+        orbit_rate_paths = np.pi / 7.5
+        self.begin_ambient_camera_rotation(rate=orbit_rate_paths, about="theta")
 
         self.wait(S.T_HOLD)
         self.play(Create(geo, run_time=S.T_SLOW))
@@ -324,6 +352,9 @@ class IsomapWalkthrough(ThreeDScene):
         self.wait(S.T_HOLD + S.T_SLOW)
 
         self.stop_ambient_camera_rotation()
+        # Snap back to a clean orientation (same phi/theta as the section start) so
+        # the transition into section_double_center is smooth.
+        self.move_camera(phi=65 * DEGREES, theta=30 * DEGREES, run_time=S.T_FAST)
         self.geo, self.straight = geo, straight
         self.wait(S.T_HOLD)
 
