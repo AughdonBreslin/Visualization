@@ -12,11 +12,25 @@ Manim 0.18.1 API notes (adaptations from the design spec):
 - Line stroke_width applies normally to 2D Line VMobjects.
 - Table.get_entries((r, c)) uses 1-based (row, col) indices.
 """
+import colorsys
 import textwrap
 import numpy as np
 from manim import (VGroup, Dot, Dot3D, Line, Line3D, Text, MathTex, Table,
-                   interpolate_color, config, DOWN, LEFT, UL)
+                   Matrix, ManimColor, interpolate_color, config, DOWN, LEFT, UL)
 from . import style as S
+
+
+def rainbow_color(u):
+    """Map u in [0, 1] to a high-saturation rainbow color.
+
+    The near end (u = 0) is blue/violet and the far end (u = 1) is red, sweeping
+    through cyan, green, yellow, and orange. Full saturation and value make the
+    points pop and read as a clear gradient.
+    """
+    u = float(min(1.0, max(0.0, u)))
+    hue = 0.70 * (1.0 - u)
+    r, g, b = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
+    return ManimColor("#{:02x}{:02x}{:02x}".format(int(r * 255), int(g * 255), int(b * 255)))
 
 # Thickness for Line3D (scene units, ~0.01-0.04 range)
 PATH_THICKNESS = 0.022
@@ -25,7 +39,7 @@ STRAIGHT_THICKNESS = 0.014
 
 def color_for_t(t, tmin, tmax):
     u = (t - tmin) / max(1e-9, (tmax - tmin))
-    return interpolate_color(S.ACCENT, S.WARM, u)
+    return rainbow_color(u)
 
 
 def point_cloud(points, t):
@@ -34,8 +48,8 @@ def point_cloud(points, t):
     Dot is a VMobject (fast to render) that can live anywhere in 3D space
     inside a ThreeDScene. DOT_RADIUS is in scene units.
 
-    A radial sheen highlight (set_sheen) gives each flat circle a spherical
-    appearance without the cost of a true 3D surface mesh.
+    Each dot is colored from the start by a full-saturation rainbow (no sheen),
+    so the points read as vivid, saturated samples throughout the video.
     """
     tmin, tmax = float(np.min(t)), float(np.max(t))
     dots = []
@@ -46,7 +60,6 @@ def point_cloud(points, t):
             fill_opacity=1.0,
             color=color_for_t(t[i], tmin, tmax),
         )
-        dot.set_sheen(0.5, direction=UL)
         dots.append(dot)
     return VGroup(*dots)
 
@@ -96,7 +109,7 @@ def path_polyline(points, path, gradient=True):
     for a in range(n_segs):
         if gradient and n_segs > 1:
             frac = a / (n_segs - 1)
-            seg_color = interpolate_color(S.GOOD, S.WARM, frac)
+            seg_color = rainbow_color(frac)
         else:
             seg_color = S.GOOD
         segs.append(
@@ -116,14 +129,20 @@ def straight_line(start, end, color=None):
     return Line3D(start=start, end=end, thickness=STRAIGHT_THICKNESS, color=color)
 
 
-def recolor_cloud_by_values(cloud, values, c_lo, c_hi):
+def recolor_cloud_by_values(cloud, values, c_lo=None, c_hi=None, cmap=None, grow=1.0):
     """Animate-recolor a VGroup of Dots by a per-point scalar array.
 
     Parameters
     ----------
     cloud : VGroup  -- the point cloud whose submobjects are Dot objects.
     values : array-like  -- per-point scalar values (length must match cloud).
-    c_lo, c_hi : ManimColor  -- colors mapped to the minimum and maximum value.
+    c_lo, c_hi : ManimColor  -- endpoints of a two-color gradient (used when no
+        cmap is given). Defaults to ACCENT and WARM.
+    cmap : callable(u) -> ManimColor  -- optional colormap mapping a normalized
+        value u in [0, 1] to a color (for example rainbow_color). Overrides
+        c_lo / c_hi when provided.
+    grow : float  -- factor to scale each dot by while recoloring, so the points
+        read more clearly (1.0 leaves the size unchanged).
 
     Returns
     -------
@@ -132,11 +151,19 @@ def recolor_cloud_by_values(cloud, values, c_lo, c_hi):
     vals = np.asarray(values, dtype=float)
     vmin, vmax = float(vals.min()), float(vals.max())
     span = max(1e-9, vmax - vmin)
+    if cmap is None and (c_lo is None or c_hi is None):
+        c_lo, c_hi = S.ACCENT, S.WARM
     anims = []
     for i, dot in enumerate(cloud.submobjects):
         u = (vals[i] - vmin) / span
-        col = interpolate_color(c_lo, c_hi, u)
-        anims.append(dot.animate.set_color(col))
+        col = cmap(u) if cmap is not None else interpolate_color(c_lo, c_hi, u)
+        # Drop the radial sheen highlight so the assigned hue reads at full
+        # saturation rather than being washed toward white.
+        dot.set_sheen(0.0)
+        anim = dot.animate.set_color(col).set_opacity(1.0)
+        if grow != 1.0:
+            anim = anim.scale(grow)
+        anims.append(anim)
     return anims
 
 
@@ -168,10 +195,11 @@ def matrix_grid(values, highlight_negative=True):
 
 
 def pseudocode_panel(active_index):
-    """Build a small fixed-in-frame pseudocode panel for the top-left corner.
+    """Build a fixed-in-frame pseudocode panel for the top-left corner.
 
-    Lines are rendered as plain Text (not MathTex) for speed. The active line
-    is shown in ACCENT at full opacity; the others are dimmed to MUTED at 0.35.
+    Each line is rendered with MathTex so the mathematics typesets properly
+    (subscripts, norms, the eigenvalue matrix Lambda, square roots). The active
+    line is shown in ACCENT at full opacity; the others are dimmed to MUTED.
 
     Parameters
     ----------
@@ -179,25 +207,45 @@ def pseudocode_panel(active_index):
 
     Returns
     -------
-    VGroup of Text mobjects, suitable for add_fixed_in_frame_mobjects.
+    VGroup of MathTex mobjects, suitable for add_fixed_in_frame_mobjects.
     """
     lines = [
-        "0: input: points X, neighbors k",
-        "1: for each i: link k nearest; w(i,j)=||x_i - x_j||",
-        "2: D[i,j] = shortest path (Dijkstra)",
-        "3: B = -1/2 J D^2 J",
-        "4: B = V L V^T  (top eigenvectors)",
-        "5: Y = [sqrt(L1) v1, sqrt(L2) v2]",
+        r"0:\ \text{input: points } X,\ \text{neighbors } k",
+        r"1:\ \text{link each } i \text{ to its } k \text{ nearest},\ "
+        r"w_{ij}=\lVert x_i - x_j\rVert",
+        r"2:\ D_{ij} = \text{shortest path } i \!\to\! j",
+        r"3:\ B = -\tfrac{1}{2}\, J\, D^{2}\, J",
+        r"4:\ B = V\,\Lambda\,V^{\top}\quad(\text{top eigenvectors})",
+        r"5:\ Y = \left[\sqrt{\lambda_1}\,v_1,\ \sqrt{\lambda_2}\,v_2\right]",
     ]
     items = []
-    for idx, txt in enumerate(lines):
-        if idx == active_index:
-            t = Text(txt, font_size=18, color=S.ACCENT)
-            t.set_opacity(1.0)
-        else:
-            t = Text(txt, font_size=18, color=S.MUTED)
-            t.set_opacity(0.35)
+    for idx, tex in enumerate(lines):
+        color = S.ACCENT if idx == active_index else S.MUTED
+        t = MathTex(tex, font_size=24, color=color)
+        t.set_opacity(1.0 if idx == active_index else 0.35)
         items.append(t)
 
-    group = VGroup(*items).arrange(DOWN, aligned_edge=LEFT, buff=0.12)
+    group = VGroup(*items).arrange(DOWN, aligned_edge=LEFT, buff=0.18)
+    # Cap the panel width so the longest line never runs into the scene content.
+    max_w = 6.2
+    if group.width > max_w:
+        group.scale(max_w / group.width)
     return group
+
+
+def colvec(values, color=None):
+    """A column-vector Matrix mobject from a 1-D array of numbers."""
+    color = color or S.INK
+    m = Matrix([[f"{x:.2f}"] for x in values], v_buff=0.7,
+               bracket_h_buff=0.12, bracket_v_buff=0.12)
+    m.set_color(color)
+    return m
+
+
+def rowvec(values, color=None):
+    """A row-vector Matrix mobject from a 1-D array of numbers."""
+    color = color or S.INK
+    m = Matrix([[f"{x:.2f}" for x in values]], h_buff=1.9,
+               bracket_h_buff=0.12, bracket_v_buff=0.12)
+    m.set_color(color)
+    return m
