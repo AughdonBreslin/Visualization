@@ -4,9 +4,24 @@ Pure numpy/scipy. Deterministic given a seed so the rendered numbers are stable
 and unit-testable.
 """
 import heapq
+import json
+import os
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import shortest_path
+
+
+def _normalize(points):
+    """Center at the origin and scale so the largest coordinate magnitude is 3.
+
+    Matches the swiss-roll normalization so the camera framing works for any
+    dataset fed into the walkthrough.
+    """
+    points = points - points.mean(axis=0)
+    scale = np.abs(points).max()
+    if scale > 1e-9:
+        points = points / scale * 3.0
+    return points
 
 
 def swiss_roll(n=1000, seed=0):
@@ -16,8 +31,24 @@ def swiss_roll(n=1000, seed=0):
     x = t * np.cos(t)
     z = t * np.sin(t)
     points = np.stack([x, height, z], axis=1)
-    points = points - points.mean(axis=0)
-    points = points / np.abs(points).max() * 3.0
+    points = _normalize(points)
+    return {"points": points, "t": t}
+
+
+def load_dataset_points(dataset, n, seed=0):
+    """Return {points, t} for a named dataset.
+
+    For 'swiss_roll' (or None) the points are generated in-process. For any other
+    dataset the points are read from points/<dataset>_<n>.json, produced by
+    gen_points.mjs from the exact web-sandbox generators, then normalized.
+    """
+    if dataset in (None, "", "swiss_roll"):
+        return swiss_roll(n=n, seed=seed)
+    path = os.path.join(os.path.dirname(__file__), "points", f"{dataset}_{n}.json")
+    with open(path) as f:
+        d = json.load(f)
+    points = _normalize(np.asarray(d["points"], dtype=float))
+    t = np.asarray(d["t"], dtype=float)
     return {"points": points, "t": t}
 
 
@@ -178,8 +209,31 @@ def sample_along_path(path, m=4):
     return [path[i] for i in indices]
 
 
-def build_dataset(n=1000, k=8, seed=0):
-    roll = swiss_roll(n=n, seed=seed)
+def farthest_point_sample(D, m, start):
+    """Return m well-separated node indices via farthest-point sampling.
+
+    Begins at `start` and repeatedly adds the node whose distance to the
+    current set (its nearest already-chosen node) is largest. This yields a
+    spread-out subset whose double-centered Gram matrix is non-degenerate,
+    unlike points sampled along a single path (which are nearly collinear and
+    give a rank-1 Gram matrix).
+
+    Parameters
+    ----------
+    D     : NxN distance matrix.
+    m     : number of points to select.
+    start : index of the first point.
+    """
+    idx = [int(start)]
+    while len(idx) < m:
+        dmin = D[idx].min(axis=0).astype(float).copy()
+        dmin[idx] = -1.0
+        idx.append(int(np.argmax(dmin)))
+    return idx
+
+
+def build_dataset(n=1000, k=8, seed=0, dataset=None):
+    roll = load_dataset_points(dataset, n, seed=seed)
     points = roll["points"]
     adj, edges = knn_graph(points, k=k)
     D, predecessors = geodesic_distances(adj)
@@ -202,12 +256,22 @@ def build_dataset(n=1000, k=8, seed=0):
 
     power_vecs, power_rayleigh = power_iteration_trace(B, iters=10, seed=0)
 
-    sample_idx = sample_along_path(path, m=4)
+    # A spread-out 4-point sample (not along one path) so the 4x4 Gram matrix
+    # shown in steps 4 and 5 is non-degenerate: it then has a real second
+    # eigenvalue and a power iteration that visibly climbs over several steps.
+    sample_idx = farthest_point_sample(Dfix, 4, src)
 
     D_sub = Dfix[np.ix_(sample_idx, sample_idx)]
     D_sample = np.round(D_sub, 2).tolist()
 
-    B_sample = np.round(double_center_squared(D_sub), 2).tolist()
+    # Power iteration is traced on the rounded matrix that is actually drawn,
+    # so the v^T B v values shown match the visible numbers.
+    B_sub_disp = np.round(double_center_squared(D_sub), 2)
+    B_sample = B_sub_disp.tolist()
+    sample_power_vectors, sample_power_rayleigh = power_iteration_trace(
+        B_sub_disp, iters=6, seed=1
+    )
+    sample_eigvals = np.sort(np.linalg.eigvalsh(B_sub_disp))[::-1]
 
     return {
         "points": points, "t": roll["t"], "adj": adj, "edges": edges,
@@ -223,4 +287,7 @@ def build_dataset(n=1000, k=8, seed=0):
         "sample_idx": sample_idx,
         "D_sample": D_sample,
         "B_sample": B_sample,
+        "sample_power_vectors": sample_power_vectors,
+        "sample_power_rayleigh": sample_power_rayleigh,
+        "sample_eigvals": sample_eigvals,
     }

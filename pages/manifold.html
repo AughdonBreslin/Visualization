@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="../styles/base.css">
   <link rel="stylesheet" href="../styles/article.css">
   <link rel="stylesheet" href="../styles/manifold.css">
+  <link rel="stylesheet" href="../styles/manifold_isomap.css">
   <script defer src="https://d3js.org/d3.v7.min.js"></script>
   <script>
     window.MathJax = {
@@ -18,6 +19,7 @@
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <script type="module" src="../js/manifold/main.js"></script>
+  <script type="module" src="../js/manifold_isomap.js"></script>
 </head>
 <body>
   <div class="container article manifold">
@@ -27,6 +29,32 @@
       <div class="home-link"><a href="../index.html">← Home</a></div>
     </header>
     <main class="article-body">
+      <section class="panel mf-isomap">
+        <h2>Isomap walkthrough</h2>
+        <p class="mfi-intro">A guided, animated walk through the Isomap algorithm, the same
+          steps you can run on your own data in the sandbox below.</p>
+        <div class="mfi-player">
+          <video id="mfiVideo" class="mfi-video" playsinline preload="auto"></video>
+          <div class="mfi-controls">
+            <button id="mfiPrev" type="button">&larr; Prev</button>
+            <button id="mfiPlay" type="button">Play</button>
+            <button id="mfiNext" type="button">Next &rarr;</button>
+            <input id="mfiScrub" class="mfi-scrub" type="range" min="0" max="1000" value="0" />
+            <label class="mfi-speed-label">Speed
+              <select id="mfiSpeed" class="mfi-speed">
+                <option value="0.5">0.5&times;</option>
+                <option value="0.75">0.75&times;</option>
+                <option value="1" selected>1&times;</option>
+                <option value="1.25">1.25&times;</option>
+                <option value="1.5">1.5&times;</option>
+                <option value="2">2&times;</option>
+              </select>
+            </label>
+          </div>
+          <ol id="mfiSteps" class="mfi-steps"></ol>
+        </div>
+        <div id="mfiTranscript" class="mfi-transcript"></div>
+      </section>
       <section class="panel">
         <h2>Dataset</h2>
         <div class="mf-controls-row">
