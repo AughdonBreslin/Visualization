@@ -98,6 +98,118 @@ def top2_eig(B):
     return vals[order], vecs[:, order]
 
 
+def heat_affinity(points, edges, sigma=3.0):
+    """W_ij = exp(-||x_i - x_j||^2 / (2 effSigma^2)) on kNN edges, symmetric, else 0.
+
+    Mirrors js/manifold/algorithms/laplacian.js: sigma is a multiple of the median
+    neighbor distance, so effSigma = sigma * median(edge distances). The JS default
+    sigma is 3.0.
+    """
+    n = len(points)
+    dists = np.array([float(np.linalg.norm(points[i] - points[j])) for (i, j) in edges])
+    median = float(np.median(dists)) if dists.size else 1.0
+    eff = sigma * (median or 1.0)
+    sig2 = 2.0 * eff * eff
+    W = np.zeros((n, n))
+    for (i, j), d in zip(edges, dists):
+        w = np.exp(-d * d / sig2)
+        W[i, j] = w
+        W[j, i] = w
+    return W
+
+
+def graph_laplacian(W):
+    """Return (L, D) with D = diag(row sums), L = D - W."""
+    deg = W.sum(axis=1)
+    D = np.diag(deg)
+    return D - W, D
+
+
+def lle_weights(points, k=8, reg=1e-3):
+    """Per-point constrained least-squares reconstruction weights (rows sum to 1).
+
+    Mirrors js/manifold/algorithms/lle.js: each point is reconstructed from its k
+    nearest neighbors, weights minimize ||x_i - sum_j w_j x_{n_j}||^2 subject to
+    sum_j w_j = 1, with Tikhonov regularization on the local Gram matrix.
+    """
+    n = len(points)
+    adj, _ = knn_graph(points, k=k)
+    W = np.zeros((n, n))
+    for i in range(n):
+        nbrs = np.where(adj[i] > 0)[0]
+        if len(nbrs) == 0:
+            continue
+        Z = points[nbrs] - points[i]          # k x 3
+        G = Z @ Z.T                            # local Gram
+        # Tikhonov term matches lle.js: reg * max(trace, 1e-12) / k.
+        lam = reg * max(float(np.trace(G)), 1e-12) / len(nbrs)
+        G = G + lam * np.eye(len(nbrs))
+        w = np.linalg.solve(G, np.ones(len(nbrs)))
+        w = w / w.sum()
+        W[i, nbrs] = w
+    return W
+
+
+def lle_matrix(W):
+    """M = (I - W)^T (I - W)."""
+    n = W.shape[0]
+    ImW = np.eye(n) - W
+    return ImW.T @ ImW
+
+
+def kernel_matrix(points, kernel="rbf", gamma=1.0, degree=3, constant=1.0):
+    """rbf/polynomial/linear kernel matrix.
+
+    Mirrors js/manifold/algorithms/kpca.js, including the rbf gamma auto-scaling
+    to the data's mean squared pairwise distance (2 * var / N).
+    """
+    n = len(points)
+    if kernel == "rbf":
+        c = points.mean(axis=0)
+        mean_sq = (2.0 * float(np.sum((points - c) ** 2)) / n) or 1.0
+        g = gamma / mean_sq
+        sq = np.sum((points[:, None, :] - points[None, :, :]) ** 2, axis=2)
+        return np.exp(-g * sq)
+    dot = points @ points.T
+    if kernel == "polynomial":
+        return (dot + constant) ** degree
+    return dot
+
+
+def center_kernel(K):
+    """Kc = K - 1_N K - K 1_N + 1_N K 1_N (double-centering of the kernel)."""
+    row = K.mean(axis=1, keepdims=True)
+    grand = float(K.mean())
+    return K - row - row.T + grand
+
+
+def bottom2_eig(M):
+    """Two smallest non-trivial eigenpairs (skip the near-zero eigenvalue).
+
+    Returns (vecs, vals) with vecs shaped (N, 2), eigenvalues ascending. Used by
+    LLE and Laplacian Eigenmaps, which both drop the trivial constant eigenvector.
+    Mirrors the JS bottomKSymmetricEig(..., {skipFirst: 1}): skip the smallest
+    eigenvalue by position, then take the next two.
+    """
+    vals, vecs = np.linalg.eigh(M)
+    order = np.argsort(vals)
+    vals, vecs = vals[order], vecs[:, order]
+    sel = [1, 2]
+    return vecs[:, sel], vals[sel]
+
+
+def top2_kernel_embed(Kc):
+    """Top-2 eigenpairs of centered kernel; embedding y_{i,k} = sqrt(l_k) v_{k,i}.
+
+    Returns (Y, vecs, vals) with Y and vecs shaped (N, 2), eigenvalues descending.
+    """
+    vals, vecs = np.linalg.eigh(Kc)
+    order = np.argsort(vals)[::-1][:2]
+    vals, vecs = vals[order], vecs[:, order]
+    Y = vecs * np.sqrt(np.maximum(vals, 0.0))
+    return Y, vecs, vals
+
+
 def neighbor_edges(points, adj, center):
     """Return list of (j, weight) for every neighbor j of center in adj.
 
