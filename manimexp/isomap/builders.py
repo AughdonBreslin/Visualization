@@ -15,7 +15,7 @@ Manim 0.18.1 API notes (adaptations from the design spec):
 import colorsys
 import textwrap
 import numpy as np
-from manim import (VGroup, Dot, Dot3D, Line, Line3D, Text, MathTex, Table,
+from manim import (VGroup, Dot, Dot3D, Line, Line3D, Square, Text, MathTex, Table,
                    Matrix, ManimColor, interpolate_color, config, DOWN, LEFT, UL)
 from . import style as S
 
@@ -192,6 +192,46 @@ def matrix_grid(values, highlight_negative=True):
                     # get_entries uses 1-based (row, col) indices
                     tbl.get_entries((r + 1, c + 1)).set_color(S.WARM)
     return tbl
+
+
+def heatmap(matrix, n, max_cells=32, cell=0.12, diverging=False):
+    """Render an n x n matrix as a downsampled grid of colored squares.
+
+    The matrix is block-mean downsampled to at most max_cells x max_cells so it
+    stays legible and cheap at large n. Colors run on a sequential ramp
+    (MUTED -> ACCENT) or, when diverging=True, WARM (negative) -> BG -> GOOD
+    (positive). Returns a VGroup with .meta = {rows, cols, vmin, vmax}.
+    """
+    M = np.asarray(matrix, dtype=float).reshape(n, n)
+    step = max(1, int(np.ceil(n / max_cells)))
+    rows = int(np.ceil(n / step))
+    cols = rows
+    ds = np.zeros((rows, cols))
+    for r in range(rows):
+        for c in range(cols):
+            block = M[r * step:(r + 1) * step, c * step:(c + 1) * step]
+            ds[r, c] = float(block.mean()) if block.size else 0.0
+    vmin, vmax = float(ds.min()), float(ds.max())
+    grid = VGroup()
+    for r in range(rows):
+        for c in range(cols):
+            v = ds[r, c]
+            if diverging:
+                m = max(abs(vmin), abs(vmax)) or 1.0
+                if v >= 0:
+                    col = interpolate_color(S.BG, S.GOOD, min(1.0, v / m))
+                else:
+                    col = interpolate_color(S.BG, S.WARM, min(1.0, -v / m))
+            else:
+                rng = (vmax - vmin) or 1.0
+                col = interpolate_color(S.MUTED, S.ACCENT, (v - vmin) / rng)
+            sq = Square(side_length=cell, fill_color=col, fill_opacity=1.0,
+                        stroke_width=0)
+            sq.move_to([c * cell, -r * cell, 0])
+            grid.add(sq)
+    grid.move_to([0, 0, 0])
+    grid.meta = {"rows": rows, "cols": cols, "vmin": vmin, "vmax": vmax}
+    return grid
 
 
 def pseudocode_panel(active_index):
