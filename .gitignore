@@ -22,8 +22,10 @@ manimexp/.logs/
 
 # Isomap manim pipeline build artifacts
 manimexp/isomap/points/
-manimexp/isomap/__pycache__/
-manimexp/isomap/*.pyc
+
+# Python bytecode caches (all manim packages)
+__pycache__/
+*.pyc
 
 # superpowers tooling
 .claude/skills/
