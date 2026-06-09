@@ -305,7 +305,7 @@ class MDSWalkthrough(ThreeDScene):
         if hm_D2.width > 0:
             hm_D2.scale(panel_w / hm_D2.width)
         hm_D2.to_corner(RIGHT + UP, buff=0.4)
-        hm_D2.shift(DOWN * (self.dist_f.height + 0.35))
+        hm_D2.shift(DOWN * (self.dist_f.height + 0.5))
         self.add_fixed_in_frame_mobjects(hm_D2)
         hm_D2.set_opacity(0)
 
@@ -347,7 +347,7 @@ class MDSWalkthrough(ThreeDScene):
         if hm_B.width > 0:
             hm_B.scale(panel_w / hm_B.width)
         hm_B.to_corner(RIGHT + UP, buff=0.4)
-        hm_B.shift(DOWN * (f_dc.height + 0.35))
+        hm_B.shift(DOWN * (f_dc.height + 0.5))
         self.add_fixed_in_frame_mobjects(hm_B)
         hm_B.set_opacity(0)
         self.play(
