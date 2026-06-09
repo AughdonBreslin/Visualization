@@ -221,6 +221,7 @@ class KPCAWalkthrough(ThreeDScene):
         self.set_pseudo(1)
 
         # Caption: motivate what the kernel matrix encodes.
+        # Extended hold (~6.5 s) so a 5-line caption is readable.
         self.set_caption(
             "Build the kernel matrix K. Each entry K_ij = k(x_i, x_j) "
             "measures how similar two points are in the feature space "
@@ -228,13 +229,20 @@ class KPCAWalkthrough(ThreeDScene):
             "replaces the data matrix in the rest of the pipeline."
         )
 
-        # Heatmap panel in the top-right, fixed in frame.
+        # Heatmap panel top-right, grid scaled to height 2.6, label above it.
         hm_K = B.heatmap(self.d["K"], N, diverging=False)
-        hm_K.scale_to_fit_height(2.8)
-        hm_K.to_corner(RIGHT + UP, buff=0.35)
-        self.add_fixed_in_frame_mobjects(hm_K)
+        hm_K.scale_to_fit_height(2.6)
+        lbl_K = Text("K", font_size=26, color=S.INK)
+        self.add_fixed_in_frame_mobjects(hm_K, lbl_K)
+        hm_K.to_corner(RIGHT + UP, buff=0.4)
+        lbl_K.next_to(hm_K, UP, buff=0.10)
         hm_K.set_opacity(0)
-        self.play(hm_K.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+        lbl_K.set_opacity(0)
+        self.play(
+            hm_K.animate.set_opacity(1.0),
+            lbl_K.animate.set_opacity(1.0),
+            run_time=S.T_NORMAL,
+        )
 
         # Kernel formula below the heatmap.
         f = B.formula(KERNEL_FORMULA.get(KERNEL, r"K_{ij} = k(x_i, x_j)")).scale(0.75)
@@ -243,8 +251,10 @@ class KPCAWalkthrough(ThreeDScene):
         f.set_opacity(0)
         self.play(f.animate.set_opacity(1.0), run_time=S.T_FAST)
 
-        self.wait(S.T_HOLD + 2.0)
+        # Extended hold so the 5-line caption is fully readable (~6.5 s total).
+        self.wait(S.T_HOLD + 3.5)
         self.hm_K = hm_K
+        self.lbl_K = lbl_K
         self.kernel_f = f
 
     # ------------------------------------------------------------------ #
@@ -255,26 +265,37 @@ class KPCAWalkthrough(ThreeDScene):
         self.next_section("step-4-center", type=_SEC)
         self.set_pseudo(2)
 
+        # Caption: 4 lines so it fits without crowding the heatmap.
         self.set_caption(
-            "Center the kernel matrix. Centering K is the kernel-space "
-            "analogue of subtracting the mean in ordinary PCA. The "
-            "double subtraction and grand-mean addition account for "
+            "Center the kernel matrix. Centering is the kernel-space "
+            "analogue of subtracting the mean in ordinary PCA. "
+            "The double subtraction and grand-mean addition remove "
             "the row and column shifts implied by the centering operator."
         )
 
-        # Fade out the kernel formula; replace the K heatmap with Kc (diverging).
-        self.play(FadeOut(self.kernel_f), run_time=S.T_FAST)
+        # Fade out the kernel formula and label; replace the K heatmap with
+        # Kc (diverging). Heatmap height reduced to 2.6 so the centering
+        # formula below it clears the bottom caption zone.
+        self.play(
+            FadeOut(self.kernel_f),
+            FadeOut(self.lbl_K),
+            run_time=S.T_FAST,
+        )
 
         hm_Kc = B.heatmap(self.d["Kc"], N, diverging=True)
-        hm_Kc.scale_to_fit_height(2.8)
+        hm_Kc.scale_to_fit_height(2.6)
+        lbl_Kc = Text("Kc", font_size=26, color=S.INK)
         hm_Kc.move_to(self.hm_K.get_center())
-        self.add_fixed_in_frame_mobjects(hm_Kc)
+        self.add_fixed_in_frame_mobjects(hm_Kc, lbl_Kc)
+        lbl_Kc.next_to(hm_Kc, UP, buff=0.10)
         hm_Kc.set_opacity(0)
+        lbl_Kc.set_opacity(0)
 
         # Cross-fade the two heatmaps so the transition reads as a transformation.
         self.play(
             FadeOut(self.hm_K, shift=0.0),
             hm_Kc.animate.set_opacity(1.0),
+            lbl_Kc.animate.set_opacity(1.0),
             run_time=S.T_NORMAL,
         )
         self.remove(self.hm_K)
@@ -290,8 +311,10 @@ class KPCAWalkthrough(ThreeDScene):
         f_center.set_opacity(0)
         self.play(f_center.animate.set_opacity(1.0), run_time=S.T_FAST)
 
-        self.wait(S.T_HOLD + 2.0)
+        # Extended hold so the 4-line caption is readable (~6.5 s total).
+        self.wait(S.T_HOLD + 3.5)
         self.hm_Kc = hm_Kc
+        self.lbl_Kc = lbl_Kc
         self.center_f = f_center
 
     # ------------------------------------------------------------------ #
@@ -302,9 +325,10 @@ class KPCAWalkthrough(ThreeDScene):
         self.next_section("step-5-eig", type=_SEC)
         self.set_pseudo(3)
 
-        # Fade out the heatmap and centering formula.
+        # Fade out the heatmap, its label, and centering formula.
         self.play(
             FadeOut(self.hm_Kc),
+            FadeOut(self.lbl_Kc),
             FadeOut(self.center_f),
             run_time=S.T_FAST,
         )

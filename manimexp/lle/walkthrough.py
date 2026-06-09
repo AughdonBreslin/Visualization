@@ -325,7 +325,6 @@ class LLEWalkthrough(ThreeDScene):
         for rank, idx in enumerate(order[:show_count]):
             j = ni[idx]
             w_val = float(nw[idx])
-            # Arrow direction: neighbor -> center, magnitude encodes weight.
             start_3d = pts[j].tolist()
             end_3d = pts[ci].tolist()
             col = S.GOOD if w_val >= 0 else S.WARM
@@ -338,10 +337,21 @@ class LLEWalkthrough(ThreeDScene):
             weight_arrows.add(arr)
 
             # Label the top 4 weights so the screen stays readable.
+            # Nudge each label along the perpendicular to its own arrow so
+            # labels near the shared center point do not stack.
             if rank < 4:
-                mid = (np.array(start_3d) + np.array(end_3d)) / 2.0
-                # Nudge slightly off the line.
-                nudge = np.array([0.0, 0.12, 0.0])
+                s3 = np.array(start_3d)
+                e3 = np.array(end_3d)
+                mid = (s3 + e3) / 2.0
+                seg_dir = e3 - s3
+                seg_len = float(np.linalg.norm(seg_dir))
+                if seg_len > 1e-9:
+                    seg_unit = seg_dir / seg_len
+                    # Perpendicular in the xy-plane (z=0 component).
+                    perp = np.array([-seg_unit[1], seg_unit[0], 0.0])
+                else:
+                    perp = np.array([0.0, 1.0, 0.0])
+                nudge = perp * 0.22
                 lbl_pos = (mid + nudge).tolist()
                 lbl = Text(f"{w_val:.3f}", font_size=20, color=S.INK).move_to(lbl_pos)
                 weight_labels.append(lbl)
@@ -355,35 +365,42 @@ class LLEWalkthrough(ThreeDScene):
             )
         self.wait(1.8)
 
-        # Show the weight formula as a fixed-in-frame overlay.
+        # Show the weight formula as a fixed-in-frame overlay, standardized buff=0.4.
         f_w = B.formula(
             r"\min \bigl\| x_i - \textstyle\sum_j w_j x_{n_j} \bigr\|^2,\quad \sum_j w_j = 1"
         ).scale(0.72)
         self.add_fixed_in_frame_mobjects(f_w)
-        f_w.to_corner(RIGHT + UP, buff=0.3).set_opacity(0)
+        f_w.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(f_w.animate.set_opacity(1.0), run_time=S.T_FAST)
         self.set_caption("The weights minimize reconstruction error subject to summing to 1. A small per-point linear system determines them.")
-        self.wait(2.2)
+        self.wait(1.8)
 
-        # Optionally show a heatmap of W (the full weight matrix) in the corner.
+        # W heatmap: grid alone scaled to height 2.2, label above, anchored
+        # top-right under the formula. The formula is at buff=0.4 from the corner
+        # so there is room for the heatmap below it without colliding.
         N_pts = len(pts)
         hm_W = B.heatmap(self.d["W"], N_pts, max_cells=32, cell=0.11, diverging=True)
-        hm_lbl = B.formula(r"W").scale(0.65)
-        hm_grp = VGroup(hm_lbl, hm_W).arrange(DOWN, buff=0.10)
-        hm_grp.scale(1.0)
-        # Size cap so the heatmap does not crowd the formula.
-        if hm_grp.width > 2.4:
-            hm_grp.scale_to_fit_width(2.4)
-        self.add_fixed_in_frame_mobjects(hm_grp)
-        hm_grp.to_corner(RIGHT + DOWN, buff=0.3).set_opacity(0)
-        self.play(hm_grp.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+        hm_W.scale_to_fit_height(2.2)
+        hm_lbl = Text("W", font_size=26, color=S.INK)
+        self.add_fixed_in_frame_mobjects(hm_W, hm_lbl)
+        hm_W.to_corner(RIGHT + UP, buff=0.4)
+        hm_W.shift(DOWN * (f_w.height + 0.5))
+        hm_lbl.next_to(hm_W, UP, buff=0.10)
+        hm_W.set_opacity(0)
+        hm_lbl.set_opacity(0)
+        self.play(
+            hm_W.animate.set_opacity(1.0),
+            hm_lbl.animate.set_opacity(1.0),
+            run_time=S.T_NORMAL,
+        )
         self.set_caption("The weight matrix W is sparse: most entries are zero. Each row has at most k non-zero entries.")
-        self.wait(2.4)
+        self.wait(1.8)
 
         self.weight_arrows = weight_arrows
         self.weight_labels = VGroup(*weight_labels)
         self.weight_formula = f_w
-        self.weight_hm = hm_grp
+        self.weight_hm = hm_W
+        self.weight_hm_lbl = hm_lbl
         self.wait(S.T_HOLD)
 
     # ------------------------------------------------------------------ #
@@ -400,6 +417,7 @@ class LLEWalkthrough(ThreeDScene):
             FadeOut(self.weight_labels),
             FadeOut(self.weight_formula),
             FadeOut(self.weight_hm),
+            FadeOut(self.weight_hm_lbl),
             run_time=S.T_FAST,
         )
 
@@ -411,10 +429,10 @@ class LLEWalkthrough(ThreeDScene):
 
         self.set_caption("Form M = (I - W) transpose times (I - W). Its smallest non-trivial eigenvectors give the 2D coordinates.")
 
-        # Show the M formula.
+        # Show the M formula, standardized buff=0.4.
         f_M = B.formula(r"M = (I - W)^{\top}(I - W)").scale(0.80)
         self.add_fixed_in_frame_mobjects(f_M)
-        f_M.to_corner(RIGHT + UP, buff=0.35).set_opacity(0)
+        f_M.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(f_M.animate.set_opacity(1.0), run_time=S.T_FAST)
         self.wait(1.8)
 
@@ -468,10 +486,10 @@ class LLEWalkthrough(ThreeDScene):
         tgt_theta = -90 * DEGREES
         tgt_theta += round((cur_theta - tgt_theta) / (2 * np.pi)) * 2 * np.pi
 
-        # Embedding formula.
+        # Embedding formula, standardized buff=0.4.
         f_embed = B.formula(r"Y = [\, v_1 \;\; v_2 \,]").scale(0.85)
         self.add_fixed_in_frame_mobjects(f_embed)
-        f_embed.to_corner(RIGHT + UP, buff=0.35).set_opacity(0)
+        f_embed.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(f_embed.animate.set_opacity(1.0), run_time=S.T_FAST)
 
         self.set_caption("Turn to look straight down at the embedding plane, then move each point to its 2D position.")
@@ -485,7 +503,7 @@ class LLEWalkthrough(ThreeDScene):
             ],
         )
 
-        # Fade out the axes (no longer meaningful in 2D).
+        # Fade out the axes and edges (no longer meaningful in 2D).
         self.play(FadeOut(self.axes), FadeOut(self.edges_mob), run_time=S.T_FAST)
 
         outro = DATASET_OUTRO.get(

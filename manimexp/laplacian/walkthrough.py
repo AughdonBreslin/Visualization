@@ -222,7 +222,7 @@ class LaplacianWalkthrough(ThreeDScene):
             LaggedStart(*[FadeIn(d) for d in neighbor_dots],
                         lag_ratio=0.18, run_time=S.T_NORMAL)
         )
-        self.wait(1.8)
+        self.wait(1.0)
 
         self.set_caption("Each link is weighted by the distance between the two points.")
         schematic_lines = VGroup()
@@ -292,7 +292,7 @@ class LaplacianWalkthrough(ThreeDScene):
             LaggedStart(*[Create(l) for l in nbr_lines],
                         lag_ratio=0.12, run_time=S.T_NORMAL)
         )
-        self.wait(S.T_HOLD + 1.0)
+        self.wait(S.T_HOLD)
 
         # Clean up the neighborhood highlight; keep edges and cloud for the next section.
         self.play(
@@ -302,8 +302,6 @@ class LaplacianWalkthrough(ThreeDScene):
             run_time=S.T_FAST,
         )
 
-        # Keep the ambient orbit running continuously.
-        orbit_time = 16.0
         self.move_camera(phi=80 * DEGREES, theta=30 * DEGREES, run_time=S.T_NORMAL)
         self.wait(S.T_HOLD)
 
@@ -336,19 +334,20 @@ class LaplacianWalkthrough(ThreeDScene):
         self.play(AnimationGroup(*recolor_anims, lag_ratio=0.0), run_time=S.T_SLOW)
         self.wait(1.0)
 
-        # Formula in top-right corner.
+        # Formula in top-right corner, standardized buff=0.4.
         f_W = B.formula(r"W_{ij} = \exp\!\left(-\frac{\|x_i - x_j\|^2}{2\sigma^2}\right)").scale(0.75)
         self.add_fixed_in_frame_mobjects(f_W)
-        f_W.to_corner(RIGHT + UP, buff=0.35).set_opacity(0)
+        f_W.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(f_W.animate.set_opacity(1.0), run_time=S.T_FAST)
 
-        # Heatmap of W as a fixed-in-frame panel, bottom-right to avoid the
-        # pseudocode panel (top-left) and caption (bottom-center).
+        # Heatmap of W: grid scaled to height 2.6, with matrix label above it.
+        # Placed top-right under the formula for consistency with other single-matrix steps.
         hm_W = B.heatmap(W, N, max_cells=32, cell=0.13, diverging=False)
         hm_W.scale_to_fit_height(2.6)
         lbl_W = Text("W", font_size=26, color=S.INK)
         self.add_fixed_in_frame_mobjects(hm_W, lbl_W)
-        hm_W.to_corner(RIGHT + DOWN, buff=0.5)
+        hm_W.to_corner(RIGHT + UP, buff=0.4)
+        hm_W.shift(DOWN * (f_W.height + 0.5))
         lbl_W.next_to(hm_W, UP, buff=0.12)
         hm_W.set_opacity(0)
         lbl_W.set_opacity(0)
@@ -376,19 +375,44 @@ class LaplacianWalkthrough(ThreeDScene):
         L = self.d["L"]
         D_deg = self.d["D_deg"]
 
-        self.set_caption("The degree matrix D collects the row sums of W. The graph Laplacian L subtracts W from D.")
+        # Fade out affinity formula and prior W heatmap completely.
+        self.play(
+            FadeOut(self.affinity_f),
+            FadeOut(self.hm_W),
+            FadeOut(self.lbl_W),
+            run_time=S.T_FAST,
+        )
 
-        # Fade out the affinity formula and keep the W heatmap visible for continuity.
-        self.play(FadeOut(self.affinity_f), run_time=S.T_FAST)
+        # --- Beat 1: show W alone with an explanatory caption ---
+        self.set_caption("W is the affinity matrix. Entry W_ij holds the heat-kernel weight for each connected pair; unconnected entries are zero.")
 
-        # Heatmap of D (diagonal only, so brighter along the diagonal).
+        hm_W2 = B.heatmap(W, N, max_cells=32, cell=0.13, diverging=False)
+        hm_W2.scale_to_fit_height(1.6)
+        lbl_W2 = Text("W  (affinity)", font_size=22, color=S.INK)
+
+        self.add_fixed_in_frame_mobjects(hm_W2, lbl_W2)
+        # Anchor the row of three heatmaps to top-right; start with W alone.
+        hm_W2.to_corner(RIGHT + UP, buff=0.4)
+        lbl_W2.next_to(hm_W2, UP, buff=0.10)
+        hm_W2.set_opacity(0)
+        lbl_W2.set_opacity(0)
+        self.play(
+            hm_W2.animate.set_opacity(1.0),
+            lbl_W2.animate.set_opacity(1.0),
+            run_time=S.T_NORMAL,
+        )
+        self.wait(S.T_HOLD)
+
+        # --- Beat 2: D appears to the left of W, with a caption explaining row sums ---
+        self.set_caption("D is the degree matrix. Its diagonal entry D_ii equals the sum of row i of W. All off-diagonal entries of D are zero.")
+
         hm_D = B.heatmap(D_deg, N, max_cells=32, cell=0.13, diverging=False)
-        hm_D.scale_to_fit_height(2.6)
-        lbl_D = Text("D", font_size=26, color=S.INK)
+        hm_D.scale_to_fit_height(1.6)
+        lbl_D = Text("D  (row sums, diagonal)", font_size=22, color=S.INK)
+
         self.add_fixed_in_frame_mobjects(hm_D, lbl_D)
-        # Position D heatmap to the left of W heatmap.
-        hm_D.next_to(self.hm_W, LEFT, buff=0.35)
-        lbl_D.next_to(hm_D, UP, buff=0.12)
+        hm_D.next_to(hm_W2, LEFT, buff=0.3)
+        lbl_D.next_to(hm_D, UP, buff=0.10)
         hm_D.set_opacity(0)
         lbl_D.set_opacity(0)
         self.play(
@@ -396,15 +420,19 @@ class LaplacianWalkthrough(ThreeDScene):
             lbl_D.animate.set_opacity(1.0),
             run_time=S.T_NORMAL,
         )
-        self.wait(1.2)
+        self.wait(S.T_HOLD)
 
-        # Heatmap of L (diverging: negative off-diagonal entries are warm-colored).
+        # --- Beat 3: L appears to the left of D, with the L = D - W formula ---
+        # Caption before the formula so the viewer reads the idea first.
+        self.set_caption("L = D - W is the graph Laplacian. Its diagonal is D_ii (positive), and each off-diagonal L_ij = -W_ij (non-positive).")
+
         hm_L = B.heatmap(L, N, max_cells=32, cell=0.13, diverging=True)
-        hm_L.scale_to_fit_height(2.6)
-        lbl_L = Text("L", font_size=26, color=S.INK)
+        hm_L.scale_to_fit_height(1.6)
+        lbl_L = Text("L  (Laplacian = D - W)", font_size=22, color=S.INK)
+
         self.add_fixed_in_frame_mobjects(hm_L, lbl_L)
-        hm_L.next_to(hm_D, LEFT, buff=0.35)
-        lbl_L.next_to(hm_L, UP, buff=0.12)
+        hm_L.next_to(hm_D, LEFT, buff=0.3)
+        lbl_L.next_to(hm_L, UP, buff=0.10)
         hm_L.set_opacity(0)
         lbl_L.set_opacity(0)
         self.play(
@@ -413,15 +441,17 @@ class LaplacianWalkthrough(ThreeDScene):
             run_time=S.T_NORMAL,
         )
 
-        # Formula below the three heatmaps.
+        # Formula anchored below the W heatmap (the rightmost panel).
+        # Keep it clear of the bottom caption by sizing conservatively.
         f_L = B.formula(r"L = D - W,\quad D_{ii} = \sum_j W_{ij}").scale(0.72)
         self.add_fixed_in_frame_mobjects(f_L)
-        f_L.next_to(self.hm_W, DOWN, buff=0.3).set_opacity(0)
+        f_L.next_to(hm_W2, DOWN, buff=0.25).set_opacity(0)
         self.play(f_L.animate.set_opacity(1.0), run_time=S.T_FAST)
 
-        self.set_caption("L has non-negative diagonal entries (degrees) and non-positive off-diagonal entries (-W_ij). It captures how much each point differs from its neighbors.")
         self.wait(S.T_HOLD + 2.0)
 
+        self.hm_W2 = hm_W2
+        self.lbl_W2 = lbl_W2
         self.hm_D = hm_D
         self.lbl_D = lbl_D
         self.hm_L = hm_L
@@ -440,7 +470,7 @@ class LaplacianWalkthrough(ThreeDScene):
 
         # Clear the three heatmaps and the Laplacian formula.
         self.play(
-            FadeOut(self.hm_W), FadeOut(self.lbl_W),
+            FadeOut(self.hm_W2), FadeOut(self.lbl_W2),
             FadeOut(self.hm_D), FadeOut(self.lbl_D),
             FadeOut(self.hm_L), FadeOut(self.lbl_L),
             FadeOut(self.laplacian_f),
@@ -448,7 +478,7 @@ class LaplacianWalkthrough(ThreeDScene):
         )
 
         self.set_caption("Find the two smallest non-trivial eigenvalues of L. The trivial zero eigenvalue corresponds to the constant eigenvector, which carries no coordinate information.")
-        self.wait(2.8)
+        self.wait(2.0)
 
         f_eig = B.formula(r"L\,v_k = \lambda_k\,v_k").scale(0.85)
         self.add_fixed_in_frame_mobjects(f_eig)
@@ -456,7 +486,7 @@ class LaplacianWalkthrough(ThreeDScene):
         self.play(f_eig.animate.set_opacity(1.0), run_time=S.T_FAST)
 
         self.set_caption("Each eigenvector is a smooth function on the graph. The smallest non-trivial ones vary as slowly as possible across the edges.")
-        self.wait(2.0)
+        self.wait(1.5)
 
         lam_str = rf"\lambda_1 = {vals[0]:.4f},\quad \lambda_2 = {vals[1]:.4f}"
         f_vals = B.formula(lam_str).scale(0.70)
@@ -515,17 +545,20 @@ class LaplacianWalkthrough(ThreeDScene):
 
         self.set_caption("Rotate the view to face the embedding plane, and move each point to its 2D position.")
 
-        # Morph cloud to the 2D embedding positions while flattening the camera.
+        # Fade out the axes and graph edges before the camera flatten so the
+        # 3D wireframe is gone by the time the view is face-on. Morph the cloud
+        # into the 2D embedding positions in the same beat.
         cloud_dots = self.cloud.submobjects
         n_pts = len(cloud_dots)
         self.move_camera(
             phi=0, theta=tgt_theta,
             run_time=S.T_SLOW,
             added_anims=[
-                cloud_dots[i].animate.move_to(target[i])
-                for i in range(n_pts)
+                FadeOut(self.axes),
+                FadeOut(self.edges_mob),
+                *[cloud_dots[i].animate.move_to(target[i]) for i in range(n_pts)],
             ],
         )
-        self.play(FadeOut(self.axes), run_time=S.T_FAST)
+
         self.set_caption(DATASET_OUTRO.get(DATASET, _OUTRO_DEFAULT))
         self.wait(5.0)
