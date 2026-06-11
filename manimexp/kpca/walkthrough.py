@@ -71,9 +71,12 @@ DATASET_INTRO = {
 # Per-kernel outro captions for the embedding step.
 KERNEL_OUTRO = {
     "rbf": (
-        "The RBF kernel measures similarity by Gaussian distance in feature space. "
-        "For the swiss roll, this nonlinear similarity unfolds the rolled layers "
-        "into a clean 2D layout that a linear method cannot achieve."
+        "The RBF kernel maps points to a high-dimensional Gaussian feature space, "
+        "but it does not recover the flat sheet of the swiss roll. "
+        "The top two components correlate only weakly with the roll angle and height, "
+        "so the rolled layers remain entangled in this 2D view. "
+        "Isomap, LLE, and Laplacian Eigenmaps use the graph structure to unroll the sheet; "
+        "Kernel PCA with RBF does not."
     ),
     "polynomial": (
         "The polynomial kernel bends the feature space by raising dot products "
@@ -138,7 +141,12 @@ class KPCAWalkthrough(ThreeDScene):
         Kc_mat = center_kernel(K_mat)
         Y, vecs, vals = top2_kernel_embed(Kc_mat)
 
-        self.d = dict(pts=pts, t=t, K=K_mat, Kc=Kc_mat, Y=Y, vecs=vecs, vals=vals)
+        # Top-6 eigenvalues of Kc (descending) for the bar chart.
+        all_vals_desc = np.sort(np.linalg.eigvalsh(Kc_mat))[::-1]
+        top6_vals = all_vals_desc[:6].tolist()
+
+        self.d = dict(pts=pts, t=t, K=K_mat, Kc=Kc_mat, Y=Y, vecs=vecs, vals=vals,
+                      top6_vals=top6_vals)
         self.cap = None
         self.pseudo = None
 
@@ -210,7 +218,7 @@ class KPCAWalkthrough(ThreeDScene):
         self.set_caption(intro)
 
         self.begin_ambient_camera_rotation(rate=2 * np.pi / 14.0, about="theta")
-        self.wait(3.0)
+        self.wait(5.5)
 
     # ------------------------------------------------------------------ #
     # Step 3: kernel matrix K                                             #
@@ -220,18 +228,16 @@ class KPCAWalkthrough(ThreeDScene):
         self.next_section("step-3-kernel", type=_SEC)
         self.set_pseudo(1)
 
-        # Caption: motivate what the kernel matrix encodes.
-        # Extended hold (~6.5 s) so a 5-line caption is readable.
+        # Caption 1: what we are building.
         self.set_caption(
             "Build the kernel matrix K. Each entry K_ij = k(x_i, x_j) "
-            "measures how similar two points are in the feature space "
-            "implicitly defined by the kernel. The full N x N matrix "
-            "replaces the data matrix in the rest of the pipeline."
+            "measures similarity between two points in the feature space "
+            "defined by the kernel."
         )
 
-        # Heatmap panel top-right, grid scaled to height 2.6, label above it.
+        # Heatmap panel top-right, grid scaled to height 2.4, label above it.
         hm_K = B.heatmap(self.d["K"], N, diverging=False)
-        hm_K.scale_to_fit_height(2.6)
+        hm_K.scale_to_fit_height(2.4)
         lbl_K = Text("K", font_size=26, color=S.INK)
         self.add_fixed_in_frame_mobjects(hm_K, lbl_K)
         hm_K.to_corner(RIGHT + UP, buff=0.4)
@@ -244,15 +250,28 @@ class KPCAWalkthrough(ThreeDScene):
             run_time=S.T_NORMAL,
         )
 
-        # Kernel formula below the heatmap.
-        f = B.formula(KERNEL_FORMULA.get(KERNEL, r"K_{ij} = k(x_i, x_j)")).scale(0.75)
-        f.next_to(hm_K, DOWN, buff=0.28)
+        # Kernel formula below the heatmap via fit_formula so it never overflows.
+        f = B.fit_formula(
+            KERNEL_FORMULA.get(KERNEL, r"K_{ij} = k(x_i, x_j)"),
+            max_width=4.4, scale=0.75,
+        )
         self.add_fixed_in_frame_mobjects(f)
+        f.next_to(hm_K, DOWN, buff=0.28)
+        # Clamp so formula stays above the caption zone.
+        if f.get_bottom()[1] < -2.6:
+            f.shift(UP * (abs(f.get_bottom()[1]) - 2.6))
         f.set_opacity(0)
         self.play(f.animate.set_opacity(1.0), run_time=S.T_FAST)
+        self.wait(3.5)
 
-        # Extended hold so the 5-line caption is fully readable (~6.5 s total).
-        self.wait(S.T_HOLD + 3.5)
+        # Caption 2: what the N x N matrix does in the pipeline.
+        self.set_caption(
+            "The full N x N matrix K replaces the data matrix in the rest of "
+            "the pipeline. K encodes all pairwise similarities; no explicit "
+            "feature vectors are needed."
+        )
+        self.wait(4.5)
+
         self.hm_K = hm_K
         self.lbl_K = lbl_K
         self.kernel_f = f
@@ -274,8 +293,9 @@ class KPCAWalkthrough(ThreeDScene):
         )
 
         # Fade out the kernel formula and label; replace the K heatmap with
-        # Kc (diverging). Heatmap height reduced to 2.6 so the centering
-        # formula below it clears the bottom caption zone.
+        # Kc (diverging). Kc takes the same footprint (height 2.4) and center
+        # as K so the swap reads as an in-place cross-fade and the Kc label
+        # sits exactly where K's label did, clear of the top frame edge.
         self.play(
             FadeOut(self.kernel_f),
             FadeOut(self.lbl_K),
@@ -283,7 +303,7 @@ class KPCAWalkthrough(ThreeDScene):
         )
 
         hm_Kc = B.heatmap(self.d["Kc"], N, diverging=True)
-        hm_Kc.scale_to_fit_height(2.6)
+        hm_Kc.scale_to_fit_height(2.4)
         lbl_Kc = Text("Kc", font_size=26, color=S.INK)
         hm_Kc.move_to(self.hm_K.get_center())
         self.add_fixed_in_frame_mobjects(hm_Kc, lbl_Kc)
@@ -300,19 +320,20 @@ class KPCAWalkthrough(ThreeDScene):
         )
         self.remove(self.hm_K)
 
-        # Centering formula below the Kc heatmap.
-        f_center = B.formula(
-            r"K_c = K - \mathbf{1}_N K - K \mathbf{1}_N + \mathbf{1}_N K \mathbf{1}_N"
-        ).scale(0.60)
-        if f_center.width > 4.5:
-            f_center.scale_to_fit_width(4.5)
-        f_center.next_to(hm_Kc, DOWN, buff=0.28)
+        # Centering formula below the Kc heatmap via fit_formula.
+        f_center = B.fit_formula(
+            r"K_c = K - \mathbf{1}_N K - K \mathbf{1}_N + \mathbf{1}_N K \mathbf{1}_N",
+            max_width=4.4, scale=0.60,
+        )
         self.add_fixed_in_frame_mobjects(f_center)
+        f_center.next_to(hm_Kc, DOWN, buff=0.28)
+        if f_center.get_bottom()[1] < -2.6:
+            f_center.shift(UP * (abs(f_center.get_bottom()[1]) - 2.6))
         f_center.set_opacity(0)
         self.play(f_center.animate.set_opacity(1.0), run_time=S.T_FAST)
 
-        # Extended hold so the 4-line caption is readable (~6.5 s total).
-        self.wait(S.T_HOLD + 3.5)
+        # Extended hold so the 4-sentence caption is fully readable.
+        self.wait(6.0)
         self.hm_Kc = hm_Kc
         self.lbl_Kc = lbl_Kc
         self.center_f = f_center
@@ -339,6 +360,7 @@ class KPCAWalkthrough(ThreeDScene):
             "one coordinate of the nonlinear embedding. The top two "
             "eigenvalues set the scale of each coordinate axis."
         )
+        self.wait(3.5)
 
         # Formula: eigenvalue equation.
         f_eig = B.formula(r"K_c\, v_k = \lambda_k\, v_k").scale(0.85)
@@ -346,19 +368,51 @@ class KPCAWalkthrough(ThreeDScene):
         f_eig.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(f_eig.animate.set_opacity(1.0), run_time=S.T_FAST)
 
-        # Top-2 eigenvalue readout.
+        # Top-2 eigenvalue readout via fit_formula.
         vals = self.d["vals"]
         v1, v2 = float(vals[0]), float(vals[1])
-        readout = B.formula(
-            rf"\lambda_1 = {v1:.2f} \qquad \lambda_2 = {v2:.2f}"
-        ).scale(0.65)
-        if readout.width > 5.2:
-            readout.scale_to_fit_width(5.2)
+        readout = B.fit_formula(
+            rf"\lambda_1 = {v1:.2f} \qquad \lambda_2 = {v2:.2f}",
+            max_width=4.8, scale=0.65,
+        )
         self.add_fixed_in_frame_mobjects(readout)
         readout.next_to(f_eig, DOWN, buff=0.32, aligned_edge=RIGHT).set_opacity(0)
         self.play(readout.animate.set_opacity(1.0), run_time=S.T_FAST)
+        self.wait(2.5)
 
-        self.wait(S.T_HOLD + 2.0)
+        # Eigenvalue bar chart: top-6 of Kc (descending), highlight top 2.
+        top6 = self.d["top6_vals"]
+        bar_group = B.eig_bar_chart(top6, highlight_idxs=[0, 1])
+
+        bar_labels = VGroup()
+        label_specs = [
+            (r"\lambda_1", S.ACCENT),
+            (r"\lambda_2", S.ACCENT),
+        ]
+        for i, (tex, col) in enumerate(label_specs):
+            if i < len(bar_group.submobjects):
+                lbl = MathTex(tex, font_size=18, color=col)
+                lbl.next_to(bar_group.submobjects[i], DOWN, buff=0.06)
+                bar_labels.add(lbl)
+
+        chart_group = VGroup(bar_group, bar_labels)
+        self.add_fixed_in_frame_mobjects(chart_group)
+        chart_group.next_to(readout, DOWN, buff=0.35, aligned_edge=RIGHT)
+        if chart_group.get_bottom()[1] < -2.5:
+            chart_group.shift(UP * (abs(chart_group.get_bottom()[1]) - 2.5))
+        chart_group.set_opacity(0)
+        self.play(chart_group.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+
+        self.set_caption(
+            "The top two eigenvalues of Kc capture the dominant variation in "
+            "kernel-feature space. The remaining eigenvalues decay; only the "
+            "first two are used to form the 2D embedding."
+        )
+        self.wait(4.0)
+
+        # Fade the chart before the embedding step.
+        self.play(FadeOut(chart_group), run_time=S.T_FAST)
+
         self.eig_f = f_eig
         self.eig_vals = readout
 
@@ -382,7 +436,7 @@ class KPCAWalkthrough(ThreeDScene):
             FadeOut(self.eig_vals),
             run_time=S.T_FAST,
         )
-        f_embed = B.formula(r"y_{i,k} = \sqrt{\lambda_k}\, v_{k,i}").scale(0.85)
+        f_embed = B.fit_formula(r"y_{i,k} = \sqrt{\lambda_k}\, v_{k,i}", max_width=4.8, scale=0.85)
         self.add_fixed_in_frame_mobjects(f_embed)
         f_embed.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(f_embed.animate.set_opacity(1.0), run_time=S.T_FAST)
@@ -404,10 +458,19 @@ class KPCAWalkthrough(ThreeDScene):
                 ],
             ],
         )
+        self.wait(1.5)
 
         # Fade out axes; the cloud remains as the embedding.
         self.play(FadeOut(self.axes), run_time=S.T_FAST)
 
         outro = KERNEL_OUTRO.get(KERNEL, _OUTRO_DEFAULT)
         self.set_caption(outro)
-        self.wait(5.0)
+        self.wait(5.5)
+        # Fade the caption, pseudocode panel, and formula so the final 2D
+        # embedding is shown unobstructed for a beat before the clip ends.
+        self.play(
+            FadeOut(self.cap), FadeOut(self.pseudo), FadeOut(f_embed),
+            run_time=S.T_NORMAL,
+        )
+        self.cap, self.pseudo = None, None
+        self.wait(2.5)

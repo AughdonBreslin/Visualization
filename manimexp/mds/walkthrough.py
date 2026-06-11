@@ -155,6 +155,10 @@ class MDSWalkthrough(ThreeDScene):
         # Classical MDS embedding: Y_i = (sqrt(l1)*v1_i, sqrt(l2)*v2_i).
         Y = eigvecs * np.sqrt(np.maximum(eigvals, 0.0))
 
+        # Top-6 eigenvalues of B (descending) for the bar chart.
+        all_vals_desc = np.sort(np.linalg.eigvalsh(Bmat))[::-1]
+        top6_vals = all_vals_desc[:6].tolist()
+
         # Spread-out sample pairs for the distance-lines beat (step 3).
         # Pick pairs spread across the roll so the lines are visible and varied.
         rng = np.random.default_rng(42)
@@ -168,7 +172,7 @@ class MDSWalkthrough(ThreeDScene):
             pairs.append((int(a), int(b)))
 
         self.d = dict(pts=pts, t=t, D=D, Bmat=Bmat, eigvals=eigvals,
-                      eigvecs=eigvecs, Y=Y, pairs=pairs)
+                      eigvecs=eigvecs, Y=Y, pairs=pairs, top6_vals=top6_vals)
         self.cap = None
         self.pseudo = None
 
@@ -235,7 +239,7 @@ class MDSWalkthrough(ThreeDScene):
         )
         self.set_caption(intro)
         self.begin_ambient_camera_rotation(rate=2 * np.pi / 14.0, about="theta")
-        self.wait(3.0)
+        self.wait(4.5)
 
     # ------------------------------------------------------------------ #
     # Step 3 (id step-3-distances): pairwise distances + heatmap of D     #
@@ -248,6 +252,7 @@ class MDSWalkthrough(ThreeDScene):
             "Every pair of points has a straight-line distance. Collect all"
             " N times N of them into the distance matrix D."
         )
+        self.wait(2.0)
 
         # Draw a handful of sample connecting lines in 3D.
         pts = self.d["pts"]
@@ -259,22 +264,21 @@ class MDSWalkthrough(ThreeDScene):
         for seg in lines:
             self.play(Create(seg), run_time=0.35)
 
-        # Formula top-right.
-        f = B.formula(r"D_{ij} = \| x_i - x_j \|").scale(0.85)
+        # Formula top-right: use fit_formula so it never overflows.
+        f = B.fit_formula(r"D_{ij} = \| x_i - x_j \|", max_width=4.8, scale=0.85)
         self.add_fixed_in_frame_mobjects(f)
         f.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(f.animate.set_opacity(1.0), run_time=S.T_FAST)
 
-        # Heatmap of D as a fixed-in-frame corner panel.
+        # Heatmap of D: 2.4 units wide, placed below the formula with a 0.35 gap.
         D = self.d["D"]
         hm_D = B.heatmap(D, N, max_cells=32, diverging=False)
-        # Scale to fit a corner panel (~2.5 scene units wide) and place bottom-right.
-        panel_w = 2.5
+        panel_w = 2.4
         if hm_D.width > 0:
             hm_D.scale(panel_w / hm_D.width)
+        self.add_fixed_in_frame_mobjects(hm_D)
         hm_D.to_corner(RIGHT + UP, buff=0.4)
         hm_D.shift(DOWN * (f.height + 0.35))
-        self.add_fixed_in_frame_mobjects(hm_D)
         hm_D.set_opacity(0)
         self.play(hm_D.animate.set_opacity(1.0), run_time=S.T_NORMAL)
 
@@ -282,7 +286,7 @@ class MDSWalkthrough(ThreeDScene):
             "The color in row i, column j encodes how far point i is from"
             " point j. Bright entries are large distances; dark entries are small."
         )
-        self.wait(S.T_HOLD + 2.0)
+        self.wait(S.T_HOLD + 4.0)
 
         self.dist_lines = lines
         self.dist_f = f
@@ -301,12 +305,12 @@ class MDSWalkthrough(ThreeDScene):
         Bmat = self.d["Bmat"]
 
         hm_D2 = B.heatmap(D ** 2, N, max_cells=32, diverging=False)
-        panel_w = 2.5
+        panel_w = 2.4
         if hm_D2.width > 0:
             hm_D2.scale(panel_w / hm_D2.width)
+        self.add_fixed_in_frame_mobjects(hm_D2)
         hm_D2.to_corner(RIGHT + UP, buff=0.4)
         hm_D2.shift(DOWN * (self.dist_f.height + 0.5))
-        self.add_fixed_in_frame_mobjects(hm_D2)
         hm_D2.set_opacity(0)
 
         self.set_caption(
@@ -322,10 +326,11 @@ class MDSWalkthrough(ThreeDScene):
         )
         self.remove(self.hm_D)
 
-        # Update the formula to the double-centering formula.
-        f_dc = B.formula(
-            r"B = -\tfrac{1}{2}\, H D^2 H,\quad H = I - \tfrac{1}{N}\mathbf{1}\mathbf{1}^\top"
-        ).scale(0.7)
+        # Double-centering formula via fit_formula so it never runs off-screen.
+        f_dc = B.fit_formula(
+            r"B = -\tfrac{1}{2}\, H D^2 H,\quad H = I - \tfrac{1}{N}\mathbf{1}\mathbf{1}^\top",
+            max_width=4.8, scale=0.70,
+        )
         self.add_fixed_in_frame_mobjects(f_dc)
         f_dc.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(
@@ -335,7 +340,7 @@ class MDSWalkthrough(ThreeDScene):
         )
         self.remove(self.dist_f)
 
-        self.wait(S.T_HOLD)
+        self.wait(S.T_HOLD + 2.5)
         self.set_caption(
             "The centering matrix H removes the translation component."
             " The result B is a Gram matrix: its entries are inner products"
@@ -346,9 +351,9 @@ class MDSWalkthrough(ThreeDScene):
         hm_B = B.heatmap(Bmat, N, max_cells=32, diverging=True)
         if hm_B.width > 0:
             hm_B.scale(panel_w / hm_B.width)
+        self.add_fixed_in_frame_mobjects(hm_B)
         hm_B.to_corner(RIGHT + UP, buff=0.4)
         hm_B.shift(DOWN * (f_dc.height + 0.5))
-        self.add_fixed_in_frame_mobjects(hm_B)
         hm_B.set_opacity(0)
         self.play(
             FadeOut(hm_D2),
@@ -356,12 +361,13 @@ class MDSWalkthrough(ThreeDScene):
             run_time=S.T_NORMAL,
         )
         self.remove(hm_D2)
+        self.wait(2.5)
 
         self.set_caption(
             "Warm cells are negative inner products; cool cells are positive."
             " The diagonal is zero because each point has zero inner product with itself."
         )
-        self.wait(S.T_HOLD + 2.0)
+        self.wait(S.T_HOLD + 3.0)
 
         self.dc_f = f_dc
         self.hm_B = hm_B
@@ -391,16 +397,12 @@ class MDSWalkthrough(ThreeDScene):
             "Eigendecompose the Gram matrix B. The top eigenvectors carry the"
             " directions of largest spread in inner-product space."
         )
-        self.wait(S.T_HOLD)
+        self.wait(S.T_HOLD + 2.0)
 
         # Eigenvalue readout below the formula.
         lam1, lam2 = float(eigvals[0]), float(eigvals[1])
-        vals_tex = (
-            rf"\lambda_1 = {lam1:.2f}\quad \lambda_2 = {lam2:.2f}"
-        )
-        vals_mob = B.formula(vals_tex).scale(0.6)
-        if vals_mob.width > 5.6:
-            vals_mob.scale_to_fit_width(5.6)
+        vals_tex = rf"\lambda_1 = {lam1:.2f}\quad \lambda_2 = {lam2:.2f}"
+        vals_mob = B.fit_formula(vals_tex, max_width=4.8, scale=0.65)
         self.add_fixed_in_frame_mobjects(vals_mob)
         vals_mob.next_to(f_eig, DOWN, buff=0.3, aligned_edge=RIGHT).set_opacity(0)
         self.play(vals_mob.animate.set_opacity(1.0), run_time=S.T_FAST)
@@ -411,6 +413,40 @@ class MDSWalkthrough(ThreeDScene):
             " positive semi-definite when the data comes from a Euclidean space."
         )
         self.wait(S.T_HOLD + 2.0)
+
+        # Eigenvalue bar chart: top-6 eigenvalues of B (descending); highlight top 2.
+        top6 = self.d["top6_vals"]
+        bar_group = B.eig_bar_chart(top6, highlight_idxs=[0, 1])
+
+        bar_labels = VGroup()
+        label_specs = [
+            (r"\lambda_1", S.ACCENT),
+            (r"\lambda_2", S.ACCENT),
+        ]
+        for i, (tex, col) in enumerate(label_specs):
+            if i < len(bar_group.submobjects):
+                lbl = MathTex(tex, font_size=18, color=col)
+                lbl.next_to(bar_group.submobjects[i], DOWN, buff=0.06)
+                bar_labels.add(lbl)
+
+        chart_group = VGroup(bar_group, bar_labels)
+        self.add_fixed_in_frame_mobjects(chart_group)
+        chart_group.next_to(vals_mob, DOWN, buff=0.35, aligned_edge=RIGHT)
+        # If the chart would fall below the safe zone (>2.5 units below center),
+        # shift it up to stay clear of the caption band at the bottom.
+        if chart_group.get_bottom()[1] < -2.5:
+            chart_group.shift((chart_group.get_bottom()[1] + 2.5) * UP * -1)
+        chart_group.set_opacity(0)
+        self.play(chart_group.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+
+        self.set_caption(
+            "The top two eigenvalues are large; the rest decay quickly. MDS"
+            " uses only the first two to form the 2D embedding."
+        )
+        self.wait(S.T_HOLD + 3.0)
+
+        # Fade the chart before the embedding step.
+        self.play(FadeOut(chart_group), run_time=S.T_FAST)
 
         self.eig_f = f_eig
         self.eig_vals_mob = vals_mob
@@ -439,10 +475,11 @@ class MDSWalkthrough(ThreeDScene):
             run_time=S.T_FAST,
         )
 
-        # Embedding formula top-right.
-        f_embed = B.formula(
-            r"Y = [\,v_1\ v_2\,]\,\mathrm{diag}(\sqrt{\lambda_1},\,\sqrt{\lambda_2})"
-        ).scale(0.75)
+        # Embedding formula top-right via fit_formula so it never overflows.
+        f_embed = B.fit_formula(
+            r"Y = [\,v_1\ v_2\,]\,\mathrm{diag}(\sqrt{\lambda_1},\,\sqrt{\lambda_2})",
+            max_width=4.8, scale=0.75,
+        )
         self.add_fixed_in_frame_mobjects(f_embed)
         f_embed.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(f_embed.animate.set_opacity(1.0), run_time=S.T_FAST)
@@ -469,8 +506,16 @@ class MDSWalkthrough(ThreeDScene):
                 for i in range(len(self.cloud.submobjects))
             ],
         )
-        self.wait(S.T_HOLD + 1.5)
+        self.wait(S.T_HOLD + 3.0)
 
         outro = DATASET_OUTRO.get(DATASET, _OUTRO_DEFAULT)
         self.set_caption(outro)
-        self.wait(5.0)
+        self.wait(5.5)
+        # Fade the caption, pseudocode panel, and formula so the final 2D
+        # embedding is shown unobstructed for a beat before the clip ends.
+        self.play(
+            FadeOut(self.cap), FadeOut(self.pseudo), FadeOut(f_embed),
+            run_time=S.T_NORMAL,
+        )
+        self.cap, self.pseudo = None, None
+        self.wait(2.5)

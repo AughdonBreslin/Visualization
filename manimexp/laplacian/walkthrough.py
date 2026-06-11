@@ -101,10 +101,15 @@ class LaplacianWalkthrough(ThreeDScene):
         vecs, vals = bottom2_eig(L)
         Y = vecs  # shape (N, 2)
 
+        # Bottom-6 eigenvalues of L (ascending) for the bar chart.
+        all_vals_asc = np.sort(np.linalg.eigvalsh(L))
+        bottom6_vals = all_vals_asc[:6].tolist()
+
         self.d = {
             "pts": pts, "t": t, "adj": adj, "edges": edges,
             "W": W, "L": L, "D_deg": D_deg,
             "vecs": vecs, "vals": vals, "Y": Y,
+            "bottom6_vals": bottom6_vals,
         }
         self.cap = None
         self.pseudo = None
@@ -176,7 +181,7 @@ class LaplacianWalkthrough(ThreeDScene):
             "A curved surface in 3D. Laplacian Eigenmaps recovers its flat layout by preserving local connections.",
         ))
         self.begin_ambient_camera_rotation(rate=2 * np.pi / 14.0, about="theta")
-        self.wait(4.0)
+        self.wait(5.5)
 
     # ------------------------------------------------------------------ #
     # Section 2: kNN graph                                                #
@@ -185,6 +190,10 @@ class LaplacianWalkthrough(ThreeDScene):
     def section_knn(self):
         self.next_section("step-2-knn", type=_SEC)
         self.set_pseudo(1)
+
+        # Stop the orbit so the flat schematic (with distance labels) stays still
+        # and readable; the rotation resumes once the view returns to 3D.
+        self.stop_ambient_camera_rotation()
 
         # --- Beat 1: schematic to show the idea before the full graph ---
         # Fade cloud and axes so the schematic reads on a clean stage.
@@ -199,6 +208,7 @@ class LaplacianWalkthrough(ThreeDScene):
             run_time=S.T_NORMAL,
         )
         self.set_caption("Link each point to its k nearest neighbors to capture the local structure of the surface.")
+        self.wait(2.5)
 
         center_pt = np.array([0.0, 0.0, 0.0])
         center_dot = Dot(point=center_pt, radius=0.10, color=S.ACCENT)
@@ -252,6 +262,8 @@ class LaplacianWalkthrough(ThreeDScene):
             run_time=S.T_NORMAL,
         )
         self.play(FadeIn(self.cloud), FadeIn(self.axes), run_time=S.T_FAST)
+        # Back in 3D: resume the continuous orbit.
+        self.begin_ambient_camera_rotation(rate=2 * np.pi / 14.0, about="theta")
 
         self.set_caption("Repeat for every point and the kNN graph spans the whole surface.")
         self.edges_mob = B.graph_edges(self.d["pts"], self.d["edges"])
@@ -262,6 +274,7 @@ class LaplacianWalkthrough(ThreeDScene):
                 run_time=S.T_SLOW,
             )
         )
+        self.wait(2.5)
 
         # --- Beat 3: highlight one neighborhood with a kNN sphere ---
         pts = self.d["pts"]
@@ -292,7 +305,7 @@ class LaplacianWalkthrough(ThreeDScene):
             LaggedStart(*[Create(l) for l in nbr_lines],
                         lag_ratio=0.12, run_time=S.T_NORMAL)
         )
-        self.wait(S.T_HOLD)
+        self.wait(4.0)
 
         # Clean up the neighborhood highlight; keep edges and cloud for the next section.
         self.play(
@@ -303,7 +316,7 @@ class LaplacianWalkthrough(ThreeDScene):
         )
 
         self.move_camera(phi=80 * DEGREES, theta=30 * DEGREES, run_time=S.T_NORMAL)
-        self.wait(S.T_HOLD)
+        self.wait(2.5)
 
     # ------------------------------------------------------------------ #
     # Section 3: heat-kernel affinity W                                   #
@@ -332,23 +345,31 @@ class LaplacianWalkthrough(ThreeDScene):
             col = interpolate_color(S.MUTED, S.GOOD, u)
             recolor_anims.append(line.animate.set_color(col).set_opacity(min(0.85, 0.12 + 0.73 * u)))
         self.play(AnimationGroup(*recolor_anims, lag_ratio=0.0), run_time=S.T_SLOW)
-        self.wait(1.0)
+        self.wait(3.0)
 
-        # Formula in top-right corner, standardized buff=0.4.
-        f_W = B.formula(r"W_{ij} = \exp\!\left(-\frac{\|x_i - x_j\|^2}{2\sigma^2}\right)").scale(0.75)
+        # Formula in top-right corner via fit_formula.
+        f_W = B.fit_formula(
+            r"W_{ij} = \exp\!\left(-\frac{\|x_i - x_j\|^2}{2\sigma^2}\right)",
+            max_width=4.6, scale=0.75,
+        )
         self.add_fixed_in_frame_mobjects(f_W)
         f_W.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(f_W.animate.set_opacity(1.0), run_time=S.T_FAST)
 
-        # Heatmap of W: grid scaled to height 2.6, with matrix label above it.
-        # Placed top-right under the formula for consistency with other single-matrix steps.
-        hm_W = B.heatmap(W, N, max_cells=32, cell=0.13, diverging=False)
-        hm_W.scale_to_fit_height(2.6)
-        lbl_W = Text("W", font_size=26, color=S.INK)
+        # Sparse-pattern heatmap of W: reorder rows/cols by manifold parameter t
+        # so neighbors become index-adjacent; the nonzeros form a near-diagonal band.
+        t_order = np.argsort(self.d["t"])
+        W_reord = W[np.ix_(t_order, t_order)]
+        sub_size = min(60, N)
+        W_sub = W_reord[:sub_size, :sub_size]
+        hm_W = B.heatmap(W_sub, sub_size, max_cells=sub_size, cell=0.055,
+                         diverging=False, mode="pattern")
+        hm_W.scale_to_fit_height(2.2)
+        lbl_W = Text(f"W (reordered, {sub_size}x{sub_size} block)", font_size=20, color=S.INK)
         self.add_fixed_in_frame_mobjects(hm_W, lbl_W)
         hm_W.to_corner(RIGHT + UP, buff=0.4)
         hm_W.shift(DOWN * (f_W.height + 0.5))
-        lbl_W.next_to(hm_W, UP, buff=0.12)
+        lbl_W.next_to(hm_W, UP, buff=0.10)
         hm_W.set_opacity(0)
         lbl_W.set_opacity(0)
         self.play(
@@ -356,8 +377,12 @@ class LaplacianWalkthrough(ThreeDScene):
             lbl_W.animate.set_opacity(1.0),
             run_time=S.T_NORMAL,
         )
-        self.set_caption("Brighter cells in W correspond to pairs that are close neighbors. Non-neighbor entries are exactly zero, so W is sparse.")
-        self.wait(S.T_HOLD + 2.0)
+        self.set_caption(
+            "W is sparse: only the k-nearest pairs have nonzero entries. "
+            "Reordering rows and columns by manifold position t reveals a "
+            "near-diagonal band. Points close on the surface are close in this ordering."
+        )
+        self.wait(5.0)
 
         self.affinity_f = f_W
         self.hm_W = hm_W
@@ -383,17 +408,36 @@ class LaplacianWalkthrough(ThreeDScene):
             run_time=S.T_FAST,
         )
 
-        # --- Beat 1: show W alone with an explanatory caption ---
+        # Reorder rows/cols by manifold parameter t for all three matrices so the
+        # sparsity structure is visible as a near-diagonal band.
+        t_order = np.argsort(self.d["t"])
+        sub_size = min(60, N)
+
+        W_reord = W[np.ix_(t_order, t_order)]
+        W_sub = W_reord[:sub_size, :sub_size]
+
+        D_reord = D_deg[np.ix_(t_order, t_order)]
+        D_sub = D_reord[:sub_size, :sub_size]
+
+        L_reord = L[np.ix_(t_order, t_order)]
+        L_sub = L_reord[:sub_size, :sub_size]
+
+        # --- Beat 1: show W alone ---
+        # Layout: stacked vertically on the right half to avoid label collisions.
+        # Each panel is 1.4 units tall; labels sit above each panel.
+        hm_h = 1.4
+        lbl_font = 18
+
         self.set_caption("W is the affinity matrix. Entry W_ij holds the heat-kernel weight for each connected pair; unconnected entries are zero.")
 
-        hm_W2 = B.heatmap(W, N, max_cells=32, cell=0.13, diverging=False)
-        hm_W2.scale_to_fit_height(1.6)
-        lbl_W2 = Text("W  (affinity)", font_size=22, color=S.INK)
+        hm_W2 = B.heatmap(W_sub, sub_size, max_cells=sub_size, cell=0.055,
+                           diverging=False, mode="pattern")
+        hm_W2.scale_to_fit_height(hm_h)
+        lbl_W2 = Text(f"W ({sub_size}x{sub_size}, reordered)", font_size=lbl_font, color=S.INK)
 
         self.add_fixed_in_frame_mobjects(hm_W2, lbl_W2)
-        # Anchor the row of three heatmaps to top-right; start with W alone.
         hm_W2.to_corner(RIGHT + UP, buff=0.4)
-        lbl_W2.next_to(hm_W2, UP, buff=0.10)
+        lbl_W2.next_to(hm_W2, UP, buff=0.08)
         hm_W2.set_opacity(0)
         lbl_W2.set_opacity(0)
         self.play(
@@ -401,18 +445,20 @@ class LaplacianWalkthrough(ThreeDScene):
             lbl_W2.animate.set_opacity(1.0),
             run_time=S.T_NORMAL,
         )
-        self.wait(S.T_HOLD)
+        self.wait(4.0)
 
-        # --- Beat 2: D appears to the left of W, with a caption explaining row sums ---
+        # --- Beat 2: D appears below W ---
         self.set_caption("D is the degree matrix. Its diagonal entry D_ii equals the sum of row i of W. All off-diagonal entries of D are zero.")
 
-        hm_D = B.heatmap(D_deg, N, max_cells=32, cell=0.13, diverging=False)
-        hm_D.scale_to_fit_height(1.6)
-        lbl_D = Text("D  (row sums, diagonal)", font_size=22, color=S.INK)
+        hm_D = B.heatmap(D_sub, sub_size, max_cells=sub_size, cell=0.055,
+                         diverging=False, mode="pattern")
+        hm_D.scale_to_fit_height(hm_h)
+        lbl_D = Text(f"D ({sub_size}x{sub_size}, diagonal)", font_size=lbl_font, color=S.INK)
 
         self.add_fixed_in_frame_mobjects(hm_D, lbl_D)
-        hm_D.next_to(hm_W2, LEFT, buff=0.3)
-        lbl_D.next_to(hm_D, UP, buff=0.10)
+        # Place D below W with a clear gap so labels do not overlap.
+        hm_D.next_to(hm_W2, DOWN, buff=0.45)
+        lbl_D.next_to(hm_D, UP, buff=0.08)
         hm_D.set_opacity(0)
         lbl_D.set_opacity(0)
         self.play(
@@ -420,19 +466,19 @@ class LaplacianWalkthrough(ThreeDScene):
             lbl_D.animate.set_opacity(1.0),
             run_time=S.T_NORMAL,
         )
-        self.wait(S.T_HOLD)
+        self.wait(4.0)
 
-        # --- Beat 3: L appears to the left of D, with the L = D - W formula ---
-        # Caption before the formula so the viewer reads the idea first.
+        # --- Beat 3: L appears below D, with the L = D - W formula ---
         self.set_caption("L = D - W is the graph Laplacian. Its diagonal is D_ii (positive), and each off-diagonal L_ij = -W_ij (non-positive).")
 
-        hm_L = B.heatmap(L, N, max_cells=32, cell=0.13, diverging=True)
-        hm_L.scale_to_fit_height(1.6)
-        lbl_L = Text("L  (Laplacian = D - W)", font_size=22, color=S.INK)
+        hm_L = B.heatmap(L_sub, sub_size, max_cells=sub_size, cell=0.055,
+                         diverging=True, mode="pattern")
+        hm_L.scale_to_fit_height(hm_h)
+        lbl_L = Text(f"L ({sub_size}x{sub_size}, reordered)", font_size=lbl_font, color=S.INK)
 
         self.add_fixed_in_frame_mobjects(hm_L, lbl_L)
-        hm_L.next_to(hm_D, LEFT, buff=0.3)
-        lbl_L.next_to(hm_L, UP, buff=0.10)
+        hm_L.next_to(hm_D, DOWN, buff=0.45)
+        lbl_L.next_to(hm_L, UP, buff=0.08)
         hm_L.set_opacity(0)
         lbl_L.set_opacity(0)
         self.play(
@@ -441,14 +487,22 @@ class LaplacianWalkthrough(ThreeDScene):
             run_time=S.T_NORMAL,
         )
 
-        # Formula anchored below the W heatmap (the rightmost panel).
-        # Keep it clear of the bottom caption by sizing conservatively.
-        f_L = B.formula(r"L = D - W,\quad D_{ii} = \sum_j W_{ij}").scale(0.72)
+        # Formula via fit_formula, placed in the lower-right area clear of the
+        # bottom caption zone (bottom of formula must stay above y = -2.6).
+        f_L = B.fit_formula(
+            r"L = D - W,\quad D_{ii} = \sum_j W_{ij}",
+            max_width=4.6, scale=0.72,
+        )
         self.add_fixed_in_frame_mobjects(f_L)
-        f_L.next_to(hm_W2, DOWN, buff=0.25).set_opacity(0)
+        # Place formula to the left of the stacked panels, vertically centered.
+        f_L.next_to(hm_L, DOWN, buff=0.30)
+        # Clamp so it never drops into the caption band.
+        if f_L.get_bottom()[1] < -2.6:
+            f_L.shift(UP * (abs(f_L.get_bottom()[1]) - 2.6))
+        f_L.set_opacity(0)
         self.play(f_L.animate.set_opacity(1.0), run_time=S.T_FAST)
 
-        self.wait(S.T_HOLD + 2.0)
+        self.wait(5.0)
 
         self.hm_W2 = hm_W2
         self.lbl_W2 = lbl_W2
@@ -477,38 +531,81 @@ class LaplacianWalkthrough(ThreeDScene):
             run_time=S.T_FAST,
         )
 
-        self.set_caption("Find the two smallest non-trivial eigenvalues of L. The trivial zero eigenvalue corresponds to the constant eigenvector, which carries no coordinate information.")
-        self.wait(2.0)
+        self.set_caption(
+            "Find the two smallest non-trivial eigenvalues of L. "
+            "The trivial zero eigenvalue corresponds to the constant eigenvector, "
+            "which carries no coordinate information."
+        )
+        self.wait(4.5)
 
         f_eig = B.formula(r"L\,v_k = \lambda_k\,v_k").scale(0.85)
         self.add_fixed_in_frame_mobjects(f_eig)
         f_eig.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(f_eig.animate.set_opacity(1.0), run_time=S.T_FAST)
 
-        self.set_caption("Each eigenvector is a smooth function on the graph. The smallest non-trivial ones vary as slowly as possible across the edges.")
-        self.wait(1.5)
+        # Explain WHY we take the smallest non-trivial eigenvalues.
+        self.set_caption(
+            "Laplacian Eigenmaps minimizes a locality cost: coordinates that change "
+            "rapidly across nearby edges are penalized. The eigenvectors with the "
+            "smallest nonzero eigenvalues vary the most slowly on the graph, so "
+            "they are the smoothest coordinates on the surface. "
+            "PCA, MDS, and Kernel PCA instead maximize variance and take the "
+            "largest eigenvalues."
+        )
+        self.wait(6.0)
 
         lam_str = rf"\lambda_1 = {vals[0]:.4f},\quad \lambda_2 = {vals[1]:.4f}"
-        f_vals = B.formula(lam_str).scale(0.70)
-        if f_vals.width > 5.6:
-            f_vals.scale_to_fit_width(5.6)
+        f_vals = B.fit_formula(lam_str, max_width=4.8, scale=0.70)
         self.add_fixed_in_frame_mobjects(f_vals)
         f_vals.next_to(f_eig, DOWN, buff=0.3, aligned_edge=RIGHT).set_opacity(0)
         self.play(f_vals.animate.set_opacity(1.0), run_time=S.T_FAST)
 
         self.set_caption("These two eigenvectors become the x and y coordinates of the 2D embedding.")
-        self.wait(S.T_HOLD + 2.0)
+        self.wait(3.0)
 
-        # Recolor the cloud by the first eigenvector's values to preview the
-        # embedding coordinate on the 3D shape.
+        # Eigenvalue bar chart: bottom-6 of L (ascending), trivial_idx=0, highlight [1, 2].
+        bottom6 = self.d["bottom6_vals"]
+        bar_group = B.eig_bar_chart(bottom6, highlight_idxs=[1, 2], trivial_idx=0)
+
+        bar_labels = VGroup()
+        label_specs = [
+            (r"\lambda_0 \approx 0", S.MUTED),
+            (r"\lambda_1", S.ACCENT),
+            (r"\lambda_2", S.ACCENT),
+        ]
+        for i, (tex, col) in enumerate(label_specs):
+            if i < len(bar_group.submobjects):
+                lbl = MathTex(tex, font_size=16, color=col)
+                lbl.next_to(bar_group.submobjects[i], DOWN, buff=0.06)
+                bar_labels.add(lbl)
+
+        chart_group = VGroup(bar_group, bar_labels)
+        self.add_fixed_in_frame_mobjects(chart_group)
+        chart_group.next_to(f_vals, DOWN, buff=0.35, aligned_edge=RIGHT)
+        if chart_group.get_bottom()[1] < -2.5:
+            chart_group.shift(UP * (abs(chart_group.get_bottom()[1]) - 2.5))
+        chart_group.set_opacity(0)
+        self.play(chart_group.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+
+        self.set_caption(
+            "The trivial eigenvalue lambda_0 is near zero (greyed out). "
+            "Lambda_1 and lambda_2 are the two smallest nonzero eigenvalues; "
+            "their eigenvectors give the 2D embedding coordinates."
+        )
+        self.wait(4.5)
+
+        # Fade chart before recolor.
+        self.play(FadeOut(chart_group), run_time=S.T_FAST)
+
+        # Recolor the cloud by the first eigenvector using the full rainbow for contrast.
         vecs = self.d["vecs"]
         v1 = vecs[:, 0]
         recolor_anims = B.recolor_cloud_by_values(
-            self.cloud, v1, c_lo=S.MUTED, c_hi=S.ACCENT, grow=1.5,
+            self.cloud, v1, cmap=B.rainbow_color, grow=1.5,
         )
         self.set_caption("Coloring the cloud by the first eigenvector shows which direction the graph unfolds smoothly along.")
         self.play(AnimationGroup(*recolor_anims, lag_ratio=0.0), run_time=S.T_SLOW)
-        self.wait(S.T_HOLD + 1.0)
+        self.wait(4.0)
 
         self.eig_f = f_eig
         self.eig_vals_f = f_vals
@@ -559,6 +656,15 @@ class LaplacianWalkthrough(ThreeDScene):
                 *[cloud_dots[i].animate.move_to(target[i]) for i in range(n_pts)],
             ],
         )
+        self.wait(1.5)
 
         self.set_caption(DATASET_OUTRO.get(DATASET, _OUTRO_DEFAULT))
         self.wait(5.0)
+        # Fade the caption, pseudocode panel, and formula so the final 2D
+        # embedding is shown unobstructed for a beat before the clip ends.
+        self.play(
+            FadeOut(self.cap), FadeOut(self.pseudo), FadeOut(f_embed),
+            run_time=S.T_NORMAL,
+        )
+        self.cap, self.pseudo = None, None
+        self.wait(2.5)

@@ -18,6 +18,14 @@ manimexp/media/
 # Ephemeral preview renders
 assets/manim/isomap/preview/
 
+# Rendered walkthrough videos/posters are build artifacts produced by
+# manimexp/render_*.sh from the committed manim scenes. Intermediary/preview
+# renders stay out of git; push only the final results (git add -f when ready).
+assets/manim/mds/
+assets/manim/lle/
+assets/manim/laplacian/
+assets/manim/kpca/
+
 manimexp/.logs/
 
 # Isomap manim pipeline build artifacts
