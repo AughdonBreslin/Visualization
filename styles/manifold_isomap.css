@@ -34,4 +34,11 @@
 .mfi-transcript .mfi-explain { margin: 10px 0 0; color: var(--text-muted); }
 .mfi-tryit { margin-top: 14px; color: var(--text-muted); }
 .mfi-intro { margin: 0 0 14px; color: var(--text-muted); }
+.mfi-pickers { display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 14px; }
+.mfi-pick { display: flex; flex-direction: column; gap: 4px;
+  color: var(--text-muted); font-size: 0.85rem; }
+.mfi-pick-sel { font: inherit; padding: 7px 10px; min-width: 160px;
+  border-radius: var(--radius-sm); border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.05); color: var(--text); cursor: pointer; }
+.mfi-pick-sel:disabled { opacity: 0.5; cursor: not-allowed; }
 .mfi-datasetnote:not(:empty) { margin-top: 8px; color: var(--text-muted); font-size: 0.85rem; }

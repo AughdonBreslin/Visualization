@@ -13,7 +13,10 @@
   <script defer src="https://d3js.org/d3.v7.min.js"></script>
   <script>
     window.MathJax = {
-      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
       svg: { fontCache: 'global' }
     };
   </script>
@@ -30,9 +33,18 @@
     </header>
     <main class="article-body">
       <section class="panel mf-isomap">
-        <h2>Isomap walkthrough</h2>
-        <p class="mfi-intro">A guided, animated walk through the Isomap algorithm, the same
-          steps you can run on your own data in the sandbox below.</p>
+        <h2>Algorithm walkthrough</h2>
+        <p class="mfi-intro">A guided, animated walk through a manifold-learning algorithm on a
+          chosen dataset. Pick an algorithm and a dataset; the same algorithms run on your own
+          data in the sandbox below.</p>
+        <div class="mfi-pickers">
+          <label class="mfi-pick">Algorithm
+            <select id="mfiAlgoSel" class="mfi-pick-sel"></select>
+          </label>
+          <label class="mfi-pick">Dataset
+            <select id="mfiDatasetSel" class="mfi-pick-sel"></select>
+          </label>
+        </div>
         <div class="mfi-player">
           <video id="mfiVideo" class="mfi-video" playsinline preload="auto"></video>
           <div class="mfi-controls">
