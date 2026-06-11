@@ -55,15 +55,15 @@ export const KPCA = {
   presentSubSteps: ['0', '3', '4', '5', '6'],
   pseudocode: [
     { id: 'kpca-K', title: '1. Compute kernel matrix K', steps: ['3'],
-      lines: ['rbf: K_{ij} = exp(-gamma ||x_i - x_j||^2)',
-              'polynomial: K_{ij} = (x_i . x_j + 1)^d',
-              'linear: K_{ij} = x_i . x_j'] },
+      lines: ['rbf: $K_{ij} = \\exp(-\\gamma \\| x_i - x_j \\|^2)$',
+              'polynomial: $K_{ij} = (x_i \\cdot x_j + 1)^d$',
+              'linear: $K_{ij} = x_i \\cdot x_j$'] },
     { id: 'kpca-center', title: '2. Center K', steps: ['4'],
-      lines: ['K_c = K - 1_N K - K 1_N + 1_N K 1_N'] },
+      lines: ['$K_c = K - \\mathbf{1}_N K - K \\mathbf{1}_N + \\mathbf{1}_N K \\mathbf{1}_N$'] },
     { id: 'kpca-eig', title: '3. Eigendecompose K_c', steps: ['5'],
-      lines: ['K_c = V Lambda V^T (take top-2)'] },
+      lines: ['$K_c = V \\Lambda V^{\\top}$ (take top 2)'] },
     { id: 'kpca-embed', title: '4. Form 2D embedding', steps: ['6'],
-      lines: ['Y = V[:, 0:2] * diag(sqrt(lambda_1), sqrt(lambda_2))'] },
+      lines: ['$Y = [\\, v_1 \\;\\; v_2 \\,]\\, \\mathrm{diag}(\\sqrt{\\lambda_1}, \\sqrt{\\lambda_2})$'] },
   ],
   run(dataset, params) {
     const X = dataset.X;
