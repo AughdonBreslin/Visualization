@@ -397,7 +397,7 @@ function makeKpcaSteps(kernelFormula, kernelExplain, outroText) {
       formula: 'K_c = K - \\mathbf{1}_N K - K \\mathbf{1}_N + \\mathbf{1}_N K \\mathbf{1}_N',
     },
     {
-      start: 30.00,
+      start: 29.10,
       title: '4. Eigendecomposition',
       caption: 'Find the top eigenvectors of K_c; these are the principal components in feature space.',
       explain: 'The centered kernel matrix satisfies $K_c = V \\Lambda V^{\\top}$. Each eigenvector ' +
@@ -409,7 +409,7 @@ function makeKpcaSteps(kernelFormula, kernelExplain, outroText) {
       formula: 'K_c = V \\Lambda V^{\\top}',
     },
     {
-      start: 45.40,
+      start: 44.50,
       title: '5. Embedding',
       caption: outroText,
       explain: 'The 2D embedding coordinates are $y_{i,k} = \\sqrt{\\lambda_k}\\, v_{k,i}$: each ' +

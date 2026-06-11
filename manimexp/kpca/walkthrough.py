@@ -48,8 +48,7 @@ _KERNEL_LABEL = {
 }
 
 _INTRO_SUFFIX = (
-    " Kernel PCA replaces the inner product with a kernel function, "
-    "then performs ordinary PCA in the implicit feature space the kernel defines."
+    " It runs PCA in the implicit feature space the kernel defines."
 )
 
 DATASET_INTRO = {
@@ -230,9 +229,8 @@ class KPCAWalkthrough(ThreeDScene):
 
         # Caption 1: what we are building.
         self.set_caption(
-            "Build the kernel matrix K. Each entry K_ij = k(x_i, x_j) "
-            "measures similarity between two points in the feature space "
-            "defined by the kernel."
+            "Build the kernel matrix K: each entry K_ij = k(x_i, x_j) is the "
+            "similarity of two points."
         )
 
         # Heatmap panel top-right, grid scaled to height 2.4, label above it.
@@ -266,9 +264,7 @@ class KPCAWalkthrough(ThreeDScene):
 
         # Caption 2: what the N x N matrix does in the pipeline.
         self.set_caption(
-            "The full N x N matrix K replaces the data matrix in the rest of "
-            "the pipeline. K encodes all pairwise similarities; no explicit "
-            "feature vectors are needed."
+            "K is N x N and replaces the data matrix for the rest of the pipeline."
         )
         self.wait(4.5)
 
@@ -284,56 +280,62 @@ class KPCAWalkthrough(ThreeDScene):
         self.next_section("step-4-center", type=_SEC)
         self.set_pseudo(2)
 
-        # Caption: 4 lines so it fits without crowding the heatmap.
         self.set_caption(
-            "Center the kernel matrix. Centering is the kernel-space "
-            "analogue of subtracting the mean in ordinary PCA. "
-            "The double subtraction and grand-mean addition remove "
-            "the row and column shifts implied by the centering operator."
+            "Center the kernel matrix: the feature-space analogue of "
+            "subtracting the mean."
         )
 
-        # Fade out the kernel formula and label; replace the K heatmap with
-        # Kc (diverging). Kc takes the same footprint (height 2.4) and center
-        # as K so the swap reads as an in-place cross-fade and the Kc label
-        # sits exactly where K's label did, clear of the top frame edge.
+        # This step is pure matrix algebra, so clear the 3D dataset and axes and
+        # bring the kernel matrix front and center: the K heatmap glides from its
+        # corner to the middle of the frame and grows, then cross-fades into the
+        # centered matrix Kc so the centering reads as a transformation of K.
+        CENTER = np.array([0.0, 0.55, 0.0])
+        HM_H = 3.0
+        grow = HM_H / self.hm_K.height
         self.play(
+            FadeOut(self.cloud),
+            FadeOut(self.axes),
             FadeOut(self.kernel_f),
-            FadeOut(self.lbl_K),
-            run_time=S.T_FAST,
+            self.hm_K.animate.scale(grow).move_to(CENTER),
+            self.lbl_K.animate.scale(1.15).move_to(CENTER + np.array([0.0, HM_H / 2 + 0.32, 0.0])),
+            run_time=S.T_NORMAL,
         )
 
         hm_Kc = B.heatmap(self.d["Kc"], N, diverging=True)
-        hm_Kc.scale_to_fit_height(2.4)
-        lbl_Kc = Text("Kc", font_size=26, color=S.INK)
+        hm_Kc.scale_to_fit_height(HM_H)
         hm_Kc.move_to(self.hm_K.get_center())
+        lbl_Kc = Text("Kc", font_size=30, color=S.INK)
         self.add_fixed_in_frame_mobjects(hm_Kc, lbl_Kc)
-        lbl_Kc.next_to(hm_Kc, UP, buff=0.10)
+        lbl_Kc.next_to(hm_Kc, UP, buff=0.12)
         hm_Kc.set_opacity(0)
         lbl_Kc.set_opacity(0)
 
-        # Cross-fade the two heatmaps so the transition reads as a transformation.
+        # Cross-fade K -> Kc in place so it reads as the centering transformation.
         self.play(
             FadeOut(self.hm_K, shift=0.0),
+            FadeOut(self.lbl_K, shift=0.0),
             hm_Kc.animate.set_opacity(1.0),
             lbl_Kc.animate.set_opacity(1.0),
             run_time=S.T_NORMAL,
         )
-        self.remove(self.hm_K)
+        self.remove(self.hm_K, self.lbl_K)
 
-        # Centering formula below the Kc heatmap via fit_formula.
+        # Centering formula below the centered matrix, larger and wider now that
+        # it has the whole frame width to itself.
         f_center = B.fit_formula(
             r"K_c = K - \mathbf{1}_N K - K \mathbf{1}_N + \mathbf{1}_N K \mathbf{1}_N",
-            max_width=4.4, scale=0.60,
+            max_width=6.4, scale=0.78,
         )
         self.add_fixed_in_frame_mobjects(f_center)
-        f_center.next_to(hm_Kc, DOWN, buff=0.28)
-        if f_center.get_bottom()[1] < -2.6:
-            f_center.shift(UP * (abs(f_center.get_bottom()[1]) - 2.6))
+        f_center.next_to(hm_Kc, DOWN, buff=0.30)
+        if f_center.get_bottom()[1] < -2.0:
+            f_center.shift(UP * (abs(f_center.get_bottom()[1]) - 2.0))
         f_center.set_opacity(0)
         self.play(f_center.animate.set_opacity(1.0), run_time=S.T_FAST)
 
-        # Extended hold so the 4-sentence caption is fully readable.
-        self.wait(6.0)
+        # Hold on the centered matrix; the detailed walk-through lives in the
+        # page's step text beside the video.
+        self.wait(4.5)
         self.hm_Kc = hm_Kc
         self.lbl_Kc = lbl_Kc
         self.center_f = f_center
@@ -346,19 +348,20 @@ class KPCAWalkthrough(ThreeDScene):
         self.next_section("step-5-eig", type=_SEC)
         self.set_pseudo(3)
 
-        # Fade out the heatmap, its label, and centering formula.
+        # Fade out the centered matrix and restore the 3D dataset and axes, which
+        # the embedding step morphs into the 2D layout.
         self.play(
             FadeOut(self.hm_Kc),
             FadeOut(self.lbl_Kc),
             FadeOut(self.center_f),
+            FadeIn(self.cloud),
+            FadeIn(self.axes),
             run_time=S.T_FAST,
         )
 
         self.set_caption(
-            "Eigendecompose the centered kernel matrix. The eigenvectors "
-            "are the principal components in feature space; each carries "
-            "one coordinate of the nonlinear embedding. The top two "
-            "eigenvalues set the scale of each coordinate axis."
+            "Eigendecompose Kc: its eigenvectors are the principal components "
+            "in feature space."
         )
         self.wait(3.5)
 
@@ -404,9 +407,8 @@ class KPCAWalkthrough(ThreeDScene):
         self.play(chart_group.animate.set_opacity(1.0), run_time=S.T_NORMAL)
 
         self.set_caption(
-            "The top two eigenvalues of Kc capture the dominant variation in "
-            "kernel-feature space. The remaining eigenvalues decay; only the "
-            "first two are used to form the 2D embedding."
+            "The top two eigenvalues capture the dominant variation; keep them "
+            "for the 2D embedding."
         )
         self.wait(4.0)
 
