@@ -33,13 +33,13 @@ export const MDS = {
   presentSubSteps: ['0', '3', '4', '5', '6'],
   pseudocode: [
     { id: 'mds-distances', title: '1. Compute pairwise distances', steps: ['3'],
-      lines: ['D_{ij} = || x_i - x_j ||'] },
+      lines: ['$D_{ij} = \\| x_i - x_j \\|$'] },
     { id: 'mds-dc', title: '2. Double-center the squared distance matrix', steps: ['4'],
-      lines: ['B = -1/2 H D^2 H, with H = I - (1/N) 1 1^T'] },
+      lines: ['$B = -\\tfrac{1}{2} H D^2 H$, with $H = I - \\tfrac{1}{N}\\mathbf{1}\\mathbf{1}^{\\top}$'] },
     { id: 'mds-eig', title: '3. Eigendecompose B', steps: ['5'],
-      lines: ['B = V Lambda V^T (take top-2 eigvals/vecs)'] },
+      lines: ['$B = V \\Lambda V^{\\top}$ (take top 2 eigenpairs)'] },
     { id: 'mds-embed', title: '4. Form 2D embedding', steps: ['6'],
-      lines: ['Y = V[:, 0:2] * diag(sqrt(lambda_1), sqrt(lambda_2))'] },
+      lines: ['$Y = [\\, v_1 \\;\\; v_2 \\,]\\, \\mathrm{diag}(\\sqrt{\\lambda_1}, \\sqrt{\\lambda_2})$'] },
   ],
   run(dataset, _params) {
     const X = dataset.X;

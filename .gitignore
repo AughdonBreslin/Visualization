@@ -1,1 +1,41 @@
 *.csv
+
+# Brainstorming visual-companion mockups (local, ephemeral)
+.superpowers/
+
+# Personal local Claude Code settings
+.claude/settings.local.json
+
+# Python virtualenvs
+manimexp/.venv/
+
+# Manim render output (ephemeral, large)
+media/
+manimexp/media/
+# Installed agent skills (tooling, not site source)
+.agents/
+
+# Ephemeral preview renders
+assets/manim/isomap/preview/
+
+# Rendered walkthrough videos/posters are build artifacts produced by
+# manimexp/render_*.sh from the committed manim scenes. Intermediary/preview
+# renders stay out of git; push only the final results (git add -f when ready).
+assets/manim/mds/
+assets/manim/lle/
+assets/manim/laplacian/
+assets/manim/kpca/
+
+manimexp/.logs/
+
+# Isomap manim pipeline build artifacts
+manimexp/isomap/points/
+
+# Python bytecode caches (all manim packages)
+__pycache__/
+*.pyc
+
+# superpowers tooling
+.claude/skills/
+.claude/worktrees/
+skills-lock.json

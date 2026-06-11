@@ -33,13 +33,15 @@ export const PCA = {
   presentSubSteps: ['0', '1', '3', '5', '6'],
   pseudocode: [
     { id: 'pca-center', title: '1. Center the data', steps: ['1'],
-      lines: ['mean ← (1/N) · Σ_i x_i', 'for i = 1..N: x_i ← x_i − mean'] },
+      lines: ['$\\bar{x} = \\tfrac{1}{N}\\sum_i x_i$',
+              'for each $i$: $x_i \\leftarrow x_i - \\bar{x}$'] },
     { id: 'pca-cov', title: '2. Form the covariance matrix', steps: ['3'],
-      lines: ['C ← (1/(N−1)) · X_cᵀ X_c'] },
+      lines: ['$C = \\tfrac{1}{N-1}\\, X_c^{\\top} X_c$'] },
     { id: 'pca-eig', title: '3. Eigendecompose C', steps: ['5'],
-      lines: ['C = V Λ Vᵀ (eigvecs in columns of V)', 'sort columns of V by decreasing eigenvalue'] },
+      lines: ['$C = V \\Lambda V^{\\top}$ (eigenvectors in columns of $V$)',
+              'sort columns of $V$ by decreasing eigenvalue'] },
     { id: 'pca-project', title: '4. Project to 2D', steps: ['6'],
-      lines: ['Y ← X_c · V[:, 0:2]'] },
+      lines: ['$Y = X_c\\, [\\, v_1 \\;\\; v_2 \\,]$'] },
   ],
   run(dataset, _params) {
     const X = dataset.X;
