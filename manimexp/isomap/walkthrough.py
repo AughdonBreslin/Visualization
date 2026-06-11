@@ -347,45 +347,59 @@ class IsomapWalkthrough(ThreeDScene):
         n_nodes = len(dijk_order)
         n_chunks = min(25, n_nodes)
 
-        # Color map: settled nodes recolor from ACCENT to a sweep color.
-        SWEEP_COLOR = S.GOOD
-
         # Pre-build a dict: node index -> Dot in self.cloud (same ordering as points).
         # self.cloud[i] is the Dot for points[i] (VGroup preserves insertion order).
         cloud_dots = self.cloud.submobjects
 
+        # Per-node saturated geodesic color: as each node settles it lights up in
+        # its FINAL high-saturation rainbow color (by geodesic distance from src),
+        # not a flat sweep color. The points are therefore clearly and vividly
+        # colored while the caption is on screen, instead of only at the end.
+        dist = self.data["D"][src]
+        dmin = float(dist.min())
+        dspan = max(1e-9, float(dist.max()) - dmin)
+        GROW = 1.7
+
+        def geo_color(node):
+            return B.rainbow_color((dist[node] - dmin) / dspan)
+
         self.set_caption("Color shows geodesic distance from the source point.")
 
-        # Mark src node specially before wavefront starts.
+        # Mark the source point so "from the source point" is identifiable while
+        # the wavefront spreads; it settles into its gradient color afterward.
         src_dot = cloud_dots[src]
         self.play(src_dot.animate.set_color(S.ACCENT).set_opacity(1.0), run_time=S.T_FAST)
         self.wait(0.2)
 
         # Animate wavefront in exactly n_chunks equal slices of the settle order.
+        # Each settled node grows and takes its saturated geodesic color at once.
         for c in range(n_chunks):
             lo = c * n_nodes // n_chunks
             hi = (c + 1) * n_nodes // n_chunks
             chunk = dijk_order[lo:hi]
-            anims = [
-                cloud_dots[node].animate.set_color(SWEEP_COLOR).set_opacity(0.9)
-                for node in chunk
-                if node != src and node != tgt
-            ]
+            anims = []
+            for node in chunk:
+                if node == src or node == tgt:
+                    continue
+                dot = cloud_dots[node]
+                dot.set_sheen(0.0)
+                anims.append(dot.animate.set_color(geo_color(node)).set_opacity(1.0).scale(GROW))
             if anims:
                 self.play(AnimationGroup(*anims, lag_ratio=0.0), run_time=0.15)
 
-        # Highlight src and tgt after wavefront.
-        self.play(
-            cloud_dots[tgt].animate.set_color(S.WARM).set_opacity(1.0),
-            run_time=S.T_FAST,
-        )
+        # Highlight tgt after the wavefront, then settle src and tgt into the same
+        # saturated geodesic gradient so the whole cloud reads as one color scale.
+        tgt_dot = cloud_dots[tgt]
+        self.play(tgt_dot.animate.set_color(S.WARM).set_opacity(1.0), run_time=S.T_FAST)
         self.wait(S.T_HOLD)
 
-        # Recolor the whole cloud by geodesic distance from src, using a high-
-        # saturation rainbow so the gradient is vivid and easy to read.
-        dist = self.data["D"][self.data["src"]]
-        geo_color_anims = B.recolor_cloud_by_values(self.cloud, dist, cmap=B.rainbow_color, grow=1.7)
-        self.play(AnimationGroup(*geo_color_anims, lag_ratio=0.0), run_time=S.T_SLOW)
+        for dot, node in ((src_dot, src), (tgt_dot, tgt)):
+            dot.set_sheen(0.0)
+        self.play(
+            src_dot.animate.set_color(geo_color(src)).set_opacity(1.0).scale(GROW),
+            tgt_dot.animate.set_color(geo_color(tgt)).set_opacity(1.0).scale(GROW),
+            run_time=S.T_NORMAL,
+        )
         self.wait(S.T_HOLD)
 
         # Keep the geodesic-distance coloring; do NOT rebuild with t colors.

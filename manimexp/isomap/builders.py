@@ -15,8 +15,9 @@ Manim 0.18.1 API notes (adaptations from the design spec):
 import colorsys
 import textwrap
 import numpy as np
-from manim import (VGroup, Dot, Dot3D, Line, Line3D, Square, Text, MathTex, Table,
-                   Matrix, ManimColor, interpolate_color, config, DOWN, LEFT, UL)
+from manim import (VGroup, Dot, Dot3D, Line, Line3D, Square, Rectangle, Text,
+                   MathTex, Table, Matrix, ManimColor, interpolate_color,
+                   config, DOWN, LEFT, RIGHT, UL)
 from . import style as S
 
 
@@ -194,13 +195,22 @@ def matrix_grid(values, highlight_negative=True):
     return tbl
 
 
-def heatmap(matrix, n, max_cells=32, cell=0.12, diverging=False):
+def heatmap(matrix, n, max_cells=32, cell=0.12, diverging=False, mode="mean"):
     """Render an n x n matrix as a downsampled grid of colored squares.
 
-    The matrix is block-mean downsampled to at most max_cells x max_cells so it
-    stays legible and cheap at large n. Colors run on a sequential ramp
-    (MUTED -> ACCENT) or, when diverging=True, WARM (negative) -> BG -> GOOD
-    (positive). Returns a VGroup with .meta = {rows, cols, vmin, vmax}.
+    The matrix is block-downsampled to at most max_cells x max_cells. Colors
+    run on a sequential ramp (MUTED -> ACCENT) or, when diverging=True, WARM
+    (negative) -> BG -> GOOD (positive). Returns a VGroup with .meta = {rows,
+    cols, vmin, vmax}.
+
+    Parameters
+    ----------
+    mode : "mean" (default) -- each cell shows the block mean; smooths sparse
+           matrices into a wash.
+           "pattern" -- each cell is fully lit (at the per-element max magnitude)
+           if ANY entry in the block is non-zero, and dark (BG) if the whole
+           block is zero. Use this to show sparsity structure when the block mean
+           would wash out the zeros.
     """
     M = np.asarray(matrix, dtype=float).reshape(n, n)
     step = max(1, int(np.ceil(n / max_cells)))
@@ -210,8 +220,25 @@ def heatmap(matrix, n, max_cells=32, cell=0.12, diverging=False):
     for r in range(rows):
         for c in range(cols):
             block = M[r * step:(r + 1) * step, c * step:(c + 1) * step]
-            ds[r, c] = float(block.mean()) if block.size else 0.0
-    vmin, vmax = float(ds.min()), float(ds.max())
+            if block.size == 0:
+                ds[r, c] = 0.0
+            elif mode == "pattern":
+                # Mark nonzero if any entry in the block is nonzero; carry the
+                # sign of the entry with largest absolute value so diverging
+                # colors still distinguish positive from negative weights.
+                abs_max_idx = int(np.argmax(np.abs(block)))
+                ds[r, c] = float(block.flat[abs_max_idx]) if np.any(block != 0) else 0.0
+            else:
+                ds[r, c] = float(block.mean())
+    # For pattern mode, rescale so nonzero cells paint at full intensity.
+    if mode == "pattern":
+        nz = ds[ds != 0]
+        if nz.size > 0:
+            scale = float(np.abs(nz).max()) or 1.0
+            ds = ds / scale
+        vmin, vmax = -1.0, 1.0
+    else:
+        vmin, vmax = float(ds.min()), float(ds.max())
     grid = VGroup()
     for r in range(rows):
         for c in range(cols):
@@ -289,3 +316,67 @@ def rowvec(values, color=None):
                bracket_h_buff=0.12, bracket_v_buff=0.12)
     m.set_color(color)
     return m
+
+
+def eig_bar_chart(vals, highlight_idxs, trivial_idx=None, bar_w=0.28, bar_max_h=1.2):
+    """Build a small vertical bar chart from eigenvalue magnitudes.
+
+    Parameters
+    ----------
+    vals : sequence of floats  -- the eigenvalues to display (pass a slice,
+        e.g. top-6 descending for MDS/KPCA, or bottom-6 ascending for Laplacian).
+    highlight_idxs : list of int  -- bar indices (0-based) that should be
+        colored ACCENT to draw attention (the informative components).
+    trivial_idx : int or None  -- if given, that bar is greyed with lower
+        opacity (the trivial near-zero eigenvalue for Laplacian/LLE).
+    bar_w : float  -- width of each bar in scene units.
+    bar_max_h : float  -- maximum bar height in scene units.
+
+    Returns
+    -------
+    VGroup of Rectangle bars arranged left to right, aligned at the bottom edge.
+    """
+    vmax = float(max(abs(float(v)) for v in vals)) or 1.0
+    group = VGroup()
+    for i, v in enumerate(vals):
+        h = max(0.04, bar_max_h * abs(float(v)) / vmax)
+        if trivial_idx is not None and i == trivial_idx:
+            color = S.MUTED
+            opacity = 0.45
+        elif i in highlight_idxs:
+            color = S.ACCENT
+            opacity = 0.92
+        else:
+            color = S.MUTED
+            opacity = 0.92
+        rect = Rectangle(
+            width=bar_w, height=h,
+            fill_color=color, fill_opacity=opacity,
+            stroke_width=0,
+        )
+        group.add(rect)
+    group.arrange(RIGHT, buff=0.10, aligned_edge=DOWN)
+    return group
+
+
+def fit_formula(tex, max_width=5.2, scale=0.8):
+    """Build a formula, apply an initial scale, then clamp to max_width if needed.
+
+    Use this for any formula that sits near a heatmap or in a tight corner, to
+    prevent overflow off the right or bottom edge of the frame.
+
+    Parameters
+    ----------
+    tex : str  -- LaTeX string for MathTex.
+    max_width : float  -- maximum allowed width in scene units.
+    scale : float  -- initial scale factor applied before the width clamp.
+
+    Returns
+    -------
+    MathTex mobject, scaled and clamped.
+    """
+    mob = formula(tex)
+    mob.scale(scale)
+    if mob.width > max_width:
+        mob.scale_to_fit_width(max_width)
+    return mob

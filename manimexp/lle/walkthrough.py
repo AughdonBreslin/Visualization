@@ -89,6 +89,8 @@ def lle_panel(active_index):
     return group
 
 
+
+
 class LLEWalkthrough(ThreeDScene):
 
     def construct(self):
@@ -114,12 +116,17 @@ class LLEWalkthrough(ThreeDScene):
         nbr_indices = np.where(adj[center_idx] > 0)[0]
         nbr_weights = np.array([W[center_idx, j] for j in nbr_indices])
 
+        # Bottom 6 eigenvalues of M (including the trivial one at index 0).
+        all_vals_asc = np.sort(np.linalg.eigvalsh(M))
+        bottom6_vals = all_vals_asc[:6].tolist()
+
         self.d = dict(
             pts=pts, t=t_param, adj=adj, edges=edges,
             W=W, M=M, vecs=vecs, vals=vals, Y=Y,
             center_idx=center_idx,
             nbr_indices=nbr_indices,
             nbr_weights=nbr_weights,
+            bottom6_vals=bottom6_vals,
         )
         self.cap = None
         self.pseudo = None
@@ -184,7 +191,7 @@ class LLEWalkthrough(ThreeDScene):
         self.set_caption(intro)
 
         self.begin_ambient_camera_rotation(rate=2 * np.pi / 14.0, about="theta")
-        self.wait(4.0)
+        self.wait(5.5)
 
     # ------------------------------------------------------------------ #
     # Section 2: kNN graph                                                #
@@ -193,6 +200,10 @@ class LLEWalkthrough(ThreeDScene):
     def section_knn(self):
         self.next_section("step-2-knn", type=_SEC)
         self.set_pseudo(1)
+
+        # Stop the orbit so the flat schematic (with distance labels) stays still
+        # and readable; the rotation resumes once the view returns to 3D.
+        self.stop_ambient_camera_rotation()
 
         # Beat 1: fade out cloud and axes; move camera flat for the schematic.
         self.play(
@@ -205,21 +216,24 @@ class LLEWalkthrough(ThreeDScene):
             run_time=S.T_NORMAL,
         )
         self.set_caption("LLE links each point to its k nearest neighbors to define a local patch.")
+        self.wait(2.5)
 
         # Beat 2: schematic star of neighbors (flat, z = 0).
         center_pt = np.array([0.0, 0.0, 0.0])
         center_dot = Dot(point=center_pt, radius=0.10, color=S.ACCENT)
         self.play(FadeIn(center_dot, run_time=S.T_FAST))
 
+        # Eight neighbors at evenly-spaced angles so no dots or distance
+        # labels overlap, regardless of how many neighbors k has.
+        # A small phase shift (pi/8) avoids placing any node exactly on
+        # the cardinal axes. Radii vary slightly to give distinct distances.
+        _phase = np.pi / 8
+        _radii = [1.55, 1.70, 1.60, 1.45, 1.65, 1.50, 1.75, 1.58]
         offsets = np.array([
-            [ 1.60,  0.30, 0.0],
-            [ 0.90,  1.55, 0.0],
-            [-1.00,  1.30, 0.0],
-            [-1.65, -0.30, 0.0],
-            [-0.80, -1.40, 0.0],
-            [ 1.00, -1.30, 0.0],
-            [ 0.30,  1.80, 0.0],
-            [-1.40,  0.80, 0.0],
+            [_radii[i] * np.cos(2 * np.pi * i / 8 + _phase),
+             _radii[i] * np.sin(2 * np.pi * i / 8 + _phase),
+             0.0]
+            for i in range(8)
         ], dtype=float)
         nbr_pts = [center_pt + off for off in offsets]
         distances = [float(np.linalg.norm(off)) for off in offsets]
@@ -262,6 +276,8 @@ class LLEWalkthrough(ThreeDScene):
             run_time=S.T_NORMAL,
         )
         self.play(FadeIn(self.cloud), FadeIn(self.axes), run_time=S.T_FAST)
+        # Back in 3D: resume the continuous orbit.
+        self.begin_ambient_camera_rotation(rate=2 * np.pi / 14.0, about="theta")
 
         self.set_caption("Do this for every point and the kNN graph covers the whole surface.")
         self.edges_mob = B.graph_edges(self.d["pts"], self.d["edges"])
@@ -272,6 +288,7 @@ class LLEWalkthrough(ThreeDScene):
                 run_time=S.T_SLOW,
             )
         )
+        self.wait(2.5)
 
         # Highlight one neighborhood with knn_sphere.
         ci = self.d["center_idx"]
@@ -286,11 +303,16 @@ class LLEWalkthrough(ThreeDScene):
             LaggedStart(*[FadeIn(s) for s in nbr_spheres], lag_ratio=0.10, run_time=S.T_NORMAL)
         )
         self.set_caption("Each highlighted point lies on the same local patch as its neighbors.")
-        self.wait(S.T_HOLD)
+        self.wait(3.5)
 
         self.knn_highlight = VGroup(center_sphere, nbr_spheres)
-        # Keep the ambient rotation running into the next section.
-        self.move_camera(phi=80 * DEGREES, theta=30 * DEGREES, run_time=S.T_FAST)
+
+        # FIX 1: Do NOT issue any move_camera that resets theta here.
+        # The ambient rotation has been advancing theta; a hard snap to theta=30
+        # would visibly revert. Just change phi by a forward-path move that
+        # omits theta entirely so the camera keeps its current rotated position.
+        # The orbit stays running into section_weights.
+        self.move_camera(phi=80 * DEGREES, run_time=S.T_FAST)
 
     # ------------------------------------------------------------------ #
     # Section 3: reconstruction weights                                   #
@@ -312,7 +334,13 @@ class LLEWalkthrough(ThreeDScene):
         ni = self.d["nbr_indices"]
         nw = self.d["nbr_weights"]
 
-        self.set_caption("For each point, find weights so it is a weighted sum of its k neighbors. Weights must sum to 1.")
+        self.set_caption(
+            "For each point x_i, LLE asks: which blend of its k neighbors best "
+            "reproduces x_i? It solves for weights w_j so that the weighted sum "
+            "of the neighbor positions sum_j w_j x_{n_j} lands as close to x_i "
+            "as possible. The weights are constrained to sum to 1."
+        )
+        self.wait(3.5)
 
         # Draw arrows from each neighbor to the center, scaled by weight magnitude.
         # Sort neighbors by descending |weight| so the most influential ones appear first.
@@ -356,6 +384,11 @@ class LLEWalkthrough(ThreeDScene):
                 lbl = Text(f"{w_val:.3f}", font_size=20, color=S.INK).move_to(lbl_pos)
                 weight_labels.append(lbl)
 
+        # FIX 1 (continued): pause the orbit while the highlighted reconstruction
+        # is on screen so the viewer can read the weight labels without the scene
+        # rotating. Resume before moving on.
+        self.stop_ambient_camera_rotation()
+
         self.play(
             LaggedStart(*[Create(a) for a in weight_arrows], lag_ratio=0.12, run_time=S.T_SLOW)
         )
@@ -363,7 +396,11 @@ class LLEWalkthrough(ThreeDScene):
             self.play(
                 LaggedStart(*[FadeIn(lbl) for lbl in weight_labels], lag_ratio=0.15, run_time=S.T_NORMAL)
             )
-        self.wait(1.8)
+        # Deliberate pause while the reconstruction is visible.
+        self.wait(3.5)
+
+        # Resume orbit before showing the formula and heatmap.
+        self.begin_ambient_camera_rotation(rate=2 * np.pi / 14.0, about="theta")
 
         # Show the weight formula as a fixed-in-frame overlay, standardized buff=0.4.
         f_w = B.formula(
@@ -372,16 +409,28 @@ class LLEWalkthrough(ThreeDScene):
         self.add_fixed_in_frame_mobjects(f_w)
         f_w.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(f_w.animate.set_opacity(1.0), run_time=S.T_FAST)
-        self.set_caption("The weights minimize reconstruction error subject to summing to 1. A small per-point linear system determines them.")
-        self.wait(1.8)
+        self.set_caption(
+            "Summing to 1 makes the blend an affine combination: the result "
+            "does not shift if the whole cloud is translated, so the weights "
+            "capture pure local shape. LLE solves a small linear system per "
+            "point to find the optimal w_j. These weights are then frozen."
+        )
+        self.wait(4.5)
 
-        # W heatmap: grid alone scaled to height 2.2, label above, anchored
-        # top-right under the formula. The formula is at buff=0.4 from the corner
-        # so there is room for the heatmap below it without colliding.
-        N_pts = len(pts)
-        hm_W = B.heatmap(self.d["W"], N_pts, max_cells=32, cell=0.11, diverging=True)
+        # FIX 2: Show W as a sparse pattern by reordering rows/columns along the
+        # manifold parameter t, then displaying a 60x60 top-left sub-block at
+        # per-entry resolution (step=1, no averaging) so the near-diagonal sparsity
+        # band is visible rather than washed into a smooth gradient.
+        t_order = np.argsort(self.d["t"])       # indices sorted by manifold param
+        W_full = self.d["W"]
+        W_reordered = W_full[np.ix_(t_order, t_order)]
+        # Sub-block: top-left 60x60 of the reordered matrix.
+        sub_size = min(60, N)
+        W_sub = W_reordered[:sub_size, :sub_size]
+        hm_W = B.heatmap(W_sub, sub_size, max_cells=sub_size, cell=0.055,
+                         diverging=True, mode="pattern")
         hm_W.scale_to_fit_height(2.2)
-        hm_lbl = Text("W", font_size=26, color=S.INK)
+        hm_lbl = Text(f"W (reordered, {sub_size}x{sub_size} block)", font_size=22, color=S.INK)
         self.add_fixed_in_frame_mobjects(hm_W, hm_lbl)
         hm_W.to_corner(RIGHT + UP, buff=0.4)
         hm_W.shift(DOWN * (f_w.height + 0.5))
@@ -393,15 +442,19 @@ class LLEWalkthrough(ThreeDScene):
             hm_lbl.animate.set_opacity(1.0),
             run_time=S.T_NORMAL,
         )
-        self.set_caption("The weight matrix W is sparse: most entries are zero. Each row has at most k non-zero entries.")
-        self.wait(1.8)
+        self.set_caption(
+            "The weight matrix W is sparse: each row has at most k non-zero "
+            "entries. Reordering rows and columns by manifold position reveals "
+            "a near-diagonal band, confirming that each point's weights are "
+            "concentrated on nearby neighbors along the surface."
+        )
+        self.wait(5.5)
 
         self.weight_arrows = weight_arrows
         self.weight_labels = VGroup(*weight_labels)
         self.weight_formula = f_w
         self.weight_hm = hm_W
         self.weight_hm_lbl = hm_lbl
-        self.wait(S.T_HOLD)
 
     # ------------------------------------------------------------------ #
     # Section 4 (step-5-eig): eigenvectors of M = (I - W)^T (I - W)     #
@@ -427,14 +480,31 @@ class LLEWalkthrough(ThreeDScene):
             run_time=S.T_FAST,
         )
 
-        self.set_caption("Form M = (I - W) transpose times (I - W). Its smallest non-trivial eigenvectors give the 2D coordinates.")
+        # FIX 3: Introduce W, I, and M before showing the formula, so the viewer
+        # knows what each symbol means. W is the reconstruction-weight matrix from
+        # the previous step. I is the N x N identity matrix. M measures how much
+        # each point deviates from the weighted reconstruction by its neighbors;
+        # minimizing the bottom eigenvectors of M finds coordinates that minimize
+        # that deviation globally.
+        self.set_caption(
+            "W is the reconstruction-weight matrix. "
+            "I is the N x N identity. "
+            "M = (I - W) transpose (I - W) measures total reconstruction error: "
+            "it is large where a point does not sit on the linear patch defined by its neighbors."
+        )
+        self.wait(3.5)
 
         # Show the M formula, standardized buff=0.4.
         f_M = B.formula(r"M = (I - W)^{\top}(I - W)").scale(0.80)
         self.add_fixed_in_frame_mobjects(f_M)
         f_M.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
         self.play(f_M.animate.set_opacity(1.0), run_time=S.T_FAST)
-        self.wait(1.8)
+
+        # Update caption now that the formula is visible.
+        self.set_caption(
+            "The eigenvectors of M that carry the smallest eigenvalues are the directions "
+            "along which the reconstruction error is smallest, giving the 2D coordinates."
+        )
 
         # Show eigenvalue readout.
         vals = self.d["vals"]
@@ -447,15 +517,53 @@ class LLEWalkthrough(ThreeDScene):
         self.add_fixed_in_frame_mobjects(f_vals)
         f_vals.next_to(f_M, DOWN, buff=0.30, aligned_edge=RIGHT).set_opacity(0)
         self.play(f_vals.animate.set_opacity(1.0), run_time=S.T_FAST)
-        self.set_caption("The trivial zero eigenvalue (the constant eigenvector) is skipped. The next two carry the shape.")
-        self.wait(S.T_HOLD + 1.6)
+        self.wait(3.5)
+
+        # FIX 4: Build and show an eigenvalue bar chart so the viewer sees the
+        # spectrum and the trivial zero eigenvalue before the explanation.
+        bottom6 = self.d["bottom6_vals"]
+        bar_group = B.eig_bar_chart(bottom6, highlight_idxs=[1, 2], trivial_idx=0)
+
+        # Label the first bar (lambda_0) and the next two (lambda_1, lambda_2).
+        bar_labels = VGroup()
+        label_texts = [
+            (r"\lambda_0 \approx 0", S.MUTED),
+            (r"\lambda_1", S.ACCENT),
+            (r"\lambda_2", S.ACCENT),
+        ]
+        for i, (tex, col) in enumerate(label_texts):
+            if i < len(bar_group.submobjects):
+                lbl = MathTex(tex, font_size=18, color=col)
+                lbl.next_to(bar_group.submobjects[i], DOWN, buff=0.06)
+                bar_labels.add(lbl)
+
+        # Dim the lambda_0 bar visually to grey to reinforce "skip this one".
+        if len(bar_group.submobjects) > 0:
+            bar_group.submobjects[0].set_fill(S.MUTED, opacity=0.45)
+
+        chart_group = VGroup(bar_group, bar_labels)
+        # Position top-right, below f_vals, away from the caption at the bottom.
+        self.add_fixed_in_frame_mobjects(chart_group)
+        chart_group.next_to(f_vals, DOWN, buff=0.35, aligned_edge=RIGHT)
+        chart_group.set_opacity(0)
+        self.play(chart_group.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+
+        self.set_caption(
+            "The smallest eigenvalue lambda_0 is near zero: it corresponds to the constant "
+            "eigenvector (all entries equal) which carries no coordinate. "
+            "The next two, lambda_1 and lambda_2, become the x and y axes of the embedding."
+        )
+        self.wait(5.0)
 
         # Color the cloud by the first eigenvector value to show it encodes position.
         v1 = self.d["vecs"][:, 0]
         recolor_anims = B.recolor_cloud_by_values(self.cloud, v1, cmap=B.rainbow_color, grow=1.0)
         self.play(AnimationGroup(*recolor_anims, lag_ratio=0.0), run_time=S.T_SLOW)
         self.set_caption("Coloring points by the first eigenvector shows it traces the unrolled sheet's main axis.")
-        self.wait(S.T_HOLD + 1.0)
+        self.wait(3.5)
+
+        # Fade the bar chart before the embedding step.
+        self.play(FadeOut(chart_group), run_time=S.T_FAST)
 
         self.eig_f_M = f_M
         self.eig_f_vals = f_vals
@@ -502,6 +610,7 @@ class LLEWalkthrough(ThreeDScene):
                 pts_list[i].animate.move_to(pts3[i]) for i in range(len(pts_list))
             ],
         )
+        self.wait(1.5)
 
         # Fade out the axes and edges (no longer meaningful in 2D).
         self.play(FadeOut(self.axes), FadeOut(self.edges_mob), run_time=S.T_FAST)
@@ -511,4 +620,12 @@ class LLEWalkthrough(ThreeDScene):
             "LLE preserved each point's local linear reconstruction from its neighbors, so the sheet unrolls flat.",
         )
         self.set_caption(outro)
-        self.wait(5.0)
+        self.wait(4.5)
+        # Fade the caption, pseudocode panel, and formula so the final 2D
+        # embedding is shown unobstructed for a beat before the clip ends.
+        self.play(
+            FadeOut(self.cap), FadeOut(self.pseudo), FadeOut(f_embed),
+            run_time=S.T_NORMAL,
+        )
+        self.cap, self.pseudo = None, None
+        self.wait(2.5)
