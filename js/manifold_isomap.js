@@ -362,7 +362,7 @@ const STEPS_LAPLACIAN = [
 // Helper that builds the five KPCA steps given the kernel formula string and
 // the per-kernel outro text. Steps 1, 3, 4, and 5 are identical across kernels;
 // only step 2 (the kernel formula display) and step 5 (the outro) vary.
-function makeKpcaSteps(kernelFormula, kernelExplain, outroText) {
+function makeKpcaSteps(kernelFormula, kernelExplain, outroText, outroExplain) {
   return [
     {
       start: 0,
@@ -397,7 +397,7 @@ function makeKpcaSteps(kernelFormula, kernelExplain, outroText) {
       formula: 'K_c = K - \\mathbf{1}_N K - K \\mathbf{1}_N + \\mathbf{1}_N K \\mathbf{1}_N',
     },
     {
-      start: 30.00,
+      start: 29.10,
       title: '4. Eigendecomposition',
       caption: 'Find the top eigenvectors of K_c; these are the principal components in feature space.',
       explain: 'The centered kernel matrix satisfies $K_c = V \\Lambda V^{\\top}$. Each eigenvector ' +
@@ -409,7 +409,7 @@ function makeKpcaSteps(kernelFormula, kernelExplain, outroText) {
       formula: 'K_c = V \\Lambda V^{\\top}',
     },
     {
-      start: 45.40,
+      start: 44.50,
       title: '5. Embedding',
       caption: outroText,
       explain: 'The 2D embedding coordinates are $y_{i,k} = \\sqrt{\\lambda_k}\\, v_{k,i}$: each ' +
@@ -417,7 +417,8 @@ function makeKpcaSteps(kernelFormula, kernelExplain, outroText) {
         'convention from classical MDS and PCA. The result places each point in the ' +
         'feature space where similarity is measured by the chosen kernel. ' +
         'Whether the Swiss roll unrolls depends on whether the kernel can separate ' +
-        'points that are far along the sheet but close in 3D.',
+        'points that are far along the sheet but close in 3D. ' +
+        outroExplain,
       formula: 'y_{i,k} = \\sqrt{\\lambda_k}\\, v_{k,i}',
     },
   ];
@@ -432,7 +433,12 @@ const STEPS_KPCA_RBF = makeKpcaSteps(
     'similarity to points that are far apart in 3D, but kernel PCA still keeps the directions ' +
     'of greatest variance in feature space. Those directions do not line up with the roll ' +
     'angle or the height of the sheet, so the top two components do not unroll the manifold.',
-  'RBF kernel PCA produces a nonlinear embedding, but it does not recover the flat sheet. The top two components do not align with the roll angle or the height, so the swiss roll stays rolled in this 2D view. Unrolling it needs a method built to preserve manifold structure, like Isomap, LLE, or Laplacian Eigenmaps.',
+  'The RBF kernel cannot unroll the sheet; the rolled layers stay entangled.',
+  'The RBF kernel maps points into a high-dimensional Gaussian feature space, but kernel PCA ' +
+    'still keeps the directions of greatest variance there, and those do not align with the roll ' +
+    'angle or the height. So the top two components leave the rolled layers entangled in this 2D ' +
+    'view. Unrolling the sheet needs a method built to preserve manifold structure, such as ' +
+    'Isomap, LLE, or Laplacian Eigenmaps.',
 );
 
 const STEPS_KPCA_POLY = makeKpcaSteps(
@@ -444,7 +450,10 @@ const STEPS_KPCA_POLY = makeKpcaSteps(
     'the polynomial kernel creates a curved feature space, but the specific structure of ' +
     'the kernel does not cleanly separate the rolled layers, so the embedding remains ' +
     'partially entangled.',
-  'Polynomial kernel PCA bends the feature space but does not cleanly separate the rolled layers; the embedding remains partially tangled.',
+  'The polynomial kernel curves the space but leaves the layers tangled.',
+  'The polynomial kernel bends the feature space by raising dot products to a higher power, which ' +
+    'curves the similarity structure but does not cleanly separate the rolled layers, so the ' +
+    'embedding remains partially tangled.',
 );
 
 const STEPS_KPCA_LINEAR = makeKpcaSteps(
@@ -456,7 +465,9 @@ const STEPS_KPCA_LINEAR = makeKpcaSteps(
     'PCA is a linear projection, it cannot separate the Swiss roll\'s layers: two points ' +
     'on different turns of the roll that are close in 3D will land near each other in ' +
     'the 2D output.',
-  'Linear kernel PCA collapses to ordinary PCA and projects by variance; the rolled layers overlap as they do in standard PCA.',
+  'The linear kernel reduces to PCA, so the rolled layers still overlap.',
+  'The linear kernel equals the ordinary dot product, so kernel PCA collapses to standard PCA and ' +
+    'projects by variance; the rolled layers overlap just as they do in PCA.',
 );
 
 const STEPS_BY_ALGO = {
@@ -546,6 +557,54 @@ const WALKS = {
     swiss_roll: { video: 'kpca/walkthrough-linear.mp4', intro: 'A 2D sheet rolled up in 3D. Kernel PCA with a linear kernel.' },
   },
 };
+
+// Dataset order for the picker. swiss_roll leads; the rest are the manifold zoo.
+const DATASET_ORDER = [
+  'swiss_roll', 's_curve', 'twin_peaks', 'saddle', 'cylinder', 'severed_sphere',
+  'helix', 'trefoil_knot', 'toroidal_helix', 'spiral_disk', 'full_sphere',
+  'hilbert', 'clusters_3d',
+];
+
+// Every algorithm has a 480p preview clip for each of these datasets (no
+// swiss_roll, which ships a full-res walkthrough instead). Used as the fallback
+// when an algorithm has no bespoke full-res clip listed in WALKS.
+const PREVIEW_DATASETS = new Set(DATASET_ORDER.filter((d) => d !== 'swiss_roll'));
+
+// Algorithm-neutral opening lines describing each dataset's shape. Used when a
+// clip falls back to the shared 480p preview (WALKS intros take precedence).
+const DATASET_INTROS = {
+  swiss_roll: 'A 2D sheet rolled up in 3D; the goal is to recover the flat sheet.',
+  s_curve: 'A 2D sheet bent into an S; the goal is to recover the flat sheet.',
+  twin_peaks: 'A bumpy height surface in 3D; the goal is to recover its flat layout.',
+  saddle: 'A curved saddle surface; the goal is to recover its flat layout.',
+  cylinder: 'A sheet wrapped into a cylinder; a closed band lays out as a loop, not a flat sheet.',
+  severed_sphere: 'A sphere with its cap removed, an open curved surface; the goal is to flatten it.',
+  helix: 'A ribbon wound into a helix; the goal is to unroll it to a flat strip.',
+  trefoil_knot: 'A ribbon tied into a trefoil knot; a closed band lays out as a loop, not a flat strip.',
+  toroidal_helix: 'A ribbon coiled around a torus; a closed band lays out as a loop, not a flat strip.',
+  spiral_disk: 'A ribbon wound into a spiral; the goal is to unroll it to a flat strip.',
+  full_sphere: 'A full sphere, a closed surface with no flat layout.',
+  hilbert: 'A Hilbert curve: a 1D path folded to fill a cube, not a surface.',
+  clusters_3d: 'Separate clusters with no surface connecting them.',
+};
+
+// Ordered candidate clip URLs for an (algorithm, dataset): the listed full-res
+// clip first, then the shared 480p preview. loadVideo tries them in order and
+// uses the first that loads.
+function clipCandidates(algo, dataset) {
+  const urls = [];
+  const explicit = (WALKS[algo] || {})[dataset];
+  if (explicit) urls.push(ASSET_BASE + explicit.video);
+  if (PREVIEW_DATASETS.has(dataset)) urls.push(ASSET_BASE + 'preview480/' + algo + '/' + dataset + '.mp4');
+  return urls;
+}
+
+// Opening caption for an (algorithm, dataset): the bespoke intro when listed,
+// otherwise the algorithm-neutral dataset description.
+function introFor(algo, dataset) {
+  const explicit = (WALKS[algo] || {})[dataset];
+  return (explicit && explicit.intro) || DATASET_INTROS[dataset] || '';
+}
 
 const video = document.getElementById('mfiVideo');
 const stepsEl = document.getElementById('mfiSteps');
@@ -647,7 +706,7 @@ if (algoSel) {
 // Fill the Dataset picker with the datasets that have a clip for this algorithm.
 function fillDatasets(algo) {
   if (!datasetSel) return;
-  const ids = Object.keys(WALKS[algo] || {});
+  const ids = DATASET_ORDER.filter((id) => clipCandidates(algo, id).length > 0);
   datasetSel.innerHTML = '';
   for (const id of ids) {
     const o = document.createElement('option');
@@ -660,12 +719,36 @@ function fillDatasets(algo) {
 // Load the clip for the chosen (algorithm, dataset) as a Blob so it is fully
 // seekable on any static server. Updates the opening caption and resets to the
 // first step. Shows a note when no clip exists for the combination yet.
+let loadToken = 0;
+
+// Fetch the first candidate URL that loads (full-res, then 480p preview) as a
+// Blob so it is fully seekable on any static server. token guards against a
+// later load() superseding this one mid-fetch.
+function loadFromCandidates(urls, token) {
+  const url = urls[0];
+  fetch(url)
+    .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(String(r.status)))))
+    .then((blob) => {
+      if (token !== loadToken) return;
+      if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+      currentBlobUrl = URL.createObjectURL(blob);
+      video.src = currentBlobUrl;
+    })
+    .catch(() => {
+      if (token !== loadToken) return;
+      if (urls.length > 1) loadFromCandidates(urls.slice(1), token);
+      else video.src = url;   // last resort: let the element try directly
+    });
+}
+
 function loadVideo() {
   const algo = currentAlgo();
   STEPS = STEPS_BY_ALGO[algo] || STEPS_ISOMAP;   // step list/chapters per algorithm
   video.poster = posterSrc(algo);
-  const info = (WALKS[algo] || {})[currentDataset()];
-  if (!info) {
+  const dataset = currentDataset();
+  const candidates = clipCandidates(algo, dataset);
+  loadToken += 1;
+  if (candidates.length === 0) {
     if (currentBlobUrl) { URL.revokeObjectURL(currentBlobUrl); currentBlobUrl = null; }
     video.removeAttribute('src');
     video.load();
@@ -676,16 +759,8 @@ function loadVideo() {
     return;
   }
   datasetNote.textContent = '';
-  STEPS[0].caption = info.intro;
-  const url = ASSET_BASE + info.video;
-  fetch(url)
-    .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(String(r.status)))))
-    .then((blob) => {
-      if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
-      currentBlobUrl = URL.createObjectURL(blob);
-      video.src = currentBlobUrl;
-    })
-    .catch(() => { video.src = url; });
+  STEPS[0].caption = introFor(algo, dataset);
+  loadFromCandidates(candidates, loadToken);
   current = -1;
   setActive(0);
 }
