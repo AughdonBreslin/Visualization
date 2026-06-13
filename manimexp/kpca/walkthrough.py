@@ -67,26 +67,63 @@ DATASET_INTRO = {
     "clusters_3d": "Several clusters of points in 3D.",
 }
 
-# Per-kernel outro captions for the embedding step.
+# Per-kernel, per-dataset outro captions for the embedding step. Kept to one
+# short line and honest about what each kernel's embedding actually does to the
+# data (see manimexp/audit_embeddings.py). The detailed explanation lives in the
+# page's subsidiary step text (js/manifold_isomap.js).
 KERNEL_OUTRO = {
-    "rbf": (
-        "The RBF kernel maps points to a high-dimensional Gaussian feature space, "
-        "but it does not recover the flat sheet of the swiss roll. "
-        "The top two components correlate only weakly with the roll angle and height, "
-        "so the rolled layers remain entangled in this 2D view. "
-        "Isomap, LLE, and Laplacian Eigenmaps use the graph structure to unroll the sheet; "
-        "Kernel PCA with RBF does not."
-    ),
-    "polynomial": (
-        "The polynomial kernel bends the feature space by raising dot products "
-        "to a higher power. This curves the similarity structure but does not "
-        "cleanly separate the swiss roll's layers, so the embedding remains tangled."
-    ),
-    "linear": (
-        "The linear kernel K(x, y) = x . y is equivalent to the ordinary dot "
-        "product. Kernel PCA with a linear kernel collapses to standard PCA and "
-        "projects by variance, so the rolled layers still overlap."
-    ),
+    "rbf": {
+        "swiss_roll": "The RBF kernel spreads the points onto a bounded shell; the rolled sheet is not unrolled.",
+        "s_curve": "The RBF kernel maps the bent sheet to a bounded blob; the coloring survives but it is not unrolled.",
+        "twin_peaks": "The RBF kernel maps the surface to a bounded blob; its structure is not recovered.",
+        "saddle": "The RBF kernel maps the saddle to a bounded blob; its structure is not recovered.",
+        "cylinder": "The RBF kernel maps the band to a ring; the gradient survives but the tube is not unwrapped.",
+        "severed_sphere": "The RBF kernel maps the cap to a bounded blob.",
+        "helix": "The RBF kernel maps the coil to a pair of loops; it is not unrolled.",
+        "trefoil_knot": "The RBF kernel maps the knot to a ring; the strands are not separated.",
+        "toroidal_helix": "The RBF kernel maps the coil to a rosette; it is not unrolled.",
+        "spiral_disk": "The RBF kernel collapses the spiral toward a thin arc.",
+        "full_sphere": "The RBF kernel maps the sphere to a bounded blob; a sphere has no flat map.",
+        "hilbert": "The RBF kernel scatters the folded curve across a bounded disk without meaningful order.",
+        "clusters_3d": "The RBF kernel separates the clusters but spreads each onto a bounded arc.",
+    },
+    "polynomial": {
+        "swiss_roll": "The polynomial kernel warps the sheet into a spiky fan; the layers are not separated.",
+        "s_curve": "The polynomial kernel warps the bent sheet into a spiky star; its structure is distorted.",
+        "twin_peaks": "The polynomial kernel warps the surface into a spiky star.",
+        "saddle": "The polynomial kernel warps the saddle into spiky arms.",
+        "cylinder": "The polynomial kernel warps the band into a spiked ring.",
+        "severed_sphere": "The polynomial kernel maps the cap to a blob with little structure.",
+        "helix": "The polynomial kernel folds the coil into overlapping arcs.",
+        "trefoil_knot": "The polynomial kernel maps the knot to crossed loops.",
+        "toroidal_helix": "The polynomial kernel warps the coil into a pinwheel.",
+        "spiral_disk": "The polynomial kernel warps the spiral into a small spiked cluster.",
+        "full_sphere": "The polynomial kernel maps the sphere to a blob; a sphere has no flat map.",
+        "hilbert": "The polynomial kernel scatters the folded curve into spikes without meaningful order.",
+        "clusters_3d": "The polynomial kernel splays the clusters into a spiky star.",
+    },
+    "linear": {
+        "swiss_roll": "The linear kernel reduces to PCA, projecting the roll flat so its layers overlap.",
+        "s_curve": "The linear kernel reduces to PCA, projecting the bent sheet flat and folding its ends over the middle.",
+        "twin_peaks": "The linear kernel reduces to PCA, keeping the two widest directions; the bumps collapse.",
+        "saddle": "The linear kernel reduces to PCA; the saddle's curvature collapses into the plane.",
+        "cylinder": "The linear kernel reduces to PCA, projecting the tube flat so front and back overlap.",
+        "severed_sphere": "The linear kernel reduces to PCA, projecting the curved cap flat.",
+        "helix": "The linear kernel reduces to PCA, projecting the coil flat so its turns stack.",
+        "trefoil_knot": "The linear kernel reduces to PCA, projecting the knot flat so its strands cross.",
+        "toroidal_helix": "The linear kernel reduces to PCA, projecting the coil flat so its layers overlap.",
+        "spiral_disk": "The spiral is nearly flat already, so linear kernel PCA recovers it with little distortion.",
+        "full_sphere": "The linear kernel reduces to PCA, projecting the sphere to a disk with opposite sides overlapping.",
+        "hilbert": "The linear kernel reduces to PCA; the folded curve overlaps heavily when flattened.",
+        "clusters_3d": "The linear kernel reduces to PCA, keeping the directions that best separate the clusters.",
+    },
+}
+
+# Per-kernel fallback when a dataset has no bespoke line.
+KERNEL_OUTRO_DEFAULT = {
+    "rbf": "The RBF kernel maps the data onto a bounded shell; the coloring survives but the shape is not recovered.",
+    "polynomial": "The polynomial kernel warps the data into a spiky star; the structure is distorted.",
+    "linear": "The linear kernel reduces to PCA, projecting the data to its 2D shadow.",
 }
 _OUTRO_DEFAULT = "The 2D embedding shows the kernel-induced feature space coordinates."
 
@@ -134,6 +171,13 @@ class KPCAWalkthrough(ThreeDScene):
         self.camera.background_color = S.BG
         d = load_dataset_points(DATASET, N, seed=SEED)
         pts, t = d["points"], d["t"]
+
+        # Order points along the manifold parameter t. The pipeline is
+        # permutation-invariant, but ordering makes the kernel heatmaps show real
+        # structure: without it, block-mean pooling averages random subsets of
+        # points and the matrix paints a near-uniform wash.
+        order = np.argsort(t)
+        pts, t = pts[order], t[order]
 
         # Run the full KPCA pipeline up front so all steps use consistent data.
         K_mat = kernel_matrix(pts, KERNEL, gamma=1.0, degree=3, constant=1.0)
@@ -255,6 +299,10 @@ class KPCAWalkthrough(ThreeDScene):
         )
         self.add_fixed_in_frame_mobjects(f)
         f.next_to(hm_K, DOWN, buff=0.28)
+        # The formula is wider than the heatmap, so right-align it to the heatmap
+        # (which hugs the right margin) and let it extend left into open space,
+        # rather than centering it where it would spill off the right edge.
+        f.align_to(hm_K, RIGHT)
         # Clamp so formula stays above the caption zone.
         if f.get_bottom()[1] < -2.6:
             f.shift(UP * (abs(f.get_bottom()[1]) - 2.6))
@@ -280,65 +328,32 @@ class KPCAWalkthrough(ThreeDScene):
         self.next_section("step-4-center", type=_SEC)
         self.set_pseudo(2)
 
-        self.set_caption(
-            "Center the kernel matrix: the feature-space analogue of "
-            "subtracting the mean."
+        # Centering is pure matrix algebra, so clear the 3D dataset and show the
+        # lineage as a left-to-right chain (shared helper): K glides from its
+        # corner to the focus slot, then K_c fades in to its right with an
+        # H(.)H transform arrow between them. Captions stay one short line; the
+        # detail lives in the page's subsidiary step text.
+        self.lineage = B.MatrixLineage(self)
+        self.lineage.start(
+            self.hm_K, "K",
+            caption="Center the kernel matrix K.",
+            extra_anims=[
+                FadeOut(self.cloud), FadeOut(self.axes),
+                FadeOut(self.kernel_f), FadeOut(self.lbl_K),
+            ],
         )
-
-        # This step is pure matrix algebra, so clear the 3D dataset and axes and
-        # bring the kernel matrix front and center: the K heatmap glides from its
-        # corner to the middle of the frame and grows, then cross-fades into the
-        # centered matrix Kc so the centering reads as a transformation of K.
-        CENTER = np.array([0.0, 0.55, 0.0])
-        HM_H = 3.0
-        grow = HM_H / self.hm_K.height
-        self.play(
-            FadeOut(self.cloud),
-            FadeOut(self.axes),
-            FadeOut(self.kernel_f),
-            self.hm_K.animate.scale(grow).move_to(CENTER),
-            self.lbl_K.animate.scale(1.15).move_to(CENTER + np.array([0.0, HM_H / 2 + 0.32, 0.0])),
-            run_time=S.T_NORMAL,
-        )
+        self.remove(self.lbl_K)
+        self.wait(S.T_HOLD + 0.5)
 
         hm_Kc = B.heatmap(self.d["Kc"], N, diverging=True)
-        hm_Kc.scale_to_fit_height(HM_H)
-        hm_Kc.move_to(self.hm_K.get_center())
-        lbl_Kc = Text("Kc", font_size=30, color=S.INK)
-        self.add_fixed_in_frame_mobjects(hm_Kc, lbl_Kc)
-        lbl_Kc.next_to(hm_Kc, UP, buff=0.12)
-        hm_Kc.set_opacity(0)
-        lbl_Kc.set_opacity(0)
-
-        # Cross-fade K -> Kc in place so it reads as the centering transformation.
-        self.play(
-            FadeOut(self.hm_K, shift=0.0),
-            FadeOut(self.lbl_K, shift=0.0),
-            hm_Kc.animate.set_opacity(1.0),
-            lbl_Kc.animate.set_opacity(1.0),
-            run_time=S.T_NORMAL,
+        self.lineage.push(
+            hm_Kc, "K_c", r"H(\,\cdot\,)H",
+            caption="Subtract the feature-space mean to get Kc.",
         )
-        self.remove(self.hm_K, self.lbl_K)
+        self.wait(S.T_HOLD + 2.5)
 
-        # Centering formula below the centered matrix, larger and wider now that
-        # it has the whole frame width to itself.
-        f_center = B.fit_formula(
-            r"K_c = K - \mathbf{1}_N K - K \mathbf{1}_N + \mathbf{1}_N K \mathbf{1}_N",
-            max_width=6.4, scale=0.78,
-        )
-        self.add_fixed_in_frame_mobjects(f_center)
-        f_center.next_to(hm_Kc, DOWN, buff=0.30)
-        if f_center.get_bottom()[1] < -2.0:
-            f_center.shift(UP * (abs(f_center.get_bottom()[1]) - 2.0))
-        f_center.set_opacity(0)
-        self.play(f_center.animate.set_opacity(1.0), run_time=S.T_FAST)
-
-        # Hold on the centered matrix; the detailed walk-through lives in the
-        # page's step text beside the video.
-        self.wait(4.5)
-        self.hm_Kc = hm_Kc
-        self.lbl_Kc = lbl_Kc
-        self.center_f = f_center
+        self.set_caption("Kc is the centered kernel, ready to eigendecompose.")
+        self.wait(2.5)
 
     # ------------------------------------------------------------------ #
     # Step 5: eigendecompose Kc, top-2 readout                           #
@@ -348,75 +363,17 @@ class KPCAWalkthrough(ThreeDScene):
         self.next_section("step-5-eig", type=_SEC)
         self.set_pseudo(3)
 
-        # Fade out the centered matrix and restore the 3D dataset and axes, which
-        # the embedding step morphs into the 2D layout.
-        self.play(
-            FadeOut(self.hm_Kc),
-            FadeOut(self.lbl_Kc),
-            FadeOut(self.center_f),
-            FadeIn(self.cloud),
-            FadeIn(self.axes),
-            run_time=S.T_FAST,
-        )
-
-        self.set_caption(
-            "Eigendecompose Kc: its eigenvectors are the principal components "
-            "in feature space."
-        )
-        self.wait(3.5)
-
-        # Formula: eigenvalue equation.
-        f_eig = B.formula(r"K_c\, v_k = \lambda_k\, v_k").scale(0.85)
-        self.add_fixed_in_frame_mobjects(f_eig)
-        f_eig.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
-        self.play(f_eig.animate.set_opacity(1.0), run_time=S.T_FAST)
-
-        # Top-2 eigenvalue readout via fit_formula.
-        vals = self.d["vals"]
-        v1, v2 = float(vals[0]), float(vals[1])
-        readout = B.fit_formula(
-            rf"\lambda_1 = {v1:.2f} \qquad \lambda_2 = {v2:.2f}",
-            max_width=4.8, scale=0.65,
-        )
-        self.add_fixed_in_frame_mobjects(readout)
-        readout.next_to(f_eig, DOWN, buff=0.32, aligned_edge=RIGHT).set_opacity(0)
-        self.play(readout.animate.set_opacity(1.0), run_time=S.T_FAST)
-        self.wait(2.5)
-
-        # Eigenvalue bar chart: top-6 of Kc (descending), highlight top 2.
-        top6 = self.d["top6_vals"]
-        bar_group = B.eig_bar_chart(top6, highlight_idxs=[0, 1])
-
-        bar_labels = VGroup()
-        label_specs = [
-            (r"\lambda_1", S.ACCENT),
-            (r"\lambda_2", S.ACCENT),
-        ]
-        for i, (tex, col) in enumerate(label_specs):
-            if i < len(bar_group.submobjects):
-                lbl = MathTex(tex, font_size=18, color=col)
-                lbl.next_to(bar_group.submobjects[i], DOWN, buff=0.06)
-                bar_labels.add(lbl)
-
-        chart_group = VGroup(bar_group, bar_labels)
-        self.add_fixed_in_frame_mobjects(chart_group)
-        chart_group.next_to(readout, DOWN, buff=0.35, aligned_edge=RIGHT)
-        if chart_group.get_bottom()[1] < -2.5:
-            chart_group.shift(UP * (abs(chart_group.get_bottom()[1]) - 2.5))
-        chart_group.set_opacity(0)
-        self.play(chart_group.animate.set_opacity(1.0), run_time=S.T_NORMAL)
-
-        self.set_caption(
-            "The top two eigenvalues capture the dominant variation; keep them "
-            "for the 2D embedding."
+        # Foreground the eigendecomposition (shared helper): Kc slides left as the
+        # source, then the factorization, the eigenvalue spectrum, and the top-2
+        # eigenvectors (columns of V) take the center with the dataset hidden.
+        self.eig_overlays = self.lineage.eig_focus(
+            r"K_c = V\,\Lambda\,V^{\top}",
+            self.d["top6_vals"],
+            self.d["vecs"],
+            caption="Eigendecompose Kc into eigenvectors and eigenvalues.",
+            caption_vectors="v1, v2 are the top eigenvectors.",
         )
         self.wait(4.0)
-
-        # Fade the chart before the embedding step.
-        self.play(FadeOut(chart_group), run_time=S.T_FAST)
-
-        self.eig_f = f_eig
-        self.eig_vals = readout
 
     # ------------------------------------------------------------------ #
     # Step 6: 2D embedding, morph cloud face-on                          #
@@ -432,10 +389,13 @@ class KPCAWalkthrough(ThreeDScene):
         s = 3.4 / (float(np.abs(Y).max()) or 1.0)
         target = np.column_stack([Y[:, 0] * s, Y[:, 1] * s, np.zeros(Y.shape[0])])
 
-        # Fade out eigen overlays; bring in the embedding formula.
+        # Fade the eigendecomposition overlays and restore the 3D dataset and
+        # axes (hidden since the centering step), then bring in the embedding
+        # formula. The cloud reappears at the camera's current orbit angle.
         self.play(
-            FadeOut(self.eig_f),
-            FadeOut(self.eig_vals),
+            FadeOut(self.eig_overlays),
+            FadeIn(self.cloud),
+            FadeIn(self.axes),
             run_time=S.T_FAST,
         )
         f_embed = B.fit_formula(r"y_{i,k} = \sqrt{\lambda_k}\, v_{k,i}", max_width=4.8, scale=0.85)
@@ -465,7 +425,8 @@ class KPCAWalkthrough(ThreeDScene):
         # Fade out axes; the cloud remains as the embedding.
         self.play(FadeOut(self.axes), run_time=S.T_FAST)
 
-        outro = KERNEL_OUTRO.get(KERNEL, _OUTRO_DEFAULT)
+        outro = (KERNEL_OUTRO.get(KERNEL, {}).get(DATASET)
+                 or KERNEL_OUTRO_DEFAULT.get(KERNEL, _OUTRO_DEFAULT))
         self.set_caption(outro)
         self.wait(5.5)
         # Fade the caption, pseudocode panel, and formula so the final 2D

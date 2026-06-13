@@ -51,13 +51,18 @@ DATASET_INTRO = {
 }
 
 DATASET_OUTRO = {
-    "swiss_roll": "Laplacian Eigenmaps keeps strongly connected nearby points close in the embedding, so the sheet flattens while preserving locality.",
-    "s_curve": "Laplacian Eigenmaps keeps nearby points close, so the S-curve unrolls into a flat strip.",
-    "twin_peaks": "The local neighborhood graph keeps each height region together, flattening the surface.",
-    "saddle": "The saddle flattens because nearby points on the surface remain close in the embedding.",
-    "cylinder": "The cylinder unrolls because the local graph does not bridge its seam.",
-    "full_sphere": "A sphere cannot be flattened without distortion, so some local neighborhoods are compressed. Laplacian Eigenmaps needs a developable surface for a clean embedding.",
-    "hilbert": "A folded curve has no 2D layout; nearby folds get linked by the graph, so the embedding collapses.",
+    "swiss_roll": "Laplacian Eigenmaps folds the sheet into an arc; the second axis repeats the first instead of adding width.",
+    "s_curve": "Laplacian Eigenmaps keeps nearby points close, but the S-curve collapses toward a thin curved arc.",
+    "twin_peaks": "The local graph flattens the bumpy surface into a 2D layout.",
+    "saddle": "The saddle flattens into a rough blob, nearby points kept close.",
+    "cylinder": "The closed band maps to a loop; the local graph does not bridge its seam.",
+    "severed_sphere": "The cap flattens into a rough disk, nearby points kept close.",
+    "helix": "Laplacian Eigenmaps collapses the thin helix toward a point.",
+    "trefoil_knot": "The closed knot folds into an arc rather than a flat strip.",
+    "toroidal_helix": "The closed coil collapses toward a 1D arc.",
+    "spiral_disk": "Laplacian Eigenmaps collapses the spiral toward a single line.",
+    "full_sphere": "A sphere cannot flatten without distortion, so the embedding compresses some neighborhoods.",
+    "hilbert": "A folded curve has no 2D layout; linked folds scatter it across the plane.",
     "clusters_3d": "With disconnected components the Laplacian is block-diagonal; each cluster maps independently.",
 }
 
@@ -208,7 +213,7 @@ class LaplacianWalkthrough(ThreeDScene):
             run_time=S.T_NORMAL,
         )
         self.set_caption("Link each point to its k nearest neighbors to capture the local structure of the surface.")
-        self.wait(2.5)
+        self.wait(0.6)
 
         center_pt = np.array([0.0, 0.0, 0.0])
         center_dot = Dot(point=center_pt, radius=0.10, color=S.ACCENT)
@@ -234,7 +239,7 @@ class LaplacianWalkthrough(ThreeDScene):
         )
         self.wait(1.0)
 
-        self.set_caption("Each link is weighted by the distance between the two points.")
+        self.set_caption("Each link records the distance between its two points.")
         schematic_lines = VGroup()
         schematic_labels = []
         for nbr_pt, dist in zip(neighbor_pts, distances):
@@ -307,15 +312,15 @@ class LaplacianWalkthrough(ThreeDScene):
         )
         self.wait(4.0)
 
-        # Clean up the neighborhood highlight; keep edges and cloud for the next section.
+        # Clean up the neighborhood highlight; keep edges and cloud for the next
+        # section. No camera move here: the orbit keeps advancing theta, so a
+        # move_camera that reset theta would snap the rotation backwards.
         self.play(
             FadeOut(center_sphere),
             FadeOut(neighbor_spheres),
             FadeOut(nbr_lines),
             run_time=S.T_FAST,
         )
-
-        self.move_camera(phi=80 * DEGREES, theta=30 * DEGREES, run_time=S.T_NORMAL)
         self.wait(2.5)
 
     # ------------------------------------------------------------------ #
@@ -325,6 +330,15 @@ class LaplacianWalkthrough(ThreeDScene):
     def section_affinity(self):
         self.next_section("step-3-affinity", type=_SEC)
         self.set_pseudo(2)
+
+        # Stop the orbit here and hold the dataset at a fixed 45-degree (x-y) view,
+        # which is roughly where the rotation has carried it by this point. The
+        # nearest-equivalent target avoids any visible snap from the current theta.
+        self.stop_ambient_camera_rotation()
+        cur_theta = float(self.camera.get_theta())
+        tgt_theta = 45 * DEGREES
+        tgt_theta += round((cur_theta - tgt_theta) / (2 * np.pi)) * 2 * np.pi
+        self.move_camera(theta=tgt_theta, run_time=S.T_NORMAL)
 
         pts = self.d["pts"]
         edges = self.d["edges"]
@@ -336,7 +350,7 @@ class LaplacianWalkthrough(ThreeDScene):
         w_max = float(edge_weights.max())
         w_span = max(1e-9, w_max - w_min)
 
-        self.set_caption("The heat kernel turns each edge distance into a weight: nearby pairs get values close to 1, distant pairs get values close to 0.")
+        self.set_caption("The heat kernel turns each edge distance into a weight.")
 
         # Recolor each edge line by its weight: strong (close to 1) -> GOOD, weak -> MUTED.
         recolor_anims = []
@@ -363,7 +377,7 @@ class LaplacianWalkthrough(ThreeDScene):
         sub_size = min(60, N)
         W_sub = W_reord[:sub_size, :sub_size]
         hm_W = B.heatmap(W_sub, sub_size, max_cells=sub_size, cell=0.055,
-                         diverging=False, mode="pattern")
+                         diverging=True, mode="pattern")
         hm_W.scale_to_fit_height(2.2)
         lbl_W = Text(f"W (reordered, {sub_size}x{sub_size} block)", font_size=20, color=S.INK)
         self.add_fixed_in_frame_mobjects(hm_W, lbl_W)
@@ -377,11 +391,7 @@ class LaplacianWalkthrough(ThreeDScene):
             lbl_W.animate.set_opacity(1.0),
             run_time=S.T_NORMAL,
         )
-        self.set_caption(
-            "W is sparse: only the k-nearest pairs have nonzero entries. "
-            "Reordering rows and columns by manifold position t reveals a "
-            "near-diagonal band. Points close on the surface are close in this ordering."
-        )
+        self.set_caption("W is sparse: only the k-nearest pairs are nonzero.")
         self.wait(5.0)
 
         self.affinity_f = f_W
@@ -400,117 +410,57 @@ class LaplacianWalkthrough(ThreeDScene):
         L = self.d["L"]
         D_deg = self.d["D_deg"]
 
-        # Fade out affinity formula and prior W heatmap completely.
+        # Hide the dataset and the affinity overlays; the matrix algebra plays out
+        # in the foreground as a lineage W -> D -> L. The orbit keeps running with
+        # nothing 3D visible so the camera stays continuous for the embedding.
         self.play(
             FadeOut(self.affinity_f),
             FadeOut(self.hm_W),
             FadeOut(self.lbl_W),
-            run_time=S.T_FAST,
-        )
-
-        # Reorder rows/cols by manifold parameter t for all three matrices so the
-        # sparsity structure is visible as a near-diagonal band.
-        t_order = np.argsort(self.d["t"])
-        sub_size = min(60, N)
-
-        W_reord = W[np.ix_(t_order, t_order)]
-        W_sub = W_reord[:sub_size, :sub_size]
-
-        D_reord = D_deg[np.ix_(t_order, t_order)]
-        D_sub = D_reord[:sub_size, :sub_size]
-
-        L_reord = L[np.ix_(t_order, t_order)]
-        L_sub = L_reord[:sub_size, :sub_size]
-
-        # --- Beat 1: show W alone ---
-        # Layout: stacked vertically on the right half to avoid label collisions.
-        # Each panel is 1.4 units tall; labels sit above each panel.
-        hm_h = 1.4
-        lbl_font = 18
-
-        self.set_caption("W is the affinity matrix. Entry W_ij holds the heat-kernel weight for each connected pair; unconnected entries are zero.")
-
-        hm_W2 = B.heatmap(W_sub, sub_size, max_cells=sub_size, cell=0.055,
-                           diverging=False, mode="pattern")
-        hm_W2.scale_to_fit_height(hm_h)
-        lbl_W2 = Text(f"W ({sub_size}x{sub_size}, reordered)", font_size=lbl_font, color=S.INK)
-
-        self.add_fixed_in_frame_mobjects(hm_W2, lbl_W2)
-        hm_W2.to_corner(RIGHT + UP, buff=0.4)
-        lbl_W2.next_to(hm_W2, UP, buff=0.08)
-        hm_W2.set_opacity(0)
-        lbl_W2.set_opacity(0)
-        self.play(
-            hm_W2.animate.set_opacity(1.0),
-            lbl_W2.animate.set_opacity(1.0),
-            run_time=S.T_NORMAL,
-        )
-        self.wait(4.0)
-
-        # --- Beat 2: D appears below W ---
-        self.set_caption("D is the degree matrix. Its diagonal entry D_ii equals the sum of row i of W. All off-diagonal entries of D are zero.")
-
-        hm_D = B.heatmap(D_sub, sub_size, max_cells=sub_size, cell=0.055,
-                         diverging=False, mode="pattern")
-        hm_D.scale_to_fit_height(hm_h)
-        lbl_D = Text(f"D ({sub_size}x{sub_size}, diagonal)", font_size=lbl_font, color=S.INK)
-
-        self.add_fixed_in_frame_mobjects(hm_D, lbl_D)
-        # Place D below W with a clear gap so labels do not overlap.
-        hm_D.next_to(hm_W2, DOWN, buff=0.45)
-        lbl_D.next_to(hm_D, UP, buff=0.08)
-        hm_D.set_opacity(0)
-        lbl_D.set_opacity(0)
-        self.play(
-            hm_D.animate.set_opacity(1.0),
-            lbl_D.animate.set_opacity(1.0),
-            run_time=S.T_NORMAL,
-        )
-        self.wait(4.0)
-
-        # --- Beat 3: L appears below D, with the L = D - W formula ---
-        self.set_caption("L = D - W is the graph Laplacian. Its diagonal is D_ii (positive), and each off-diagonal L_ij = -W_ij (non-positive).")
-
-        hm_L = B.heatmap(L_sub, sub_size, max_cells=sub_size, cell=0.055,
-                         diverging=True, mode="pattern")
-        hm_L.scale_to_fit_height(hm_h)
-        lbl_L = Text(f"L ({sub_size}x{sub_size}, reordered)", font_size=lbl_font, color=S.INK)
-
-        self.add_fixed_in_frame_mobjects(hm_L, lbl_L)
-        hm_L.next_to(hm_D, DOWN, buff=0.45)
-        lbl_L.next_to(hm_L, UP, buff=0.08)
-        hm_L.set_opacity(0)
-        lbl_L.set_opacity(0)
-        self.play(
-            hm_L.animate.set_opacity(1.0),
-            lbl_L.animate.set_opacity(1.0),
+            FadeOut(self.cloud),
+            FadeOut(self.edges_mob),
+            FadeOut(self.axes),
             run_time=S.T_NORMAL,
         )
 
-        # Formula via fit_formula, placed in the lower-right area clear of the
-        # bottom caption zone (bottom of formula must stay above y = -2.6).
-        f_L = B.fit_formula(
-            r"L = D - W,\quad D_{ii} = \sum_j W_{ij}",
-            max_width=4.6, scale=0.72,
-        )
-        self.add_fixed_in_frame_mobjects(f_L)
-        # Place formula to the left of the stacked panels, vertically centered.
-        f_L.next_to(hm_L, DOWN, buff=0.30)
-        # Clamp so it never drops into the caption band.
-        if f_L.get_bottom()[1] < -2.6:
-            f_L.shift(UP * (abs(f_L.get_bottom()[1]) - 2.6))
-        f_L.set_opacity(0)
-        self.play(f_L.animate.set_opacity(1.0), run_time=S.T_FAST)
+        # Reorder rows/cols by manifold parameter t so the sparse band structure
+        # of each 60x60 sub-block is visible rather than a wash.
+        idx = np.argsort(self.d["t"])[:min(60, N)]
+        sub = len(idx)
+        W_sub = W[np.ix_(idx, idx)]
+        D_sub = D_deg[np.ix_(idx, idx)]
+        L_sub = L[np.ix_(idx, idx)]
+        # diverging maps zeros to the dark background and nonzeros to color, so the
+        # band of W, the lone diagonal of D, and the signed entries of L all read
+        # cleanly (diverging=False would tint the empty cells a flat mid-tone).
+        # For L, the diagonal degree dwarfs the off-diagonal -W entries, so clip it
+        # to the off-diagonal scale; otherwise the -W band normalizes to near-zero
+        # and L looks purely diagonal. Clipping keeps the green diagonal (D) and the
+        # red off-diagonal band (-W) both visible, making L = D - W literal.
+        L_off_max = float(np.abs(L_sub - np.diag(np.diag(L_sub))).max()) or 1.0
+        L_disp = np.clip(L_sub, -2.0 * L_off_max, 2.0 * L_off_max)
+        hm_W = B.heatmap(W_sub, sub, max_cells=sub, cell=0.055, diverging=True, mode="pattern")
+        hm_D = B.heatmap(D_sub, sub, max_cells=sub, cell=0.055, diverging=True, mode="pattern")
+        hm_L = B.heatmap(L_disp, sub, max_cells=sub, cell=0.055, diverging=True, mode="pattern")
 
-        self.wait(5.0)
+        # Bring W to the center and run the lineage W -> D -> L. The affinity step
+        # already introduced W, so the caption here looks ahead to the goal.
+        hm_W.scale_to_fit_height(2.3).move_to(np.array([0.0, -0.1, 0.0]))
+        self.add_fixed_in_frame_mobjects(hm_W)
+        hm_W.set_opacity(0)
+        self.set_caption("Combine W with its degrees to build the Laplacian.")
+        self.play(hm_W.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+        self.wait(0.8)
 
-        self.hm_W2 = hm_W2
-        self.lbl_W2 = lbl_W2
-        self.hm_D = hm_D
-        self.lbl_D = lbl_D
-        self.hm_L = hm_L
-        self.lbl_L = lbl_L
-        self.laplacian_f = f_L
+        self.lineage = B.MatrixLineage(self)
+        self.lineage.start(hm_W, "W")
+        self.wait(1.2)
+        self.lineage.push(hm_D, "D", r"\text{row sums}",
+                          caption="D sums each row of W onto its diagonal.")
+        self.wait(2.0)
+        self.lineage.push(hm_L, "L", r"(\,\cdot\,) - W",
+                          caption="L = D - W: a green diagonal minus the red W band.")
+        self.wait(3.0)
 
     # ------------------------------------------------------------------ #
     # Section 5: smallest non-trivial eigenvectors of L                   #
@@ -520,95 +470,32 @@ class LaplacianWalkthrough(ThreeDScene):
         self.next_section("step-5-eig", type=_SEC)
         self.set_pseudo(4)
 
-        vals = self.d["vals"]
+        # Say what L measures and why we want its smallest eigenvalues before the
+        # eigendecomposition takes the foreground (dataset stays hidden).
+        self.set_caption("L measures how much a coordinate varies across edges.")
+        self.wait(3.5)
+        self.set_caption("Smooth coordinates vary the least across the graph.")
+        self.wait(3.5)
 
-        # Clear the three heatmaps and the Laplacian formula.
-        self.play(
-            FadeOut(self.hm_W2), FadeOut(self.lbl_W2),
-            FadeOut(self.hm_D), FadeOut(self.lbl_D),
-            FadeOut(self.hm_L), FadeOut(self.lbl_L),
-            FadeOut(self.laplacian_f),
-            run_time=S.T_FAST,
+        # Foreground the eigendecomposition of L. L is positive semi-definite, so
+        # its eigenvalues are non-negative; the smallest is the trivial constant
+        # mode (skip it) and the next two are the smoothest, lowest-variation
+        # coordinates. Strips are reordered by t so their structure reads.
+        t_sort = np.argsort(self.d["t"])
+        self.eig_overlays = self.lineage.eig_focus(
+            r"L = V\,\Lambda\,V^{\top}",
+            self.d["bottom6_vals"],
+            self.d["vecs"][t_sort],
+            caption="So take L's smallest eigenvalues, not its largest.",
+            caption_vectors="Skip the trivial mode; keep v1 and v2.",
+            highlight_idxs=(1, 2),
+            trivial_idx=0,
         )
-
-        self.set_caption(
-            "Find the two smallest non-trivial eigenvalues of L. "
-            "The trivial zero eigenvalue corresponds to the constant eigenvector, "
-            "which carries no coordinate information."
-        )
-        self.wait(4.5)
-
-        f_eig = B.formula(r"L\,v_k = \lambda_k\,v_k").scale(0.85)
-        self.add_fixed_in_frame_mobjects(f_eig)
-        f_eig.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
-        self.play(f_eig.animate.set_opacity(1.0), run_time=S.T_FAST)
-
-        # Explain WHY we take the smallest non-trivial eigenvalues.
-        self.set_caption(
-            "Laplacian Eigenmaps minimizes a locality cost: coordinates that change "
-            "rapidly across nearby edges are penalized. The eigenvectors with the "
-            "smallest nonzero eigenvalues vary the most slowly on the graph, so "
-            "they are the smoothest coordinates on the surface. "
-            "PCA, MDS, and Kernel PCA instead maximize variance and take the "
-            "largest eigenvalues."
-        )
-        self.wait(6.0)
-
-        lam_str = rf"\lambda_1 = {vals[0]:.4f},\quad \lambda_2 = {vals[1]:.4f}"
-        f_vals = B.fit_formula(lam_str, max_width=4.8, scale=0.70)
-        self.add_fixed_in_frame_mobjects(f_vals)
-        f_vals.next_to(f_eig, DOWN, buff=0.3, aligned_edge=RIGHT).set_opacity(0)
-        self.play(f_vals.animate.set_opacity(1.0), run_time=S.T_FAST)
-
-        self.set_caption("These two eigenvectors become the x and y coordinates of the 2D embedding.")
         self.wait(3.0)
 
-        # Eigenvalue bar chart: bottom-6 of L (ascending), trivial_idx=0, highlight [1, 2].
-        bottom6 = self.d["bottom6_vals"]
-        bar_group = B.eig_bar_chart(bottom6, highlight_idxs=[1, 2], trivial_idx=0)
-
-        bar_labels = VGroup()
-        label_specs = [
-            (r"\lambda_0 \approx 0", S.MUTED),
-            (r"\lambda_1", S.ACCENT),
-            (r"\lambda_2", S.ACCENT),
-        ]
-        for i, (tex, col) in enumerate(label_specs):
-            if i < len(bar_group.submobjects):
-                lbl = MathTex(tex, font_size=16, color=col)
-                lbl.next_to(bar_group.submobjects[i], DOWN, buff=0.06)
-                bar_labels.add(lbl)
-
-        chart_group = VGroup(bar_group, bar_labels)
-        self.add_fixed_in_frame_mobjects(chart_group)
-        chart_group.next_to(f_vals, DOWN, buff=0.35, aligned_edge=RIGHT)
-        if chart_group.get_bottom()[1] < -2.5:
-            chart_group.shift(UP * (abs(chart_group.get_bottom()[1]) - 2.5))
-        chart_group.set_opacity(0)
-        self.play(chart_group.animate.set_opacity(1.0), run_time=S.T_NORMAL)
-
-        self.set_caption(
-            "The trivial eigenvalue lambda_0 is near zero (greyed out). "
-            "Lambda_1 and lambda_2 are the two smallest nonzero eigenvalues; "
-            "their eigenvectors give the 2D embedding coordinates."
-        )
-        self.wait(4.5)
-
-        # Fade chart before recolor.
-        self.play(FadeOut(chart_group), run_time=S.T_FAST)
-
-        # Recolor the cloud by the first eigenvector using the full rainbow for contrast.
-        vecs = self.d["vecs"]
-        v1 = vecs[:, 0]
-        recolor_anims = B.recolor_cloud_by_values(
-            self.cloud, v1, cmap=B.rainbow_color, grow=1.5,
-        )
-        self.set_caption("Coloring the cloud by the first eigenvector shows which direction the graph unfolds smoothly along.")
-        self.play(AnimationGroup(*recolor_anims, lag_ratio=0.0), run_time=S.T_SLOW)
+        # Contrast with variance methods so the choice of smallest is explicit.
+        self.set_caption("Variance methods (PCA, MDS) keep the largest; Laplacian keeps the smallest.")
         self.wait(4.0)
-
-        self.eig_f = f_eig
-        self.eig_vals_f = f_vals
 
     # ------------------------------------------------------------------ #
     # Section 6: 2D embedding                                             #
@@ -618,17 +505,20 @@ class LaplacianWalkthrough(ThreeDScene):
         self.next_section("step-6-embedding", type=_SEC)
         self.set_pseudo(5)
 
-        self.stop_ambient_camera_rotation()
-
         Y = self.d["Y"]
         s = 3.4 / (float(np.abs(Y).max()) or 1.0)
         target = np.column_stack([Y[:, 0] * s, Y[:, 1] * s, np.zeros(Y.shape[0])])
 
-        self.play(
-            FadeOut(self.eig_f),
-            FadeOut(self.eig_vals_f),
-            run_time=S.T_FAST,
-        )
+        # Stop the orbit before the cloud returns so it is presented at a fixed
+        # angle while it recolors, rather than rotating, before the embedding morph.
+        self.stop_ambient_camera_rotation()
+
+        # Clear the eigendecomposition overlays and restore the cloud, recolored
+        # by the first eigenvector so the embedding carries the coordinate coloring.
+        self.play(FadeOut(self.eig_overlays), FadeIn(self.cloud), run_time=S.T_FAST)
+        v1 = self.d["vecs"][:, 0]
+        recolor_anims = B.recolor_cloud_by_values(self.cloud, v1, cmap=B.rainbow_color, grow=1.5)
+        self.play(AnimationGroup(*recolor_anims, lag_ratio=0.0), run_time=S.T_NORMAL)
 
         f_embed = B.formula(r"Y = [\,v_1\;\; v_2\,]").scale(0.85)
         self.add_fixed_in_frame_mobjects(f_embed)
@@ -640,20 +530,16 @@ class LaplacianWalkthrough(ThreeDScene):
         tgt_theta = -90 * DEGREES
         tgt_theta += round((cur_theta - tgt_theta) / (2 * np.pi)) * 2 * np.pi
 
-        self.set_caption("Rotate the view to face the embedding plane, and move each point to its 2D position.")
+        self.set_caption("Face the embedding plane and place each point in 2D.")
 
-        # Fade out the axes and graph edges before the camera flatten so the
-        # 3D wireframe is gone by the time the view is face-on. Morph the cloud
-        # into the 2D embedding positions in the same beat.
+        # Morph the cloud into the 2D embedding positions while flattening.
         cloud_dots = self.cloud.submobjects
         n_pts = len(cloud_dots)
         self.move_camera(
             phi=0, theta=tgt_theta,
             run_time=S.T_SLOW,
             added_anims=[
-                FadeOut(self.axes),
-                FadeOut(self.edges_mob),
-                *[cloud_dots[i].animate.move_to(target[i]) for i in range(n_pts)],
+                cloud_dots[i].animate.move_to(target[i]) for i in range(n_pts)
             ],
         )
         self.wait(1.5)
