@@ -16,8 +16,8 @@ import colorsys
 import textwrap
 import numpy as np
 from manim import (VGroup, Dot, Dot3D, Line, Line3D, Square, Rectangle, Text,
-                   MathTex, Table, Matrix, ManimColor, interpolate_color,
-                   config, DOWN, LEFT, RIGHT, UL)
+                   MathTex, Table, Matrix, Arrow, FadeOut, ManimColor,
+                   interpolate_color, config, DOWN, UP, LEFT, RIGHT, UL)
 from . import style as S
 
 
@@ -261,6 +261,49 @@ def heatmap(matrix, n, max_cells=32, cell=0.12, diverging=False, mode="mean"):
     return grid
 
 
+def vector_strip(vec, height=2.4, width=0.4, max_cells=48, diverging=True,
+                 rainbow=False):
+    """Render a 1-D vector as a vertical strip of colored cells (a column of V).
+
+    Used to show an eigenvector: each cell is the block-mean of a run of entries.
+    Color modes:
+    - rainbow=True: map the value across the same rainbow ramp the 3D point cloud
+      uses, so the strip visually ties back to the point colors.
+    - diverging=True (default): WARM (negative) -> BG -> GOOD (positive), matching
+      the matrix heatmaps.
+    - otherwise: sequential MUTED -> ACCENT.
+    When the points are ordered along the manifold, a smooth eigenvector reads as
+    smooth color bands down the strip.
+    """
+    v = np.asarray(vec, dtype=float).ravel()
+    n = v.size
+    step = max(1, int(np.ceil(n / max_cells)))
+    rows = int(np.ceil(n / step))
+    ds = np.array([v[r * step:(r + 1) * step].mean() for r in range(rows)])
+    vmin, vmax = float(ds.min()), float(ds.max())
+    m = max(abs(vmin), abs(vmax)) or 1.0
+    rng = (vmax - vmin) or 1.0
+    cell_h = height / rows
+    grid = VGroup()
+    for r, val in enumerate(ds):
+        if rainbow:
+            col = rainbow_color((val - vmin) / rng)
+        elif diverging:
+            if val >= 0:
+                col = interpolate_color(S.BG, S.GOOD, min(1.0, val / m))
+            else:
+                col = interpolate_color(S.BG, S.WARM, min(1.0, -val / m))
+        else:
+            col = interpolate_color(S.MUTED, S.ACCENT, (val - vmin) / rng)
+        sq = Rectangle(width=width, height=cell_h, fill_color=col,
+                       fill_opacity=1.0, stroke_width=0)
+        sq.move_to([0, -r * cell_h, 0])
+        grid.add(sq)
+    grid.move_to([0, 0, 0])
+    grid.meta = {"rows": rows, "vmin": vmin, "vmax": vmax}
+    return grid
+
+
 def pseudocode_panel(active_index):
     """Build a fixed-in-frame pseudocode panel for the top-left corner.
 
@@ -380,3 +423,242 @@ def fit_formula(tex, max_width=5.2, scale=0.8):
     if mob.width > max_width:
         mob.scale_to_fit_width(max_width)
     return mob
+
+
+class MatrixLineage:
+    """A left-to-right chain of matrices for a transform pipeline.
+
+    Used to show a derivation such as D -> D^2 -> B (MDS) or K -> K_c (Kernel
+    PCA) as a flowing lineage: each new matrix is featured large at the focus
+    slot on the right; when the next step begins, the current matrix shrinks and
+    slides left, joined by an arrow carrying a compact transform operator. By the
+    end the whole chain reads left to right with the latest step largest.
+
+    All on-screen text stays short by design: the operator on each arrow is a
+    compact symbol (for example (\\cdot)^2), and the per-step caption is a single
+    short line. Detailed derivations belong in the page's subsidiary step text,
+    not on the frame.
+
+    The heatmaps are added as fixed-in-frame mobjects, so the scene's camera may
+    keep orbiting underneath without disturbing the lineage.
+
+    Parameters
+    ----------
+    scene : a ThreeDScene exposing add_fixed_in_frame_mobjects, play, and an
+        optional set_caption(text) helper (used when a caption is passed).
+    focus_h, park_h : focused and parked matrix heights in scene units.
+    band_y : vertical center of the chain.
+    arrow_w, buff : arrow slot width and the gap on each side of an arrow.
+    """
+
+    def __init__(self, scene, focus_h=2.3, park_h=1.15, band_y=-0.1,
+                 arrow_w=1.1, buff=0.2):
+        self.scene = scene
+        self.focus_h = focus_h
+        self.park_h = park_h
+        self.band_y = band_y
+        self.arrow_w = arrow_w
+        self.buff = buff
+        self.cards = []    # list of dict(hm=, lbl=)
+        self.arrows = []   # VGroup(arrow, operator) between consecutive cards
+
+    # -- internal helpers -------------------------------------------------- #
+
+    def _caption(self, text):
+        if text is not None and hasattr(self.scene, "set_caption"):
+            self.scene.set_caption(text)
+
+    def _make_arrow(self, op_tex):
+        arr = Arrow(LEFT * 0.45, RIGHT * 0.45, buff=0.0, stroke_width=3.0,
+                    color=S.MUTED, max_tip_length_to_length_ratio=0.35)
+        op = MathTex(op_tex, font_size=22, color=S.MUTED)
+        op.next_to(arr, UP, buff=0.10)
+        return VGroup(arr, op)
+
+    def _layout(self):
+        # Left-to-right centers; last card is focus height, earlier ones parked.
+        n = len(self.cards)
+        heights = [self.park_h] * (n - 1) + [self.focus_h]
+        total = sum(heights) + (n - 1) * (self.arrow_w + 2 * self.buff)
+        x = -total / 2.0
+        card_x, arrow_x = [], []
+        for i in range(n):
+            card_x.append(x + heights[i] / 2.0)
+            x += heights[i]
+            if i < n - 1:
+                x += self.buff
+                arrow_x.append(x + self.arrow_w / 2.0)
+                x += self.arrow_w + self.buff
+        return heights, card_x, arrow_x
+
+    def _relayout_anims(self, new_index):
+        # Animations to move every existing card/arrow to its target slot. The
+        # card at new_index is the focus (snapped into place by the caller).
+        heights, card_x, arrow_x = self._layout()
+        n = len(self.cards)
+        anims = []
+        for i, card in enumerate(self.cards):
+            if i == new_index:
+                continue
+            hm, lbl = card["hm"], card["lbl"]
+            th = heights[i]
+            cpos = np.array([card_x[i], self.band_y, 0.0])
+            lpos = cpos + np.array([0.0, th / 2.0 + 0.20, 0.0])
+            anims += [
+                hm.animate.scale_to_fit_height(th).move_to(cpos).set_opacity(0.5),
+                lbl.animate.scale_to_fit_height(0.22).move_to(lpos).set_opacity(0.5),
+            ]
+        for j, ar in enumerate(self.arrows):
+            apos = np.array([arrow_x[j], self.band_y, 0.0])
+            if j == len(self.arrows) - 1 and new_index == n - 1:
+                ar.move_to(apos)                       # new arrow: snapped, faded in below
+            else:
+                anims.append(ar.animate.move_to(apos).set_opacity(0.6))
+        return anims, heights, card_x, arrow_x
+
+    # -- public API -------------------------------------------------------- #
+
+    def start(self, hm, label_tex, caption=None, extra_anims=()):
+        """Register the first matrix and animate it into the focus slot.
+
+        hm is assumed already on screen (e.g. a corner heatmap from a prior
+        step); it is grown to focus height and moved to center. extra_anims lets
+        the caller fold in scene-specific fades (cloud, axes) into the same play.
+        """
+        lbl = MathTex(label_tex, font_size=30, color=S.INK)
+        self.scene.add_fixed_in_frame_mobjects(lbl)
+        self.cards.append({"hm": hm, "lbl": lbl})
+        _, card_x, _ = self._layout()
+        cpos = np.array([card_x[0], self.band_y, 0.0])
+        lbl.scale_to_fit_height(0.34)
+        lbl.move_to(cpos + np.array([0.0, self.focus_h / 2.0 + 0.20, 0.0]))
+        lbl.set_opacity(0)
+        self._caption(caption)
+        self.scene.play(
+            hm.animate.scale_to_fit_height(self.focus_h).move_to(cpos),
+            lbl.animate.set_opacity(1.0),
+            *extra_anims,
+            run_time=getattr(S, "T_NORMAL", 1.2),
+        )
+
+    def push(self, hm, label_tex, op_tex, caption=None):
+        """Add the next matrix: shrink/slide the chain left, fade the new one in."""
+        lbl = MathTex(label_tex, font_size=30, color=S.INK)
+        arrow = self._make_arrow(op_tex)
+        self.scene.add_fixed_in_frame_mobjects(hm, lbl, arrow)
+        hm.set_opacity(0.0)
+        lbl.set_opacity(0.0)
+        arrow.set_opacity(0.0)
+        self.cards.append({"hm": hm, "lbl": lbl})
+        self.arrows.append(arrow)
+
+        new_index = len(self.cards) - 1
+        anims, heights, card_x, _ = self._relayout_anims(new_index)
+        self._caption(caption)
+
+        # Snap the new focus card + its label into place, then fade them in.
+        th = heights[new_index]
+        cpos = np.array([card_x[new_index], self.band_y, 0.0])
+        hm.scale_to_fit_height(th).move_to(cpos)
+        lbl.scale_to_fit_height(0.34).move_to(cpos + np.array([0.0, th / 2.0 + 0.20, 0.0]))
+        anims += [hm.animate.set_opacity(1.0), lbl.animate.set_opacity(1.0)]
+        self.arrows[-1].set_opacity(0.0)
+        anims.append(self.arrows[-1].animate.set_opacity(1.0))
+        self.scene.play(*anims, run_time=getattr(S, "T_NORMAL", 1.2))
+
+    def group(self):
+        """A VGroup of every card and arrow, for a single fade-out at the end."""
+        return VGroup(
+            *[c["hm"] for c in self.cards],
+            *[c["lbl"] for c in self.cards],
+            *self.arrows,
+        )
+
+    def eig_focus(self, factor_tex, spectrum_vals, eigvecs_two,
+                  caption=None, caption_vectors=None, rainbow_vectors=False,
+                  highlight_idxs=(0, 1), trivial_idx=None):
+        """Foreground the eigendecomposition of the last (focus) matrix.
+
+        The focus matrix slides left as the source; the factorization, the
+        eigenvalue spectrum, and the two highlighted eigenvectors (as vertical
+        strips, columns of V) take the center, with the 3D dataset hidden.
+
+        highlight_idxs picks which spectrum bars carry the kept eigenvalues
+        (labeled lambda_1, lambda_2 in order); trivial_idx, when given, greys a
+        skipped bar and labels it lambda_0. Variance methods keep the largest
+        eigenvalues (highlight 0,1); locality methods (LLE, Laplacian) keep the
+        smallest non-trivial ones (highlight 1,2 with trivial_idx 0). eigvecs_two
+        is the N-by-2 array of the two eigenvectors to draw as strips.
+
+        Captions are passed in and kept to one short line. Returns a VGroup of
+        every overlay so the caller can clear it in one fade at the embedding step.
+        """
+        T_NORMAL = getattr(S, "T_NORMAL", 1.2)
+        T_FAST = getattr(S, "T_FAST", 0.6)
+
+        # Slide the focus matrix left as the source; drop the rest of the chain.
+        src = self.cards[-1]
+        drop = VGroup(
+            *[c["hm"] for c in self.cards[:-1]],
+            *[c["lbl"] for c in self.cards[:-1]],
+            *self.arrows,
+        )
+        src_pos = np.array([-4.4, 0.1, 0.0])
+        src_h = 1.7
+        self.scene.play(
+            FadeOut(drop),
+            src["hm"].animate.scale_to_fit_height(src_h).move_to(src_pos),
+            src["lbl"].animate.scale_to_fit_height(0.28).move_to(
+                src_pos + np.array([0.0, src_h / 2.0 + 0.20, 0.0])).set_opacity(1.0),
+            run_time=T_NORMAL,
+        )
+        self._caption(caption)
+
+        # Factorization at the top of the focus area.
+        f = fit_formula(factor_tex, max_width=4.6, scale=0.9)
+        self.scene.add_fixed_in_frame_mobjects(f)
+        f.move_to(np.array([0.7, 2.0, 0.0])).set_opacity(0)
+        self.scene.play(f.animate.set_opacity(1.0), run_time=T_FAST)
+
+        # Eigenvalue spectrum (Lambda): kept eigenvalues highlighted, the trivial
+        # one (if any) greyed and labeled lambda_0.
+        bars = eig_bar_chart(spectrum_vals, highlight_idxs=list(highlight_idxs),
+                             bar_w=0.34, bar_max_h=1.5, trivial_idx=trivial_idx)
+        bar_labels = VGroup()
+        for rank, idx in enumerate(highlight_idxs):
+            if idx < len(bars.submobjects):
+                lab = MathTex(rf"\lambda_{rank + 1}", font_size=20, color=S.ACCENT)
+                lab.next_to(bars.submobjects[idx], DOWN, buff=0.07)
+                bar_labels.add(lab)
+        if trivial_idx is not None and trivial_idx < len(bars.submobjects):
+            lab0 = MathTex(r"\lambda_0\!\approx\!0", font_size=17, color=S.MUTED)
+            lab0.next_to(bars.submobjects[trivial_idx], DOWN, buff=0.07)
+            bar_labels.add(lab0)
+        spectrum = VGroup(bars, bar_labels)
+        spectrum.move_to(np.array([-0.7, -0.35, 0.0]))
+
+        # The two highlighted eigenvectors as vertical strips: columns of V.
+        strips = VGroup()
+        strip_labels = VGroup()
+        strip_x = [2.4, 3.4]
+        for k in range(2):
+            strip = vector_strip(np.asarray(eigvecs_two)[:, k], height=2.4,
+                                 width=0.42, diverging=True,
+                                 rainbow=rainbow_vectors)
+            strip.move_to(np.array([strip_x[k], -0.1, 0.0]))
+            lab = MathTex(rf"v_{k + 1}", font_size=22, color=S.INK)
+            lab.next_to(strip, DOWN, buff=0.12)
+            strips.add(strip)
+            strip_labels.add(lab)
+        vecs_group = VGroup(strips, strip_labels)
+
+        overlays_new = VGroup(spectrum, vecs_group)
+        self.scene.add_fixed_in_frame_mobjects(spectrum, vecs_group)
+        overlays_new.set_opacity(0)
+        self.scene.play(overlays_new.animate.set_opacity(1.0), run_time=T_NORMAL)
+        # Hold the spectrum with its caption before swapping to the eigenvector
+        # caption, so the line about which eigenvalues to keep has time to read.
+        self.scene.wait(2.6)
+        self._caption(caption_vectors)
+
+        return VGroup(src["hm"], src["lbl"], f, spectrum, vecs_group)
