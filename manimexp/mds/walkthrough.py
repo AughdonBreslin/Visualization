@@ -142,6 +142,15 @@ class MDSWalkthrough(ThreeDScene):
         d = load_dataset_points(DATASET, N, seed=SEED)
         pts, t = d["points"], d["t"]
 
+        # Order points along the manifold parameter t. Every result here is
+        # permutation-invariant (distances, the Gram matrix, eigenvalues, the
+        # embedding are all defined pairwise), but ordering makes the distance
+        # and Gram heatmaps show real structure: without it, block-mean pooling
+        # averages random subsets of points and every cell collapses to the
+        # global mean, painting a uniform wash.
+        order = np.argsort(t)
+        pts, t = pts[order], t[order]
+
         # Pairwise Euclidean distance matrix.
         diff = pts[:, None, :] - pts[None, :, :]
         D = np.sqrt((diff ** 2).sum(axis=2))
@@ -300,77 +309,38 @@ class MDSWalkthrough(ThreeDScene):
         self.next_section("step-4-double-center", type=_SEC)
         self.set_pseudo(2)
 
-        # Replace the D heatmap with a D^2 heatmap, then morph it into B.
         D = self.d["D"]
         Bmat = self.d["Bmat"]
 
+        # Double-centering is pure matrix algebra, so clear the 3D dataset and
+        # build the matrix lineage as a left-to-right chain (shared helper). Each
+        # matrix is featured at center; when the next step begins it shrinks and
+        # slides left with a transform arrow, so the D -> D^2 -> B chain reads
+        # left to right with the current step largest. Captions stay to one short
+        # line; the detail lives in the page's subsidiary step text.
+        self.lineage = B.MatrixLineage(self)
+        self.lineage.start(
+            self.hm_D, "D",
+            caption="Double-centering works on the distance matrix D alone.",
+            extra_anims=[
+                FadeOut(self.cloud), FadeOut(self.axes),
+                FadeOut(self.dist_lines), FadeOut(self.dist_f),
+            ],
+        )
+        self.wait(S.T_HOLD + 0.5)
+
         hm_D2 = B.heatmap(D ** 2, N, max_cells=32, diverging=False)
-        panel_w = 2.4
-        if hm_D2.width > 0:
-            hm_D2.scale(panel_w / hm_D2.width)
-        self.add_fixed_in_frame_mobjects(hm_D2)
-        hm_D2.to_corner(RIGHT + UP, buff=0.4)
-        hm_D2.shift(DOWN * (self.dist_f.height + 0.5))
-        hm_D2.set_opacity(0)
+        self.lineage.push(hm_D2, "D^2", r"(\,\cdot\,)^2",
+                          caption="Square every entry of D.")
+        self.wait(S.T_HOLD + 2.0)
 
-        self.set_caption(
-            "Square every entry to get D squared. Then double-center: subtract"
-            " each row mean and column mean and add back the grand mean."
-        )
-        # Swap D heatmap for D^2 heatmap.
-        self.play(
-            FadeOut(self.hm_D),
-            FadeOut(self.dist_lines),
-            hm_D2.animate.set_opacity(1.0),
-            run_time=S.T_NORMAL,
-        )
-        self.remove(self.hm_D)
-
-        # Double-centering formula via fit_formula so it never runs off-screen.
-        f_dc = B.fit_formula(
-            r"B = -\tfrac{1}{2}\, H D^2 H,\quad H = I - \tfrac{1}{N}\mathbf{1}\mathbf{1}^\top",
-            max_width=4.8, scale=0.70,
-        )
-        self.add_fixed_in_frame_mobjects(f_dc)
-        f_dc.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
-        self.play(
-            FadeOut(self.dist_f),
-            f_dc.animate.set_opacity(1.0),
-            run_time=S.T_FAST,
-        )
-        self.remove(self.dist_f)
-
-        self.wait(S.T_HOLD + 2.5)
-        self.set_caption(
-            "The centering matrix H removes the translation component."
-            " The result B is a Gram matrix: its entries are inner products"
-            " relative to the centroid, which is exactly what eigendecomposition needs."
-        )
-
-        # Morph D^2 heatmap into B heatmap (diverging because B has negatives).
         hm_B = B.heatmap(Bmat, N, max_cells=32, diverging=True)
-        if hm_B.width > 0:
-            hm_B.scale(panel_w / hm_B.width)
-        self.add_fixed_in_frame_mobjects(hm_B)
-        hm_B.to_corner(RIGHT + UP, buff=0.4)
-        hm_B.shift(DOWN * (f_dc.height + 0.5))
-        hm_B.set_opacity(0)
-        self.play(
-            FadeOut(hm_D2),
-            hm_B.animate.set_opacity(1.0),
-            run_time=S.T_NORMAL,
-        )
-        self.remove(hm_D2)
-        self.wait(2.5)
+        self.lineage.push(hm_B, "B", r"-\tfrac{1}{2}\,H(\,\cdot\,)H",
+                          caption="Double-center to get the Gram matrix B.")
+        self.wait(S.T_HOLD + 2.5)
 
-        self.set_caption(
-            "Warm cells are negative inner products; cool cells are positive."
-            " The diagonal is zero because each point has zero inner product with itself."
-        )
+        self.set_caption("B holds inner products about the centroid.")
         self.wait(S.T_HOLD + 3.0)
-
-        self.dc_f = f_dc
-        self.hm_B = hm_B
 
     # ------------------------------------------------------------------ #
     # Step 5 (id step-5-eig): eigendecompose B, show top-2 eigenvalues    #
@@ -380,76 +350,17 @@ class MDSWalkthrough(ThreeDScene):
         self.next_section("step-5-eig", type=_SEC)
         self.set_pseudo(3)
 
-        eigvals = self.d["eigvals"]
-        self.play(
-            FadeOut(self.hm_B),
-            FadeOut(self.dc_f),
-            run_time=S.T_FAST,
+        # Foreground the eigendecomposition (shared helper): B slides left as the
+        # source, then the factorization, the eigenvalue spectrum, and the top-2
+        # eigenvectors (columns of V) take the center with the dataset hidden.
+        self.eig_overlays = self.lineage.eig_focus(
+            r"B = V\,\Lambda\,V^{\top}",
+            self.d["top6_vals"],
+            self.d["eigvecs"],
+            caption="Eigendecompose the Gram matrix B.",
+            caption_vectors="v1, v2 are the top eigenvectors.",
         )
-
-        # Eigendecomposition formula top-right.
-        f_eig = B.formula(r"B = V\,\Lambda\,V^{\top}").scale(0.85)
-        self.add_fixed_in_frame_mobjects(f_eig)
-        f_eig.to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
-        self.play(f_eig.animate.set_opacity(1.0), run_time=S.T_FAST)
-
-        self.set_caption(
-            "Eigendecompose the Gram matrix B. The top eigenvectors carry the"
-            " directions of largest spread in inner-product space."
-        )
-        self.wait(S.T_HOLD + 2.0)
-
-        # Eigenvalue readout below the formula.
-        lam1, lam2 = float(eigvals[0]), float(eigvals[1])
-        vals_tex = rf"\lambda_1 = {lam1:.2f}\quad \lambda_2 = {lam2:.2f}"
-        vals_mob = B.fit_formula(vals_tex, max_width=4.8, scale=0.65)
-        self.add_fixed_in_frame_mobjects(vals_mob)
-        vals_mob.next_to(f_eig, DOWN, buff=0.3, aligned_edge=RIGHT).set_opacity(0)
-        self.play(vals_mob.animate.set_opacity(1.0), run_time=S.T_FAST)
-
-        self.set_caption(
-            "The first eigenvalue is much larger than the second, reflecting the"
-            " dominant direction of spread. Both are positive because B is"
-            " positive semi-definite when the data comes from a Euclidean space."
-        )
-        self.wait(S.T_HOLD + 2.0)
-
-        # Eigenvalue bar chart: top-6 eigenvalues of B (descending); highlight top 2.
-        top6 = self.d["top6_vals"]
-        bar_group = B.eig_bar_chart(top6, highlight_idxs=[0, 1])
-
-        bar_labels = VGroup()
-        label_specs = [
-            (r"\lambda_1", S.ACCENT),
-            (r"\lambda_2", S.ACCENT),
-        ]
-        for i, (tex, col) in enumerate(label_specs):
-            if i < len(bar_group.submobjects):
-                lbl = MathTex(tex, font_size=18, color=col)
-                lbl.next_to(bar_group.submobjects[i], DOWN, buff=0.06)
-                bar_labels.add(lbl)
-
-        chart_group = VGroup(bar_group, bar_labels)
-        self.add_fixed_in_frame_mobjects(chart_group)
-        chart_group.next_to(vals_mob, DOWN, buff=0.35, aligned_edge=RIGHT)
-        # If the chart would fall below the safe zone (>2.5 units below center),
-        # shift it up to stay clear of the caption band at the bottom.
-        if chart_group.get_bottom()[1] < -2.5:
-            chart_group.shift((chart_group.get_bottom()[1] + 2.5) * UP * -1)
-        chart_group.set_opacity(0)
-        self.play(chart_group.animate.set_opacity(1.0), run_time=S.T_NORMAL)
-
-        self.set_caption(
-            "The top two eigenvalues are large; the rest decay quickly. MDS"
-            " uses only the first two to form the 2D embedding."
-        )
-        self.wait(S.T_HOLD + 3.0)
-
-        # Fade the chart before the embedding step.
-        self.play(FadeOut(chart_group), run_time=S.T_FAST)
-
-        self.eig_f = f_eig
-        self.eig_vals_mob = vals_mob
+        self.wait(4.0)
 
     # ------------------------------------------------------------------ #
     # Step 6 (id step-6-embedding): form Y, morph cloud to 2D face-on     #
@@ -469,9 +380,13 @@ class MDSWalkthrough(ThreeDScene):
             np.zeros(Y.shape[0]),
         ])
 
+        # Fade the eigendecomposition overlays and restore the 3D dataset and
+        # axes (hidden since the double-centering step) so the embedding can
+        # morph the cloud. The cloud reappears at the camera's current orbit angle.
         self.play(
-            FadeOut(self.eig_f),
-            FadeOut(self.eig_vals_mob),
+            FadeOut(self.eig_overlays),
+            FadeIn(self.cloud),
+            FadeIn(self.axes),
             run_time=S.T_FAST,
         )
 
@@ -492,11 +407,7 @@ class MDSWalkthrough(ThreeDScene):
         tgt_theta = -90 * DEGREES
         tgt_theta += round((cur_theta - tgt_theta) / (2 * np.pi)) * 2 * np.pi
 
-        self.set_caption(
-            "Scale the eigenvectors by the square roots of their eigenvalues"
-            " to get the 2D embedding. Each point's coordinates now approximate"
-            " the original pairwise distances."
-        )
+        self.set_caption("Scale each eigenvector by the square root of its eigenvalue.")
         self.move_camera(
             phi=0,
             theta=tgt_theta,

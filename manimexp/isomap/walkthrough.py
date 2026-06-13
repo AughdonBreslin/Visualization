@@ -26,7 +26,7 @@ from manim import (
 from manim.scene.section import DefaultSectionType
 from manimexp.isomap import style as S
 from manimexp.isomap import builders as B
-from manimexp.isomap.data import build_dataset
+from manimexp.isomap.data import build_dataset, double_center_squared
 
 N = int(os.environ.get("MFI_N", "1000"))
 K = 8
@@ -55,9 +55,19 @@ DATASET_INTRO = {
 # Per-dataset closing caption for the 2D embedding. The developable shapes unroll
 # cleanly; the limitation cases below explain why the result is not a clean map.
 DATASET_OUTRO = {
-    "full_sphere": "A sphere cannot be flattened without distortion, so the layout squashes it. Isomap needs a developable surface.",
-    "hilbert": "A folded curve has no 2D layout; nearby folds get linked, so it collapses. Isomap needs a true surface.",
-    "clusters_3d": "With no surface connecting the clusters, geodesic distance between them is undefined, so Isomap cannot place them meaningfully.",
+    "swiss_roll": "The surface unrolls into 2D, with the geodesic-distance coloring preserved.",
+    "s_curve": "The bent sheet unrolls into a flat rectangle, the geodesic coloring preserved.",
+    "twin_peaks": "The bumpy surface flattens into 2D, stretched where it curved most.",
+    "saddle": "The saddle flattens into 2D, its geodesic coloring preserved.",
+    "cylinder": "A closed band has no flat sheet, so the cylinder lays out as a loop.",
+    "severed_sphere": "The open cap flattens into a disk, with mild stretching from its curvature.",
+    "helix": "A 1D ribbon has no area to fill, so the helix lays out as a thin arc.",
+    "trefoil_knot": "A closed ribbon cannot become a flat strip, so the knot lays out as a band.",
+    "toroidal_helix": "A closed coil lays out as a band, not a flat strip.",
+    "spiral_disk": "The wound spiral unrolls into a thin curved strip.",
+    "full_sphere": "A sphere cannot flatten without distortion, so Isomap squashes it; it needs a developable surface.",
+    "hilbert": "A folded curve has no 2D layout; nearby folds get linked, so it collapses.",
+    "clusters_3d": "With no surface joining the clusters, geodesic distance between them is undefined, so Isomap cannot place them.",
 }
 
 _SEC = DefaultSectionType.NORMAL
@@ -300,7 +310,7 @@ class IsomapWalkthrough(ThreeDScene):
         # ------------------------------------------------------------------ #
         # Beat 7: illuminate the full kNN graph with a progressive sweep      #
         # ------------------------------------------------------------------ #
-        self.set_caption("Do this for every point and the graph lights up across the data.")
+        self.set_caption("Repeat for every point and the graph spans the surface.")
         self.edges_mob = B.graph_edges(self.data["points"], self.data["edges"])
         # LaggedStart with a small lag_ratio so edges appear in a sweeping wave.
         self.play(
@@ -403,7 +413,9 @@ class IsomapWalkthrough(ThreeDScene):
         self.wait(S.T_HOLD)
 
         # Keep the geodesic-distance coloring; do NOT rebuild with t colors.
-        self.play(self.edges_mob.animate.set_opacity(0.06), run_time=S.T_FAST)
+        # Bring the kNN edges back up so the graph stays visible while the
+        # geodesic path (which follows those edges) and the straight line are drawn.
+        self.play(self.edges_mob.animate.set_opacity(0.32), run_time=S.T_FAST)
 
         # Straight line vs. geodesic path.
         straight = B.straight_line(pts[src], pts[tgt])
@@ -535,80 +547,147 @@ class IsomapWalkthrough(ThreeDScene):
 
         T_READ = 3.6
 
-        self.set_caption("Since rotating or shifting all the points together would yield identical pairwise distances,")
+        self.set_caption("Rotating or shifting all the points leaves every pairwise distance unchanged.")
         self.wait(T_READ)
-        self.set_caption("distances alone could not create unique coordinates, since many placements share one distance table.")
+        self.set_caption("So distances alone cannot fix coordinates: many layouts share one distance table.")
         self.wait(T_READ)
 
         f_ip = B.formula(r"G_{ij} = x_i \cdot x_j").scale(0.75).move_to([1.4, 1.6, 0])
         self.add_fixed_in_frame_mobjects(f_ip)
         self.play(Write(f_ip), run_time=S.T_NORMAL)
-        self.set_caption("Instead, we can base it off of the inner product of x_i and x_j and the angle between them from a shared origin.")
+        self.set_caption("Instead, use the inner product of two points, which captures the angle between them from a shared origin.")
         self.wait(T_READ)
 
         f_gram = B.formula(r"G = X X^{\top}").scale(0.75).move_to([1.4, 0.6, 0])
         self.add_fixed_in_frame_mobjects(f_gram)
         self.play(Write(f_gram), run_time=S.T_NORMAL)
-        self.set_caption("The Gram matrix G is the result of collecting every inner product, equal to X times X-transpose.")
+        self.set_caption("Collecting every inner product gives the Gram matrix G, equal to X times X-transpose.")
         self.wait(T_READ)
 
-        self.set_caption("G captures the geometric relationships from relative geometry, a bridge between distances and coordinates.")
+        self.set_caption("Since G equals X times X-transpose, factoring G recovers the coordinates.")
         self.wait(T_READ)
 
         f_factor = B.formula(r"G = V\,\Lambda\,V^{\top}").scale(0.75).move_to([1.4, -0.5, 0])
         self.add_fixed_in_frame_mobjects(f_factor)
         self.play(Write(f_factor), run_time=S.T_NORMAL)
-        self.set_caption("By eigendecomposing the Gram matrix, we find the eigenvectors that best explain the data's geometry.")
+        self.set_caption("Eigendecompose G to find the eigenvectors that best explain the geometry.")
         self.wait(T_READ)
 
         # ------------------------------------------------------------------ #
-        # Phase 3: the transform  D -> square entries -> double-center -> B    #
-        # The three tables are spread across the frame so each transform        #
-        # formula has room above its arrow. New mobjects are added at opacity 0  #
-        # and animated up (never add-then-FadeIn) so no table flashes at full    #
-        # opacity for a frame before settling.                                   #
+        # Phase 3: the transform on the FULL matrix as a lineage.             #
+        # The 4x4 sample taught the idea on real numbers (zero diagonal,      #
+        # squaring); now apply D -> D^2 -> B to the whole geodesic matrix as  #
+        # a flowing heatmap lineage so the structure shows at scale.          #
         # ------------------------------------------------------------------ #
-        self.play(FadeOut(f_ip), FadeOut(f_gram), FadeOut(f_factor), run_time=S.T_FAST)
+        self.play(
+            FadeOut(f_ip), FadeOut(f_gram), FadeOut(f_factor), FadeOut(dmat),
+            run_time=S.T_FAST,
+        )
 
-        # Square every entry of D.
-        D_sq = (np.asarray(self.data["D_sample"], dtype=float) ** 2).tolist()
-        d2mat = B.matrix_grid(D_sq, highlight_negative=False).scale(SCALE).move_to([-0.2, 0.0, 0])
-        arrow1 = Arrow([-3.7, 0, 0], [-1.3, 0, 0], buff=0.05, color=S.MUTED, stroke_width=3)
-        sq_lab = B.formula(r"(\cdot)^2").scale(0.85).next_to(arrow1, UP, buff=0.12)
-        for m in (arrow1, sq_lab, d2mat):
-            m.set_opacity(0)
-        self.add_fixed_in_frame_mobjects(arrow1, sq_lab, d2mat)
-        self.set_caption("We cannot form G from coordinates we do not have, so we build it from the distances instead.")
-        self.wait(3.4)
-        self.set_caption("First, square every entry of the distance matrix.")
-        self.play(arrow1.animate.set_opacity(1.0), sq_lab.animate.set_opacity(1.0), run_time=S.T_FAST)
-        self.play(d2mat.animate.set_opacity(1.0), run_time=S.T_NORMAL)
-        self.wait(2.8)
+        Dfull = np.asarray(self.data["D"], dtype=float)
+        Bfull = double_center_squared(Dfull)
+        t_order = np.argsort(np.asarray(self.data["t"], dtype=float))
+        Dr = Dfull[np.ix_(t_order, t_order)]
+        Br = Bfull[np.ix_(t_order, t_order)]
+        hm_D = B.heatmap(Dr, N, max_cells=32, diverging=False)
+        hm_D2 = B.heatmap(Dr ** 2, N, max_cells=32, diverging=False)
+        hm_B = B.heatmap(Br, N, max_cells=32, diverging=True)
 
-        # Double-center to land on the Gram matrix B.
-        bmat = B.matrix_grid(self.data["B_sample"], highlight_negative=True).scale(SCALE).move_to([4.4, 0.0, 0])
-        arrow2 = Arrow([0.9, 0, 0], [3.3, 0, 0], buff=0.05, color=S.MUTED, stroke_width=3)
-        dc_lab = B.formula(r"-\tfrac12\, J(\cdot)J").scale(0.72).next_to(arrow2, UP, buff=0.12)
-        for m in (arrow2, dc_lab, bmat):
-            m.set_opacity(0)
-        self.add_fixed_in_frame_mobjects(arrow2, dc_lab, bmat)
-        self.set_caption("Then double-center it: subtract each row and column mean, and scale by minus one half.")
-        self.play(arrow2.animate.set_opacity(1.0), dc_lab.animate.set_opacity(1.0), run_time=S.T_FAST)
-        self.play(bmat.animate.set_opacity(1.0), run_time=S.T_NORMAL)
-        self.wait(3.0)
+        hm_D.scale_to_fit_height(2.3).move_to(np.array([0.0, -0.1, 0.0]))
+        self.add_fixed_in_frame_mobjects(hm_D)
+        hm_D.set_opacity(0)
+        self.set_caption("Here's the same process applied to the full distance matrix.")
+        self.play(hm_D.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+        self.wait(0.8)
 
-        self.set_caption("What remains is B, the Gram matrix of inner products, ready to factor into coordinates.")
-        self.wait(2.2)
+        self.lineage = B.MatrixLineage(self)
+        self.lineage.start(hm_D, "D")
+        self.wait(1.2)
+        self.lineage.push(hm_D2, "D^2", r"(\,\cdot\,)^2",
+                          caption="Square every entry of the distance matrix.")
+        self.wait(2.0)
+        self.lineage.push(hm_B, "B", r"-\tfrac{1}{2}\,J(\,\cdot\,)J",
+                          caption="Double-center the result to reach the Gram matrix B.")
+        self.wait(2.5)
+        self.set_caption("B holds inner products, ready to factor into coordinates.")
+        self.wait(2.5)
 
-        # formula_dc bundles the pipeline middle so the next section can clear it
-        # while keeping D (dmat) and the Gram matrix B (bmat).
-        self.formula_dc = VGroup(arrow1, sq_lab, d2mat, arrow2, dc_lab)
-        self.bmat, self.dmat = bmat, dmat
-        self.wait(S.T_HOLD)
+        # Keep the full Gram matrix and the t-ordering for the full-matrix power
+        # iteration in the eigendecomposition step.
+        self.Bfull, self.t_order = Bfull, t_order
 
     # ------------------------------------------------------------------ #
     # Section 5: eigendecomposition                                       #
     # ------------------------------------------------------------------ #
+
+    def _pi4(self, Bnp, grid, vscale, v, n_iters, name):
+        """Detailed 4x4 power iteration shown next to the matrix `grid`.
+
+        The iterations focus on updating v: multiply by the matrix to get
+        (name)v, show its length, then divide by that length to renormalize.
+        Only after v has converged is the eigenvalue read off as the product
+        v^T (name) v. Returns the converged unit vector, a VGroup of the
+        persistent mobjects, and the value mobject.
+        """
+        tname = name.replace("_", "")   # caption-friendly (B_2 -> B2)
+        v = v / (np.linalg.norm(v) or 1.0)
+        vcol = B.colvec(np.round(v, 2)).scale(vscale).next_to(grid, RIGHT, buff=0.55)
+        vlbl = B.formula("v").scale(0.66).next_to(vcol, UP, buff=0.14)
+        for m in (vcol, vlbl):
+            self.add_fixed_in_frame_mobjects(m)
+            m.set_opacity(0)
+        self.set_caption("Start from a random unit vector v.")
+        self.play(vcol.animate.set_opacity(1.0), vlbl.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+        self.wait(1.0)
+
+        # Iterations: keep updating v until it converges to the eigenvector.
+        for _ in range(n_iters):
+            Bv = Bnp @ v
+            nrm = float(np.linalg.norm(Bv))
+            bvcol = B.colvec(np.round(Bv, 1)).scale(vscale).next_to(vcol, RIGHT, buff=1.15)
+            bvlbl = B.formula(rf"{name}v").scale(0.66).next_to(bvcol, UP, buff=0.14)
+            arr = Arrow(vcol.get_right(), bvcol.get_left(), buff=0.12,
+                        color=S.MUTED, stroke_width=3)
+            arrlbl = B.formula(rf"\times {name}").scale(0.58).next_to(arr, UP, buff=0.06)
+            nrmlbl = B.formula(rf"\lVert {name}v\rVert = {nrm:.1f}").scale(0.62).next_to(bvcol, DOWN, buff=0.25)
+            for m in (arr, arrlbl, bvcol, bvlbl, nrmlbl):
+                self.add_fixed_in_frame_mobjects(m)
+                m.set_opacity(0)
+            self.set_caption(f"Multiply v by {tname} to get {tname}v.")
+            self.play(arr.animate.set_opacity(1.0), arrlbl.animate.set_opacity(1.0),
+                      bvcol.animate.set_opacity(1.0), bvlbl.animate.set_opacity(1.0),
+                      run_time=S.T_NORMAL)
+            self.play(nrmlbl.animate.set_opacity(1.0), run_time=S.T_FAST)
+            self.wait(1.0)
+            # renormalize: divide by the length, back to a unit vector.
+            v = Bv / nrm
+            new_vcol = B.colvec(np.round(v, 2)).scale(vscale).next_to(grid, RIGHT, buff=0.55)
+            self.add_fixed_in_frame_mobjects(new_vcol)
+            new_vcol.set_opacity(0)
+            self.set_caption("Divide by the length to renormalize v back to unit length.")
+            self.play(
+                bvcol.animate.set_opacity(0), bvlbl.animate.set_opacity(0),
+                arr.animate.set_opacity(0), arrlbl.animate.set_opacity(0),
+                nrmlbl.animate.set_opacity(0), vcol.animate.set_opacity(0),
+                new_vcol.animate.set_opacity(1.0),
+                run_time=S.T_NORMAL,
+            )
+            self.remove(bvcol, bvlbl, arr, arrlbl, nrmlbl, vcol)
+            vcol = new_vcol
+            self.wait(0.8)
+
+        # v has converged; read the eigenvalue off the product v^T (name) v.
+        vrow = B.rowvec(np.round(v, 2)).scale(vscale).next_to(grid, LEFT, buff=0.4)
+        vtlbl = B.formula(r"v^{\top}").scale(0.66).next_to(vrow, UP, buff=0.14)
+        rq = float(v @ Bnp @ v)
+        val = B.formula(rf"= {rq:.1f}").scale(0.8).next_to(vcol, RIGHT, buff=0.4)
+        for m in (vrow, vtlbl, val):
+            self.add_fixed_in_frame_mobjects(m)
+            m.set_opacity(0)
+        self.set_caption(f"With v converged, the product v-transpose {tname} v gives the eigenvalue.")
+        self.play(*[m.animate.set_opacity(1.0) for m in (vrow, vtlbl, val)], run_time=S.T_NORMAL)
+        self.wait(1.6)
+        return v, VGroup(vcol, vlbl, vrow, vtlbl, val), val
 
     def section_eigendecomp(self):
         self.next_section("step-5-eigendecomp", type=_SEC)
@@ -616,115 +695,181 @@ class IsomapWalkthrough(ThreeDScene):
         # Update pseudocode panel: step 4 highlighted.
         self.set_pseudo(4)
 
-        # Power iteration is shown on the visible 4x4 Gram matrix B (the sample),
-        # with real vectors and real v^T B v values at every step.
-        vecs = self.data["sample_power_vectors"]
-        rqs = self.data["sample_power_rayleigh"]
-        samp_eig = self.data["sample_eigvals"]
-        lam1, lam2 = float(samp_eig[0]), float(samp_eig[1])
+        # Exact 4x4 eigenpairs (for the displayed eigenvalues and the deflation).
+        Bs = np.asarray(self.data["B_sample"], dtype=float)
+        ev, evec = np.linalg.eigh(Bs)
+        order = np.argsort(ev)[::-1]
+        ev, evec = ev[order], evec[:, order]
+        lam1, lam2 = float(ev[0]), float(ev[1])
+        v1 = evec[:, 0]
 
-        # Clear D and the pipeline middle; keep the Gram matrix B.
-        self.play(FadeOut(self.dmat), FadeOut(self.formula_dc), run_time=S.T_FAST)
-
-        # Center B for a v^T B v product layout.
-        Bm = self.bmat
-        self.play(Bm.animate.move_to([0.0, 0.4, 0]), run_time=S.T_FAST)
-
-        # Scale the vectors so their entries match B's cell size.
-        vscale = Bm.height / B.colvec(vecs[0]).height
-
-        # -------- where the vector comes from: a random unit vector -------- #
-        vcol = B.colvec(vecs[0]).scale(vscale).next_to(Bm, RIGHT, buff=0.35)
-        origin_lbl = B.formula(r"v_0:\ \text{random},\ \lVert v\rVert = 1").scale(0.62)
-        origin_lbl.next_to(vcol, UP, buff=0.35)
-        for m in (vcol, origin_lbl):
+        # Clear the full-matrix lineage; drop to the 4x4 sample for readable numbers.
+        self.play(FadeOut(self.lineage.group()), run_time=S.T_FAST)
+        Bm = B.matrix_grid(np.round(Bs, 2).tolist(), highlight_negative=True)
+        # Center-left so the v^T row in the v^T B v product still fits on screen.
+        Bm.scale(0.42).move_to([-1.5, 0.3, 0])
+        lbl_Bm = B.formula("B").scale(0.72).next_to(Bm, UP, buff=0.18)
+        for m in (Bm, lbl_Bm):
+            self.add_fixed_in_frame_mobjects(m)
             m.set_opacity(0)
-        self.add_fixed_in_frame_mobjects(vcol, origin_lbl)
-        self.set_caption("Power iteration starts from a random unit vector v.")
-        self.play(vcol.animate.set_opacity(1.0), origin_lbl.animate.set_opacity(1.0),
-                  run_time=S.T_NORMAL)
-        self.wait(2.0)
-        self.play(origin_lbl.animate.set_opacity(0.0), run_time=S.T_FAST)
-        self.remove(origin_lbl)
+        self.set_caption("Eigendecompose B. On a 4x4 sample, power iteration finds the top eigenvector.")
+        self.play(Bm.animate.set_opacity(1.0), lbl_Bm.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+        self.wait(1.5)
 
-        # -------- the update rule on top -------- #
-        update_rule = B.formula(r"v \leftarrow Bv\,/\,\lVert Bv\rVert").scale(0.85)
-        update_rule.move_to([0.0, 2.7, 0]).set_opacity(0)
+        update_rule = B.formula(r"v \leftarrow Bv\,/\,\lVert Bv\rVert").scale(0.82)
+        update_rule.move_to([0.0, 2.6, 0]).set_opacity(0)
         self.add_fixed_in_frame_mobjects(update_rule)
         self.play(update_rule.animate.set_opacity(1.0), run_time=S.T_FAST)
-        self.set_caption("Each step multiplies v by B, then divides by its length.")
-        self.wait(2.6)
 
-        # -------- the actual v^T B v product -------- #
-        vrow = B.rowvec(vecs[0]).scale(vscale).next_to(Bm, LEFT, buff=0.35)
-        eqres = B.formula(rf"=\ {rqs[0]:.2f}").scale(0.85).next_to(vcol, RIGHT, buff=0.35)
-        lbl_vt = B.formula(r"v^{\top}").scale(0.7).next_to(vrow, UP, buff=0.2)
-        lbl_Bm = B.formula(r"B").scale(0.7).next_to(Bm, UP, buff=0.2)
-        lbl_v = B.formula(r"v").scale(0.7).next_to(vcol, UP, buff=0.2)
-        for m in (vrow, eqres, lbl_vt, lbl_Bm, lbl_v):
-            m.set_opacity(0)
-        self.add_fixed_in_frame_mobjects(vrow, eqres, lbl_vt, lbl_Bm, lbl_v)
-        self.set_caption("The value is v-transpose times B times v: an actual matrix product.")
-        self.play(*[m.animate.set_opacity(1.0) for m in (vrow, eqres, lbl_vt, lbl_Bm, lbl_v)],
+        vscale = Bm.height / B.colvec([0.5, 0.5, 0.5, 0.5]).height
+        rng = np.random.default_rng(3)
+
+        # -------- power iteration on B: iterate v, then read off lambda 1 -------- #
+        _, grpB, valB = self._pi4(Bs, Bm, vscale, rng.standard_normal(4), 3, "B")
+        lam1tag = B.formula(r"= \lambda_1").scale(0.74).set_color(S.ACCENT)
+        lam1tag.next_to(valB, RIGHT, buff=0.2).set_opacity(0)
+        self.add_fixed_in_frame_mobjects(lam1tag)
+        self.set_caption("That converged value is the largest eigenvalue, lambda 1.")
+        self.play(valB.animate.set_color(S.ACCENT), lam1tag.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+        self.wait(2.2)
+
+        # -------- deflation as a matrix operation: B - lam1 v1 v1^T -> B2 -------- #
+        # Shown like the matrix lineage: B flows through the deflation operator to
+        # B2, whose dominant eigenvalue is now lambda 2.
+        self.set_caption("To find the next eigenvalue, deflate B by its dominant eigenvector.")
+        self.play(FadeOut(grpB), lam1tag.animate.set_opacity(0),
+                  VGroup(Bm, lbl_Bm).animate.shift([-2.5, 0, 0]),
                   run_time=S.T_NORMAL)
+        self.remove(lam1tag)
+
+        B2np = Bs - lam1 * np.outer(v1, v1)
+        B2m = B.matrix_grid(np.round(B2np, 2).tolist(), highlight_negative=True)
+        B2m.scale(0.42).move_to([1.5, 0.3, 0])
+        lbl_B2 = B.formula("B_2").scale(0.72).next_to(B2m, UP, buff=0.18)
+        darr = Arrow(Bm.get_right(), B2m.get_left(), buff=0.2, color=S.MUTED, stroke_width=3)
+        dop = B.formula(r"-\, \lambda_1\, v_1 v_1^{\top}").scale(0.62).next_to(darr, UP, buff=0.12)
+        for m in (B2m, lbl_B2, darr, dop):
+            self.add_fixed_in_frame_mobjects(m)
+            m.set_opacity(0)
+        self.set_caption("Subtract lambda 1 times v1 v1-transpose; this zeroes the lambda 1 direction.")
+        self.play(darr.animate.set_opacity(1.0), dop.animate.set_opacity(1.0), run_time=S.T_FAST)
+        self.play(B2m.animate.set_opacity(1.0), lbl_B2.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+        self.wait(2.8)
+
+        # Bring B2 to the iteration position, clear B and the operator, then iterate.
+        self.set_caption("Now lambda 2 is the largest eigenvalue of B2.")
+        self.play(
+            FadeOut(Bm), FadeOut(lbl_Bm), FadeOut(darr), FadeOut(dop),
+            VGroup(B2m, lbl_B2).animate.shift([-3.0, 0, 0]),
+            run_time=S.T_NORMAL,
+        )
+        self.remove(Bm, lbl_Bm, darr, dop)
+        self.wait(0.8)
+
+        # -------- power iteration on B2: iterate v, then read off lambda 2 -------- #
+        _, grpB2, valB2 = self._pi4(B2np, B2m, vscale, rng.standard_normal(4), 2, "B_2")
+        lam2tag = B.formula(r"= \lambda_2").scale(0.74).set_color(S.ACCENT)
+        lam2tag.next_to(valB2, RIGHT, buff=0.2).set_opacity(0)
+        self.add_fixed_in_frame_mobjects(lam2tag)
+        self.set_caption("That converged value is the second eigenvalue, lambda 2.")
+        self.play(valB2.animate.set_color(S.ACCENT), lam2tag.animate.set_opacity(1.0), run_time=S.T_NORMAL)
         self.wait(2.2)
 
-        it_lbl = B.formula(r"\text{iteration } 0").scale(0.62).to_corner(RIGHT + UP, buff=0.4)
-        it_lbl.set_opacity(0)
-        self.add_fixed_in_frame_mobjects(it_lbl)
-        self.play(it_lbl.animate.set_opacity(1.0), run_time=S.T_FAST)
-
-        # Crossfade the row, column, value, and counter each iteration. Fixed-in-
-        # frame mobjects are updated by animating opacity and then removing the
-        # old ones (ReplacementTransform leaves stray fixed-frame copies behind).
-        self.set_caption("Multiply by B and renormalize; the value climbs each iteration.")
-        for k in (1, 2, 3):
-            new_vrow = B.rowvec(vecs[k]).scale(vscale).next_to(Bm, LEFT, buff=0.35).set_opacity(0)
-            new_vcol = B.colvec(vecs[k]).scale(vscale).next_to(Bm, RIGHT, buff=0.35).set_opacity(0)
-            new_eq = B.formula(rf"=\ {rqs[k]:.2f}").scale(0.85).next_to(new_vcol, RIGHT, buff=0.35).set_opacity(0)
-            new_it = B.formula(rf"\text{{iteration }} {k}").scale(0.62).to_corner(RIGHT + UP, buff=0.4).set_opacity(0)
-            self.add_fixed_in_frame_mobjects(new_vrow, new_vcol, new_eq, new_it)
-            self.play(
-                vrow.animate.set_opacity(0), vcol.animate.set_opacity(0),
-                eqres.animate.set_opacity(0), it_lbl.animate.set_opacity(0),
-                new_vrow.animate.set_opacity(1), new_vcol.animate.set_opacity(1),
-                new_eq.animate.set_opacity(1), new_it.animate.set_opacity(1),
-                run_time=S.T_NORMAL,
-            )
-            self.remove(vrow, vcol, eqres, it_lbl)
-            vrow, vcol, eqres, it_lbl = new_vrow, new_vcol, new_eq, new_it
-            self.wait(1.4)
-
-        # The converged value is the top eigenvalue.
-        lam_lbl = B.formula(rf"\lambda_1 = {lam1:.2f}").scale(0.85).set_color(S.ACCENT)
-        lam_lbl.next_to(eqres, DOWN, buff=0.5).set_opacity(0)
-        self.add_fixed_in_frame_mobjects(lam_lbl)
-        self.set_caption("The value settles at the top eigenvalue lambda-1.")
-        self.play(lam_lbl.animate.set_opacity(1.0), run_time=S.T_NORMAL)
-        self.wait(2.2)
-
-        # -------- eigen equation and the top two eigenvalues -------- #
-        # Explicit opacity-to-zero then remove (not FadeOut) so no fixed-in-frame
-        # remnant survives into the eigen-equation beat.
-        clear = [vrow, vcol, eqres, lam_lbl, update_rule, it_lbl, lbl_vt, lbl_Bm, lbl_v]
+        # -------- the same iteration on the FULL Gram matrix -------- #
+        # The 4x4 showed the mechanics on real numbers; now run power iteration on
+        # the whole matrix, where the eigenvector is an N-vector shown as a strip.
+        clear = [B2m, lbl_B2, update_rule, lam2tag, *grpB2]
         self.play(*[m.animate.set_opacity(0) for m in clear], run_time=S.T_FAST)
         self.remove(*clear)
-        self.play(Bm.animate.move_to([-3.2, 0, 0]), run_time=S.T_FAST)
 
-        f2 = B.formula(r"B v_i = \lambda_i v_i").move_to([1.6, 1.0, 0]).set_opacity(0)
-        self.add_fixed_in_frame_mobjects(f2)
-        self.play(f2.animate.set_opacity(1.0), run_time=S.T_NORMAL)
-        self.set_caption("Every eigenvector satisfies B v = λ v; the largest eigenvalues carry the shape.")
+        self.set_caption("The same iteration scales to the full matrix.")
+        Br = self.Bfull[np.ix_(self.t_order, self.t_order)]
+        hmB = B.heatmap(Br, N, max_cells=32, diverging=True).scale_to_fit_height(2.0)
+        hmB.move_to([-3.0, 0.0, 0])
+        lblB = B.formula("B").scale(0.78).next_to(hmB, UP, buff=0.16)
+        rule2 = B.formula(r"v \leftarrow Bv\,/\,\lVert Bv\rVert").scale(0.78).move_to([0.5, 2.5, 0])
+        for m in (hmB, lblB, rule2):
+            self.add_fixed_in_frame_mobjects(m)
+            m.set_opacity(0)
+        self.play(*[m.animate.set_opacity(1.0) for m in (hmB, lblB, rule2)], run_time=S.T_NORMAL)
+
+        # The eigenvector is an N-vector, shown as a strip beside the matrix, just
+        # like the 4x4 layout: B, then v, then Bv with its magnitude.
+        def fstrip(vec, x):
+            s = B.vector_strip(vec[self.t_order], height=2.0, width=0.46, diverging=True)
+            return s.move_to([x, 0.0, 0])
+
+        rng = np.random.default_rng(1)
+        vv = rng.standard_normal(N).astype(float)
+        vv /= (np.linalg.norm(vv) or 1.0)
+        vstrip = fstrip(vv, -1.2)
+        vlbl = B.formula("v").scale(0.7).next_to(vstrip, UP, buff=0.14)
+        for m in (vstrip, vlbl):
+            self.add_fixed_in_frame_mobjects(m)
+            m.set_opacity(0)
+        self.set_caption("Start from a random vector, shown as a strip.")
+        self.play(vstrip.animate.set_opacity(1.0), vlbl.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+        self.wait(1.0)
+
+        for _ in range(4):
+            Bv = self.Bfull @ vv
+            nrm = float(np.linalg.norm(Bv))
+            bvstrip = fstrip(Bv, 0.9)
+            bvlbl = B.formula("Bv").scale(0.7).next_to(bvstrip, UP, buff=0.14)
+            arr = Arrow(vstrip.get_right(), bvstrip.get_left(), buff=0.12,
+                        color=S.MUTED, stroke_width=3)
+            arrlbl = B.formula(r"\times B").scale(0.6).next_to(arr, UP, buff=0.06)
+            nrmlbl = B.formula(rf"\lVert Bv\rVert = {nrm:.0f}").scale(0.66).next_to(bvstrip, DOWN, buff=0.22)
+            for m in (arr, arrlbl, bvstrip, bvlbl, nrmlbl):
+                self.add_fixed_in_frame_mobjects(m)
+                m.set_opacity(0)
+            self.set_caption("Multiply by B; its magnitude is the length of Bv.")
+            self.play(arr.animate.set_opacity(1.0), arrlbl.animate.set_opacity(1.0),
+                      bvstrip.animate.set_opacity(1.0), bvlbl.animate.set_opacity(1.0),
+                      run_time=S.T_NORMAL)
+            self.play(nrmlbl.animate.set_opacity(1.0), run_time=S.T_FAST)
+            self.wait(0.8)
+            vv = Bv / nrm
+            new_vstrip = fstrip(vv, -1.2)
+            self.add_fixed_in_frame_mobjects(new_vstrip)
+            new_vstrip.set_opacity(0)
+            self.set_caption("Divide by the magnitude to renormalize v; the strip smooths out.")
+            self.play(
+                bvstrip.animate.set_opacity(0), bvlbl.animate.set_opacity(0),
+                arr.animate.set_opacity(0), arrlbl.animate.set_opacity(0),
+                nrmlbl.animate.set_opacity(0), vstrip.animate.set_opacity(0),
+                new_vstrip.animate.set_opacity(1.0),
+                run_time=S.T_NORMAL,
+            )
+            self.remove(bvstrip, bvlbl, arr, arrlbl, nrmlbl, vstrip)
+            vstrip = new_vstrip
+            self.wait(0.5)
+
+        # v has converged; the full product v^T B v gives lambda 1.
+        ev = np.sort(np.linalg.eigvalsh(self.Bfull))[::-1]
+        lam1f, lam2f = float(ev[0]), float(ev[1])
+        vtbv = B.formula(rf"v^{{\top}} B v = {lam1f:.0f}").scale(0.8).set_color(S.ACCENT)
+        vtbv.move_to([0.6, -1.5, 0])
+        lam1tag = B.formula(r"= \lambda_1").scale(0.74).set_color(S.ACCENT).next_to(vtbv, RIGHT, buff=0.2)
+        for m in (vtbv, lam1tag):
+            self.add_fixed_in_frame_mobjects(m)
+            m.set_opacity(0)
+        self.set_caption("With v converged, v-transpose B v gives the largest eigenvalue, lambda 1.")
+        self.play(vtbv.animate.set_opacity(1.0), lam1tag.animate.set_opacity(1.0), run_time=S.T_NORMAL)
         self.wait(2.2)
 
-        vals = B.formula(
-            rf"\lambda_1 = {lam1:.2f}\quad \lambda_2 = {lam2:.2f}"
-        ).move_to([1.6, -0.7, 0]).set_opacity(0)
+        # Pull up lambda 2 (the deflation found it) and keep both for the embedding.
+        vals = B.formula(rf"\lambda_1 = {lam1f:.0f}\quad \lambda_2 = {lam2f:.0f}").scale(0.82)
+        vals.move_to([0.6, -1.5, 0]).set_opacity(0)
         self.add_fixed_in_frame_mobjects(vals)
-        self.play(vals.animate.set_opacity(1.0), run_time=S.T_NORMAL)
-        self.set_caption("Keep the top two eigenvalues: they span the recovered plane.")
-        self.formula_eig, self.vals = f2, vals
-        self.wait(S.T_HOLD)
+        self.set_caption("Deflate and repeat for lambda 2; these two eigenvectors form the 2D embedding.")
+        self.play(vtbv.animate.set_opacity(0), lam1tag.animate.set_opacity(0),
+                  vals.animate.set_opacity(1.0), run_time=S.T_NORMAL)
+        self.remove(vtbv, lam1tag)
+        self.wait(S.T_HOLD + 1.5)
+
+        # Bundle the overlays so the embedding step can clear them in one fade.
+        self.eig_overlays = VGroup(hmB, lblB, rule2, vstrip, vlbl, vals)
 
     # ------------------------------------------------------------------ #
     # Section 6: 2D embedding reveal                                      #
@@ -736,14 +881,9 @@ class IsomapWalkthrough(ThreeDScene):
         # Update pseudocode panel: step 5 highlighted.
         self.set_pseudo(5)
 
-        # Clear every remaining overlay (B matrix, eigen formula, eigenvalues)
-        # before the embedding so nothing overlaps the final arc.
-        self.play(
-            FadeOut(self.bmat),
-            FadeOut(self.formula_eig),
-            FadeOut(self.vals),
-            run_time=S.T_FAST,
-        )
+        # Clear the eigendecomposition overlays (full B, the iteration, the
+        # eigenvalues) before the embedding so nothing overlaps the final arc.
+        self.play(FadeOut(self.eig_overlays), run_time=S.T_FAST)
 
         emb = self.data["embedding"].copy()
         scale = np.abs(emb).max()
@@ -776,5 +916,5 @@ class IsomapWalkthrough(ThreeDScene):
             FadeIn(flat, run_time=S.T_SLOW),
             Write(f3, run_time=S.T_NORMAL),
         )
-        self.set_caption(DATASET_OUTRO.get(DATASET, "The surface unrolls into 2D. Color shows geodesic distance from the source, preserved."))
+        self.set_caption(DATASET_OUTRO.get(DATASET, "The surface unrolls into 2D, with the geodesic-distance coloring preserved."))
         self.wait(4.0)
