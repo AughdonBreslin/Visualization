@@ -29,7 +29,23 @@ export function normalizeLabel(text) {
   return String(text).replace(/\s+/g, ' ').trim();
 }
 
-function closeDrawer() {} // replaced in Task 4
+function openDrawer(ui) {
+  ui.nav.classList.add('open');
+  ui.btn.setAttribute('aria-expanded', 'true');
+  ui.btn.setAttribute('aria-label', 'Close section outline');
+  ui.backdrop.hidden = false;
+  const first = ui.list.querySelector('a');
+  if (first) first.focus();
+}
+
+function closeDrawer(ui) {
+  if (!ui || !ui.nav.classList.contains('open')) return;
+  ui.nav.classList.remove('open');
+  ui.btn.setAttribute('aria-expanded', 'false');
+  ui.btn.setAttribute('aria-label', 'Open section outline');
+  ui.backdrop.hidden = true;
+  ui.btn.focus();
+}
 
 // ---- DOM build (skipped under node:test where document is undefined) ----
 
@@ -131,6 +147,37 @@ function navigateTo(id, byId) {
   history.replaceState(null, '', `#${id}`);
 }
 
+function wireScrollspy(entries, linkById) {
+  let activeId = null;
+  const setActive = (id) => {
+    if (id === activeId) return;
+    if (activeId && linkById.get(activeId)) {
+      linkById.get(activeId).classList.remove('active');
+      linkById.get(activeId).removeAttribute('aria-current');
+    }
+    activeId = id;
+    const a = linkById.get(id);
+    if (a) {
+      a.classList.add('active');
+      a.setAttribute('aria-current', 'true');
+    }
+  };
+  const visible = new Set();
+  const obs = new IntersectionObserver(
+    (records) => {
+      for (const r of records) {
+        if (r.isIntersecting) visible.add(r.target.id);
+        else visible.delete(r.target.id);
+      }
+      const order = entries.map((e) => e.id);
+      const top = order.find((id) => visible.has(id));
+      if (top) setActive(top);
+    },
+    { rootMargin: '-10% 0px -70% 0px', threshold: 0 }
+  );
+  for (const e of entries) obs.observe(e.panel);
+}
+
 function initSectionOutline() {
   const entries = collectPanels(document);
   if (entries.length < 2) return; // not worth an outline
@@ -151,6 +198,17 @@ function initSectionOutline() {
     const id = decodeURIComponent(location.hash.slice(1));
     requestAnimationFrame(() => navigateTo(id, ui.linkById));
   }
+
+  ui.btn.addEventListener('click', () => {
+    if (ui.nav.classList.contains('open')) closeDrawer(ui);
+    else openDrawer(ui);
+  });
+  ui.backdrop.addEventListener('click', () => closeDrawer(ui));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDrawer(ui);
+  });
+
+  wireScrollspy(entries, ui.linkById);
 
   return { entries, ui };
 }
