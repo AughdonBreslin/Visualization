@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Supervised Demo via Unsupervised Techniques</title>
+    <title>Unsupervised Supervised Learning</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
         window.MathJax = {
@@ -16,20 +16,22 @@
     <link rel="stylesheet" href="../styles/base.css">
     <link rel="stylesheet" href="../styles/article.css">
     <link rel="stylesheet" href="../styles/generative_classification.css">
+    <link rel="stylesheet" href="../styles/responsive.css">
     <script defer src="../js/formulas_layout.js"></script>
     <script defer src="../js/generative_classification.js"></script>
+    <script defer src="../js/collapsible.js"></script>
 </head>
 
 <body>
     <div class="container article generative-classification">
         <header>
-            <h1>Supervised Demo via Unsupervised Techniques</h1>
+            <h1>Unsupervised Supervised Learning</h1>
             <div class="subtitle">Using Unsupervised Density Estimation to Solve Supervised Classification</div>
             <div class="home-link"><a href="../index.html">← Home</a></div>
         </header>
 
         <main class="article-body">
-            <section class="demo-overview panel">
+            <section class="demo-overview panel collapsible">
                 <h2>Overview</h2>
                 <p>
                     This demo seeks to illustrate how a supervised learning problem such as learning $p(y|x)$ can be solved by learning the joint distribution $p(x, y)$ using unsupervised density estimation, and then applying Bayes' rule to infer the posterior. We will implement two methods for estimating class-conditional densities $p(x|y)$: Kernel Density Estimation (KDE) and Gaussian Discriminant Analysis (GDA). The demo aims to provide intuition for generative modeling approaches to classification, and how they differ from direct discriminative methods.
@@ -41,9 +43,9 @@
                     The joint distribution $p(x,y)$ can be decomposed as $p(x,y) = p(y) p(x|y)$, where $p(y)$ is the class prior, formed by the relative frequencies of each class in the training data, and $p(x|y)$ is the class-conditional, learned using unsupervised density estimation within each class. Once the data is split by class label $y$, we can apply any unsupervised density estimation method to learn $p(x|y)$ for each class separately. In this demo we implement two aforementioned methods: KDE, a non-parametric density estimator that places kernels at each data point and averages them; and GDA, a parametric generative model that fits a Gaussian distribution to each class. The means and covariances estimated by GDA are estimated exactly as in a purely unsupervised Gaussian model, but applied separately to each class subset of the data.
                 </p>
             </section>
-            <section class="dataset-panel panel">
+            <section class="dataset-panel panel collapsible">
                 <h2>Input Dataset</h2>
-                <p>Paste a CSV of points $x$ and their class $y$ following ($x_1,x_2,y$) where $x_1, x_2 \in \mathbb{R}$, and $y \in \{0, 1\}$. Type in your input data or use the preloaded example.</p>
+                <p>Paste a CSV of points $x_1, x_2, y$ where $x_1, x_2 \in \mathbb{R}$ and the class $y$ is any integer. Edits below apply automatically.</p>
                 <textarea id="csvInput" rows="15">x1,x2,y
 81.0,85.0,1
 71.0,85.0,0
@@ -94,14 +96,14 @@
 
                 <div class="dataset-controls">
                     <div class="load-row">
-                        <button id="loadCsv">Load the input data</button>
-                        <label for="fileInput">Upload a File</label>
+                        <label for="fileInput">Upload file</label>
                         <input id="fileInput" name="fileInput" type="file" accept="text/csv" />
                     </div>
                 </div>
+                <div id="datasetWarning" class="dataset-warning" role="status" hidden></div>
             </section>
 
-            <section id="calculations-panel" class="calculations-panel panel">
+            <section id="calculations-panel" class="calculations-panel panel collapsible">
                 <h2>Calculations: Priors & Approaches</h2>
                 <p>To learn $p(y)$, we compute the priors. A prior is the probability of a class before observing any data. This is computed as the fraction of samples belonging to each class, or:</p>
                 <div class="formula">$$p(y=k) = \frac{\text{num samples with y=k}}{\text{total samples}}$$</div>
@@ -145,7 +147,7 @@
             </section>
 
             <!-- Visuals and explanations for KDE and GDA -->
-            <section class="viz-explain-panel panel">
+            <section class="viz-explain-panel panel collapsible" data-open-mobile>
                 <h2>Visuals: KDE & GDA</h2>
                 <div class="viz-row">
                     <div class="viz-panel">
@@ -187,26 +189,21 @@
                 </div>
             </section>
 
-            <section id="posterior-panel" class="posterior-panel panel">
+            <section id="posterior-panel" class="posterior-panel panel collapsible">
                 <h2>Posterior Computation</h2>
                 <p>Walking through the calculations for both KDE and GDA to compute the posterior probabilities $p(y|x^*)$ at a query point $x^*$.</p>
                 <div class="posterior-actions">
-                    <div class="examples">
-                        <button id="example1">Compute for x*=(75,89.5)</button>
-                        
-                        <button id="example2" type="button">
-                            <span >
-                                <span>Compute for x*= (</span>
-                                    <input id="example2x1" type="number" step="0.1" value="83" aria-label="x1" />
-                                    <span>,</span>
-                                    <input id="example2x2" type="number" step="0.1" value="83" aria-label="x2" />
-                                    <span>)</span>
-                                </span>
-                            </span>
-                        </button>
-                        </span> or click anywhere on the plot above to query a point.
-                    </div>
+                    <button id="example1" type="button">Example (75, 89.5)</button>
+
+                    <button id="example2" type="button">
+                        <span>Compute for x* = (</span>
+                        <input id="example2x1" type="number" step="0.1" value="83" aria-label="x1 coordinate" />
+                        <span>,</span>
+                        <input id="example2x2" type="number" step="0.1" value="83" aria-label="x2 coordinate" />
+                        <span>)</span>
+                    </button>
                 </div>
+                <p class="examples-hint">Or click anywhere on the plot above to query a point.</p>
                 <div id="calcQueryPoint" class="calc-output">No point computed yet.</div>
                 <div id="calcPriors" class="calc-output">Priors: -</div>
                 <div id="calcMuSigma0" class="calc-output">Class 0: μ0 = - ; Σ0 = -</div>
@@ -214,7 +211,7 @@
                 <div id="calcPointGDA" class="calc-output">No point computed yet.</div>
             </section>
 
-            <section id="difference-panel" class="difference-panel panel">
+            <section id="difference-panel" class="difference-panel panel collapsible">
                 <h2>Generative versus Discriminative Models</h2>
                 <p>
                     The generative approach learns the data-generating story, typically the joint distribution $p(x,y)$, then classifies by applying Bayes' rule.

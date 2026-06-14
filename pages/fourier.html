@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="../styles/base.css">
   <link rel="stylesheet" href="../styles/article.css">
   <link rel="stylesheet" href="../styles/fourier.css">
+  <link rel="stylesheet" href="../styles/responsive.css">
 
   <script defer src="../js/formulas_layout.js"></script>
   <script defer src="../js/fourier.js"></script>
@@ -27,6 +28,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/PointerLockControls.js"></script>
   <script defer src="../js/fourier3d.js"></script>
+  <script defer src="../js/collapsible.js"></script>
 </head>
 
 <body>
@@ -41,7 +43,7 @@
 
     <main class="article-body">
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Assumption of Smoothness</h2>
         <p>
           Linear and polynomial regression both rest on an assumption that
@@ -73,7 +75,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Representing Periodicity</h2>
         <p>
           The simplest non-decaying periodic function on the real line is
@@ -110,7 +112,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>The Discrete Fourier Transform</h2>
         <p>
           The 2D Discrete Fourier Transform turns an $N \times N$ image
@@ -174,7 +176,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Other Image Reconstruction Techniques</h2>
         <p>
           Sine waves describe periodic structure, but most images are not
@@ -241,7 +243,7 @@
         </p>
       </section>
 
-      <section class="panel fourier-demo-panel">
+      <section class="panel fourier-demo-panel collapsible" data-open-mobile>
         <h2>Interactive Demo</h2>
 
         <div class="fourier-canvas-grid">
@@ -451,12 +453,13 @@
         ></canvas>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Reconstruction Formula</h2>
         <div id="fourierFormulaBox" class="fourier-formula-box" aria-live="polite"></div>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
+        <h2>Interpreting the visualization</h2>
         <div class="fourier-tabs" role="tablist">
           <button type="button" class="fourier-tab is-active" data-tab="gibbs" role="tab" aria-selected="true">Gibbs ringing</button>
           <button type="button" class="fourier-tab" data-tab="extrap" role="tab" aria-selected="false">Extrapolation</button>
@@ -650,7 +653,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Summary</h2>
         <p>
           Every technique on this page rewrites the same image in a different

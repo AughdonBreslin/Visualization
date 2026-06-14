@@ -607,11 +607,24 @@ function introFor(algo, dataset) {
 }
 
 const video = document.getElementById('mfiVideo');
+const stage = document.getElementById('mfiStage');
+const fsWrap = document.getElementById('mfiFsWrap');
+const overlay = document.getElementById('mfiOverlay');
+const bigPlay = document.getElementById('mfiBigPlay');
+const progress = document.getElementById('mfiProgress');
+const progressFill = document.getElementById('mfiProgressFill');
+const progressMarks = document.getElementById('mfiProgressMarks');
+const timeEl = document.getElementById('mfiTime');
 const stepsEl = document.getElementById('mfiSteps');
 const transcript = document.getElementById('mfiTranscript');
-const scrub = document.getElementById('mfiScrub');
 const playBtn = document.getElementById('mfiPlay');
+const prevBtn = document.getElementById('mfiPrev');
+const nextBtn = document.getElementById('mfiNext');
 const speedSel = document.getElementById('mfiSpeed');
+const fullBtn = document.getElementById('mfiFull');
+const coarse = window.matchMedia('(pointer: coarse)').matches;
+const ICON_PLAY = '▶';   // black right-pointing triangle
+const ICON_PAUSE = '⏸';  // double vertical bar
 let current = -1;
 
 function stepIndexAt(t) {
@@ -765,28 +778,163 @@ function loadVideo() {
   setActive(0);
 }
 
+// --- progress bar, time, and section stamps ---
+function fmtTime(t) {
+  if (!isFinite(t) || t < 0) t = 0;
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+// Place a tick at each section boundary (every step start after the first), so
+// the progress bar doubles as a chapter map of the walkthrough.
+function renderMarks() {
+  if (!progressMarks) return;
+  progressMarks.innerHTML = '';
+  const dur = video.duration;
+  if (!dur || !isFinite(dur)) return;
+  STEPS.forEach((s, i) => {
+    if (i === 0) return;
+    const pct = Math.max(0, Math.min(100, (s.start / dur) * 100));
+    const m = document.createElement('span');
+    m.className = 'mfi-progress-mark';
+    m.style.left = pct + '%';
+    m.title = s.title;
+    progressMarks.appendChild(m);
+  });
+}
+
+function updateProgress() {
+  const dur = video.duration;
+  const pct = dur ? Math.max(0, Math.min(100, (video.currentTime / dur) * 100)) : 0;
+  progressFill.style.width = pct + '%';
+  progress.style.setProperty('--mfi-thumb', pct + '%');
+  progress.setAttribute('aria-valuenow', String(Math.round(pct)));
+  if (timeEl) timeEl.innerHTML = fmtTime(video.currentTime) + '&nbsp;/&nbsp;' + fmtTime(dur || 0);
+}
+
 video.addEventListener('timeupdate', () => {
-  if (video.duration) scrub.value = String(Math.round((video.currentTime / video.duration) * 1000));
+  updateProgress();
   setActive(stepIndexAt(video.currentTime));
 });
-scrub.addEventListener('input', () => {
-  if (video.duration) video.currentTime = (scrub.value / 1000) * video.duration;
+video.addEventListener('loadedmetadata', () => { renderMarks(); updateProgress(); });
+video.addEventListener('durationchange', () => { renderMarks(); updateProgress(); });
+
+function seekToClientX(clientX) {
+  const r = progress.getBoundingClientRect();
+  const frac = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+  if (video.duration) video.currentTime = frac * video.duration;
+  progress.style.setProperty('--mfi-thumb', (frac * 100) + '%');
+}
+let scrubbing = false;
+progress.addEventListener('pointerdown', (e) => {
+  scrubbing = true;
+  try { progress.setPointerCapture(e.pointerId); } catch (_) {}
+  seekToClientX(e.clientX); showUi(); e.preventDefault();
+});
+progress.addEventListener('pointermove', (e) => { if (scrubbing) seekToClientX(e.clientX); });
+progress.addEventListener('pointerup', (e) => {
+  scrubbing = false;
+  try { progress.releasePointerCapture(e.pointerId); } catch (_) {}
+});
+progress.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') { video.currentTime = Math.max(0, video.currentTime - 5); e.preventDefault(); }
+  else if (e.key === 'ArrowRight') { video.currentTime = Math.min(video.duration || 0, video.currentTime + 5); e.preventDefault(); }
 });
 
-playBtn.addEventListener('click', () => {
+// --- play / pause with unicode glyphs ---
+function togglePlay() {
   if (video.paused) video.play().catch(() => {});
   else video.pause();
+}
+playBtn.addEventListener('click', togglePlay);
+bigPlay.addEventListener('click', togglePlay);
+// On a mouse, clicking the frame toggles play; on touch it toggles the controls.
+video.addEventListener('click', () => { if (coarse) toggleUi(); else togglePlay(); });
+video.addEventListener('play', () => {
+  playBtn.textContent = ICON_PAUSE; playBtn.setAttribute('aria-label', 'Pause');
+  stage.classList.add('is-playing'); scheduleHide();
 });
-video.addEventListener('play', () => { playBtn.textContent = 'Pause'; });
-video.addEventListener('pause', () => { playBtn.textContent = 'Play'; });
-video.addEventListener('ended', () => { playBtn.textContent = 'Play'; });
+video.addEventListener('pause', () => {
+  playBtn.textContent = ICON_PLAY; playBtn.setAttribute('aria-label', 'Play');
+  stage.classList.remove('is-playing'); showUi();
+});
+video.addEventListener('ended', () => {
+  playBtn.textContent = ICON_PLAY; playBtn.setAttribute('aria-label', 'Play');
+  stage.classList.remove('is-playing'); showUi();
+});
 
-document.getElementById('mfiPrev').addEventListener('click', () => seekToStep(current - 1));
-document.getElementById('mfiNext').addEventListener('click', () => seekToStep(current + 1));
+prevBtn.addEventListener('click', () => { seekToStep(current - 1); showUi(); });
+nextBtn.addEventListener('click', () => { seekToStep(current + 1); showUi(); });
+
+// --- auto-hiding control bar ---
+let hideTimer = null;
+function showUi() { stage.classList.remove('is-hidden-ui'); }
+function hideUi() { if (!video.paused && !scrubbing) stage.classList.add('is-hidden-ui'); }
+function scheduleHide() { clearTimeout(hideTimer); showUi(); hideTimer = setTimeout(hideUi, 2600); }
+function toggleUi() { if (stage.classList.contains('is-hidden-ui')) scheduleHide(); else hideUi(); }
+stage.addEventListener('pointermove', () => { if (!coarse) scheduleHide(); });
+stage.addEventListener('pointerleave', () => { if (!coarse) hideUi(); });
+// Keep the bar up while the pointer is over the controls themselves.
+overlay.addEventListener('pointermove', (e) => { e.stopPropagation(); clearTimeout(hideTimer); showUi(); });
 
 if (speedSel) {
   speedSel.addEventListener('change', () => { video.playbackRate = parseFloat(speedSel.value) || 1; });
   video.playbackRate = parseFloat(speedSel.value) || 1;
+}
+
+// --- fullscreen, with landscape rotation on touch devices ---
+function inFullscreen() {
+  return document.fullscreenElement === fsWrap || document.webkitFullscreenElement === fsWrap;
+}
+async function enterFullscreen() {
+  // Reset to the video screen so the swipe-down transcript starts hidden.
+  fsWrap.scrollTop = 0;
+  fsWrap.classList.remove('is-scrolled');
+  try {
+    if (fsWrap.requestFullscreen) await fsWrap.requestFullscreen();
+    else if (fsWrap.webkitRequestFullscreen) fsWrap.webkitRequestFullscreen();
+    else if (video.webkitEnterFullscreen) { video.webkitEnterFullscreen(); return; } // iOS video-only
+  } catch (_) {}
+  if (coarse && screen.orientation && screen.orientation.lock) {
+    try { await screen.orientation.lock('landscape'); } catch (_) {}
+  }
+}
+// Fade the swipe-down hint once the viewer scrolls toward the transcript.
+fsWrap.addEventListener('scroll', () => {
+  fsWrap.classList.toggle('is-scrolled', fsWrap.scrollTop > 12);
+});
+function exitFullscreen() {
+  try {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  } catch (_) {}
+  if (screen.orientation && screen.orientation.unlock) {
+    try { screen.orientation.unlock(); } catch (_) {}
+  }
+}
+fullBtn.addEventListener('click', () => { if (inFullscreen()) exitFullscreen(); else enterFullscreen(); });
+function syncFullscreenBtn() {
+  const fs = inFullscreen();
+  fullBtn.textContent = fs ? '⤢' : '⛶';
+  fullBtn.setAttribute('aria-label', fs ? 'Exit fullscreen' : 'Fullscreen');
+  if (!fs && screen.orientation && screen.orientation.unlock) {
+    try { screen.orientation.unlock(); } catch (_) {}
+  }
+}
+document.addEventListener('fullscreenchange', syncFullscreenBtn);
+document.addEventListener('webkitfullscreenchange', syncFullscreenBtn);
+
+// Rotate-to-fullscreen on touch: entering landscape pops the video to fullscreen
+// (best-effort, only when the gesture still counts as a user activation), and
+// rotating back to portrait exits it (always permitted).
+if (coarse && screen.orientation) {
+  screen.orientation.addEventListener('change', () => {
+    const landscape = screen.orientation.type.startsWith('landscape');
+    const activated = navigator.userActivation ? navigator.userActivation.isActive : true;
+    if (landscape && !inFullscreen() && activated) enterFullscreen();
+    else if (!landscape && inFullscreen()) exitFullscreen();
+  });
 }
 
 if (algoSel) algoSel.addEventListener('change', () => { fillDatasets(currentAlgo()); loadVideo(); });
@@ -795,3 +943,4 @@ if (datasetSel) datasetSel.addEventListener('change', loadVideo);
 fillDatasets(currentAlgo());
 renderSteps();
 loadVideo();
+showUi();

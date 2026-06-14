@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const csvInput = document.getElementById('csvInput');
-  const loadBtn = document.getElementById('loadCsv');
+  const datasetWarningEl = document.getElementById('datasetWarning');
   const fileInput = document.getElementById('fileInput');
   const bandwidthInput = document.getElementById('bandwidth');
   const viz = d3.select('#viz');
@@ -69,33 +69,72 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const parsed = rows.map((r, i) => {
-      const x1 = Number(r.x1);
-      const x2 = Number(r.x2);
-      const y = Number(r.y);
+    // Empty/missing fields must count as invalid: Number('') is 0, which would
+    // otherwise let a half-entry like "74.0, 8" (no y) slip through as class 0.
+    const toNum = (v) => (v == null || String(v).trim() === '' ? NaN : Number(v));
+    const cell = (v) => { const s = v == null ? '' : String(v).trim(); return s === '' ? '?' : s; };
+    const points = [];
+    const invalid = [];
+    rows.forEach((r, i) => {
+      const x1 = toNum(r.x1);
+      const x2 = toNum(r.x2);
+      const y = toNum(r.y);
       if (!Number.isFinite(x1) || !Number.isFinite(x2) || !Number.isFinite(y)) {
-        throw new Error(`Invalid numeric value on row ${i + 2}`);
+        // Keep the row's content so it can be listed; '?' marks a missing field.
+        invalid.push({ row: i + 2, text: `${cell(r.x1)}, ${cell(r.x2)}, ${cell(r.y)}` });
+        return;
       }
-      return { x: [x1, x2], y };
+      points.push({ x: [x1, x2], y });
     });
 
-    if (parsed.length === 0) {
-      throw new Error('CSV contained no data rows');
+    if (points.length === 0) {
+      throw new Error('CSV contained no valid data rows');
     }
 
-    return parsed;
+    return { points, invalid };
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  }
+
+  function showDatasetWarning(html, isError) {
+    if (!datasetWarningEl) return;
+    if (!html) {
+      datasetWarningEl.hidden = true;
+      datasetWarningEl.innerHTML = '';
+      datasetWarningEl.classList.remove('is-error');
+      return;
+    }
+    datasetWarningEl.innerHTML = html;
+    datasetWarningEl.hidden = false;
+    datasetWarningEl.classList.toggle('is-error', !!isError);
   }
 
   function loadData(text) {
-    let parsed;
+    let result;
     try {
-      parsed = parseData(text);
+      result = parseData(text);
     } catch (e) {
-      alert('Failed to parse CSV: ' + (e && e.message ? e.message : e));
+      showDatasetWarning('Could not load data: ' + (e && e.message ? e.message : e), true);
       return;
     }
 
-    data = parsed;
+    data = result.points;
+
+    if (result.invalid.length) {
+      const n = result.invalid.length;
+      const list = result.invalid.slice(0, 3)
+        .map((e) => `<strong>(${escapeHtml(e.text)})</strong> on row ${e.row}`)
+        .join(', ');
+      const more = n > 3 ? `, and ${n - 3} more` : '';
+      showDatasetWarning(
+        `Discarded ${n} invalid point${n > 1 ? 's' : ''}: ${list}${more}. Kept ${result.points.length} valid.`,
+        false
+      );
+    } else {
+      showDatasetWarning('', false);
+    }
     if (gdaParamsEl) gdaParamsEl.innerHTML = '<div>Fitted parameters will appear here</div>';
 
     if (calcPriorsEl) calcPriorsEl.textContent = 'Priors: -';
@@ -110,7 +149,15 @@ document.addEventListener('DOMContentLoaded', () => {
     render();
   }
 
-  loadBtn.addEventListener('click', () => loadData(csvInput.value));
+  // Re-load the pasted data as it is edited (the initial load runs at the end
+  // of this handler, after all state is initialized).
+  if (csvInput) {
+    let reloadTimer;
+    csvInput.addEventListener('input', () => {
+      clearTimeout(reloadTimer);
+      reloadTimer = setTimeout(() => loadData(csvInput.value), 300);
+    });
+  }
   fileInput.addEventListener('change', (ev) => {
     const f = ev.target.files[0];
     if (!f) return;
@@ -248,6 +295,22 @@ document.addEventListener('DOMContentLoaded', () => {
     queryInfo.innerHTML = msg;
   }
 
+  let queryMarkerPoint = null;
+
+  function drawQueryMarker(mx, my) {
+    g.selectAll('.query-marker').remove();
+    const marker = g.append('g').attr('class', 'query-marker')
+      .attr('transform', `translate(${mx},${my})`)
+      .style('pointer-events', 'none');
+    marker.append('circle').attr('r', 7).attr('fill', 'none')
+      .attr('stroke', '#fff').attr('stroke-width', 2);
+    [[-10, -4, 0, 0], [4, 10, 0, 0], [0, 0, -10, -4], [0, 0, 4, 10]].forEach(([x1, x2, y1, y2]) => {
+      marker.append('line').attr('x1', x1).attr('x2', x2).attr('y1', y1).attr('y2', y2)
+        .attr('stroke', '#fff').attr('stroke-width', 1.5);
+    });
+    marker.append('circle').attr('r', 1.5).attr('fill', '#fff');
+  }
+
   function render() {
     if (!data.length) return;
     const xs = data.map(d => d.x[0]); const ys = data.map(d => d.x[1]);
@@ -351,6 +414,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const [mx,my] = d3.pointer(event, g.node());
       const x = xScale.invert(mx); const y = yScale.invert(my);
 
+      // Remember and mark the queried point (render redraws it so it persists).
+      queryMarkerPoint = [x, y];
+      drawQueryMarker(mx, my);
+
       updateQueryTable([x, y], { header: `Query (${x.toFixed(2)},${y.toFixed(2)})`, autoFitGDA: true });
       showCalculationForPoint([x,y]);
     });
@@ -404,6 +471,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const c = gda.classes[i];
         drawEllipse(gda.params[c].mu, gda.params[c].sigma, classColor(c));
       }
+    }
+
+    // Persist the clicked query marker across re-renders (draw it on top).
+    if (queryMarkerPoint) {
+      drawQueryMarker(xScale(queryMarkerPoint[0]), yScale(queryMarkerPoint[1]));
     }
   }
 

@@ -24,7 +24,12 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /* width:100% keeps the panel full-width when the .viz-row collapses to a
+     column (<=900px); otherwise align-items:flex-start shrinks it to its
+     content and leaves dead space on the right. */
+  width: 100%;
   min-width: 0;
+  box-sizing: border-box;
   padding: 12px;
 }
 

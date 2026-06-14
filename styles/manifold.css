@@ -100,3 +100,10 @@
 .manifold .viz-matrix-strip { position: absolute; inset: 0; background: rgba(0,0,0,0.25); }
 .manifold .viz-spectral { position: absolute; inset: 0; }
 .manifold .viz-weighted-knn { position: absolute; inset: 0; }
+
+/* Stack the sandbox's side-by-side panels on small screens. Placed at the end
+   of the file so it overrides the `.sp-panels` grid defined above (a media
+   query carries no extra specificity, so source order decides). */
+@media (max-width: 820px) {
+  .manifold .sp-panels { grid-template-columns: 1fr; }
+}

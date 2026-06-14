@@ -19,9 +19,11 @@
   <link rel="stylesheet" href="../styles/base.css">
   <link rel="stylesheet" href="../styles/article.css">
   <link rel="stylesheet" href="../styles/bayesian.css">
+  <link rel="stylesheet" href="../styles/responsive.css">
 
   <script defer src="../js/formulas_layout.js"></script>
   <script defer src="../js/bayesian.js"></script>
+  <script defer src="../js/collapsible.js"></script>
 </head>
 
 <body>
@@ -33,7 +35,7 @@
     </header>
 
     <main class="article-body">
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Overview</h2>
         <p>
           Bayesian inference uses observed data $\mathcal{D}$ to learn about unknown parameter(s) $\theta$. For example, $\theta$ might be a coin's probability of heads, a Gaussian mean, or a vector of regression coefficients, while $\mathcal{D}$ is the dataset you actually observed.
@@ -51,7 +53,7 @@
         <div class="formula">$$p(\theta\mid\mathcal{D}) = \frac{p(\mathcal{D}\mid\theta)\,p(\theta)}{p(\mathcal{D})}$$</div>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Conjugacy</h2>
         <p>
           Conjugacy shows the core principle of Bayesian inference in its cleanest form. You start with a prior, update it with a likelihood after observing data, and end with a posterior. In general, carrying out that update can require difficult integration through the evidence term $p(\mathcal{D})$, but conjugate models are special because the posterior can be written down explicitly with a formula instead of requiring numerical approximation (they're closed-form).
@@ -111,7 +113,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Conjugate updating</h2>
         <p>
           Paste a dataset, choose a model, and see how Bayesian updating changes both your belief about the unknown parameter and your prediction for a new observation.
@@ -147,7 +149,7 @@
             <h3 class="h3-section">Dataset</h3>
             <div class="control-grid">
               <label for="bayesData">Paste values</label>
-              <textarea id="bayesData" rows="8">1, 1, 0, 1, 0, 1, 1, 1, 0, 1</textarea>
+              <textarea id="bayesData" rows="3">1, 1, 0, 1, 0, 1, 1, 1, 0, 1</textarea>
               <div class="small" id="bayesDataHint">For coin flips: use 1/0 or H/T. For normals: paste numbers like 0.2, -1.1, 0.7.</div>
             </div>
 
@@ -209,7 +211,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Posterior predictive distribution</h2>
         <p>
           Bayesian prediction integrates over uncertainty in parameters instead of plugging in a single estimate:
@@ -220,7 +222,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Credible intervals vs confidence intervals</h2>
         <p>
           These are often confused. The difference is about what is random and what the statement conditions on. A confidence interval is a statement about a procedure over repeated samples; a credible interval is a statement about parameters conditional on observed data (given a prior and likelihood).
@@ -232,7 +234,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Maximum A Posteriori (MAP) estimation</h2>
         <p>
           MAP is relevant because it keeps the Bayesian idea of combining prior information with data, but replaces the full posterior with a single estimate.
@@ -256,7 +258,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>MAP vs MLE (Normal mean)</h2>
         <p>
           To see that optimization view concretely, suppose $x_i\sim\mathcal{N}(\mu,\sigma^2)$ with a Gaussian prior $\mu\sim\mathcal{N}(\mu_0,\tau^2)$.
@@ -278,7 +280,7 @@
             <h3>Dataset</h3>
             <div class="control-grid">
               <label for="mapData">Paste numbers</label>
-              <textarea id="mapData" rows="8">0.2, -0.1, 0.4, 0.3, 0.0</textarea>
+              <textarea id="mapData" rows="3">0.2, -0.1, 0.4, 0.3, 0.0</textarea>
               <div class="small">Numbers separated by commas/spaces/newlines. The plot updates automatically as you type.</div>
             </div>
 
@@ -316,7 +318,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Approximate inference</h2>
         <p>
           When conjugacy is unavailable, we usually cannot write down the posterior in a clean closed form. In that case we turn to approximate inference: methods that either sample from the posterior indirectly or fit a simpler distribution to it.
@@ -328,8 +330,7 @@
         <div class="formula">
           $$p(\theta^{(t+1)}\mid\theta^{(1)}, \ldots, \theta^{(t)}) = p(\theta^{(t+1)}\mid\theta^{(t)})$$
         </div>
-        <p></p>The transition rule is designed so that the posterior is the chain's stationary distribution: if the chain were already distributed according to the posterior, one more update step would leave that distribution unchanged. After enough steps, the samples produced by the chain behave approximately like posterior draws.
-        </p>
+        <p>The transition rule is designed so that the posterior is the chain's stationary distribution: if the chain were already distributed according to the posterior, one more update step would leave that distribution unchanged. After enough steps, the samples produced by the chain behave approximately like posterior draws.</p>
         <p>
           In practice, the chain is built by repeatedly proposing a move and then accepting or rejecting it in a way that favors regions of high posterior density while still exploring the full space. The appeal is that MCMC targets the true posterior rather than a simplified surrogate, but the tradeoff is computational cost: it can mix slowly, require diagnostics, and be hard to scale in high-dimensional models.
         </p>
@@ -347,7 +348,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Visualizing Variational inference (VI)</h2>
         <p>
           To make VI concrete, we'll intentionally use a variational family that does not match the true conjugate posterior.
@@ -373,7 +374,7 @@
             <h3>Coin-flip dataset</h3>
             <div class="control-grid">
               <label for="viData">Paste flips, or generate data.</label>
-              <textarea id="viData" rows="8">1</textarea>
+              <textarea id="viData" rows="3">1</textarea>
             </div>
 
             <h3 class="h3-section">Generate data</h3>
@@ -445,7 +446,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Concluding remarks</h2>
         <p>
           Bayesian inference is a framework for reasoning under uncertainty. You start with a prior, update it with a likelihood after observing data, and obtain a posterior that describes which parameter values are plausible after seeing the evidence. The main advantage is that uncertainty remains part of the answer rather than being discarded after fitting a single estimate.
