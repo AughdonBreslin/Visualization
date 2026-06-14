@@ -16,7 +16,10 @@
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <link rel="stylesheet" href="../styles/base.css">
   <link rel="stylesheet" href="../styles/visualizer.css">
+  <link rel="stylesheet" href="../styles/responsive.css">
   <script defer src="../js/distributions.js"></script>
+  <script defer src="../js/collapsible.js"></script>
+  <script defer src="../js/favicon.js"></script>
 </head>
 
 <body>
@@ -27,7 +30,8 @@
       <div class="home-link"><a href="../index.html">← Home</a></div>
     </header>
 
-    <div class="controls panel">
+    <div class="controls panel collapsible" data-open-mobile>
+      <h3>Controls</h3>
       <div class="global-range">
         <div class="row">
           <label for="xMin">X Min</label>
@@ -47,17 +51,17 @@
     </div>
 
     <div class="graphs">
-      <div class="graph-card panel" id="pdfCard">
-        <div class="graph-title">Probability Density Function (PDF)</div>
+      <div class="graph-card panel collapsible" data-open-mobile id="pdfCard">
+        <h3 class="graph-title">Probability Density Function (PDF)</h3>
         <div id="pdf"></div>
       </div>
-      <div class="graph-card panel" id="cdfCard">
-        <div class="graph-title">Cumulative Distribution Function (CDF)</div>
+      <div class="graph-card panel collapsible" data-open-mobile id="cdfCard">
+        <h3 class="graph-title">Cumulative Distribution Function (CDF)</h3>
         <div id="cdf"></div>
       </div>
     </div>
 
-    <div class="distributions-info panel">
+    <div class="distributions-info panel collapsible">
       <h2>Active Distributions</h2>
       <div id="distributions-details"></div>
     </div>

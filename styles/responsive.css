@@ -1,0 +1,137 @@
+/* responsive.css - shared responsive foundation (standardized breakpoints).
+ *
+ * Site-wide breakpoints:
+ *   tablet : max-width 1024px
+ *   phone  : max-width 640px
+ *   small  : max-width 400px
+ *
+ * Every rule lives inside a media/pointer query, so desktop layouts are
+ * untouched. Page-specific reflow stays in each page's own stylesheet; this
+ * file only carries the shared foundation. Width-based breakpoints mean a
+ * phone rotated to landscape simply crosses back to a wider layout, and any
+ * chart that redraws on resize enlarges to fill it.
+ */
+
+/* Media never forces the page wider than the viewport (kills sideways scroll). */
+img,
+svg,
+canvas,
+video {
+  max-width: 100%;
+}
+
+/* ...except MathJax equations, whose <svg> carries an explicit width AND height
+   as inline styles. Capping width alone (a plain rule cannot touch the inline
+   height) squished the equation. Inline math keeps its natural size; display
+   equations scale down proportionally to fit the screen - height:auto !important
+   overrides MathJax's inline height so the aspect ratio is preserved, giving the
+   full equation at a smaller size instead of a crammed, squished one. */
+mjx-container svg {
+  max-width: none;
+}
+
+/* Display equations ($$...$$) never widen the page: the container caps at the
+   available width and scrolls horizontally if the equation is wider. Inline
+   math (no display attribute) is untouched. Works regardless of wrapper. */
+mjx-container[display="true"] {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* --- Phone --- */
+@media (max-width: 640px) {
+  body {
+    padding: 12px;
+  }
+
+  h1 {
+    font-size: 1.85rem;
+  }
+
+  header {
+    padding: 18px 0;
+    margin-bottom: 12px;
+  }
+}
+
+/* --- Small phones --- */
+@media (max-width: 400px) {
+  body {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 1.55rem;
+  }
+}
+
+/* --- Touch devices (phones + tablets): comfortable tap targets --- */
+@media (pointer: coarse) {
+  button,
+  select,
+  input[type="number"] {
+    min-height: 44px;
+  }
+}
+
+/* --- Collapsible sections (phones only). A section marked .collapsible shows
+   only its heading until tapped, so a dense page reveals one thing at a time.
+   Desktop is untouched: these rules are gated to phone width, so bodies always
+   show and there is no toggle affordance above 640px. Wiring is in
+   js/collapsible.js. --- */
+@media (max-width: 640px) {
+  .collapsible > .collapsible-head {
+    /* Not display:flex - that would split the heading's inline text and its
+       inner <span> into separate flex items and drop the space between them. */
+    cursor: pointer;
+    position: relative;
+    padding: 10px 26px 10px 0;
+    user-select: none;
+  }
+
+  .collapsible > .collapsible-head::after {
+    content: "\25BE"; /* down triangle */
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.65;
+    transition: transform 160ms ease;
+  }
+
+  .collapsible:not(.open) > .collapsible-head::after {
+    transform: translateY(-50%) rotate(-90deg);
+  }
+
+  .collapsible:not(.open) > :not(.collapsible-head) {
+    display: none;
+  }
+}
+
+/* --- Compact controls on phones: two label+input pairs per row (a 4-column
+   grid that the flat label,input,label,input markup flows two-across), so
+   control panels take far less vertical space. Sliders and value readouts
+   span the full row. Applies to any .viz-controls control panel. --- */
+@media (max-width: 640px) {
+  .viz-controls .control-grid {
+    grid-template-columns: minmax(0, auto) minmax(56px, 1fr) minmax(0, auto) minmax(56px, 1fr);
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 8px;
+  }
+
+  .viz-controls .control-grid > label {
+    margin: 0;
+  }
+
+  .viz-controls .control-grid > input,
+  .viz-controls .control-grid > select {
+    width: 100%;
+  }
+
+  .viz-controls .control-grid > input[type="range"],
+  .viz-controls .control-grid > .small {
+    grid-column: 1 / -1;
+  }
+}

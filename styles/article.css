@@ -71,23 +71,57 @@
 	display: flex;
 	gap: 8px;
 	align-items: center;
+	flex-wrap: wrap;
+}
+
+/* Matched pair: equal min-width, single line, centered text. */
+.article .dataset-panel .load-row > #loadCsv,
+.article .dataset-panel .load-row > label[for="fileInput"] {
+	min-width: 8rem;
+	text-align: center;
+	white-space: nowrap;
 }
 
 .article .dataset-panel #fileInput {
 	display: none;
 }
 
+/* The file-upload label is pixel-identical to a <button> so Load / Upload read
+   as one consistent pair. */
 .article .dataset-panel label[for="fileInput"] {
-	background: rgba(255, 255, 255, 0.1);
-	padding: 6px 12px;
-	border-radius: 6px;
+	display: inline-block;
+	font: inherit;
+	font-size: 0.95rem;
+	font-weight: 600;
+	line-height: 1.2;
+	color: var(--text);
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	padding: 8px 14px;
+	border-radius: var(--radius-md);
 	cursor: pointer;
-	border: 1px solid rgba(255, 255, 255, 0.2);
+	transition: background 140ms ease, border-color 140ms ease;
 }
 
 .article .dataset-panel label[for="fileInput"]:hover {
-	background: rgba(255, 255, 255, 0.15);
-	border: 1px solid rgba(255, 255, 255, 0.25);
+	background: rgba(255, 255, 255, 0.14);
+	border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* Posterior query controls: a preset button + a "query field" pill that groups
+   the x* inputs with a primary (accent) Compute button. */
+.article .posterior-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px 12px;
+	margin-bottom: 4px;
+}
+
+.article .examples-hint {
+	margin-top: 6px;
+	opacity: 0.75;
+	font-size: 0.95rem;
 }
 
 /* Force key sections to use full available width */
@@ -114,11 +148,14 @@
 .article #example2x1,
 .article #example2x2 {
 	width: 6ch;
-	height: 1.25em;
+	/* Shorter than the button's text line so the inputs do not make the
+	   "Compute" button taller than the plain "Example" button. */
+	height: 1.1em;
 	padding: 0 0.35em;
 	margin: 0 2px;
 	font: inherit;
 	line-height: 1;
+	vertical-align: middle;
 	border-radius: 6px;
 }
 
@@ -159,4 +196,31 @@
 
 .article .difference-panel li {
 	margin: 6px 0;
+}
+
+/* Inline dataset notice, styled to match Fourier's .fourier-warning:
+   left amber bar, amber text; red variant for a hard error. */
+.article .dataset-warning {
+	margin-top: 8px;
+	padding: 6px 8px;
+	border-left: 3px solid #e0b341;
+	background: rgba(224, 179, 65, 0.10);
+	color: #f0c460;
+	font-size: 0.88rem;
+	line-height: 1.35;
+	border-radius: 2px;
+}
+
+.article .dataset-warning strong {
+	color: #f5d27e;
+}
+
+.article .dataset-warning.is-error {
+	border-left-color: #e06a6a;
+	background: rgba(224, 80, 80, 0.10);
+	color: #f0a0a0;
+}
+
+.article .dataset-warning.is-error strong {
+	color: #f5b0b0;
 }

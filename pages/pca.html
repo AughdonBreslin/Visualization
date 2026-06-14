@@ -29,9 +29,12 @@
   <link rel="stylesheet" href="../styles/base.css">
   <link rel="stylesheet" href="../styles/article.css">
   <link rel="stylesheet" href="../styles/pca.css">
+  <link rel="stylesheet" href="../styles/responsive.css">
 
   <script defer src="../js/formulas_layout.js"></script>
   <script defer src="../js/pca.js?v=20260508-1"></script>
+  <script defer src="../js/collapsible.js"></script>
+  <script defer src="../js/favicon.js"></script>
 </head>
 
 <body>
@@ -46,7 +49,7 @@
     </header>
 
     <main class="article-body">
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Overview</h2>
         <p>
           Principal Component Analysis (PCA) is a way to reorganize
@@ -62,7 +65,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>PCA and SVD</h2>
         <p>
           For centered data, PCA is most cleanly computed through the
@@ -86,7 +89,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Covariance eigendecomposition and PCA as a change of basis</h2>
         <p>
           Covariance measures how coordinates vary together, so we can
@@ -118,7 +121,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible" data-open-mobile>
         <h2>Visual Step Through</h2>
         <p>
           Generate a dataset, inspect the SVD of the data matrix $X$,
@@ -426,7 +429,7 @@
         
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Dimensionality reduction and reconstruction</h2>
         <p>
           After rotating into the principal basis, because PCA orders
@@ -445,7 +448,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Conclusion</h2>
         <p>
           PCA is ultimately a geometric and algebraic
