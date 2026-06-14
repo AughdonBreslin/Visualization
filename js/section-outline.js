@@ -29,6 +29,8 @@ export function normalizeLabel(text) {
   return String(text).replace(/\s+/g, ' ').trim();
 }
 
+function closeDrawer() {} // replaced in Task 4
+
 // ---- DOM build (skipped under node:test where document is undefined) ----
 
 function collectPanels(root) {
@@ -95,12 +97,61 @@ function buildNav(entries) {
   return { nav, btn, backdrop, panel, list, linkById };
 }
 
+const PHONE_MAX = 640; // matches collapsible.js breakpoint
+
+function isCollapsedPanel(panel) {
+  return panel.classList.contains('collapsible') && !panel.classList.contains('open');
+}
+
+function openIfCollapsed(panel) {
+  // Reuse collapsible.js: clicking its head toggles open (and fires resize +
+  // MathJax retypeset). Only click when actually collapsed to avoid closing it.
+  if (!isCollapsedPanel(panel)) return;
+  const head = panel.querySelector(':scope > .collapsible-head');
+  if (head) head.click();
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function scrollToPanel(panel) {
+  panel.scrollIntoView({
+    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+    block: 'start',
+  });
+}
+
+function navigateTo(id, byId) {
+  const panel = document.getElementById(id);
+  if (!panel) return;
+  openIfCollapsed(panel);
+  // Defer scroll one frame so a just-opened panel has its final height.
+  requestAnimationFrame(() => scrollToPanel(panel));
+  history.replaceState(null, '', `#${id}`);
+}
+
 function initSectionOutline() {
   const entries = collectPanels(document);
   if (entries.length < 2) return; // not worth an outline
   const ui = buildNav(entries);
   document.body.appendChild(ui.nav);
   document.body.classList.add('has-section-outline');
+
+  ui.list.addEventListener('click', (e) => {
+    const a = e.target.closest('a[data-target]');
+    if (!a) return;
+    e.preventDefault();
+    navigateTo(a.dataset.target, ui.linkById);
+    closeDrawer(ui); // defined in Task 4; safe no-op for now
+  });
+
+  // Deep link on load: open + scroll to the hashed panel after layout settles.
+  if (location.hash.length > 1) {
+    const id = decodeURIComponent(location.hash.slice(1));
+    requestAnimationFrame(() => navigateTo(id, ui.linkById));
+  }
+
   return { entries, ui };
 }
 
