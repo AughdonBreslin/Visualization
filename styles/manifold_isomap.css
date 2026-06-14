@@ -18,19 +18,23 @@
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   width: 72px; height: 72px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  padding-left: 4px; /* optical-center the triangle */
   color: #fff; background: rgba(18, 18, 18, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.28); cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 .mfi-bigplay::before {
   content: ""; width: 0; height: 0;
   border-style: solid; border-width: 13px 0 13px 22px;
   border-color: transparent transparent transparent currentColor;
+  /* The triangle's visual mass sits left of its box, so nudge it right to sit
+     centered in the circle. */
+  margin-left: 4px;
 }
 .mfi-bigplay:hover { background: rgba(40, 40, 40, 0.7); }
+/* Fade out in place when playback starts (no scale/translate, so it does not
+   drift down or sideways while disappearing). */
 .mfi-stage.is-playing .mfi-bigplay {
-  opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(0.8);
+  opacity: 0; pointer-events: none;
 }
 
 /* Bottom control bar with a gradient scrim for legibility over any frame. */
