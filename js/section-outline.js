@@ -28,3 +28,90 @@ export function uniqueId(base, used) {
 export function normalizeLabel(text) {
   return String(text).replace(/\s+/g, ' ').trim();
 }
+
+// ---- DOM build (skipped under node:test where document is undefined) ----
+
+function collectPanels(root) {
+  const panels = Array.from(root.querySelectorAll('.panel')).filter(
+    (el) => !el.parentElement || !el.parentElement.closest('.panel')
+  );
+  const used = new Set(Array.from(root.querySelectorAll('[id]')).map((el) => el.id));
+  const entries = [];
+  for (const panel of panels) {
+    const heading = panel.querySelector(':scope > h2, :scope > h3');
+    if (!heading) continue;
+    const label = normalizeLabel(heading.textContent);
+    if (!label) continue;
+    if (panel.id) used.add(panel.id);
+    else panel.id = uniqueId(slugify(label), used);
+    panel.style.scrollMarginTop = 'var(--outline-scroll-offset, 16px)';
+    entries.push({ id: panel.id, label, panel });
+  }
+  return entries;
+}
+
+function buildNav(entries) {
+  const nav = document.createElement('nav');
+  nav.className = 'section-outline';
+  nav.setAttribute('aria-label', 'On this page');
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'section-outline-toggle';
+  btn.setAttribute('aria-label', 'Open section outline');
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-controls', 'section-outline-panel');
+  btn.innerHTML = '<span class="section-outline-bars" aria-hidden="true"></span>';
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'section-outline-backdrop';
+  backdrop.hidden = true;
+
+  const panel = document.createElement('div');
+  panel.className = 'section-outline-panel';
+  panel.id = 'section-outline-panel';
+
+  const heading = document.createElement('div');
+  heading.className = 'section-outline-heading';
+  heading.textContent = 'On this page';
+  panel.appendChild(heading);
+
+  const list = document.createElement('ul');
+  list.className = 'section-outline-list';
+  const linkById = new Map();
+  for (const entry of entries) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = `#${entry.id}`;
+    a.textContent = entry.label;
+    a.dataset.target = entry.id;
+    li.appendChild(a);
+    list.appendChild(li);
+    linkById.set(entry.id, a);
+  }
+  panel.appendChild(list);
+
+  nav.append(btn, backdrop, panel);
+  return { nav, btn, backdrop, panel, list, linkById };
+}
+
+function initSectionOutline() {
+  const entries = collectPanels(document);
+  if (entries.length < 2) return; // not worth an outline
+  const ui = buildNav(entries);
+  document.body.appendChild(ui.nav);
+  document.body.classList.add('has-section-outline');
+  return { entries, ui };
+}
+
+function ready(fn) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fn);
+  } else {
+    fn();
+  }
+}
+
+if (typeof document !== 'undefined') {
+  ready(initSectionOutline);
+}
