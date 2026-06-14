@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="../styles/manifold.css">
   <link rel="stylesheet" href="../styles/manifold_isomap.css">
   <link rel="stylesheet" href="../styles/responsive.css">
+  <link rel="stylesheet" href="../styles/section-outline.css">
   <script defer src="https://d3js.org/d3.v7.min.js"></script>
   <script>
     window.MathJax = {
@@ -25,6 +26,8 @@
   <script type="module" src="../js/manifold/main.js"></script>
   <script type="module" src="../js/manifold_isomap.js"></script>
   <script defer src="../js/favicon.js"></script>
+  <script defer src="../js/collapsible.js"></script>
+  <script type="module" src="../js/section-outline.js"></script>
 </head>
 <body>
   <div class="container article manifold">
@@ -34,7 +37,7 @@
       <div class="home-link"><a href="../index.html">← Home</a></div>
     </header>
     <main class="article-body">
-      <section class="panel mf-isomap">
+      <section class="panel mf-isomap collapsible">
         <h2>Algorithm walkthrough</h2>
         <p class="mfi-intro">A guided, animated walk through a manifold-learning algorithm on a
           chosen dataset. Pick an algorithm and a dataset; the same algorithms run on your own
@@ -88,7 +91,7 @@
           </div>
         </div>
       </section>
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Dataset</h2>
         <div class="mf-controls-row">
           <div class="mf-control">
@@ -116,7 +119,7 @@
         <input id="mfCsvInput" type="file" accept=".csv,text/csv" style="display:none" />
         <div id="mfCsvLabel" class="mf-csv-name"></div>
       </section>
-      <section class="panel sp-frame" id="mfAlgoStepPanel">
+      <section class="panel sp-frame collapsible" id="mfAlgoStepPanel">
         <h2>Algorithms</h2>
         <div class="sp-panels">
           <div class="mf-algo-card sp-panel">
@@ -142,7 +145,7 @@
           <button class="step-next" type="button">Next &#9654;&#xFE0E;</button>
         </div>
       </section>
-      <section class="panel">
+      <section class="panel collapsible" data-open-mobile>
         <h2>Visualization</h2>
         <div class="mf-viz-row">
           <div class="mf-viz-card">
@@ -155,14 +158,14 @@
           </div>
         </div>
       </section>
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Step notes</h2>
         <div class="mf-ifw-row">
           <div class="mf-ifw-card" id="mfLeftIfw"></div>
           <div class="mf-ifw-card" id="mfRightIfw"></div>
         </div>
       </section>
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Full pseudocode</h2>
         <div class="mf-pseudo-row">
           <div class="mf-pseudo-card" id="mfLeftPseudo"></div>
