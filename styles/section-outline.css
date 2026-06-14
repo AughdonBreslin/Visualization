@@ -1,11 +1,13 @@
 /* styles/section-outline.css
  * On-page section outline. Desktop (>=1100px): a fixed rail in a reserved left
  * column. Narrow/phone (<1100px): a hamburger button opening a slide-in drawer.
+ * Colors reuse the site's dark-theme tokens from base.css.
  */
 :root {
   --outline-rail-w: 160px;
   --outline-rail-gap: 16px;
   --outline-scroll-offset: 16px;
+  --outline-accent: #6ea8fe;
 }
 
 .section-outline-list { list-style: none; margin: 0; padding: 0; }
@@ -13,24 +15,27 @@
   display: block;
   padding: 6px 10px;
   border-left: 2px solid transparent;
-  color: #5a6472;
+  color: rgba(255, 255, 255, 0.6);
   text-decoration: none;
   font-size: 0.9rem;
   line-height: 1.3;
-  border-radius: 0 4px 4px 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
-.section-outline-list a:hover { background: rgba(0, 0, 0, 0.05); color: #1f2933; }
+.section-outline-list a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
 .section-outline-list a.active {
-  color: #1f2933;
-  border-left-color: #3b82f6;
-  background: rgba(59, 130, 246, 0.08);
+  color: #fff;
+  border-left-color: var(--outline-accent);
+  background: rgba(110, 168, 254, 0.16);
   font-weight: 600;
 }
 .section-outline-heading {
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #8a94a6;
+  color: rgba(255, 255, 255, 0.45);
   padding: 0 10px 8px;
 }
 
@@ -65,11 +70,11 @@
     height: 40px;
     display: grid;
     place-items: center;
-    background: #ffffff;
-    border: 1px solid #d4d9e0;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   }
   .section-outline-bars,
   .section-outline-bars::before,
@@ -78,7 +83,7 @@
     display: block;
     width: 18px;
     height: 2px;
-    background: #1f2933;
+    background: var(--text);
     position: relative;
   }
   .section-outline-bars::before { position: absolute; top: -6px; }
@@ -88,7 +93,7 @@
     position: fixed;
     inset: 0;
     z-index: 1000;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.5);
   }
   .section-outline-panel {
     position: fixed;
@@ -101,8 +106,9 @@
     overflow-y: auto;
     padding: 56px 16px 24px;
     box-sizing: border-box;
-    background: #ffffff;
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.18);
+    background: var(--bg);
+    border-right: 1px solid var(--border-light);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.5);
     transform: translateX(-100%);
     transition: transform 0.22s ease;
   }
