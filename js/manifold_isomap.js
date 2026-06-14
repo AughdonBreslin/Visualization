@@ -623,8 +623,6 @@ const nextBtn = document.getElementById('mfiNext');
 const speedSel = document.getElementById('mfiSpeed');
 const fullBtn = document.getElementById('mfiFull');
 const coarse = window.matchMedia('(pointer: coarse)').matches;
-const ICON_PLAY = '▶';   // black right-pointing triangle
-const ICON_PAUSE = '⏸';  // double vertical bar
 let current = -1;
 
 function stepIndexAt(t) {
@@ -852,15 +850,15 @@ bigPlay.addEventListener('click', togglePlay);
 // On a mouse, clicking the frame toggles play; on touch it toggles the controls.
 video.addEventListener('click', () => { if (coarse) toggleUi(); else togglePlay(); });
 video.addEventListener('play', () => {
-  playBtn.textContent = ICON_PAUSE; playBtn.setAttribute('aria-label', 'Pause');
+  playBtn.setAttribute('aria-label', 'Pause');
   stage.classList.add('is-playing'); scheduleHide();
 });
 video.addEventListener('pause', () => {
-  playBtn.textContent = ICON_PLAY; playBtn.setAttribute('aria-label', 'Play');
+  playBtn.setAttribute('aria-label', 'Play');
   stage.classList.remove('is-playing'); showUi();
 });
 video.addEventListener('ended', () => {
-  playBtn.textContent = ICON_PLAY; playBtn.setAttribute('aria-label', 'Play');
+  playBtn.setAttribute('aria-label', 'Play');
   stage.classList.remove('is-playing'); showUi();
 });
 
@@ -916,7 +914,7 @@ function exitFullscreen() {
 fullBtn.addEventListener('click', () => { if (inFullscreen()) exitFullscreen(); else enterFullscreen(); });
 function syncFullscreenBtn() {
   const fs = inFullscreen();
-  fullBtn.textContent = fs ? '⤢' : '⛶';
+  fullBtn.classList.toggle('is-fs', fs);
   fullBtn.setAttribute('aria-label', fs ? 'Exit fullscreen' : 'Fullscreen');
   if (!fs && screen.orientation && screen.orientation.unlock) {
     try { screen.orientation.unlock(); } catch (_) {}
