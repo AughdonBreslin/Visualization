@@ -24,11 +24,18 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+html {
+  background: var(--bg);
+}
+
 body {
   background: var(--bg);
   color: var(--text);
-  height: 100vh;
-  max-height: 100dvh;
+  /* min-height (not a fixed height) so the body grows with its content and its
+     dark background covers the whole scroll length; a fixed 100vh painted only
+     the first screen and left the rest showing the lighter canvas underneath. */
+  min-height: 100vh;
+  min-height: 100dvh;
   padding: 20px;
   overflow-x: auto;
 }
