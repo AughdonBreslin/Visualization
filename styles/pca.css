@@ -13,6 +13,16 @@
   overflow: hidden;
 }
 
+/* Hand touch gestures to Plotly's 3D controls (one-finger rotate, two-finger
+   pinch-zoom) instead of letting the browser scroll or page-zoom over the plot
+   on mobile. Without this the drag never rotates the plot, so the paired plot
+   never syncs, and a pinch zooms the page rather than the scene. */
+.pca .pca-viz,
+.pca .pca-viz .gl-container,
+.pca .pca-viz canvas {
+  touch-action: none;
+}
+
 .pca .viz-row {
   gap: 20px;
   flex-wrap: nowrap;
