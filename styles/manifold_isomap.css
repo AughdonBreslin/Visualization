@@ -18,10 +18,15 @@
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   width: 72px; height: 72px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; line-height: 1; padding-left: 4px; /* optical-center the triangle */
+  padding-left: 4px; /* optical-center the triangle */
   color: #fff; background: rgba(18, 18, 18, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.28); cursor: pointer;
   transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.mfi-bigplay::before {
+  content: ""; width: 0; height: 0;
+  border-style: solid; border-width: 13px 0 13px 22px;
+  border-color: transparent transparent transparent currentColor;
 }
 .mfi-bigplay:hover { background: rgba(40, 40, 40, 0.7); }
 .mfi-stage.is-playing .mfi-bigplay {
@@ -77,10 +82,48 @@
 .mfi-ctrl:hover { background: rgba(255, 255, 255, 0.16); }
 .mfi-ctrl:focus-visible { outline: 2px solid rgba(74, 163, 255, 0.7); outline-offset: 1px; }
 .mfi-ctrl-icon {
-  font-size: 17px; min-width: 32px; text-align: center;
-  /* Resolve media glyphs (pause, fullscreen) against whatever symbol font the
-     platform ships before falling back to the body font. */
-  font-family: "Segoe UI Symbol", "Noto Sans Symbols2", "Apple Symbols", "Symbola", sans-serif;
+  min-width: 32px; min-height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+/* Control glyphs are drawn in CSS (shapes / masked SVG) rather than unicode
+   symbols, which iOS renders as color emoji. currentColor keeps them in sync
+   with the button's text color and hover state. */
+.mfi-ico-playpause { gap: 3px; }
+.mfi-ico-playpause::before {
+  content: ""; width: 0; height: 0;
+  border-style: solid; border-width: 7px 0 7px 12px;
+  border-color: transparent transparent transparent currentColor;
+}
+.mfi-ico-playpause::after { content: ""; display: none; }
+.mfi-stage.is-playing .mfi-ico-playpause::before,
+.mfi-stage.is-playing .mfi-ico-playpause::after {
+  display: block; width: 4px; height: 15px; border: 0; background: currentColor;
+}
+
+.mfi-ico-prev { gap: 2px; }
+.mfi-ico-prev::before { content: ""; width: 2.5px; height: 13px; background: currentColor; }
+.mfi-ico-prev::after {
+  content: ""; width: 0; height: 0; border-style: solid;
+  border-width: 6.5px 10px 6.5px 0; border-color: transparent currentColor transparent transparent;
+}
+.mfi-ico-next { gap: 2px; }
+.mfi-ico-next::before {
+  content: ""; width: 0; height: 0; border-style: solid;
+  border-width: 6.5px 0 6.5px 10px; border-color: transparent transparent transparent currentColor;
+}
+.mfi-ico-next::after { content: ""; width: 2.5px; height: 13px; background: currentColor; }
+
+.mfi-ico-full {
+  --mfi-full-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z'/%3E%3C/svg%3E");
+}
+.mfi-ico-full.is-fs {
+  --mfi-full-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z'/%3E%3C/svg%3E");
+}
+.mfi-ico-full::before {
+  content: ""; width: 17px; height: 17px; background: currentColor;
+  -webkit-mask: var(--mfi-full-mask) center / contain no-repeat;
+          mask: var(--mfi-full-mask) center / contain no-repeat;
 }
 .mfi-time {
   color: rgba(255, 255, 255, 0.85); font-size: 0.82rem;
