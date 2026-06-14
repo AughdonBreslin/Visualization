@@ -19,7 +19,11 @@
   width: 72px; height: 72px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   color: #fff; background: rgba(18, 18, 18, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.28); cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  /* Decorative only: taps pass through to the video so a press never splits
+     between the button (pointerdown) and the frame (pointerup), which would
+     send the click to their common ancestor and start nothing. */
+  pointer-events: none;
   transition: opacity 0.2s ease;
 }
 .mfi-bigplay::before {
