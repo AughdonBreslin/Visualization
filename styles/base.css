@@ -171,16 +171,33 @@ option {
 }
 
 button {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 8px;
+  /* Use the site font (browsers default <button> to a smaller font, which made
+     buttons inconsistent with label-styled controls). */
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
   cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, transform 80ms ease;
 }
 
 button:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:focus-visible {
+  outline: 2px solid rgba(74, 163, 255, 0.6);
+  outline-offset: 2px;
 }
 
 .row {
@@ -291,6 +308,14 @@ button:hover {
   .formulas {
     flex-direction: column;
   }
+  /* In the column layout, the flex-basis:0 from `.formulas > .formula` (meant
+     for equal-width columns) would zero each box's HEIGHT (now the main axis),
+     collapsing it to its padding and clipping the equation. Use flex-basis auto
+     (size to content height) while still allowing shrink, so a wide equation
+     contracts and scrolls inside its box (overflow-x:auto) instead of overflowing. */
+  .formulas > .formula {
+    flex: 0 1 auto;
+  }
 }
 
 .calc-output {
@@ -381,4 +406,44 @@ button:hover {
   .viz-row {
     flex-direction: column;
   }
+}
+
+/* --- Tabbed control panels (shared component; wired by js/tabs.js) --- */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 12px;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 650;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.tab:hover {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tab[aria-selected="true"] {
+  color: #fff;
+  border-bottom-color: #4aa3ff;
+}
+
+.tab:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.tab-panel[hidden] {
+  display: none;
 }

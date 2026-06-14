@@ -1,23 +1,144 @@
 /* manifold_isomap.css - Isomap explainer player */
 .mf-isomap.container { max-width: 1100px; }
-.mfi-player { display: flex; flex-direction: column; gap: 12px; }
-.mfi-video {
-  width: 100%; aspect-ratio: 16 / 9; background: #000;
-  border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);
+.mfi-player { display: flex; flex-direction: column; }
+.mfi-fs-wrap { display: flex; flex-direction: column; gap: 12px; }
+.mfi-fs-wrap > .mfi-transcript { margin-top: 4px; }
+
+/* Stage: the video plus its overlaid controls share one positioned box so the
+   control bar floats inside the frame (in-video controls). */
+.mfi-stage {
+  position: relative; line-height: 0; background: #000;
+  border-radius: var(--radius-md); overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
-.mfi-controls { display: flex; align-items: center; gap: 10px; }
-.mfi-controls button {
-  font: inherit; padding: 8px 14px; border-radius: var(--radius-sm);
-  border: 1px solid var(--border-light); background: rgba(255, 255, 255, 0.05);
-  color: var(--text); cursor: pointer;
+.mfi-video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #000; }
+
+/* Center play affordance, shown only while paused. */
+.mfi-bigplay {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 72px; height: 72px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; line-height: 1; padding-left: 4px; /* optical-center the triangle */
+  color: #fff; background: rgba(18, 18, 18, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.28); cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
-.mfi-controls button:hover { background: rgba(255, 255, 255, 0.1); }
-.mfi-scrub { flex: 1; }
-.mfi-speed-label { display: flex; align-items: center; gap: 6px;
-  color: var(--text-muted); font-size: 0.85rem; white-space: nowrap; }
-.mfi-speed { font: inherit; font-size: 0.85rem; padding: 5px 8px;
-  border-radius: var(--radius-sm); border: 1px solid var(--border-light);
-  background: rgba(255, 255, 255, 0.05); color: var(--text); cursor: pointer; }
+.mfi-bigplay:hover { background: rgba(40, 40, 40, 0.7); }
+.mfi-stage.is-playing .mfi-bigplay {
+  opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(0.8);
+}
+
+/* Bottom control bar with a gradient scrim for legibility over any frame. */
+.mfi-overlay {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 6px 12px 8px; line-height: normal;
+  background: linear-gradient(to top,
+    rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.42) 55%, rgba(0, 0, 0, 0) 100%);
+  opacity: 1; transition: opacity 0.25s ease;
+}
+.mfi-stage.is-hidden-ui .mfi-overlay { opacity: 0; pointer-events: none; }
+
+/* Progress bar: a track with a filled portion, a draggable thumb (::after),
+   and section-boundary stamps from the step timeline. */
+.mfi-progress {
+  position: relative; padding: 9px 0; cursor: pointer; touch-action: none;
+  --mfi-thumb: 0%;
+}
+.mfi-progress:focus-visible { outline: none; }
+.mfi-progress-track {
+  position: relative; height: 5px; border-radius: 3px;
+  background: rgba(255, 255, 255, 0.26);
+}
+.mfi-progress-fill {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 0;
+  border-radius: 3px; background: var(--accent, #4aa3ff);
+}
+.mfi-progress-marks { position: absolute; inset: 0; pointer-events: none; }
+.mfi-progress-mark {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 2px; height: 11px; border-radius: 1px;
+  background: rgba(255, 255, 255, 0.9); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45);
+}
+.mfi-progress::after {
+  content: ''; position: absolute; top: 50%; left: var(--mfi-thumb);
+  width: 13px; height: 13px; border-radius: 50%; background: #fff;
+  transform: translate(-50%, -50%); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+  opacity: 0; transition: opacity 0.15s ease;
+}
+.mfi-progress:hover::after,
+.mfi-progress:focus-visible::after { opacity: 1; }
+
+.mfi-controls { display: flex; align-items: center; gap: 4px; }
+.mfi-ctrl {
+  font: inherit; color: #fff; background: transparent; border: none;
+  cursor: pointer; padding: 4px 6px; border-radius: 6px; line-height: 1;
+}
+.mfi-ctrl:hover { background: rgba(255, 255, 255, 0.16); }
+.mfi-ctrl:focus-visible { outline: 2px solid rgba(74, 163, 255, 0.7); outline-offset: 1px; }
+.mfi-ctrl-icon {
+  font-size: 17px; min-width: 32px; text-align: center;
+  /* Resolve media glyphs (pause, fullscreen) against whatever symbol font the
+     platform ships before falling back to the body font. */
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols2", "Apple Symbols", "Symbola", sans-serif;
+}
+.mfi-time {
+  color: rgba(255, 255, 255, 0.85); font-size: 0.82rem;
+  font-variant-numeric: tabular-nums; white-space: nowrap; margin-left: 4px;
+}
+.mfi-controls-spacer { flex: 1; }
+.mfi-speed-label {
+  display: flex; align-items: center; gap: 6px;
+  color: rgba(255, 255, 255, 0.82); font-size: 0.8rem; white-space: nowrap;
+}
+.mfi-speed {
+  font: inherit; font-size: 0.8rem; padding: 3px 6px; border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.28); background: rgba(0, 0, 0, 0.45);
+  color: #fff; cursor: pointer;
+}
+
+/* Native fullscreen: the wrapper fills the screen and becomes a vertical
+   scroller. The video is one full screen; swiping down snaps to the transcript
+   below it, which is the only other thing shown in fullscreen. */
+.mfi-fs-wrap:fullscreen,
+.mfi-fs-wrap:-webkit-full-screen {
+  width: 100vw; height: 100vh; gap: 0; background: #000;
+  overflow-x: hidden; overflow-y: auto;
+  scroll-snap-type: y proximity; -webkit-overflow-scrolling: touch;
+}
+.mfi-fs-wrap:fullscreen .mfi-stage {
+  flex: none; width: 100vw; height: 100vh;
+  border: none; border-radius: 0; scroll-snap-align: start;
+}
+.mfi-fs-wrap:fullscreen .mfi-video {
+  width: 100%; height: 100%; aspect-ratio: auto; object-fit: contain;
+}
+/* In fullscreen only the transcript accompanies the video; steps and the
+   dataset note are hidden so the swipe-down screen is just the explanation. */
+.mfi-fs-wrap:fullscreen .mfi-steps,
+.mfi-fs-wrap:fullscreen .mfi-datasetnote { display: none; }
+.mfi-fs-wrap:fullscreen .mfi-transcript {
+  flex: none; min-height: 100vh; margin: 0; border-radius: 0;
+  padding: 5vh max(24px, 6vw); background: #0c0c0c;
+  scroll-snap-align: start; overflow-y: auto;
+}
+
+/* Swipe-down affordance, shown over the video only in fullscreen and faded
+   once the viewer has scrolled toward the transcript. */
+.mfi-fs-hint { display: none; }
+.mfi-fs-wrap:fullscreen .mfi-fs-hint {
+  display: block; position: absolute; left: 50%; bottom: 58px;
+  transform: translateX(-50%); pointer-events: none;
+  color: rgba(255, 255, 255, 0.88); font-size: 0.8rem; white-space: nowrap;
+  padding: 4px 12px; border-radius: 12px; background: rgba(0, 0, 0, 0.45);
+  transition: opacity 0.3s ease; animation: mfiHintBob 1.7s ease-in-out infinite;
+}
+.mfi-fs-wrap:fullscreen.is-scrolled .mfi-fs-hint { opacity: 0; }
+@keyframes mfiHintBob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(4px); }
+}
+
 .mfi-steps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0; }
 .mfi-steps li {
   padding: 6px 10px; border-radius: var(--radius-sm); cursor: pointer;
@@ -42,3 +163,11 @@
   background: rgba(255, 255, 255, 0.05); color: var(--text); cursor: pointer; }
 .mfi-pick-sel:disabled { opacity: 0.5; cursor: not-allowed; }
 .mfi-datasetnote:not(:empty) { margin-top: 8px; color: var(--text-muted); font-size: 0.85rem; }
+
+/* Tighten the control bar on narrow screens: drop the "Speed" word and shrink gaps. */
+@media (max-width: 560px) {
+  .mfi-overlay { padding: 4px 8px 6px; }
+  .mfi-speed-text { display: none; }
+  .mfi-time { font-size: 0.76rem; margin-left: 2px; }
+  .mfi-ctrl-icon { min-width: 30px; }
+}

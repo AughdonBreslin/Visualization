@@ -38,6 +38,10 @@
 
 .regularization .metrics-table {
   padding: 10px;
+  /* Wide stat tables (e.g. Lowest Testing MSE) scroll inside the card instead
+     of pushing the whole page sideways on narrow screens. */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .regularization table.metric-table {
@@ -219,5 +223,88 @@
 .regularization .page-link:active,
 .regularization .page-link:focus {
   text-decoration: none;
+}
+
+/* --- Tabbed control panel (Data / Curves / Function Params) --- */
+.regularization .viz-controls .tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 12px;
+}
+
+.regularization .viz-controls .tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 650;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.regularization .viz-controls .tab:hover {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.regularization .viz-controls .tab[aria-selected="true"] {
+  color: #fff;
+  border-bottom-color: #4aa3ff;
+}
+
+.regularization .viz-controls .tab:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.regularization .viz-controls .tab-panel[hidden] {
+  display: none;
+}
+
+/* --- Responsive (phone): side-by-side panels go full width so a 300px
+   min-width never overflows a narrow screen. Charts (width:100%) refit, and
+   redraw on resize, so rotating to landscape re-widens them automatically. --- */
+@media (max-width: 640px) {
+  .regularization .reg-row,
+  .regularization .bv-row {
+    gap: 12px;
+  }
+
+  .regularization .metrics,
+  .regularization .coeffs,
+  .regularization .bv-panel {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+
+  /* Compact controls: two label+input pairs per row (4-col grid: the flat
+     label,input,label,input markup flows two controls across), so the groups
+     take far less vertical space on a phone. */
+  .regularization .control-grid {
+    grid-template-columns: minmax(0, auto) minmax(56px, 1fr) minmax(0, auto) minmax(56px, 1fr);
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 8px;
+  }
+
+  .regularization .control-grid > label {
+    margin: 0;
+  }
+
+  .regularization .control-grid > input,
+  .regularization .control-grid > select {
+    width: 100%;
+  }
+
+  /* The regularization slider, its label, and the value readout span the row. */
+  .regularization .control-grid > label[for="lambda"],
+  .regularization .control-grid > input[type="range"],
+  .regularization .control-grid > .small {
+    grid-column: 1 / -1;
+  }
 }
 

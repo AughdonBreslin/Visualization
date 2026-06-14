@@ -18,9 +18,12 @@
   <link rel="stylesheet" href="../styles/base.css">
   <link rel="stylesheet" href="../styles/article.css">
   <link rel="stylesheet" href="../styles/estimation.css">
+  <link rel="stylesheet" href="../styles/responsive.css">
 
   <script defer src="../js/formulas_layout.js"></script>
   <script defer src="../js/estimation_bootstrap.js"></script>
+  <script defer src="../js/collapsible.js"></script>
+  <script defer src="../js/tabs.js"></script>
 </head>
 
 <body>
@@ -32,7 +35,7 @@
     </header>
 
     <main class="article-body">
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Overview</h2>
         <p>
           Estimation is about using data $\mathcal{D}$ to infer something unknown: a parameter $\theta$, a function $f$, or a prediction rule.
@@ -60,7 +63,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Bias and Variance</h2>
         <p>
           Treat an estimator as a random variable (because it depends on random data). Two core quantities are:
@@ -82,7 +85,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Determining an unbiased estimator</h2>
         <p>
           Let $X_1,\dots,X_n$ be i.i.d. Bernoulli($p$), i.e., $\mathbb{P}(X_i=1)=p$ and $\mathbb{P}(X_i=0)=1-p$.
@@ -105,7 +108,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Standard error</h2>
         <p>
           The standard error is the standard deviation of the estimator:
@@ -133,7 +136,7 @@
         </p>
       </section>
 
-      <section class="panel" id="bootstrapCI">
+      <section class="panel collapsible" id="bootstrapCI">
         <h2>Bootstrap confidence interval </h2>
         <p>
           The initial sample of data is just one of many possible samples we could have drawn from the data-generating process, and only gives us one realization of the estimator $\hat\theta$.
@@ -164,41 +167,51 @@
           </div>
 
           <aside class="viz-controls">
-            <h3>Controls</h3>
-            <div class="control-grid">
-              <label for="bootStat">Statistic</label>
-              <select id="bootStat">
-                <option value="mean" selected>Mean</option>
-                <option value="median">Median</option>
-              </select>
+            <div class="tabs" role="tablist" aria-label="Bootstrap controls">
+              <button class="tab active" type="button" data-tab="sample">Sample</button>
+              <button class="tab" type="button" data-tab="population">Population</button>
+            </div>
 
-              <label for="bootN">Sample size (n)</label>
-              <input id="bootN" type="number" min="5" max="500" step="1" value="40" />
+            <div class="tab-panel" data-panel="sample" role="tabpanel">
+              <div class="control-grid">
+                <label for="bootStat">Statistic</label>
+                <select id="bootStat">
+                  <option value="mean" selected>Mean</option>
+                  <option value="median">Median</option>
+                </select>
 
-              <label for="bootB">Bootstrap reps (B)</label>
-              <input id="bootB" type="number" min="100" max="20000" step="100" value="2000" />
+                <label for="bootN">Sample size (n)</label>
+                <input id="bootN" type="number" min="5" max="500" step="1" value="40" />
 
-              <label for="bootLevel">Confidence level</label>
-              <select id="bootLevel">
-                <option value="0.90">90%</option>
-                <option value="0.95" selected>95%</option>
-                <option value="0.99">99%</option>
-              </select>
+                <label for="bootB">Bootstrap reps (B)</label>
+                <input id="bootB" type="number" min="100" max="20000" step="100" value="2000" />
 
-              <label for="bootMu">Population μ</label>
-              <input id="bootMu" type="number" min="-10" max="10" step="0.1" value="0" />
+                <label for="bootLevel">Confidence level</label>
+                <select id="bootLevel">
+                  <option value="0.90">90%</option>
+                  <option value="0.95" selected>95%</option>
+                  <option value="0.99">99%</option>
+                </select>
+              </div>
+            </div>
 
-              <label for="bootSigma">Population σ</label>
-              <input id="bootSigma" type="number" min="0.05" max="10" step="0.05" value="1" />
+            <div class="tab-panel" data-panel="population" role="tabpanel" hidden>
+              <div class="control-grid">
+                <label for="bootMu">Population μ</label>
+                <input id="bootMu" type="number" min="-10" max="10" step="0.1" value="0" />
 
-              <label for="bootSeed">Seed</label>
-              <input id="bootSeed" type="number" step="1" value="7" />
+                <label for="bootSigma">Population σ</label>
+                <input id="bootSigma" type="number" min="0.05" max="10" step="0.05" value="1" />
+
+                <label for="bootSeed">Seed</label>
+                <input id="bootSeed" type="number" step="1" value="7" />
+              </div>
             </div>
           </aside>
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Mean squared error (MSE) and minimizing it</h2>
         <p>
           A common way to evaluate an estimator is by its mean squared error.
@@ -230,7 +243,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Function estimation: bias-variance and prediction error</h2>
         <p>
           For regression, we often care about prediction error at an input $x$.
@@ -247,7 +260,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Consistency</h2>
         <p>
           An estimator is consistent if it converges to the truth as the sample size grows.
@@ -260,7 +273,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Maximum likelihood estimation (MLE)</h2>
         <p>
           If we assume a probabilistic model $p_\theta(x)$ for the data, the likelihood $L(\theta)$ of a dataset $\mathcal{D}=\{x_i\}_{i=1}^n$ is
@@ -277,7 +290,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Conditional log-likelihood (discriminative objective)</h2>
         <p>
           In supervised learning we often model $p_\theta(y\mid x)$ directly.
@@ -290,7 +303,7 @@
         </p>
       </section>
 
-      <section class="panel">
+      <section class="panel collapsible">
         <h2>Conditional log-likelihood vs. mean squared error</h2>
         <p>
           Both are valid training objectives, but they encode different assumptions. MLE assumes a full generative model for the data, while conditional log-likelihood only models the conditional distribution of $Y$ given $X$.

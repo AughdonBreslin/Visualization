@@ -137,7 +137,8 @@
 
 .visualizer .graph-title {
 	text-align: center;
-	margin-bottom: 8px;
+	margin: 0 0 8px;
+	font-size: 1rem;
 	font-weight: 700;
 }
 
@@ -298,6 +299,7 @@
 
 .visualizer .distribution-detail .formula {
 	font-family: "Computer Modern", serif;
+	overflow-x: auto;
 }
 
 .visualizer .distribution-detail .properties {
@@ -311,6 +313,9 @@
 	background: rgba(0, 0, 0, 0.4);
 	padding: 8px 12px;
 	border-radius: 6px;
+	/* Wide variance/mean formulas (e.g. mixtures) scroll within the box
+	   instead of running off the side of the screen. */
+	overflow-x: auto;
 }
 
 .visualizer .distribution-detail .use-cases {

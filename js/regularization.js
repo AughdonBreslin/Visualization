@@ -489,10 +489,12 @@
         const svg = container.append("svg").attr("class", "reg-svg");
         const gMain = svg.append("g");
 
+        // Draw order = stacking order. Sample points sit at the bottom; the
+        // true function and the fitted curves render on top of the points.
         const gAxes = gMain.append("g").attr("class", "axes");
+        const gPoints = gMain.append("g").attr("class", "points");
         const gTruth = gMain.append("path").attr("class", "truth");
         const gLines = gMain.append("g").attr("class", "lines");
-        const gPoints = gMain.append("g").attr("class", "points");
 
         // coefficient svg
         const coefContainer = d3.select(el.coefViz);
@@ -1479,7 +1481,7 @@
 
             if (!bv.cached) {
                 if (bv.dirty) {
-                    renderBvEmpty("Press “Recompute sweep”");
+                    renderBvEmpty("Press the “Recompute sweep” button below");
                 }
                 return;
             }
@@ -1914,6 +1916,19 @@
             });
         }
 
+        // On mobile, expanding the collapsed Bias-Variance section starts the
+        // (expensive) sweep automatically, so results appear without the user
+        // also having to press the button below.
+        if (bv.enabled && el.bvRecompute) {
+            const bvSection = el.bvRecompute.closest(".collapsible");
+            if (bvSection) {
+                bvSection.addEventListener("collapsible:open", () => {
+                    const phone = window.matchMedia("(max-width: 640px)").matches;
+                    if (phone && !bv.computing && !bv.cached) el.bvRecompute.click();
+                });
+            }
+        }
+
         window.addEventListener("resize", () => rerender());
 
         // initial
@@ -1922,7 +1937,7 @@
         if (bv.enabled) {
             setBvBusy(false);
             setBvStatus("Press “Recompute sweep” to calculate.");
-            renderBvEmpty("Press “Recompute sweep”");
+            renderBvEmpty("Press the “Recompute sweep” button below");
         }
         rerender();
     }

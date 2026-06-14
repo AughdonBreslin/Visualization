@@ -207,8 +207,19 @@
 
 /* Responsive */
 @media (max-width: 800px) {
+  /* Keep the three image canvases side by side for comparison rather than
+     stacking them full-width and huge; tighten the gap so they stay as large
+     as the screen allows. */
   .fourier .fourier-canvas-grid {
-    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* The card titles are wider than a third-of-screen card; shrink them and let
+     long words break so they never push the grid past the viewport. */
+  .fourier .fourier-canvas-card .h3-tight {
+    font-size: 0.72rem;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
   }
 
   .fourier .fourier-control-grid {

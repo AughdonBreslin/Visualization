@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../styles/article.css">
   <link rel="stylesheet" href="../styles/manifold.css">
   <link rel="stylesheet" href="../styles/manifold_isomap.css">
+  <link rel="stylesheet" href="../styles/responsive.css">
   <script defer src="https://d3js.org/d3.v7.min.js"></script>
   <script>
     window.MathJax = {
@@ -46,26 +47,45 @@
           </label>
         </div>
         <div class="mfi-player">
-          <video id="mfiVideo" class="mfi-video" playsinline preload="auto"></video>
-          <div class="mfi-controls">
-            <button id="mfiPrev" type="button">&larr; Prev</button>
-            <button id="mfiPlay" type="button">Play</button>
-            <button id="mfiNext" type="button">Next &rarr;</button>
-            <input id="mfiScrub" class="mfi-scrub" type="range" min="0" max="1000" value="0" />
-            <label class="mfi-speed-label">Speed
-              <select id="mfiSpeed" class="mfi-speed">
-                <option value="0.5">0.5&times;</option>
-                <option value="0.75">0.75&times;</option>
-                <option value="1" selected>1&times;</option>
-                <option value="1.25">1.25&times;</option>
-                <option value="1.5">1.5&times;</option>
-                <option value="2">2&times;</option>
-              </select>
-            </label>
+          <div class="mfi-fs-wrap" id="mfiFsWrap">
+          <div class="mfi-stage" id="mfiStage">
+            <video id="mfiVideo" class="mfi-video" playsinline preload="auto"></video>
+            <button id="mfiBigPlay" class="mfi-bigplay" type="button" aria-label="Play">&#9654;</button>
+            <div class="mfi-fs-hint" id="mfiFsHint" aria-hidden="true">&#9662; details below</div>
+            <div class="mfi-overlay" id="mfiOverlay">
+              <div class="mfi-progress" id="mfiProgress" role="slider" tabindex="0"
+                   aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="mfi-progress-track">
+                  <div class="mfi-progress-fill" id="mfiProgressFill"></div>
+                  <div class="mfi-progress-marks" id="mfiProgressMarks"></div>
+                </div>
+              </div>
+              <div class="mfi-controls">
+                <button id="mfiPlay" class="mfi-ctrl mfi-ctrl-icon" type="button" aria-label="Play">&#9654;</button>
+                <button id="mfiPrev" class="mfi-ctrl mfi-ctrl-icon" type="button" aria-label="Previous section">&#8676;</button>
+                <button id="mfiNext" class="mfi-ctrl mfi-ctrl-icon" type="button" aria-label="Next section">&#8677;</button>
+                <span id="mfiTime" class="mfi-time">0:00&nbsp;/&nbsp;0:00</span>
+                <span class="mfi-controls-spacer"></span>
+                <label class="mfi-speed-label">
+                  <span class="mfi-speed-text">Speed</span>
+                  <select id="mfiSpeed" class="mfi-speed">
+                    <option value="0.5">0.5&times;</option>
+                    <option value="0.75">0.75&times;</option>
+                    <option value="1" selected>1&times;</option>
+                    <option value="1.25">1.25&times;</option>
+                    <option value="1.5">1.5&times;</option>
+                    <option value="2">2&times;</option>
+                    <option value="4">4&times;</option>
+                  </select>
+                </label>
+                <button id="mfiFull" class="mfi-ctrl mfi-ctrl-icon" type="button" aria-label="Fullscreen">&#9974;</button>
+              </div>
+            </div>
           </div>
           <ol id="mfiSteps" class="mfi-steps"></ol>
+          <div id="mfiTranscript" class="mfi-transcript"></div>
+          </div>
         </div>
-        <div id="mfiTranscript" class="mfi-transcript"></div>
       </section>
       <section class="panel">
         <h2>Dataset</h2>

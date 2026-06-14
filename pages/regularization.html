@@ -10,7 +10,7 @@
     <script>
         window.MathJax = {
             tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
-            svg: { fontCache: 'global' }
+            svg: { fontCache: 'local' }
         };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
@@ -18,9 +18,12 @@
     <link rel="stylesheet" href="../styles/base.css">
     <link rel="stylesheet" href="../styles/article.css">
     <link rel="stylesheet" href="../styles/regularization.css">
+    <link rel="stylesheet" href="../styles/responsive.css">
 
     <script defer src="../js/formulas_layout.js"></script>
     <script defer src="../js/regularization.js"></script>
+    <script defer src="../js/collapsible.js"></script>
+    <script defer src="../js/tabs.js"></script>
 </head>
 
 <body>
@@ -32,7 +35,7 @@
         </header>
 
         <main class="article-body">
-            <section class="panel">
+            <section class="panel collapsible">
                 <h2>Overview</h2>
                 <p>
                     This demonstration compares how different regularization schemes affect linear regression fits when the model can overfit (e.g., high-degree polynomial features).
@@ -55,7 +58,7 @@
                 </p>
             </section>
 
-            <section class="panel">
+            <section class="panel collapsible" data-open-mobile>
                 <h2>Visualization</h2>
                 <div class="viz-row">
                     <div class="viz-panel">
@@ -63,11 +66,11 @@
                         <div class="help-text">The curves show model predictions on a dense grid; points are the sampled training set.</div>
 
                         <div class="reg-row">
-                            <div class="metrics">
-                                <h3 class="h3-tight">Metrics</h3>
+                            <div class="metrics collapsible">
+                                <h3 class="h3-tight">Models</h3>
                                 <div id="metricsTable" class="metrics-table">-</div>
                             </div>
-                            <div class="coeffs">
+                            <div class="coeffs collapsible">
                                 <h3 class="h3-tight">Coefficients of <span id="coeffTitle">-</span></h3>
                                 <div id="coeffInfo" class="coeff-info">-</div>
                                 <div id="coefViz" class="coef-viz"></div>
@@ -76,72 +79,76 @@
                     </div>
 
                     <aside class="viz-controls">
-                        <h3>Data</h3>
-                        <div class="control-grid">
-                            <label for="trueFn">True function</label>
-                            <select id="trueFn">
-                                <option value="linear">Linear</option>
-                                <option value="cubic">Cubic</option>
-                                <option value="sine" selected>Sine</option>
-                            </select>
-
-                            <label for="nTrain">Train points</label>
-                            <input id="nTrain" type="number" min="10" max="300" step="5" value="60" />
-
-                            <label for="noise">Noise ($\sigma^2$)</label>
-                            <input id="noise" type="number" min="0" max="9" step="0.01" value="0.1" />
-
-                            <label for="seed">Seed</label>
-                            <input id="seed" type="number" step="1" value="13" />
+                        <div class="tabs" role="tablist" aria-label="Controls">
+                            <button class="tab active" type="button" data-tab="data">Data</button>
+                            <button class="tab" type="button" data-tab="curves">Curves</button>
+                            <button class="tab" type="button" data-tab="fn">Function Params</button>
                         </div>
 
-                        <h3 class="h3-section">Show curves</h3>
-                        <div class="options-group">
-                            <label><input type="checkbox" id="showOLS" checked /> Control (OLS)</label>
-                            <label><input type="checkbox" id="showRidge" checked /> Ridge</label>
-                            <label><input type="checkbox" id="showLasso" checked /> Lasso</label>
-                            <label><input type="checkbox" id="showL2GD" checked /> L2 penalty (GD)</label>
-                            <label><input type="checkbox" id="showWD" checked /> Weight decay (GD)</label>
+                        <div class="tab-panel" data-panel="data" role="tabpanel">
+                            <div class="control-grid">
+                                <label for="trueFn">True function</label>
+                                <select id="trueFn">
+                                    <option value="linear">Linear</option>
+                                    <option value="cubic">Cubic</option>
+                                    <option value="sine" selected>Sine</option>
+                                </select>
+
+                                <label for="nTrain">Train points</label>
+                                <input id="nTrain" type="number" min="10" max="300" step="5" value="60" />
+
+                                <label for="noise">Noise ($\sigma^2$)</label>
+                                <input id="noise" type="number" min="0" max="9" step="0.01" value="0.1" />
+
+                                <label for="seed">Seed</label>
+                                <input id="seed" type="number" step="1" value="13" />
+                            </div>
                         </div>
 
-                        <h3 class="h3-section">Model</h3>
-                        <div class="control-grid">
-                            <label for="degree">Polynomial degree</label>
-                            <input id="degree" type="number" min="1" max="18" step="1" value="9" />
-
-                            <label for="lambda">Regularization</label>
-                            <input id="lambda" type="range" min="-6" max="2" step="0.05" value="-2" />
-                            <div id="lambdaValue" class="small">$\lambda = 0.01$</div>
+                        <div class="tab-panel" data-panel="curves" role="tabpanel" hidden>
+                            <div class="options-group">
+                                <label><input type="checkbox" id="showOLS" checked /> Control (OLS)</label>
+                                <label><input type="checkbox" id="showRidge" checked /> Ridge</label>
+                                <label><input type="checkbox" id="showLasso" checked /> Lasso</label>
+                                <label><input type="checkbox" id="showL2GD" checked /> L2 penalty (GD)</label>
+                                <label><input type="checkbox" id="showWD" checked /> Weight decay (GD)</label>
+                            </div>
                         </div>
 
-                        <h3 class="h3-section">Other Parameters</h3>
-                        <div class="control-grid">
-                            <label for="lr">GD Learning rate ($\eta$)</label>
-                            <input id="lr" type="number" min="0.0001" max="1" step="0.0005" value="0.05" />
+                        <div class="tab-panel" data-panel="fn" role="tabpanel" hidden>
+                            <div class="control-grid">
+                                <label for="degree">Polynomial degree</label>
+                                <input id="degree" type="number" min="1" max="18" step="1" value="9" />
 
-                            <label for="iters">GD Iterations</label>
-                            <input id="iters" type="number" min="10" max="50000" step="50" value="2500" />
+                                <label for="lr">GD Learning rate ($\eta$)</label>
+                                <input id="lr" type="number" min="0.0001" max="1" step="0.0005" value="0.05" />
 
-                            <label for="lassoIters">Lasso iterations</label>
-                            <input id="lassoIters" type="number" min="5" max="2000" step="5" value="250" />
+                                <label for="iters">GD Iterations</label>
+                                <input id="iters" type="number" min="10" max="50000" step="50" value="2500" />
+
+                                <label for="lassoIters">Lasso iterations</label>
+                                <input id="lassoIters" type="number" min="5" max="2000" step="5" value="250" />
+
+                                <label for="lambda">Regularization</label>
+                                <input id="lambda" type="range" min="-6" max="2" step="0.05" value="-2" />
+                                <div id="lambdaValue" class="small">$\lambda = 0.01$</div>
+                            </div>
                         </div>
 
-                        <h3 class="h3-section">Selected method</h3>
-                        <div class="control-grid">
-                            <label for="selectedMethod"></label>
-                            <select id="selectedMethod">
-                                <option value="ols">Control (OLS)</option>
-                                <option value="ridge">Ridge (closed-form)</option>
-                                <option value="lasso">Lasso (coordinate descent)</option>
-                                <option value="l2gd">L2 penalty (gradient descent)</option>
-                                <option value="wd">Weight decay (decoupled)</option>
-                            </select>
-                        </div>
+                        <!-- Selected method is chosen by clicking a row in the Models table;
+                             this hidden select is the state holder the chart code reads. -->
+                        <select id="selectedMethod" hidden>
+                            <option value="ols">Control (OLS)</option>
+                            <option value="ridge" selected>Ridge (closed-form)</option>
+                            <option value="lasso">Lasso (coordinate descent)</option>
+                            <option value="l2gd">L2 penalty (gradient descent)</option>
+                            <option value="wd">Weight decay (decoupled)</option>
+                        </select>
                     </aside>
                 </div>
             </section>
 
-            <section class="panel">
+            <section class="panel collapsible">
                 <h2>Bias-Variance tradeoff</h2>
                 <p>
                     Looking at the mean squared error (MSE) swept across a range of $\lambda$ values for each method, we see how regularization impacts the ability for models to generalize to unseen data.
@@ -176,7 +183,7 @@
                 </div>
             </section>
 
-            <section class="panel">
+            <section class="panel collapsible">
                 <h2>Observations</h2>
                 <ul>
                     <li>As degree increases, OLS tends to overfit (wiggly curve, large coefficients, worse test error).</li>
@@ -187,8 +194,8 @@
                 </ul>
             </section>
 
-            <section class="panel">
-                <h2>Why the GD methods blow up</h2>
+            <section class="panel collapsible">
+                <h2>Learning Rate/Regularization Boundaries</h2>
                 <p>Both L2 penalty and weight decay depend $\lambda$ or $\eta$ to be within certain bounds for the gradient descent to converge properly.</p>
                 <ul>
                     <li>L2 minimizes $J(w) = MSE(w) + \lambda \|w\|_2^2$. Its gradient is $\nabla J(w) = \nabla MSE(w) + 2\lambda w$. When updating $w_{t+1} = w_t - \eta \nabla J(w_t)$ = $w_t - \eta (\nabla MSE(w_t) + 2\lambda w_t)$, if $\lambda$ or $\eta$ is too large, the term dominates the update and the training behaves more like $w_{t+1} \approx w_t - 2\eta \lambda w_t$ or $w_{t+1} \approx (1 - 2\eta \lambda) w_t$.</li>
