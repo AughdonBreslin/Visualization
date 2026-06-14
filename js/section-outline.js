@@ -113,8 +113,6 @@ function buildNav(entries) {
   return { nav, btn, backdrop, panel, list, linkById };
 }
 
-const PHONE_MAX = 640; // matches collapsible.js breakpoint
-
 function isCollapsedPanel(panel) {
   return panel.classList.contains('collapsible') && !panel.classList.contains('open');
 }
@@ -138,7 +136,7 @@ function scrollToPanel(panel) {
   });
 }
 
-function navigateTo(id, byId) {
+function navigateTo(id) {
   const panel = document.getElementById(id);
   if (!panel) return;
   openIfCollapsed(panel);
@@ -189,14 +187,14 @@ function initSectionOutline() {
     const a = e.target.closest('a[data-target]');
     if (!a) return;
     e.preventDefault();
-    navigateTo(a.dataset.target, ui.linkById);
-    closeDrawer(ui); // defined in Task 4; safe no-op for now
+    navigateTo(a.dataset.target);
+    closeDrawer(ui); // selecting an entry also closes the mobile drawer
   });
 
   // Deep link on load: open + scroll to the hashed panel after layout settles.
   if (location.hash.length > 1) {
     const id = decodeURIComponent(location.hash.slice(1));
-    requestAnimationFrame(() => navigateTo(id, ui.linkById));
+    requestAnimationFrame(() => navigateTo(id));
   }
 
   ui.btn.addEventListener('click', () => {
