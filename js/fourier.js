@@ -562,22 +562,55 @@
       document.body.appendChild(formulaTip);
       return formulaTip;
     }
+    function showFormulaTip(icon, clientX, clientY) {
+      const defs = FORMULA_TERMS[basisSel.value];
+      const tip = ensureFormulaTip();
+      tip.textContent = (defs && defs[icon.getAttribute('data-term')]) || '';
+      tip.dataset.term = icon.getAttribute('data-term');
+      const margin = 8;
+      tip.style.maxWidth = Math.min(320, window.innerWidth - 2 * margin) + 'px';
+      tip.style.opacity = '1';
+      // Measure after content is set, then keep the whole box on screen (the old
+      // fixed offsets pushed it off the side on narrow / mobile viewports).
+      const r = tip.getBoundingClientRect();
+      let x = clientX + 14;
+      let y = clientY + 14;
+      if (x + r.width + margin > window.innerWidth) x = window.innerWidth - r.width - margin;
+      if (x < margin) x = margin;
+      if (y + r.height + margin > window.innerHeight) y = clientY - r.height - 14;
+      if (y < margin) y = margin;
+      tip.style.left = Math.round(x) + 'px';
+      tip.style.top = Math.round(y) + 'px';
+    }
+    function hideFormulaTip() { if (formulaTip) formulaTip.style.opacity = '0'; }
+    const canHover = window.matchMedia('(hover: hover)').matches;
     if (formulaBox) {
+      // Hover devices: the tip follows the cursor while hovering an icon. On
+      // touch this is skipped so the synthesized mousemove cannot dismiss a
+      // tip opened by tapping.
       formulaBox.addEventListener('mousemove', function (e) {
+        if (!canHover) return;
         const icon = e.target.closest ? e.target.closest('.fourier-info') : null;
-        if (!icon) { if (formulaTip) formulaTip.style.opacity = '0'; return; }
-        const defs = FORMULA_TERMS[basisSel.value];
-        const tip = ensureFormulaTip();
-        tip.textContent = (defs && defs[icon.getAttribute('data-term')]) || '';
-        tip.style.opacity = '1';
-        let x = e.clientX + 14, y = e.clientY + 14;
-        if (x + 330 > window.innerWidth) x = e.clientX - 334;
-        if (y + 180 > window.innerHeight) y = e.clientY - 180;
-        tip.style.left = x + 'px';
-        tip.style.top = y + 'px';
+        if (!icon) { hideFormulaTip(); return; }
+        showFormulaTip(icon, e.clientX, e.clientY);
       });
-      formulaBox.addEventListener('mouseleave', function () {
-        if (formulaTip) formulaTip.style.opacity = '0';
+      formulaBox.addEventListener('mouseleave', function () { if (canHover) hideFormulaTip(); });
+      // Touch: tap an icon to toggle its tip (mousemove never fires on touch).
+      formulaBox.addEventListener('click', function (e) {
+        const icon = e.target.closest ? e.target.closest('.fourier-info') : null;
+        if (!icon) return;
+        e.stopPropagation();
+        const term = icon.getAttribute('data-term');
+        if (formulaTip && formulaTip.style.opacity === '1' && formulaTip.dataset.term === term) {
+          hideFormulaTip();
+          return;
+        }
+        const ir = icon.getBoundingClientRect();
+        showFormulaTip(icon, ir.left + ir.width / 2, ir.bottom);
+      });
+      // Tap / click anywhere else dismisses the tip.
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest || !e.target.closest('.fourier-info')) hideFormulaTip();
       });
     }
     const tilingText     = document.getElementById('fourierTilingText');
