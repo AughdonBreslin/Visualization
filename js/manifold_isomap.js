@@ -846,9 +846,14 @@ function togglePlay() {
   else video.pause();
 }
 playBtn.addEventListener('click', togglePlay);
-bigPlay.addEventListener('click', togglePlay);
-// On a mouse, clicking the frame toggles play; on touch it toggles the controls.
-video.addEventListener('click', () => { if (coarse) toggleUi(); else togglePlay(); });
+// The big play button is pointer-events:none, so taps on the frame (including
+// over it) land here. When paused, any tap on the frame plays; while playing, a
+// touch toggles the controls and a mouse click pauses.
+video.addEventListener('click', () => {
+  if (video.paused) togglePlay();
+  else if (coarse) toggleUi();
+  else togglePlay();
+});
 video.addEventListener('play', () => {
   playBtn.setAttribute('aria-label', 'Pause');
   stage.classList.add('is-playing'); scheduleHide();
