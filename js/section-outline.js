@@ -157,17 +157,18 @@ function wireScrollspy(entries, linkById) {
     const a = linkById.get(id);
     if (a) {
       a.classList.add('active');
-      a.setAttribute('aria-current', 'true');
+      a.setAttribute('aria-current', 'location');
     }
   };
   const visible = new Set();
+  const order = entries.map((e) => e.id);
   const obs = new IntersectionObserver(
     (records) => {
       for (const r of records) {
         if (r.isIntersecting) visible.add(r.target.id);
         else visible.delete(r.target.id);
       }
-      const order = entries.map((e) => e.id);
+      // Highlight the visible panel that appears earliest in document order.
       const top = order.find((id) => visible.has(id));
       if (top) setActive(top);
     },
