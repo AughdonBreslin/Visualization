@@ -89,11 +89,6 @@ function buildNav(entries) {
   panel.className = 'section-outline-panel';
   panel.id = 'section-outline-panel';
 
-  const heading = document.createElement('div');
-  heading.className = 'section-outline-heading';
-  heading.textContent = 'On this page';
-  panel.appendChild(heading);
-
   const list = document.createElement('ul');
   list.className = 'section-outline-list';
   const linkById = new Map();
@@ -177,6 +172,28 @@ function wireScrollspy(entries, linkById) {
   for (const e of entries) obs.observe(e.panel);
 }
 
+// Desktop only: start the rail level with the top of the first panel (below the
+// page header) and let it ride up with the page until it sticks near the top.
+function positionDesktopRail(rail, firstPanel) {
+  const DESKTOP = window.matchMedia('(min-width: 1100px)');
+  const MIN_TOP = 24;
+  const update = () => {
+    if (!DESKTOP.matches) {
+      rail.style.top = '';
+      rail.style.maxHeight = '';
+      return;
+    }
+    const firstTop = firstPanel.getBoundingClientRect().top + window.scrollY;
+    const top = Math.max(MIN_TOP, firstTop - window.scrollY);
+    rail.style.top = `${top}px`;
+    rail.style.maxHeight = `calc(100vh - ${top}px)`;
+  };
+  update();
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  DESKTOP.addEventListener('change', update);
+}
+
 function initSectionOutline() {
   const entries = collectPanels(document);
   if (entries.length < 2) return; // not worth an outline
@@ -208,6 +225,7 @@ function initSectionOutline() {
   });
 
   wireScrollspy(entries, ui.linkById);
+  positionDesktopRail(ui.panel, entries[0].panel);
 
   return { entries, ui };
 }
