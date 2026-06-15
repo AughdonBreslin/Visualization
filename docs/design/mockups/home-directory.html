@@ -1,0 +1,75 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<h2>Home / Projects Directory</h2>
+<p class="subtitle">The landing page in the locked language: editorial index, numbered hairline-divided entries, periwinkle on hover. Two layouts. The first row of each is shown in its hover state (brighter title + accent arrow). Naming/grouping is editable.</p>
+
+<style>
+.hm{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; font-family:'Inter',system-ui; --acc:#6b7cff; }
+.hm .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); z-index:2; }
+.hm .slice{ padding:40px 44px 30px; }
+.hm .eyebrow{ font:600 11px/1 'JetBrains Mono'; letter-spacing:.2em; text-transform:uppercase; color:var(--acc); }
+.hm h1{ font:600 40px/1.05 'Inter'; letter-spacing:-.03em; color:#fafafa; margin:14px 0 12px; }
+.hm .intro{ font:400 15px/1.6 'Inter'; color:#8b8d96; max-width:54ch; }
+.hm .list{ margin-top:34px; }
+.hm .row{ display:flex; align-items:baseline; gap:20px; padding:17px 6px 17px 0; border-top:1px solid rgba(255,255,255,.08); position:relative; }
+.hm .row:last-child{ border-bottom:1px solid rgba(255,255,255,.08); }
+.hm .num{ font:500 12px/1 'JetBrains Mono'; color:#5d5f68; flex-shrink:0; width:22px; }
+.hm .body{ flex:1; min-width:0; }
+.hm .ttl{ font:600 16px/1.3 'Inter'; color:#d6d8df; letter-spacing:-.01em; }
+.hm .desc{ font:400 13px/1.5 'Inter'; color:#74767f; margin-top:3px; max-width:62ch; }
+.hm .arrow{ color:#5d5f68; font:500 14px/1 'JetBrains Mono'; flex-shrink:0; align-self:center; transition:.15s; }
+.hm .row:hover .ttl,.hm .row.hov .ttl{ color:#fafafa; }
+.hm .row:hover .arrow,.hm .row.hov .arrow{ color:var(--acc); transform:translateX(3px); }
+.hm .row:hover .num,.hm .row.hov .num{ color:var(--acc); }
+.hm .foot{ margin-top:30px; padding-top:18px; border-top:1px solid rgba(255,255,255,.08); display:flex; justify-content:space-between; align-items:center; }
+.hm .foot .c{ font:400 12px/1 'Inter'; color:#5d5f68; }
+.hm .foot a{ color:#9aa6ff; text-decoration:none; }
+.hm .foot .meta{ font:500 11px/1 'JetBrains Mono'; color:#4d4f57; letter-spacing:.08em; }
+
+/* two-column variant */
+.two .list{ display:grid; grid-template-columns:1fr 1fr; column-gap:40px; }
+.two .row{ }
+.two .desc{ display:none; }
+.two .ttl{ font-size:15px; }
+</style>
+
+<div class="hm"><span class="tag">A · SINGLE COLUMN INDEX</span><div class="slice">
+  <div class="eyebrow">Interactive explainers</div>
+  <h1>Projects</h1>
+  <div class="intro">Hands-on visualizations across probability, statistical learning, and signals. Each is a self-contained, interactive walkthrough.</div>
+  <div class="list">
+    <div class="row hov"><span class="num">01</span><div class="body"><div class="ttl">Distribution Visualizer</div><div class="desc">PDF/CDF visualizer for Normal, Uniform, Exponential, Laplace, Dirac, and mixtures.</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">02</span><div class="body"><div class="ttl">Unsupervised Supervised Learning</div><div class="desc">Solving a supervised classification problem via unsupervised density estimation.</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">03</span><div class="body"><div class="ttl">Linear Regression Regularization</div><div class="desc">Interactive comparison of regularization methods and the bias-variance tradeoff.</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">04</span><div class="body"><div class="ttl">Estimation: Bias, Variance, MSE, MLE</div><div class="desc">Point and function estimation, standard error, consistency, and likelihood objectives.</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">05</span><div class="body"><div class="ttl">Bayesian Inference</div><div class="desc">Priors, posteriors, conjugacy, MAP, posterior predictive, and approximate inference.</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">06</span><div class="body"><div class="ttl">Principal Component Analysis</div><div class="desc">PCA via SVD, principal directions, covariance eigendecomposition, and reconstruction.</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">07</span><div class="body"><div class="ttl">Fourier Image Decomposition</div><div class="desc">DFT periodicity, low-pass filtering, the Gibbs phenomenon, and checkerboard artifacts.</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">08</span><div class="body"><div class="ttl">Manifold Learning</div><div class="desc">Animated Isomap walkthrough plus a side-by-side comparison of manifold algorithms.</div></div><span class="arrow">&rarr;</span></div>
+  </div>
+  <div class="foot"><span class="c">Created by <a href="#">Aughdon Breslin</a></span><span class="meta">8 PROJECTS</span></div>
+</div></div>
+
+<div class="hm two"><span class="tag">B · TWO COLUMN</span><div class="slice">
+  <div class="eyebrow">Interactive explainers</div>
+  <h1>Projects</h1>
+  <div class="intro">Hands-on visualizations across probability, statistical learning, and signals. Each is a self-contained, interactive walkthrough.</div>
+  <div class="list">
+    <div class="row hov"><span class="num">01</span><div class="body"><div class="ttl">Distribution Visualizer</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">02</span><div class="body"><div class="ttl">Unsupervised Supervised Learning</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">03</span><div class="body"><div class="ttl">Linear Regression Regularization</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">04</span><div class="body"><div class="ttl">Estimation: Bias, Variance, MSE</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">05</span><div class="body"><div class="ttl">Bayesian Inference</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">06</span><div class="body"><div class="ttl">Principal Component Analysis</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">07</span><div class="body"><div class="ttl">Fourier Image Decomposition</div></div><span class="arrow">&rarr;</span></div>
+    <div class="row"><span class="num">08</span><div class="body"><div class="ttl">Manifold Learning</div></div><span class="arrow">&rarr;</span></div>
+  </div>
+  <div class="foot"><span class="c">Created by <a href="#">Aughdon Breslin</a></span><span class="meta">8 PROJECTS</span></div>
+</div></div>
+
+<div class="options">
+  <div class="option" data-choice="single" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>Single column index</h3><p>Title + one-line description per row. Most editorial and informative; descriptions help first-time visitors. Taller.</p></div></div>
+  <div class="option" data-choice="two" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Two column</h3><p>Titles only, denser, everything above the fold. Cleaner/punchier but drops the descriptions (could show on hover).</p></div></div>
+  <div class="option" data-choice="grouped" onclick="toggleSelect(this)"><div class="letter">C</div><div class="content"><h3>Grouped by theme</h3><p>Same index but sectioned (Probability &amp; inference / Learning / Signals). More curated. I'll mock it if you want to see it.</p></div></div>
+</div>

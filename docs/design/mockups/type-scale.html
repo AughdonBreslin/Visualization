@@ -1,0 +1,94 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<h2>Type scale and hierarchy (Inter)</h2>
+<p class="subtitle">Three densities of the full hierarchy: eyebrow, page title, section heading, sub-heading, body, caption, uppercase label, link, and inline code. Mono annotations on the right are the actual specs. Pick a density; we then fine-tune any single level.</p>
+
+<style>
+.ts{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; font-family:'Inter',system-ui; }
+.ts .slice{ padding:30px 36px 34px; }
+.ts .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.38); }
+.ts .row{ display:flex; align-items:baseline; gap:16px; justify-content:space-between; }
+.ts .row .spec{ font:500 10.5px/1.5 'JetBrains Mono'; color:#5d5f68; white-space:nowrap; flex-shrink:0; text-align:right; }
+.ts .eyebrow{ letter-spacing:.2em; text-transform:uppercase; color:#6b7cff; font-weight:600; }
+.ts h1{ color:#fafafa; }
+.ts h3.sec{ color:#ededf0; }
+.ts h4.sub{ color:#cfd1d8; }
+.ts p.body{ color:#8b8d96; max-width:62ch; }
+.ts p.body a{ color:#9aa6ff; text-decoration:none; border-bottom:1px solid rgba(154,166,255,.4); }
+.ts p.body code{ font-family:'JetBrains Mono'; color:#c9cdfb; background:rgba(107,124,255,.1); padding:1px 5px; border-radius:4px; font-size:.88em; }
+.ts .cap{ color:#6c6e77; }
+.ts .lbl{ letter-spacing:.14em; text-transform:uppercase; color:#73757e; font-weight:600; }
+.ts .rule{ height:1px; background:rgba(255,255,255,.08); margin:14px 0; }
+.ts .stack > *{ margin:0; }
+.ts .stack{ display:flex; flex-direction:column; }
+
+/* COMPACT */
+.c .eyebrow{ font-size:10.5px; }
+.c h1{ font:600 27px/1.12 'Inter'; letter-spacing:-.02em; margin:9px 0; }
+.c h3.sec{ font:600 16px/1.25 'Inter'; letter-spacing:-.01em; }
+.c h4.sub{ font:600 13.5px/1.3 'Inter'; }
+.c p.body{ font:400 13.5px/1.6 'Inter'; }
+.c .cap{ font:400 11.5px/1.4 'Inter'; }
+.c .lbl{ font:600 10px/1 'Inter'; }
+.c .stack{ gap:11px; }
+
+/* BALANCED */
+.b .eyebrow{ font-size:11px; }
+.b h1{ font:600 33px/1.1 'Inter'; letter-spacing:-.025em; margin:11px 0; }
+.b h3.sec{ font:600 19px/1.25 'Inter'; letter-spacing:-.014em; }
+.b h4.sub{ font:600 15px/1.35 'Inter'; }
+.b p.body{ font:400 14.5px/1.7 'Inter'; }
+.b .cap{ font:400 12px/1.45 'Inter'; }
+.b .lbl{ font:600 10.5px/1 'Inter'; }
+.b .stack{ gap:14px; }
+
+/* GENEROUS */
+.g .eyebrow{ font-size:11.5px; }
+.g h1{ font:600 41px/1.06 'Inter'; letter-spacing:-.03em; margin:14px 0; }
+.g h3.sec{ font:600 23px/1.25 'Inter'; letter-spacing:-.018em; }
+.g h4.sub{ font:600 17px/1.4 'Inter'; }
+.g p.body{ font:400 15.5px/1.75 'Inter'; }
+.g .cap{ font:400 12.5px/1.5 'Inter'; }
+.g .lbl{ font:600 11px/1 'Inter'; }
+.g .stack{ gap:18px; }
+</style>
+
+<div class="ts c"><div class="slice"><span class="tag">COMPACT</span><div class="stack">
+  <div class="row"><span class="eyebrow">Visualization</span><span class="spec">eyebrow · mono-ish · 10.5 · .2em</span></div>
+  <div class="row"><h1>Principal Component Analysis</h1><span class="spec">h1 · 600 · 27 · -.02em</span></div>
+  <div class="rule"></div>
+  <div class="row"><h3 class="sec">Covariance and change of basis</h3><span class="spec">h2 · 600 · 16 · -.01em</span></div>
+  <div class="row"><h4 class="sub">Reconstruction error</h4><span class="spec">h3 · 600 · 13.5</span></div>
+  <div class="row"><p class="body">PCA finds orthogonal directions of maximum variance; the top components give the best low-rank fit. See <a href="#">the SVD step</a> or set <code>rank = 2</code>.</p><span class="spec">body · 400 · 13.5/1.6</span></div>
+  <div class="row"><span class="cap">Figure 1 — projection onto the first two components</span><span class="spec">caption · 11.5</span></div>
+  <div class="row"><span class="lbl">Components</span><span class="spec">label · 600 · 10 · .14em</span></div>
+</div></div></div>
+
+<div class="ts b"><div class="slice"><span class="tag">BALANCED</span><div class="stack">
+  <div class="row"><span class="eyebrow">Visualization</span><span class="spec">eyebrow · 11 · .2em</span></div>
+  <div class="row"><h1>Principal Component Analysis</h1><span class="spec">h1 · 600 · 33 · -.025em</span></div>
+  <div class="rule"></div>
+  <div class="row"><h3 class="sec">Covariance and change of basis</h3><span class="spec">h2 · 600 · 19 · -.014em</span></div>
+  <div class="row"><h4 class="sub">Reconstruction error</h4><span class="spec">h3 · 600 · 15</span></div>
+  <div class="row"><p class="body">PCA finds orthogonal directions of maximum variance; the top components give the best low-rank fit. See <a href="#">the SVD step</a> or set <code>rank = 2</code>.</p><span class="spec">body · 400 · 14.5/1.7</span></div>
+  <div class="row"><span class="cap">Figure 1 — projection onto the first two components</span><span class="spec">caption · 12</span></div>
+  <div class="row"><span class="lbl">Components</span><span class="spec">label · 600 · 10.5 · .14em</span></div>
+</div></div></div>
+
+<div class="ts g"><div class="slice"><span class="tag">GENEROUS</span><div class="stack">
+  <div class="row"><span class="eyebrow">Visualization</span><span class="spec">eyebrow · 11.5 · .2em</span></div>
+  <div class="row"><h1>Principal Component Analysis</h1><span class="spec">h1 · 600 · 41 · -.03em</span></div>
+  <div class="rule"></div>
+  <div class="row"><h3 class="sec">Covariance and change of basis</h3><span class="spec">h2 · 600 · 23 · -.018em</span></div>
+  <div class="row"><h4 class="sub">Reconstruction error</h4><span class="spec">h3 · 600 · 17</span></div>
+  <div class="row"><p class="body">PCA finds orthogonal directions of maximum variance; the top components give the best low-rank fit. See <a href="#">the SVD step</a> or set <code>rank = 2</code>.</p><span class="spec">body · 400 · 15.5/1.75</span></div>
+  <div class="row"><span class="cap">Figure 1 — projection onto the first two components</span><span class="spec">caption · 12.5</span></div>
+  <div class="row"><span class="lbl">Components</span><span class="spec">label · 600 · 11 · .14em</span></div>
+</div></div></div>
+
+<div class="options">
+  <div class="option" data-choice="compact" onclick="toggleSelect(this)"><div class="letter">1</div><div class="content"><h3>Compact</h3><p>Denser, smaller headings. Fits more on screen; good for data-heavy control pages. Least dramatic.</p></div></div>
+  <div class="option" data-choice="balanced" onclick="toggleSelect(this)"><div class="letter">2</div><div class="content"><h3>Balanced (recommended)</h3><p>Clear hierarchy with comfortable air. Headlines have presence without dominating; body very readable.</p></div></div>
+  <div class="option" data-choice="generous" onclick="toggleSelect(this)"><div class="letter">3</div><div class="content"><h3>Generous</h3><p>Large editorial headlines, lots of air. Most striking and "premium"; uses more vertical space.</p></div></div>
+</div>

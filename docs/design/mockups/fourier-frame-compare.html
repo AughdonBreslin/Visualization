@@ -1,0 +1,114 @@
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<h2>No-frames vs Frame-the-instruments</h2>
+<p class="subtitle">Identical Editorial Fourier page. Top = demo sits flush (canvas edges only). Bottom = the demo region (canvases + controls) wrapped in one quiet hairline frame; prose stays unboxed either way.</p>
+
+<style>
+.fz{ font-family:'Inter',system-ui; background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:14px; overflow:hidden; margin-bottom:18px; }
+.fz .slice{ position:relative; padding:32px 40px 38px; }
+.fz .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.12em; color:rgba(255,255,255,.4); }
+.fz .eyebrow{ font:600 11px/1 'Inter'; letter-spacing:.22em; text-transform:uppercase; color:#6b7cff; }
+.fz h1{ font:600 28px/1.1 'Inter'; letter-spacing:-.025em; color:#fafafa; margin:11px 0 8px; }
+.fz .lede{ font:400 14px/1.6 'Inter'; color:#8b8d96; max-width:58ch; }
+.fz .rule{ height:1px; background:rgba(255,255,255,.08); margin:22px 0; }
+.fz h3{ font:600 17px/1.2 'Inter'; letter-spacing:-.015em; color:#ededf0; margin-bottom:9px; }
+.fz p{ font:400 13.5px/1.65 'Inter'; color:#86888f; max-width:60ch; margin:0; }
+.fz .chip{ color:#c9cdfb; }
+.fz .secmark{ font:600 10.5px/1 'JetBrains Mono'; letter-spacing:.18em; text-transform:uppercase; color:#62646c; margin-bottom:15px; }
+.fz .canvases{ display:flex; gap:18px; flex-wrap:wrap; }
+.fz .cv .frame{ width:150px; height:150px; border:1px solid rgba(255,255,255,.1); border-radius:8px; overflow:hidden; background:#050506; display:block; }
+.fz .cv .cap{ font:500 10px/1.3 'JetBrains Mono'; letter-spacing:.04em; color:#7a7c84; margin-top:8px; }
+.fz .cv .cap b{ color:#b9bcc4; font-weight:600; }
+.fz .controls{ margin-top:24px; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:22px 32px; max-width:740px; }
+.fz .lbl{ font:600 10px/1 'Inter'; letter-spacing:.13em; text-transform:uppercase; color:#6c6e77; display:block; margin-bottom:9px; }
+.fz .row{ display:flex; align-items:center; gap:13px; }
+.fz select{ font:500 13px/1 'Inter'; background:transparent; color:#dadbe0; border:0; border-bottom:1px solid rgba(255,255,255,.22); padding:5px 2px; }
+.fz .upl{ font:500 13px/1 'Inter'; color:#aeb8ff; border:0; border-bottom:1px solid #6b7cff; background:transparent; padding:5px 2px; cursor:pointer; }
+.fz .tabs{ display:inline-flex; gap:18px; }
+.fz .tab{ font:500 13px/1 'Inter'; color:#74767f; padding-bottom:6px; border-bottom:1.5px solid transparent; }
+.fz .tab.on{ color:#ececf0; border-bottom-color:#6b7cff; }
+.fz .rng{ position:relative; width:140px; height:2px; background:rgba(255,255,255,.16); border-radius:2px; }
+.fz .rng::after{ content:''; position:absolute; left:38%; top:50%; width:11px; height:11px; border-radius:50%; background:#6b7cff; transform:translate(-50%,-50%); }
+.fz .read{ font:500 12px/1 'JetBrains Mono'; color:#cfd1d8; }
+.fz .read b{ color:#6b7cff; }
+.fz .tog{ display:inline-flex; align-items:center; gap:8px; font:500 13px/1 'Inter'; color:#b7b9c1; }
+.fz .sw{ width:30px; height:17px; border-radius:9px; background:rgba(255,255,255,.12); position:relative; }
+.fz .sw.on{ background:rgba(107,124,255,.55); }
+.fz .sw::after{ content:''; position:absolute; top:2px; left:2px; width:13px; height:13px; border-radius:50%; background:#e9e9ee; }
+.fz .sw.on::after{ left:15px; }
+.fz .formula{ font:400 16px/1.5 'JetBrains Mono'; color:#d6d8df; text-align:center; padding:12px 0; }
+.fz .formula i{ color:#9aa0ff; }
+/* framed variant: only the demo region gets an edge */
+.framed .demo{ border:1px solid rgba(255,255,255,.09); border-radius:12px; background:#0e0e11; padding:22px 24px 26px; }
+.framed .demo .secmark{ color:#7e818b; }
+</style>
+
+<!-- helper macro content duplicated for the two variants -->
+<div class="fz noframe">
+  <div class="slice">
+    <span class="tag">NO FRAMES</span>
+    <div class="eyebrow">Image Decomposition</div>
+    <h1>Fourier Image Decomposition</h1>
+    <div class="lede">The DFT's periodicity assumption, low-pass filtering, and the Gibbs phenomenon.</div>
+    <div class="rule"></div>
+    <h3>The periodicity assumption</h3>
+    <p>The DFT treats an image as one tile of an infinitely repeating plane; sharp seams inject energy along the frequency <span class="chip">axes</span>.</p>
+    <div class="rule"></div>
+    <div class="demo">
+      <div class="secmark">Interactive demo</div>
+      <div class="canvases">
+        <div class="cv"><span class="frame"><svg width="150" height="150" viewBox="0 0 158 158"><rect width="79" height="79" fill="#d7d7db"/><rect x="79" width="79" height="79" fill="#161619"/><rect y="79" width="79" height="79" fill="#161619"/><rect x="79" y="79" width="79" height="79" fill="#d7d7db"/></svg></span><div class="cap"><b>Original</b> 128x128</div></div>
+        <div class="cv"><span class="frame"><svg width="150" height="150" viewBox="0 0 158 158"><defs><radialGradient id="g1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#cfd6ff" stop-opacity=".95"/><stop offset="22%" stop-color="#5a63b0" stop-opacity=".5"/><stop offset="60%" stop-color="#0b0b1a" stop-opacity="0"/></radialGradient></defs><rect width="158" height="158" fill="#050507"/><rect y="77" width="158" height="4" fill="#aab0ff" opacity=".5"/><rect x="77" width="4" height="158" fill="#aab0ff" opacity=".5"/><circle cx="79" cy="79" r="74" fill="url(#g1)"/></svg></span><div class="cap"><b>Spectrum</b> log mag</div></div>
+        <div class="cv"><span class="frame"><svg width="150" height="150" viewBox="0 0 158 158"><defs><filter id="b1"><feGaussianBlur stdDeviation="7"/></filter></defs><rect width="158" height="158" fill="#0b0b0c"/><g filter="url(#b1)"><rect width="79" height="79" fill="#d7d7db"/><rect x="79" width="79" height="79" fill="#161619"/><rect y="79" width="79" height="79" fill="#161619"/><rect x="79" y="79" width="79" height="79" fill="#d7d7db"/></g></svg></span><div class="cap"><b>Reconstruction</b> r = 24</div></div>
+      </div>
+      <div class="controls">
+        <div><span class="lbl">Image</span><div class="row"><select><option>Quadrant</option></select><button class="upl">Choose file</button></div></div>
+        <div><span class="lbl">Basis</span><div class="tabs"><span class="tab on">Fourier</span><span class="tab">Haar</span><span class="tab">DCT</span></div></div>
+        <div><span class="lbl">Low-pass radius</span><div class="row"><div class="rng"></div><span class="read">r = <b>24</b></span></div></div>
+        <div><span class="lbl">Options</span><div class="row" style="gap:20px"><span class="tog"><span class="sw on"></span>Tiling</span><span class="tog"><span class="sw"></span>3D</span></div></div>
+      </div>
+    </div>
+    <div class="rule"></div>
+    <h3>Reconstruction formula</h3>
+    <div class="formula">f&#770;(x,y) = &#8721;<sub>|k|&#8804;r</sub> <i>F</i>(k) &middot; e<sup>2&#960;i(k&middot;x)/N</sup></div>
+  </div>
+</div>
+
+<div class="fz framed">
+  <div class="slice">
+    <span class="tag">FRAME THE INSTRUMENTS</span>
+    <div class="eyebrow">Image Decomposition</div>
+    <h1>Fourier Image Decomposition</h1>
+    <div class="lede">The DFT's periodicity assumption, low-pass filtering, and the Gibbs phenomenon.</div>
+    <div class="rule"></div>
+    <h3>The periodicity assumption</h3>
+    <p>The DFT treats an image as one tile of an infinitely repeating plane; sharp seams inject energy along the frequency <span class="chip">axes</span>.</p>
+    <div style="height:20px"></div>
+    <div class="demo">
+      <div class="secmark">Interactive demo</div>
+      <div class="canvases">
+        <div class="cv"><span class="frame"><svg width="150" height="150" viewBox="0 0 158 158"><rect width="79" height="79" fill="#d7d7db"/><rect x="79" width="79" height="79" fill="#161619"/><rect y="79" width="79" height="79" fill="#161619"/><rect x="79" y="79" width="79" height="79" fill="#d7d7db"/></svg></span><div class="cap"><b>Original</b> 128x128</div></div>
+        <div class="cv"><span class="frame"><svg width="150" height="150" viewBox="0 0 158 158"><defs><radialGradient id="g2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#cfd6ff" stop-opacity=".95"/><stop offset="22%" stop-color="#5a63b0" stop-opacity=".5"/><stop offset="60%" stop-color="#0b0b1a" stop-opacity="0"/></radialGradient></defs><rect width="158" height="158" fill="#050507"/><rect y="77" width="158" height="4" fill="#aab0ff" opacity=".5"/><rect x="77" width="4" height="158" fill="#aab0ff" opacity=".5"/><circle cx="79" cy="79" r="74" fill="url(#g2)"/></svg></span><div class="cap"><b>Spectrum</b> log mag</div></div>
+        <div class="cv"><span class="frame"><svg width="150" height="150" viewBox="0 0 158 158"><defs><filter id="b2"><feGaussianBlur stdDeviation="7"/></filter></defs><rect width="158" height="158" fill="#0b0b0c"/><g filter="url(#b2)"><rect width="79" height="79" fill="#d7d7db"/><rect x="79" width="79" height="79" fill="#161619"/><rect y="79" width="79" height="79" fill="#161619"/><rect x="79" y="79" width="79" height="79" fill="#d7d7db"/></g></svg></span><div class="cap"><b>Reconstruction</b> r = 24</div></div>
+      </div>
+      <div class="controls">
+        <div><span class="lbl">Image</span><div class="row"><select><option>Quadrant</option></select><button class="upl">Choose file</button></div></div>
+        <div><span class="lbl">Basis</span><div class="tabs"><span class="tab on">Fourier</span><span class="tab">Haar</span><span class="tab">DCT</span></div></div>
+        <div><span class="lbl">Low-pass radius</span><div class="row"><div class="rng"></div><span class="read">r = <b>24</b></span></div></div>
+        <div><span class="lbl">Options</span><div class="row" style="gap:20px"><span class="tog"><span class="sw on"></span>Tiling</span><span class="tog"><span class="sw"></span>3D</span></div></div>
+      </div>
+    </div>
+    <div class="rule"></div>
+    <h3>Reconstruction formula</h3>
+    <div class="formula">f&#770;(x,y) = &#8721;<sub>|k|&#8804;r</sub> <i>F</i>(k) &middot; e<sup>2&#960;i(k&middot;x)/N</sup></div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="noframe" onclick="toggleSelect(this)">
+    <div class="letter">1</div><div class="content"><h3>No frames</h3><p>Flush demo, canvas edges only. Airiest; one less border to manage.</p></div>
+  </div>
+  <div class="option" data-choice="framed" onclick="toggleSelect(this)">
+    <div class="letter">2</div><div class="content"><h3>Frame the instruments</h3><p>Quiet edge around the live demo only. Clearer "this part is interactive" signal; slightly more contained.</p></div>
+  </div>
+</div>

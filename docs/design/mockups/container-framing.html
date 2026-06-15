@@ -1,0 +1,146 @@
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<h2>How much framing? (Editorial direction)</h2>
+<p class="subtitle">Same content, three framing philosophies. The real question is the interactive figure + controls: prose reads fine unboxed, but a live plot often wants an edge. Pick where you land (you can say "1 for prose, 2 for figures").</p>
+
+<style>
+.ed{ font-family:'Inter',system-ui; border-radius:14px; overflow:hidden; margin-bottom:18px; border:1px solid rgba(255,255,255,.07); background:#0c0c0d; }
+.ed .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.12em; color:rgba(255,255,255,.4); }
+.ed .slice{ position:relative; padding:32px 38px 36px; }
+.ed .eyebrow{ font:600 11px/1 'Inter'; letter-spacing:.22em; text-transform:uppercase; color:#6b7cff; }
+.ed h1{ font:600 30px/1.1 'Inter'; letter-spacing:-.025em; color:#fafafa; margin:12px 0 8px; }
+.ed .lede{ font:400 14.5px/1.6 'Inter'; color:#8b8d96; max-width:50ch; }
+.ed h3{ font:600 18px/1.2 'Inter'; letter-spacing:-.015em; color:#ededf0; margin-bottom:10px; }
+.ed p{ font:400 14px/1.7 'Inter'; color:#86888f; max-width:56ch; margin:0; }
+.ed .chip{ color:#c9cdfb; }
+.ed .rule{ height:1px; background:rgba(255,255,255,.08); margin:24px 0; }
+.ed .figcap{ font:600 10.5px/1 'JetBrains Mono'; letter-spacing:.16em; text-transform:uppercase; color:#65676f; margin-bottom:12px; }
+.ed .figrow{ display:flex; gap:26px; align-items:flex-start; flex-wrap:wrap; }
+.ed .ctrls{ display:flex; flex-direction:column; gap:14px; min-width:180px; }
+.ed .lbl{ font:600 10.5px/1 'Inter'; letter-spacing:.13em; text-transform:uppercase; color:#6c6e77; display:block; margin-bottom:6px; }
+.ed select{ font:500 13px/1 'Inter'; background:transparent; color:#dadbe0; border:0; border-bottom:1px solid rgba(255,255,255,.22); padding:5px 2px; width:100%; }
+.ed .rng{ width:100%; height:2px; background:rgba(255,255,255,.16); position:relative; border-radius:2px; }
+.ed .rng::after{ content:''; position:absolute; left:62%; top:50%; width:11px; height:11px; border-radius:50%; background:#6b7cff; transform:translate(-50%,-50%); }
+.ed .btn{ font:500 13px/1 'Inter'; align-self:flex-start; background:transparent; color:#aeb8ff; border:0; border-bottom:1px solid #6b7cff; padding:5px 2px; cursor:pointer; }
+.ed .read{ font:500 12.5px/1 'JetBrains Mono'; color:#cfd1d8; }
+.ed .read b{ color:#6b7cff; }
+
+/* framing variants */
+.ed .figure{ }                                  /* v1: unframed */
+.framed .figure{ border:1px solid rgba(255,255,255,.09); border-radius:12px; background:#101013; padding:20px 22px; }
+.boxed .prose{ border:1px solid rgba(255,255,255,.05); border-radius:12px; background:#0e0e10; padding:22px 24px; }
+.boxed .figure{ border:1px solid rgba(255,255,255,.09); border-radius:12px; background:#101013; padding:20px 22px; }
+.boxed .rule{ display:none; }
+</style>
+
+<!-- shared chart markup repeated per variant -->
+<div class="ed v1">
+  <div class="slice">
+    <span class="tag">1 · NO FRAMES</span>
+    <div class="eyebrow">Visualization</div>
+    <h1>Principal Component Analysis</h1>
+    <div class="lede">Interactive walkthrough of PCA via SVD, principal directions, and reconstruction.</div>
+    <div class="rule"></div>
+    <div class="prose"><h3>Covariance and change of basis</h3>
+      <p>PCA finds the orthogonal directions that capture the most variance. Projecting onto the top components yields the best low-rank <span class="chip">reconstruction</span>.</p></div>
+    <div class="rule"></div>
+    <div class="figure">
+      <div class="figcap">Fig. 1 — Principal components</div>
+      <div class="figrow">
+        <svg width="320" height="190" viewBox="0 0 320 190">
+          <g fill="#7d80ff" fill-opacity=".82">
+            <circle cx="78" cy="138" r="3.2"/><circle cx="96" cy="126" r="3.2"/><circle cx="110" cy="132" r="3.2"/><circle cx="120" cy="112" r="3.2"/><circle cx="134" cy="118" r="3.2"/><circle cx="146" cy="100" r="3.2"/><circle cx="158" cy="108" r="3.2"/><circle cx="170" cy="90" r="3.2"/><circle cx="182" cy="96" r="3.2"/><circle cx="196" cy="78" r="3.2"/><circle cx="208" cy="84" r="3.2"/><circle cx="222" cy="66" r="3.2"/><circle cx="236" cy="74" r="3.2"/><circle cx="150" cy="124" r="3.2"/><circle cx="188" cy="110" r="3.2"/>
+          </g>
+          <line x1="70" y1="150" x2="250" y2="58" stroke="#6b7cff" stroke-width="2"/>
+          <line x1="160" y1="104" x2="120" y2="62" stroke="#6b6c77" stroke-width="1.6"/>
+          <text x="252" y="54" fill="#9aa0ff" font-family="JetBrains Mono" font-size="10">PC1</text>
+          <text x="108" y="58" fill="#7c7f8a" font-family="JetBrains Mono" font-size="10">PC2</text>
+        </svg>
+        <div class="ctrls">
+          <div><span class="lbl">Components</span><select><option>2 of 4</option></select></div>
+          <div><span class="lbl">Reconstruction rank</span><div class="rng"></div></div>
+          <button class="btn">Recompute</button>
+          <span class="read">variance <b>92.4%</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ed v2 framed">
+  <div class="slice">
+    <span class="tag">2 · FRAME THE INSTRUMENTS</span>
+    <div class="eyebrow">Visualization</div>
+    <h1>Principal Component Analysis</h1>
+    <div class="lede">Interactive walkthrough of PCA via SVD, principal directions, and reconstruction.</div>
+    <div class="rule"></div>
+    <div class="prose"><h3>Covariance and change of basis</h3>
+      <p>PCA finds the orthogonal directions that capture the most variance. Projecting onto the top components yields the best low-rank <span class="chip">reconstruction</span>.</p></div>
+    <div style="height:22px"></div>
+    <div class="figure">
+      <div class="figcap">Fig. 1 — Principal components</div>
+      <div class="figrow">
+        <svg width="320" height="190" viewBox="0 0 320 190">
+          <g fill="#7d80ff" fill-opacity=".82">
+            <circle cx="78" cy="138" r="3.2"/><circle cx="96" cy="126" r="3.2"/><circle cx="110" cy="132" r="3.2"/><circle cx="120" cy="112" r="3.2"/><circle cx="134" cy="118" r="3.2"/><circle cx="146" cy="100" r="3.2"/><circle cx="158" cy="108" r="3.2"/><circle cx="170" cy="90" r="3.2"/><circle cx="182" cy="96" r="3.2"/><circle cx="196" cy="78" r="3.2"/><circle cx="208" cy="84" r="3.2"/><circle cx="222" cy="66" r="3.2"/><circle cx="236" cy="74" r="3.2"/><circle cx="150" cy="124" r="3.2"/><circle cx="188" cy="110" r="3.2"/>
+          </g>
+          <line x1="70" y1="150" x2="250" y2="58" stroke="#6b7cff" stroke-width="2"/>
+          <line x1="160" y1="104" x2="120" y2="62" stroke="#6b6c77" stroke-width="1.6"/>
+          <text x="252" y="54" fill="#9aa0ff" font-family="JetBrains Mono" font-size="10">PC1</text>
+          <text x="108" y="58" fill="#7c7f8a" font-family="JetBrains Mono" font-size="10">PC2</text>
+        </svg>
+        <div class="ctrls">
+          <div><span class="lbl">Components</span><select><option>2 of 4</option></select></div>
+          <div><span class="lbl">Reconstruction rank</span><div class="rng"></div></div>
+          <button class="btn">Recompute</button>
+          <span class="read">variance <b>92.4%</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ed v3 boxed">
+  <div class="slice">
+    <span class="tag">3 · QUIET CONTAINERS</span>
+    <div class="eyebrow">Visualization</div>
+    <h1>Principal Component Analysis</h1>
+    <div class="lede">Interactive walkthrough of PCA via SVD, principal directions, and reconstruction.</div>
+    <div style="height:20px"></div>
+    <div class="prose"><h3>Covariance and change of basis</h3>
+      <p>PCA finds the orthogonal directions that capture the most variance. Projecting onto the top components yields the best low-rank <span class="chip">reconstruction</span>.</p></div>
+    <div style="height:16px"></div>
+    <div class="figure">
+      <div class="figcap">Fig. 1 — Principal components</div>
+      <div class="figrow">
+        <svg width="320" height="190" viewBox="0 0 320 190">
+          <g fill="#7d80ff" fill-opacity=".82">
+            <circle cx="78" cy="138" r="3.2"/><circle cx="96" cy="126" r="3.2"/><circle cx="110" cy="132" r="3.2"/><circle cx="120" cy="112" r="3.2"/><circle cx="134" cy="118" r="3.2"/><circle cx="146" cy="100" r="3.2"/><circle cx="158" cy="108" r="3.2"/><circle cx="170" cy="90" r="3.2"/><circle cx="182" cy="96" r="3.2"/><circle cx="196" cy="78" r="3.2"/><circle cx="208" cy="84" r="3.2"/><circle cx="222" cy="66" r="3.2"/><circle cx="236" cy="74" r="3.2"/><circle cx="150" cy="124" r="3.2"/><circle cx="188" cy="110" r="3.2"/>
+          </g>
+          <line x1="70" y1="150" x2="250" y2="58" stroke="#6b7cff" stroke-width="2"/>
+          <line x1="160" y1="104" x2="120" y2="62" stroke="#6b6c77" stroke-width="1.6"/>
+          <text x="252" y="54" fill="#9aa0ff" font-family="JetBrains Mono" font-size="10">PC1</text>
+          <text x="108" y="58" fill="#7c7f8a" font-family="JetBrains Mono" font-size="10">PC2</text>
+        </svg>
+        <div class="ctrls">
+          <div><span class="lbl">Components</span><select><option>2 of 4</option></select></div>
+          <div><span class="lbl">Reconstruction rank</span><div class="rng"></div></div>
+          <button class="btn">Recompute</button>
+          <span class="read">variance <b>92.4%</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="1" onclick="toggleSelect(this)">
+    <div class="letter">1</div><div class="content"><h3>No frames</h3><p>Everything flush; only hairline rules + whitespace. Purest editorial. Risk: live plot/controls can feel like they float without an edge.</p></div>
+  </div>
+  <div class="option" data-choice="2" onclick="toggleSelect(this)">
+    <div class="letter">2</div><div class="content"><h3>Frame the instruments (recommended)</h3><p>Prose stays unboxed; only interactive figures + controls get a quiet hairline frame. Keeps reading airy, gives the "live" area a clear edge.</p></div>
+  </div>
+  <div class="option" data-choice="3" onclick="toggleSelect(this)">
+    <div class="letter">3</div><div class="content"><h3>Quiet containers</h3><p>Every section sits on a faint surface. Most structured, least airy. Closest to the current site, just refined.</p></div>
+  </div>
+</div>
