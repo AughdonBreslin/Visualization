@@ -1,0 +1,91 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<h2>Managing dense control sets</h2>
+<p class="subtitle">When a page has many controls (Fourier, PCA), a flat bar gets unwieldy. Three patterns using Fourier's real controls (image, basis, radius, tiling, 3D). Figures shown small for context; the controls sit below. Final arrangement will be tuned per real file.</p>
+
+<style>
+.mc{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; font-family:'Inter',system-ui; --acc:#6b7cff; }
+.mc .slice{ padding:22px 30px 26px; }
+.mc .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+.mc .minifigs{ display:flex; gap:10px; }
+.mc .mini{ width:58px; }
+.mc .mini .sq{ width:58px; height:58px; border:1px solid rgba(255,255,255,.1); border-radius:6px; }
+.mc .mini .cp{ font:500 8px/1.2 'JetBrains Mono'; color:#6c6e77; margin-top:5px; }
+.mc .below{ margin-top:18px; padding-top:18px; border-top:1px solid rgba(255,255,255,.08); }
+.lbl{ font:600 9.5px/1 'Inter'; letter-spacing:.14em; text-transform:uppercase; color:#6c6e77; }
+.mc select{ font:500 13px/1 'Inter'; color:#dadbe0; background:none; border:0; border-bottom:1px solid rgba(255,255,255,.22); padding:5px 1px; }
+.mc .upl{ font:500 12.5px/1 'Inter'; color:var(--acc); border:0; border-bottom:1px solid var(--acc); background:none; padding:5px 1px; cursor:pointer; }
+.tabs{ display:inline-flex; gap:16px; } .tab{ font:500 13px/1 'Inter'; color:#74767f; padding-bottom:6px; border-bottom:1.5px solid transparent; cursor:pointer; } .tab.on{ color:#ececf0; border-bottom-color:var(--acc); }
+.rng{ position:relative; width:120px; height:2px; background:rgba(255,255,255,.16); border-radius:2px; } .rng::after{ content:''; position:absolute; left:35%; top:50%; width:11px; height:11px; border-radius:50%; background:var(--acc); transform:translate(-50%,-50%); }
+.read{ font:500 12px/1 'JetBrains Mono'; color:#cfd1d8; } .read b{ color:var(--acc); }
+.tog{ display:inline-flex; align-items:center; gap:8px; font:500 12.5px/1 'Inter'; color:#b7b9c1; } .sw{ width:28px; height:16px; border-radius:8px; background:rgba(255,255,255,.12); position:relative; } .sw.on{ background:rgba(107,124,255,.55); } .sw::after{ content:''; position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:50%; background:#e9e9ee; } .sw.on::after{ left:14px; }
+.cell{ display:flex; flex-direction:column; gap:8px; }
+.row{ display:flex; align-items:center; gap:14px; }
+
+/* A grouped grid */
+.groups{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:24px 30px; }
+.group{ display:flex; flex-direction:column; gap:11px; }
+.group > .lbl{ padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,.06); }
+
+/* B primary + more */
+.prim{ display:flex; gap:30px; flex-wrap:wrap; align-items:flex-end; }
+.more{ margin-top:16px; }
+.morebtn{ font:500 12px/1 'Inter'; color:#9aa6ff; background:none; border:0; cursor:pointer; }
+.adv{ margin-top:14px; padding-top:14px; border-top:1px dashed rgba(255,255,255,.1); display:flex; gap:30px; flex-wrap:wrap; align-items:center; }
+
+/* C tabbed */
+.ctltabs{ display:inline-flex; gap:18px; margin-bottom:16px; }
+.panelnote{ font:500 11px/1.4 'Inter'; color:#5d5f68; margin-top:10px; }
+</style>
+
+<!-- A GROUPED GRID -->
+<div class="mc"><div class="slice"><span class="tag">A · GROUPED GRID</span>
+  <div class="minifigs"><div class="mini"><div class="sq" style="background:repeating-conic-gradient(#d7d7db 0 25%, #161619 0 50%) 50%/100% 100%"></div><div class="cp">ORIGINAL</div></div><div class="mini"><div class="sq" style="background:radial-gradient(circle,#cfd6ff,#0b0b1a 70%)"></div><div class="cp">SPECTRUM</div></div><div class="mini"><div class="sq" style="background:repeating-conic-gradient(#9a9aa0 0 25%, #2a2a2e 0 50%) 50%/100% 100%;filter:blur(2px)"></div><div class="cp">RECON</div></div></div>
+  <div class="below groups">
+    <div class="group"><span class="lbl">Image</span><div class="row"><select><option>Quadrant</option></select></div><button class="upl">Choose file</button></div>
+    <div class="group"><span class="lbl">Decomposition</span><div class="tabs"><span class="tab on">Fourier</span><span class="tab">Haar</span><span class="tab">DCT</span></div></div>
+    <div class="group"><span class="lbl">Filter</span><div class="cell"><span class="lbl" style="letter-spacing:.1em">Low-pass radius</span><div class="row"><div class="rng"></div><span class="read">r = <b>24</b></span></div></div></div>
+    <div class="group"><span class="lbl">View</span><span class="tog"><span class="sw on"></span>Tiling assumption</span><span class="tog"><span class="sw"></span>3D spectrum</span></div>
+  </div>
+</div></div>
+
+<!-- B PRIMARY + MORE -->
+<div class="mc"><div class="slice"><span class="tag">B · PRIMARY + "MORE"</span>
+  <div class="minifigs"><div class="mini"><div class="sq" style="background:repeating-conic-gradient(#d7d7db 0 25%, #161619 0 50%) 50%/100% 100%"></div><div class="cp">ORIGINAL</div></div><div class="mini"><div class="sq" style="background:radial-gradient(circle,#cfd6ff,#0b0b1a 70%)"></div><div class="cp">SPECTRUM</div></div><div class="mini"><div class="sq" style="background:repeating-conic-gradient(#9a9aa0 0 25%, #2a2a2e 0 50%) 50%/100% 100%;filter:blur(2px)"></div><div class="cp">RECON</div></div></div>
+  <div class="below">
+    <div class="prim">
+      <div class="cell"><span class="lbl">Image</span><select><option>Quadrant</option></select></div>
+      <div class="cell"><span class="lbl">Decomposition</span><div class="tabs"><span class="tab on">Fourier</span><span class="tab">Haar</span><span class="tab">DCT</span></div></div>
+      <div class="cell"><span class="lbl">Low-pass radius</span><div class="row"><div class="rng"></div><span class="read">r = <b>24</b></span></div></div>
+    </div>
+    <div class="more">
+      <button class="morebtn">&#9652; Fewer options</button>
+      <div class="adv">
+        <button class="upl">Choose file</button>
+        <span class="tog"><span class="sw on"></span>Tiling assumption</span>
+        <span class="tog"><span class="sw"></span>3D spectrum</span>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<!-- C TABBED -->
+<div class="mc"><div class="slice"><span class="tag">C · TABBED GROUPS</span>
+  <div class="minifigs"><div class="mini"><div class="sq" style="background:repeating-conic-gradient(#d7d7db 0 25%, #161619 0 50%) 50%/100% 100%"></div><div class="cp">ORIGINAL</div></div><div class="mini"><div class="sq" style="background:radial-gradient(circle,#cfd6ff,#0b0b1a 70%)"></div><div class="cp">SPECTRUM</div></div><div class="mini"><div class="sq" style="background:repeating-conic-gradient(#9a9aa0 0 25%, #2a2a2e 0 50%) 50%/100% 100%;filter:blur(2px)"></div><div class="cp">RECON</div></div></div>
+  <div class="below">
+    <div class="ctltabs"><span class="tab on">Decompose</span><span class="tab">Filter</span><span class="tab">View</span></div>
+    <div class="prim">
+      <div class="cell"><span class="lbl">Image</span><select><option>Quadrant</option></select></div>
+      <div class="cell"><span class="lbl">&nbsp;</span><button class="upl">Choose file</button></div>
+      <div class="cell"><span class="lbl">Basis</span><div class="tabs"><span class="tab on">Fourier</span><span class="tab">Haar</span><span class="tab">DCT</span></div></div>
+    </div>
+    <div class="panelnote">Filter (radius) and View (tiling, 3D) live under the other two tabs.</div>
+  </div>
+</div></div>
+
+<div class="options">
+  <div class="option" data-choice="grouped" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>Grouped grid</h3><p>Labeled groups, all visible at once, organized by purpose. Best when every control is used often. Can get wide.</p></div></div>
+  <div class="option" data-choice="more" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Primary + "more"</h3><p>Most-used controls visible; secondary behind a disclosure. Keeps the default view calm; advanced is one click away.</p></div></div>
+  <div class="option" data-choice="tabbed" onclick="toggleSelect(this)"><div class="letter">C</div><div class="content"><h3>Tabbed groups</h3><p>One group at a time via tabs. Smallest footprint; but hides controls and adds a click to reach them.</p></div></div>
+</div>

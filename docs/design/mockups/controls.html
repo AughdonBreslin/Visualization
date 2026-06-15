@@ -1,0 +1,96 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<h2>Control language</h2>
+<p class="subtitle">Every control type in two treatments on the locked palette (neutral graphite, periwinkle). The decision: how tactile controls should be. "Minimal" stays editorial and airy; "Quiet filled" gives larger hit areas and clearer affordance (better for touch / Fitts). Both stay dark and restrained.</p>
+
+<style>
+.cl{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; font-family:'Inter',system-ui; --acc:#6b7cff; }
+.cl .slice{ padding:26px 32px 30px; }
+.cl .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+.cl h4{ font:600 13px/1.2 'Inter'; color:#ededf0; margin:0 0 16px; }
+.cl .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:22px 26px; align-items:start; }
+.cl .cell{ display:flex; flex-direction:column; gap:9px; }
+.cl .lbl{ font:600 9.5px/1 'Inter'; letter-spacing:.14em; text-transform:uppercase; color:#6c6e77; }
+.cl .read{ font:500 12px/1 'JetBrains Mono'; color:#cfd1d8; } .cl .read b{ color:var(--acc); }
+.cl .seg{ display:inline-flex; }
+.cl .tabs{ display:inline-flex; gap:16px; }
+.cl .chevron{ pointer-events:none; }
+
+/* ===== A · MINIMAL / UNDERLINE ===== */
+.A .btn-pri{ font:500 13px/1 'Inter'; color:var(--acc); background:none; border:0; border-bottom:1px solid var(--acc); padding:6px 1px; cursor:pointer; align-self:flex-start; }
+.A .btn-sec{ font:500 13px/1 'Inter'; color:#a9abb3; background:none; border:0; border-bottom:1px solid rgba(255,255,255,.22); padding:6px 1px; cursor:pointer; align-self:flex-start; }
+.A select,.A input{ font:500 13px/1 'Inter'; color:#dadbe0; background:none; border:0; border-bottom:1px solid rgba(255,255,255,.22); padding:6px 1px; }
+.A .tab{ font:500 13px/1 'Inter'; color:#74767f; padding-bottom:6px; border-bottom:1.5px solid transparent; cursor:pointer; }
+.A .tab.on{ color:#ececf0; border-bottom-color:var(--acc); }
+.A .seg .s{ font:500 12.5px/1 'Inter'; color:#74767f; padding:6px 10px 7px; border-bottom:1.5px solid transparent; cursor:pointer; }
+.A .seg .s.on{ color:#ececf0; border-bottom-color:var(--acc); }
+.A .rng{ position:relative; width:100%; height:2px; background:rgba(255,255,255,.16); border-radius:2px; margin:9px 0; }
+.A .rng::before{ content:''; position:absolute; left:0; width:55%; top:0; bottom:0; background:var(--acc); opacity:.5; border-radius:2px; }
+.A .rng::after{ content:''; position:absolute; left:55%; top:50%; width:11px; height:11px; border-radius:50%; background:var(--acc); transform:translate(-50%,-50%); }
+.A .tog{ width:30px; height:17px; border-radius:9px; background:var(--acc); position:relative; cursor:pointer; }
+.A .tog::after{ content:''; position:absolute; top:2px; left:15px; width:13px; height:13px; border-radius:50%; background:#fff; }
+.A .chk{ display:inline-flex; align-items:center; gap:8px; font:500 13px/1 'Inter'; color:#c4c6cd; }
+.A .box{ width:15px; height:15px; border:1.5px solid var(--acc); border-radius:4px; position:relative; }
+.A .box::after{ content:''; position:absolute; inset:3px; background:var(--acc); border-radius:1px; }
+
+/* ===== B · QUIET FILLED ===== */
+.B .btn-pri{ font:600 13px/1 'Inter'; color:#dfe3ff; background:color-mix(in srgb,var(--acc) 18%,transparent); border:1px solid color-mix(in srgb,var(--acc) 38%,transparent); border-radius:8px; padding:9px 15px; cursor:pointer; align-self:flex-start; }
+.B .btn-sec{ font:500 13px/1 'Inter'; color:#d6d8df; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:9px 15px; cursor:pointer; align-self:flex-start; }
+.B .selwrap{ position:relative; }
+.B select,.B input{ font:500 13px/1 'Inter'; color:#dadbe0; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:9px 12px; width:100%; appearance:none; }
+.B .chevron{ position:absolute; right:11px; top:50%; transform:translateY(-50%); color:#7a7c84; font-size:11px; }
+.B .seg{ background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:8px; padding:3px; }
+.B .seg .s{ font:500 12.5px/1 'Inter'; color:#9a9ca4; padding:7px 12px; border-radius:6px; cursor:pointer; }
+.B .seg .s.on{ color:#f2f3f6; background:rgba(255,255,255,.09); }
+.B .tabs .tab{ font:500 13px/1 'Inter'; color:#74767f; padding-bottom:7px; border-bottom:1.5px solid transparent; cursor:pointer; }
+.B .tabs .tab.on{ color:#ececf0; border-bottom-color:var(--acc); }
+.B .rng{ position:relative; width:100%; height:5px; background:rgba(255,255,255,.1); border-radius:3px; margin:9px 0; }
+.B .rng::before{ content:''; position:absolute; left:0; width:55%; top:0; bottom:0; background:var(--acc); border-radius:3px; opacity:.7; }
+.B .rng::after{ content:''; position:absolute; left:55%; top:50%; width:14px; height:14px; border-radius:50%; background:var(--acc); border:2px solid #0c0c0d; transform:translate(-50%,-50%); }
+.B .tog{ width:34px; height:19px; border-radius:10px; background:color-mix(in srgb,var(--acc) 55%,transparent); position:relative; cursor:pointer; }
+.B .tog::after{ content:''; position:absolute; top:2px; left:17px; width:15px; height:15px; border-radius:50%; background:#fff; }
+.B .chk{ display:inline-flex; align-items:center; gap:9px; font:500 13px/1 'Inter'; color:#c4c6cd; }
+.B .box{ width:18px; height:18px; background:var(--acc); border-radius:5px; position:relative; }
+.B .box::after{ content:''; position:absolute; left:5px; top:2px; width:5px; height:9px; border:2px solid #0c0c0d; border-top:0; border-left:0; transform:rotate(42deg); }
+.B .upl{ font:500 13px/1 'Inter'; color:#d6d8df; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:9px 14px; cursor:pointer; }
+.A .upl{ font:500 13px/1 'Inter'; color:var(--acc); background:none; border:0; border-bottom:1px solid var(--acc); padding:6px 1px; cursor:pointer; }
+</style>
+
+<div class="cl A"><div class="slice"><span class="tag">A · MINIMAL / UNDERLINE</span>
+  <h4>Editorial, airy, text-like controls</h4>
+  <div class="grid">
+    <div class="cell"><span class="lbl">Primary</span><button class="btn-pri">Recompute</button></div>
+    <div class="cell"><span class="lbl">Secondary</span><button class="btn-sec">Reset</button></div>
+    <div class="cell"><span class="lbl">Select</span><select><option>Quadrant</option></select></div>
+    <div class="cell"><span class="lbl">Number</span><input value="24" style="width:60px"></div>
+    <div class="cell"><span class="lbl">Tabs</span><div class="tabs"><span class="tab on">Fourier</span><span class="tab">Haar</span></div></div>
+    <div class="cell"><span class="lbl">Segmented</span><div class="seg"><span class="s on">PDF</span><span class="s">CDF</span></div></div>
+    <div class="cell"><span class="lbl">Slider</span><div class="rng"></div><span class="read">r = <b>24</b></span></div>
+    <div class="cell"><span class="lbl">Toggle</span><div class="tog"></div></div>
+    <div class="cell"><span class="lbl">Checkbox</span><span class="chk"><span class="box"></span>Tiling</span></div>
+    <div class="cell"><span class="lbl">Upload</span><button class="upl">Choose file</button></div>
+  </div>
+</div></div>
+
+<div class="cl B"><div class="slice"><span class="tag">B · QUIET FILLED</span>
+  <h4>Subtle surfaces, larger hit areas, clearer affordance</h4>
+  <div class="grid">
+    <div class="cell"><span class="lbl">Primary</span><button class="btn-pri">Recompute</button></div>
+    <div class="cell"><span class="lbl">Secondary</span><button class="btn-sec">Reset</button></div>
+    <div class="cell"><span class="lbl">Select</span><div class="selwrap"><select><option>Quadrant</option></select><span class="chevron">&#9662;</span></div></div>
+    <div class="cell"><span class="lbl">Number</span><input value="24" style="width:74px"></div>
+    <div class="cell"><span class="lbl">Tabs</span><div class="tabs"><span class="tab on">Fourier</span><span class="tab">Haar</span></div></div>
+    <div class="cell"><span class="lbl">Segmented</span><div class="seg"><span class="s on">PDF</span><span class="s">CDF</span></div></div>
+    <div class="cell"><span class="lbl">Slider</span><div class="rng"></div><span class="read">r = <b>24</b></span></div>
+    <div class="cell"><span class="lbl">Toggle</span><div class="tog"></div></div>
+    <div class="cell"><span class="lbl">Checkbox</span><span class="chk"><span class="box"></span>Tiling</span></div>
+    <div class="cell"><span class="lbl">Upload</span><button class="upl">Choose file</button></div>
+  </div>
+</div></div>
+
+<div class="options">
+  <div class="option" data-choice="minimal" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>Minimal / underline</h3><p>Text-like controls, underline affordances. Most editorial and airy. Risk: smaller hit areas, affordance can be subtle on touch.</p></div></div>
+  <div class="option" data-choice="filled" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Quiet filled (recommended)</h3><p>Subtle filled surfaces + hairline borders, rounded. Larger tap targets, clearer "this is interactive", still minimal and dark.</p></div></div>
+  <div class="option" data-choice="mix" onclick="toggleSelect(this)"><div class="letter">C</div><div class="content"><h3>Mix</h3><p>e.g. filled selects/inputs/buttons (B) but keep underline tabs and text-style primary (A). Tell me the combo.</p></div></div>
+</div>

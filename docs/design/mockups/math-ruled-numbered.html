@@ -1,0 +1,40 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+
+<h2>Left accent rule + equation number</h2>
+<p class="subtitle">The combination, shown in flow with surrounding prose and two consecutive equations. The periwinkle rule marks key results; the number floats flush right for reference. Below: the equation centered vs left-aligned within the ruled block, pick the alignment.</p>
+
+<style>
+.mf{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; font-family:'Inter',system-ui; --acc:#6b7cff; }
+.mf .slice{ padding:28px 38px 32px; }
+.mf .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+.mf p{ font:400 14.5px/1.7 'Inter'; color:#8b8d96; max-width:62ch; margin:0; }
+.mf .var{ font:italic 400 1em 'Newsreader'; color:#e4e6ea; }
+.mf .eq{ font:400 18px/1.5 'Newsreader'; color:#e4e6ea; }
+.mf .eq sub,.mf .eq sup{ font-size:.62em; font-style:italic; }
+.mf .disp{ position:relative; border-left:2px solid var(--acc); padding:15px 58px 15px 26px; margin:22px 0; }
+.mf .disp .num{ position:absolute; right:20px; top:50%; transform:translateY(-50%); font:500 12px/1 'JetBrains Mono'; color:#5d5f68; }
+.center .disp{ text-align:center; }
+.left .disp{ text-align:left; }
+</style>
+
+<div class="mf center"><div class="slice"><span class="tag">CENTERED IN BLOCK</span>
+  <p>Because the covariance is symmetric, it diagonalizes in an orthonormal eigenbasis:</p>
+  <div class="disp"><span class="eq"><span class="var">C</span> = <span class="var">V</span> &Lambda; <span class="var">V</span><sup>T</sup></span><span class="num">(5)</span></div>
+  <p>Keeping only the top <span class="var">k</span> eigenvectors and projecting back gives the best rank-<span class="var">k</span> reconstruction:</p>
+  <div class="disp"><span class="eq"><span class="var">x&#770;</span> = &#8721;<sub>i&#8804;k</sub> (<span class="var">x</span><sup>T</sup><span class="var">v</span><sub>i</sub>) <span class="var">v</span><sub>i</sub></span><span class="num">(6)</span></div>
+  <p>The reconstruction error is then the sum of the discarded eigenvalues.</p>
+</div></div>
+
+<div class="mf left"><div class="slice"><span class="tag">LEFT-ALIGNED IN BLOCK</span>
+  <p>Because the covariance is symmetric, it diagonalizes in an orthonormal eigenbasis:</p>
+  <div class="disp"><span class="eq"><span class="var">C</span> = <span class="var">V</span> &Lambda; <span class="var">V</span><sup>T</sup></span><span class="num">(5)</span></div>
+  <p>Keeping only the top <span class="var">k</span> eigenvectors and projecting back gives the best rank-<span class="var">k</span> reconstruction:</p>
+  <div class="disp"><span class="eq"><span class="var">x&#770;</span> = &#8721;<sub>i&#8804;k</sub> (<span class="var">x</span><sup>T</sup><span class="var">v</span><sub>i</sub>) <span class="var">v</span><sub>i</sub></span><span class="num">(6)</span></div>
+  <p>The reconstruction error is then the sum of the discarded eigenvalues.</p>
+</div></div>
+
+<div class="options">
+  <div class="option" data-choice="centered" onclick="toggleSelect(this)"><div class="letter">1</div><div class="content"><h3>Centered in block</h3><p>Equation centered between the rule and the number. More classic/textbook; symmetric.</p></div></div>
+  <div class="option" data-choice="left" onclick="toggleSelect(this)"><div class="letter">2</div><div class="content"><h3>Left-aligned in block</h3><p>Equation hugs the accent rule. More editorial and modern; reads as "keyed to" the rule.</p></div></div>
+</div>

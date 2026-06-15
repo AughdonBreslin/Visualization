@@ -1,0 +1,66 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+
+<h2>Math and formula treatment</h2>
+<p class="subtitle">A math-heavy site. Top: inline math in a sentence + a worked numeric block (how matrices/numerals look). Below: the same display equation in three surrounding treatments. Real equations render via MathJax; this decides the framing around them.</p>
+
+<style>
+.mf{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; font-family:'Inter',system-ui; --acc:#6b7cff; }
+.mf .slice{ padding:26px 34px 30px; }
+.mf .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+.mf p{ font:400 14.5px/1.7 'Inter'; color:#8b8d96; max-width:62ch; margin:0; }
+.mf .var{ font:italic 400 1em 'Newsreader'; color:#cfd1d8; }
+.mf .acc{ color:var(--acc); }
+.mf .eq{ font:400 18px/1.5 'Newsreader'; color:#e4e6ea; }
+.mf .eq .var{ font-size:1em; color:#e4e6ea; }
+.mf .eq sub,.mf .eq sup{ font-size:.62em; }
+.mf .mlabel{ font:500 11px/1 'JetBrains Mono'; color:#5d5f68; }
+
+/* worked numeric block */
+.mf .worked{ margin-top:18px; display:inline-flex; align-items:center; gap:18px; background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.06); border-radius:9px; padding:14px 18px; }
+.mf .mat{ font:500 13px/1.6 'JetBrains Mono'; color:#d2d4db; font-variant-numeric:tabular-nums; border-left:1.5px solid rgba(255,255,255,.25); border-right:1.5px solid rgba(255,255,255,.25); padding:2px 12px; }
+.mf .mat .hl{ color:var(--acc); }
+.mf .eqsign{ font:400 16px 'Newsreader'; color:#8b8d96; }
+
+/* display math treatments */
+.bare .disp{ text-align:center; padding:26px 0; }
+.ruled .disp{ border-left:2px solid var(--acc); padding:6px 0 6px 22px; margin:22px 0; }
+.inset .disp{ background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.06); border-radius:10px; padding:22px 26px; margin:20px 0; display:flex; align-items:center; justify-content:center; position:relative; }
+.inset .disp .num{ position:absolute; right:16px; top:50%; transform:translateY(-50%); font:500 11px/1 'JetBrains Mono'; color:#5d5f68; }
+</style>
+
+<!-- shared context -->
+<div class="mf"><div class="slice"><span class="tag">INLINE + NUMERIC (shared)</span>
+  <p>The covariance <span class="var">C</span> = (1/<span class="var">n</span>) <span class="var">X</span><sup style="font-style:italic;font-family:Newsreader">T</sup><span class="var">X</span> is symmetric, so it has real eigenpairs (<span class="var">&lambda;</span><sub style="font-style:italic;font-family:Newsreader">i</sub>, <span class="var">v</span><sub style="font-style:italic;font-family:Newsreader">i</sub>). The top <span class="acc" style="font-family:Newsreader;font-style:italic">k</span> eigenvectors span the best rank-<span class="var">k</span> subspace.</p>
+  <div class="worked">
+    <span class="mlabel">eig(C)</span>
+    <span class="mat">2.41&nbsp;&nbsp;0.30<br>0.30&nbsp;&nbsp;0.92</span>
+    <span class="eqsign">&rarr;</span>
+    <span class="mlabel">&Lambda;</span>
+    <span class="mat"><span class="hl">2.48</span>&nbsp;&nbsp;0.00<br>0.00&nbsp;&nbsp;<span class="hl">0.85</span></span>
+  </div>
+</div></div>
+
+<div class="mf bare"><div class="slice"><span class="tag">1 · BARE CENTERED</span>
+  <p>Substituting the eigendecomposition gives the rank-<span class="var">k</span> reconstruction:</p>
+  <div class="disp"><span class="eq"><span class="var">x&#770;</span> = &#8721;<sub>i&#8804;k</sub> (<span class="var">x</span><sup>T</sup><span class="var">v</span><sub>i</sub>) <span class="var">v</span><sub>i</sub></span></div>
+  <p>Centered, generous space, no decoration. Purest editorial; equations breathe on the page.</p>
+</div></div>
+
+<div class="mf ruled"><div class="slice"><span class="tag">2 · LEFT ACCENT RULE</span>
+  <p>Substituting the eigendecomposition gives the rank-<span class="var">k</span> reconstruction:</p>
+  <div class="disp"><span class="eq"><span class="var">x&#770;</span> = &#8721;<sub>i&#8804;k</sub> (<span class="var">x</span><sup>T</sup><span class="var">v</span><sub>i</sub>) <span class="var">v</span><sub>i</sub></span></div>
+  <p>A thin accent rule marks key results, like a quote. Adds a little structure and rhythm without a box.</p>
+</div></div>
+
+<div class="mf inset"><div class="slice"><span class="tag">3 · INSET SURFACE + NUMBER</span>
+  <p>Substituting the eigendecomposition gives the rank-<span class="var">k</span> reconstruction:</p>
+  <div class="disp"><span class="eq"><span class="var">x&#770;</span> = &#8721;<sub>i&#8804;k</sub> (<span class="var">x</span><sup>T</sup><span class="var">v</span><sub>i</sub>) <span class="var">v</span><sub>i</sub></span><span class="num">(6)</span></div>
+  <p>Equation sits on a faint raised surface with a reference number. Most "textbook"; easiest to point at ("see eq. 6").</p>
+</div></div>
+
+<div class="options">
+  <div class="option" data-choice="bare" onclick="toggleSelect(this)"><div class="letter">1</div><div class="content"><h3>Bare centered</h3><p>Centered, no decoration. Most editorial and calm. Relies on whitespace alone to set equations apart.</p></div></div>
+  <div class="option" data-choice="ruled" onclick="toggleSelect(this)"><div class="letter">2</div><div class="content"><h3>Left accent rule</h3><p>Thin periwinkle rule beside display math. Light structure + a subtle accent moment; good rhythm down a long page.</p></div></div>
+  <div class="option" data-choice="inset" onclick="toggleSelect(this)"><div class="letter">3</div><div class="content"><h3>Inset surface + number</h3><p>Faint surface + equation numbers. Most textbook and referenceable; slightly less airy (a soft exception to no-frames).</p></div></div>
+</div>
