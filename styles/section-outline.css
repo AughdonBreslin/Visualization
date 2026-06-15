@@ -31,6 +31,11 @@
   background: rgba(110, 168, 254, 0.16);
   font-weight: 600;
 }
+.section-outline-list a:focus-visible,
+.section-outline-toggle:focus-visible {
+  outline: 2px solid var(--outline-accent);
+  outline-offset: 2px;
+}
 .section-outline-heading {
   font-size: 0.72rem;
   letter-spacing: 0.06em;
