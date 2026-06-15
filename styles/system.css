@@ -1,0 +1,50 @@
+/* styles/system.css - redesign global styling. Scoped under .ui so it only applies on
+   opted-in pages and overrides base.css element rules via class specificity. */
+
+.ui {
+  background: var(--bg);
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.ui .container {
+  max-width: var(--container-default);
+  margin: 0 auto;
+  padding: var(--sp-5);
+}
+
+/* type scale (Balanced) */
+.ui h1 {
+  font: 600 33px/1.1 var(--font-sans);
+  letter-spacing: -0.025em;
+  color: var(--text);
+  text-wrap: balance;
+  margin: 0 0 var(--sp-3);
+}
+.ui h2 {
+  font: 600 19px/1.25 var(--font-sans);
+  letter-spacing: -0.014em;
+  color: #ededf0;
+  text-wrap: balance;
+  margin: 0 0 var(--sp-2);
+}
+.ui h3 {
+  font: 600 15px/1.35 var(--font-sans);
+  color: #cfd1d8;
+  margin: 0 0 var(--sp-2);
+}
+.ui p {
+  font: 400 14.5px/1.7 var(--font-sans);
+  color: var(--text-body);
+  max-width: 62ch;
+  text-wrap: pretty;
+  margin: 0 0 var(--sp-4);
+}
+.ui .page-head { margin-bottom: var(--sp-5); }
+.ui .lede {
+  font: 400 15px/1.6 var(--font-sans);
+  color: var(--text-body);
+  max-width: 56ch;
+}
+.ui .rule { border: 0; height: 1px; background: var(--hairline); margin: var(--sp-6) 0; }
