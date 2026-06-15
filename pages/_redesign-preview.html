@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Redesign preview (internal)</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../styles/system.css">
+</head>
+<body class="ui">
+  <div class="container">
+    <header class="page-head">
+      <div class="eyebrow">Visualization</div>
+      <h1>Principal Component Analysis</h1>
+      <p class="lede">Interactive walkthrough of PCA via SVD, principal directions, and reconstruction.</p>
+    </header>
+    <main>
+      <hr class="rule">
+      <section>
+        <h2>Covariance and change of basis</h2>
+        <h3>Reconstruction error</h3>
+        <p>PCA finds the orthogonal directions of maximum variance; the top components give the
+        best low-rank fit. See <a href="#">the SVD step</a> or set <code>rank = 2</code>.</p>
+        <p class="caption">Figure 1 - projection onto the first two components</p>
+        <div class="label">Components</div>
+        <p class="readout">variance explained <b>92.4%</b></p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
