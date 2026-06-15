@@ -358,6 +358,21 @@ Implementation must follow the mockups and the exact values here. Where a real f
 deviation (e.g. a dense control set), use the section 6 patterns and flag the deviation rather
 than silently summarizing.
 
+### Phase-1 outcome and a migration constraint (recorded during execution)
+
+Phase 1 shipped the foundation as an opt-in layer rather than editing `base.css`: new
+`styles/tokens.css` (the `:root` tokens) and `styles/system.css` (global styling scoped under a
+`.ui` body class), validated on the hidden `pages/_redesign-preview.html`. The eight existing
+pages are untouched (an isolation test enforces this).
+
+CONSTRAINT for Phase 4 migration: `base.css` still defines its own `:root` with overlapping token
+names but old values (`--bg:#131313`, `--text-muted: rgba(255,255,255,0.75)`, some `--radius-*`).
+Same-specificity `:root` rules resolve by load order, so a page that opts in MUST load
+`tokens.css` after `base.css`, or the old values silently win and undo the redesign. The migration
+plan should either enforce that include order on every migrated page or remove the overlapping
+tokens from `base.css`. Also confirm during migration that `--bg` reaches `html`/`body` (not only
+the `.ui` block) so scroll overflow does not reveal the old background.
+
 ---
 
 ## 14. Open refinements (consolidated revisit list)
