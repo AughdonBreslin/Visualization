@@ -92,3 +92,13 @@
   color: #cfd1d8;
 }
 .ui .readout b { color: var(--accent); font-weight: 600; }
+
+/* global polish */
+.ui ::selection { background: var(--accent-muted); color: #fff; }
+.ui ::placeholder { color: var(--text-muted); opacity: 1; }
+.ui :focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ui * { transition: none !important; animation: none !important; }
+  html { scroll-behavior: auto; }
+}
