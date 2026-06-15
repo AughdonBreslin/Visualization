@@ -855,19 +855,15 @@
     // option triggers the hidden file input; the upload handler then inserts
     // a filename option above "Choose file…" so the user can switch back to
     // the uploaded image later.
-    const UPLOAD_ACTION = '__upload__';
     const UPLOAD_SLOT   = '__uploaded__';
-    let lastImageSelection = presetSel.value;
     let uploadedPixels = null;
 
+    // The file dialog is opened by tapping the "Choose file…" label that wraps
+    // the hidden input (see fourier.html). iOS Safari only opens a file picker
+    // from a direct user gesture on the input/label, so we must not trigger it
+    // programmatically from this select's change handler.
     presetSel.addEventListener('change', () => {
       const v = presetSel.value;
-      if (v === UPLOAD_ACTION) {
-        presetSel.value = lastImageSelection;
-        uploadInput.click();
-        return;
-      }
-      lastImageSelection = v;
       if (v === UPLOAD_SLOT && uploadedPixels) {
         loadPixels(uploadedPixels);
       } else {
@@ -897,12 +893,10 @@
           if (!slot) {
             slot = document.createElement('option');
             slot.value = UPLOAD_SLOT;
-            const action = presetSel.querySelector(`option[value="${UPLOAD_ACTION}"]`);
-            action.parentNode.insertBefore(slot, action);
+            presetSel.appendChild(slot);
           }
           slot.textContent = file.name;
           presetSel.value = UPLOAD_SLOT;
-          lastImageSelection = UPLOAD_SLOT;
           uploadInput.value = '';
           loadPixels(px);
         };
