@@ -51,16 +51,20 @@
 
 /* eyebrow / label / caption */
 .ui .eyebrow {
+  display: block;
   font: 600 11px/1 var(--font-sans);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--accent);
+  margin-bottom: var(--sp-3);
 }
 .ui .label {
+  display: block;
   font: 600 10.5px/1 var(--font-sans);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #6c6e77;
+  margin-bottom: var(--sp-2);
 }
 .ui .caption {
   font: 400 12px/1.45 var(--font-sans);
