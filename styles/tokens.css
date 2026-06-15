@@ -1,0 +1,45 @@
+/* styles/tokens.css - redesign design tokens (custom properties only; inert until used). */
+:root {
+  /* fonts (substitutable; single source of truth) */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  /* neutrals (graphite) */
+  --bg: #0c0c0d;
+  --text: #fafafa;
+  --text-body: #8b8d96;
+  --text-muted: #5d5f68;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline-strong: rgba(255, 255, 255, 0.22);
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-border: rgba(255, 255, 255, 0.06);
+  --surface-strong: #141418;
+  --surface-strong-border: rgba(255, 255, 255, 0.10);
+  --figure-edge: rgba(255, 255, 255, 0.10);
+
+  /* accent (user-overridable) */
+  --accent: #6b7cff;
+  --accent-muted: rgba(107, 124, 255, 0.14);
+  --accent-link: #9aa6ff;
+  --focus-ring: 2px solid rgba(107, 124, 255, 0.60);
+
+  /* status */
+  --warning: #e0b341;
+  --warning-bg: rgba(224, 179, 65, 0.10);
+  --warning-text: #f0c460;
+
+  /* radii */
+  --radius-xs: 3px; --radius-sm: 6px; --radius-md: 8px; --radius-lg: 10px;
+  --radius-xl: 12px; --radius-pill: 999px;
+
+  /* spacing */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+
+  /* motion */
+  --dur-instant: 80ms; --dur-hover: 140ms; --dur-state: 200ms;
+  --ease-out: cubic-bezier(0, 0, 0.2, 1); --ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+  /* containers */
+  --container-narrow: 1100px; --container-default: 1200px;
+  --container-wide: 1400px; --container-xl: 1560px;
+}
