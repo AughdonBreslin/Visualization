@@ -308,10 +308,11 @@
                   <option value="gaussian">Gaussian blob</option>
                   <option value="step">Step function</option>
                   <option value="rect">Rectangle</option>
-                  <option disabled>──────────</option>
-                  <option value="__upload__">Choose file…</option>
                 </select>
-                <input id="fourierUpload" type="file" accept="image/*" hidden />
+                <label class="fourier-upload-btn">
+                  <span>Choose file…</span>
+                  <input id="fourierUpload" type="file" accept="image/*" class="fourier-visually-hidden" />
+                </label>
               </div>
 
               <div class="fourier-control-item">

@@ -64,6 +64,42 @@
   width: 100%;
 }
 
+/* "Choose file…" upload control. The label wraps a visually-hidden (but still
+   rendered) file input so a direct tap opens the picker on iOS Safari, which
+   refuses programmatic clicks and display:none file inputs. */
+.fourier .fourier-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+.fourier .fourier-upload-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+.fourier .fourier-upload-btn:focus-within {
+  outline: 2px solid rgba(74, 163, 255, 0.6);
+  outline-offset: 2px;
+}
+.fourier .fourier-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Slider */
 .fourier .fourier-slider-row {
   display: flex;
@@ -84,10 +120,6 @@
 }
 
 /* Upload */
-.fourier input[type="file"] {
-  display: none;
-}
-
 .fourier .fourier-upload-label {
   font-weight: 600;
   font-size: 0.95rem;
