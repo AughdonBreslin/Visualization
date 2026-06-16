@@ -70,12 +70,10 @@ considered and rejected.
 - Inline math is standard MathJax inline. Variables render italic because that is standard math
   typography, not emphasis.
 - Display math keeps the sizing from the mockup. Every `.formula` is a left-ruled block (accent
-  wall). Only the key-result rows are numbered: a `.formulas` wrapper holds one or more
-  side-by-side results, each rendered as `[equation (n)]` with the mono muted number close
-  beside it; the first in a row keeps the accent wall, the rest are numbered and aligned but
-  wall-less. Standalone `.formula` derivation blocks keep the wall but get no number, since a
-  notes page does not cite equations by number (numbering can be reintroduced opt-in if a page
-  ever needs cross-references).
+  wall). Display equations are not numbered (nothing on a notes page cites them by number); a
+  `.formulas` wrapper holds one or more side-by-side results, the first keeping the accent wall
+  and the rest aligned but wall-less. Numbering can be reintroduced opt-in later if a page ever
+  needs cross-references.
 - Formula labels such as `Point:` and `Function:` are regular upright text (`\text{}`), not
   bold.
 
