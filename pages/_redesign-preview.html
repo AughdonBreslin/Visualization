@@ -35,6 +35,9 @@
           <div class="callout-body">The DFT assumes the image tiles periodically.</div></div>
         <div class="callout warning"><span class="callout-label">Warning</span>
           <div class="callout-body">Non-periodic images produce checkerboard artifacts.</div></div>
+        <pre class="codeblock"><code><span class="ln">1</span><span class="kw">function</span> <span class="fn">isomap</span>(X, k, d):
+<span class="ln">2</span>    G = <span class="fn">knn_graph</span>(X, k)   <span class="cm"># neighbors</span>
+<span class="ln">3</span>    <span class="kw">return</span> <span class="fn">embed</span>(G, d)</code></pre>
       </section>
     </main>
   </div>
