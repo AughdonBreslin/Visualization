@@ -146,9 +146,18 @@ body.ui { --outline-rail-w: 210px; }
 .ui .section-outline-panel { scrollbar-width: none; }
 .ui .section-outline-panel::-webkit-scrollbar { width: 0; height: 0; }
 
-/* Below the rail breakpoint the hamburger is fixed top-left; clear the back-home past it. */
-@media (max-width: 1099px) {
-  .ui .back-home { margin-left: 44px; }
+/* Rail behavior on migrated (.ui) pages. The global section-outline.css shows the rail at
+   >=1100 and a top-left hamburger at <=1099. Override so the rail appears only when there is
+   real room for it (>=1240), is hidden entirely in the middle band with no hamburger, and the
+   mobile hamburger sits at the bottom-left (which also frees the top-left for the back-home). */
+@media (min-width: 721px) and (max-width: 1239px) {
+  body.ui.has-section-outline { padding-left: 0; }
+  .ui .section-outline-toggle,
+  .ui .section-outline-backdrop,
+  .ui .section-outline-panel { display: none !important; }
+}
+@media (max-width: 720px) {
+  .ui .section-outline-toggle { top: auto; bottom: 16px; left: 16px; }
 }
 
 @media (max-width: 700px) {
