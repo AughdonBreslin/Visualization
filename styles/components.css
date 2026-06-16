@@ -21,11 +21,13 @@
 .ui .callout.warning { --co: var(--warning); --co-label: var(--warning-text); }
 .ui .callout.error   { --co: #e06a6a;        --co-label: #f0a0a0; }
 
-/* Code / pseudocode block (dark inset). */
+/* Code / pseudocode block (dark inset). Monochrome by design: the accent is reserved
+   for interactive elements, so code is not syntax-colored. Comments are dimmed, keywords
+   are a slightly brighter neutral. */
 .ui .codeblock {
-  margin: 0;
+  margin: 0 0 var(--sp-5);
   font: 500 12.5px/1.85 var(--font-mono);
-  color: #9a9ca4;
+  color: #b6b8c0;
   background: #060607;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
@@ -33,12 +35,12 @@
   overflow-x: auto;
 }
 .ui .codeblock .ln { display: inline-block; width: 20px; color: #4d4f57; user-select: none; }
-.ui .codeblock .kw { color: #9fb0ff; }
-.ui .codeblock .fn { color: #cfd1d8; }
-.ui .codeblock .cm { color: #5d5f68; }
+.ui .codeblock .kw { color: #d6d9df; }
+.ui .codeblock .fn { color: inherit; }
+.ui .codeblock .cm { color: #5d5f68; font-style: italic; }
 
 /* Data table (row hairlines). */
-.ui .data-table { border-collapse: collapse; width: 100%; max-width: 620px; }
+.ui .data-table { border-collapse: collapse; width: 100%; max-width: 620px; margin: 0 0 var(--sp-5); }
 .ui .data-table th {
   font: 600 10px/1 var(--font-mono);
   letter-spacing: 0.1em;
@@ -96,6 +98,7 @@
   padding: 13px 56px 13px 22px;
   margin: 20px 0;
   text-align: left;
+  color: #e4e6ea;            /* MathJax SVG uses currentColor */
 }
 .ui .math-display .eq-num {
   position: absolute;
@@ -105,6 +108,8 @@
   font: 500 12px/1 var(--font-mono);
   color: var(--text-muted);
 }
+/* keep MathJax display output left-aligned inside the ruled block (MathJax centers by default) */
+.ui .math-display mjx-container[display] { text-align: left !important; margin: 0 !important; }
 
 /* Worked numeric block (matrices / step values). */
 .ui .worked {
