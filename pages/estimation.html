@@ -51,15 +51,15 @@
           In function estimation, the unknown object is typically infinite-dimensional (a whole curve/surface).
         </p>
         <div class="formulas">
-          <div class="formula">$$\textbf{Point:}\quad X_1,\dots,X_n\sim P_\theta\;\Rightarrow\;\hat\theta\approx\theta$$</div>
-          <div class="formula">$$\textbf{Function:}\quad Y = f(X)+\varepsilon\;\Rightarrow\;\hat f(x)\approx f(x)$$</div>
+          <div class="formula">$$\text{Point:}\quad X_1,\dots,X_n\sim P_\theta\;\Rightarrow\;\hat\theta\approx\theta$$</div>
+          <div class="formula">$$\text{Function:}\quad Y = f(X)+\varepsilon\;\Rightarrow\;\hat f(x)\approx f(x)$$</div>
         </div>
         <p>
           The estimator is a function of the data, and since the data is drawn from a random process, any function of the data is a random variable. Here $T$ and $A$ are the estimation procedures (e.g., formulas, algorithms) that we design to produce good estimates.
         </p>
         <div class="formulas">
-          <div class="formula">$$\textbf{Point estimation:}\quad \hat\theta = T(\mathcal{D})$$</div>
-          <div class="formula">$$\textbf{Function estimation:}\quad \hat f = A(\mathcal{D}),\; \hat f: \mathcal{X}\to\mathbb{R}$$</div>
+          <div class="formula">$$\text{Point estimation:}\quad \hat\theta = T(\mathcal{D})$$</div>
+          <div class="formula">$$\text{Function estimation:}\quad \hat f = A(\mathcal{D}),\; \hat f: \mathcal{X}\to\mathbb{R}$$</div>
         </div>
         <p>
           Examples:
@@ -73,8 +73,8 @@
           Treat an estimator as a random variable (because it depends on random data). Two core quantities are:
         </p>
         <div class="formulas">
-          <div class="formula">$$\textbf{Bias:}\quad \mathrm{Bias}(\hat\theta) = \mathbb{E}[\hat\theta]-\theta$$</div>
-          <div class="formula">$$\textbf{Variance:}\quad \mathrm{Var}(\hat\theta) = \mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta])^2\big]$$</div>
+          <div class="formula">$$\text{Bias:}\quad \mathrm{Bias}(\hat\theta) = \mathbb{E}[\hat\theta]-\theta$$</div>
+          <div class="formula">$$\text{Variance:}\quad \mathrm{Var}(\hat\theta) = \mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta])^2\big]$$</div>
         </div>
         <p>
           An estimator is considered unbiased if $\mathrm{Bias}(\hat\theta)=0$, i.e., $\mathbb{E}[\hat\theta]=\theta$.
@@ -117,7 +117,7 @@
         <p>
           The standard error is the standard deviation of the estimator:
         </p>
-        <div class="formula">$$\textbf{Standard error:}\quad \mathrm{SE}(\hat\theta)=\sqrt{\mathrm{Var}(\hat\theta)}$$</div>
+        <div class="formula">$$\text{Standard error:}\quad \mathrm{SE}(\hat\theta)=\sqrt{\mathrm{Var}(\hat\theta)}$$</div>
         <p>
           In practice, we rarely know $\mathrm{Var}(\hat\theta)$ exactly, so we often estimate the standard error using the data we have sampled.
         </p>
@@ -222,8 +222,8 @@
           For a parameter estimator, the MSE decomposes into bias and variance.
         </p>
         <div class="formulas">
-          <div class="formula">$$\textbf{MSE:}\quad \mathrm{MSE}(\hat\theta)=\mathbb{E}\big[(\hat\theta-\theta)^2\big]$$</div>
-          <div class="formula">$$\textbf{Decomposition:}\quad \mathrm{MSE}(\hat\theta)=\mathrm{Bias}(\hat\theta)^2+\mathrm{Var}(\hat\theta)$$</div>
+          <div class="formula">$$\text{MSE:}\quad \mathrm{MSE}(\hat\theta)=\mathbb{E}\big[(\hat\theta-\theta)^2\big]$$</div>
+          <div class="formula">$$\text{Decomposition:}\quad \mathrm{MSE}(\hat\theta)=\mathrm{Bias}(\hat\theta)^2+\mathrm{Var}(\hat\theta)$$</div>
         </div>
         <p>
           To prove this, here's the derivation where we add and subtract $\mathbb{E}[\hat\theta]$ inside the initial definition, and simplify the expansion using the definition of variance and the fact that $\mathbb{E}[\hat\theta-\mathbb{E}[\hat\theta]]=0$ (the expected deviation from the mean is zero by definition):
@@ -314,10 +314,10 @@
         </p>
         <div class="formulas">
           <div class="formula">
-            $$\textbf{MSE regression:}\quad \min_{f\in\mathcal{F}}\;\frac{1}{n}\sum_{i=1}^n\big(f(x_i)-y_i\big)^2$$
+            $$\text{MSE regression:}\quad \min_{f\in\mathcal{F}}\;\frac{1}{n}\sum_{i=1}^n\big(f(x_i)-y_i\big)^2$$
           </div>
           <div class="formula">
-            $$\textbf{Conditional log-likelihood:}\quad \max_{\theta}\;\sum_{i=1}^n \log p_\theta(y_i\mid x_i)$$
+            $$\text{Conditional log-likelihood:}\quad \max_{\theta}\;\sum_{i=1}^n \log p_\theta(y_i\mid x_i)$$
           </div>
         </div>
         <p>
