@@ -387,3 +387,45 @@
 @media (max-width: 640px) {
   .ui .viz-pair { grid-template-columns: 1fr; }
 }
+
+/* Walkthrough player (stacked). JS wires play/scrub/step nav at migration. */
+.ui .player .video {
+  position: relative;
+  aspect-ratio: 16/9;
+  background: radial-gradient(120% 120% at 50% 40%, #0f1016, #060608);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.ui .player .video > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ui .player .video-title { position: absolute; left: 16px; top: 14px; font: 500 11px/1.3 var(--font-mono); color: rgba(255, 255, 255, 0.5); }
+.ui .player .video-title b { display: block; font: 600 13px/1.4 var(--font-sans); color: rgba(255, 255, 255, 0.85); letter-spacing: -0.01em; margin-top: 3px; }
+.ui .player .big-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 58px; height: 58px; border-radius: 50%; background: rgba(8, 8, 12, 0.55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; }
+.ui .player .big-play::after { content: ''; border-left: 15px solid var(--accent); border-top: 9px solid transparent; border-bottom: 9px solid transparent; margin-left: 4px; }
+
+.ui .player .scrub { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
+.ui .player .scrub-play { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.04); flex-shrink: 0; cursor: pointer; }
+.ui .player .scrub-track { position: relative; flex: 1; height: 4px; background: rgba(255, 255, 255, 0.12); border-radius: 3px; }
+.ui .player .scrub-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 34%; background: var(--accent); border-radius: 3px; }
+.ui .player .scrub-tick { position: absolute; top: -3px; width: 2px; height: 10px; background: rgba(255, 255, 255, 0.22); border-radius: 1px; }
+.ui .player .scrub-head { position: absolute; left: 34%; top: 50%; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); transform: translate(-50%, -50%); }
+.ui .player .scrub-time { font: 500 12px/1 var(--font-mono); color: #9a9ca4; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+
+.ui .player .step-bar { display: flex; align-items: flex-start; justify-content: space-between; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--hairline); }
+.ui .player .step-k { font: 600 10.5px/1 var(--font-mono); letter-spacing: 0.16em; color: var(--accent); }
+.ui .player .step-trigger { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; margin-top: 5px; }
+.ui .player .step-title { font: 600 16px/1.3 var(--font-sans); color: #ededf0; letter-spacing: -0.01em; }
+.ui .player .step-chev { color: #7a7c84; font-size: 11px; }
+.ui .player .step-menu-wrap { position: relative; }
+.ui .player .step-menu { position: absolute; top: calc(100% + 8px); left: 0; width: 320px; background: var(--surface-strong); border: 1px solid var(--surface-strong-border); border-radius: var(--radius-lg); padding: 6px; box-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.8); z-index: 5; }
+.ui .player .step-item { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: var(--radius-sm); cursor: pointer; }
+.ui .player .step-item .step-n { font: 500 11px/1 var(--font-mono); color: var(--text-muted); width: 16px; flex-shrink: 0; }
+.ui .player .step-item .step-l { font: 500 13px/1.3 var(--font-sans); color: #74767f; }
+.ui .player .step-item:hover { background: rgba(255, 255, 255, 0.04); }
+.ui .player .step-item.current { background: var(--accent-muted); color: #ededf0; }
+.ui .player .step-item.current .step-l { color: #ededf0; }
+.ui .player .step-item.current .step-n { color: var(--accent); }
+.ui .player .step-item.done .step-l { color: #9a9ca4; }
+.ui .player .step-nav { display: flex; gap: 10px; }
+.ui .player .step-nav .btn { font: 500 12.5px/1 var(--font-sans); color: #c4c6cd; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 9px 13px; cursor: pointer; }
+.ui .player .transcript { margin-top: 18px; font: 400 14px/1.7 var(--font-sans); color: var(--text-body); max-width: 64ch; }
