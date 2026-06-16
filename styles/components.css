@@ -25,6 +25,8 @@
    color. The .kw/.fn/.cm spans are kept for markup compatibility but are not colored.
    Only the line-number gutter is dimmed. */
 .ui .codeblock {
+  width: fit-content;
+  max-width: 100%;
   margin: 0 0 var(--sp-5);
   font: 500 12.5px/1.85 var(--font-mono);
   color: #b6b8c0;
