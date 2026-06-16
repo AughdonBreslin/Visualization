@@ -23,5 +23,13 @@ Chosen option per screen (the locked decision):
 | `step-nav-approaches.html` | Step navigation | 1 · Dropdown from step (desktop; mobile revisit) |
 | `paired-viz-layout.html` | Paired-figure layout | C · Controls below |
 | `manage-controls.html` | Dense controls | C · Tabbed groups default; all three patterns reusable per page |
+| `callouts.html` | Callout / alert | C · Minimal left rule, no fill |
+| `code-blocks.html`, `code-in-context.html` | Code / pseudocode | C · Dark inset (terminal) |
+| `tables.html` | Data table | A · Row hairlines |
+| `tooltips.html` | Tooltip | Content-driven: card (A) when labelled/multi-value, pill (B) when single value |
+| `outline-rail.html` | Section-outline rail | B · Mono-numbered (section titles to be shortened) |
+
+The standalone `code-*`, `tables`, `tooltips`, `outline-rail` files are full HTML pages (served
+directly), the rest are companion fragments.
 
 See `docs/superpowers/specs/2026-06-15-ui-redesign-design.md` for the full system spec.
