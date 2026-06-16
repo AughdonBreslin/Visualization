@@ -15,30 +15,31 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <link rel="stylesheet" href="../styles/base.css">
-  <link rel="stylesheet" href="../styles/article.css">
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../styles/system.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/article-ui.css">
   <link rel="stylesheet" href="../styles/estimation.css">
-  <link rel="stylesheet" href="../styles/responsive.css">
   <link rel="stylesheet" href="../styles/section-outline.css">
+  <script src="../js/theme.js"></script>
 
   <script defer src="../js/formulas_layout.js"></script>
   <script defer src="../js/estimation_bootstrap.js"></script>
-  <script defer src="../js/collapsible.js"></script>
   <script defer src="../js/tabs.js"></script>
   <script defer src="../js/favicon.js"></script>
   <script type="module" src="../js/section-outline.js"></script>
 </head>
 
-<body>
-  <div class="container article estimation">
-    <header>
+<body class="ui estimation">
+  <div class="container">
+    <header class="page-head">
+      <a class="back-home" href="../index.html">Home</a>
       <h1>Estimation</h1>
-      <div class="subtitle">Point estimation, function estimation, bias/variance, standard error, MSE, consistency, and likelihood objectives</div>
-      <div class="home-link"><a href="../index.html">← Home</a></div>
+      <p class="lede">Point estimation, function estimation, bias/variance, standard error, MSE, consistency, and likelihood objectives.</p>
     </header>
 
     <main class="article-body">
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Overview</h2>
         <p>
           Estimation is about using data $\mathcal{D}$ to infer something unknown: a parameter $\theta$, a function $f$, or a prediction rule.
@@ -66,7 +67,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Bias and Variance</h2>
         <p>
           Treat an estimator as a random variable (because it depends on random data). Two core quantities are:
@@ -88,7 +89,7 @@
         </div>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Determining an unbiased estimator</h2>
         <p>
           Let $X_1,\dots,X_n$ be i.i.d. Bernoulli($p$), i.e., $\mathbb{P}(X_i=1)=p$ and $\mathbb{P}(X_i=0)=1-p$.
@@ -111,7 +112,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Standard error</h2>
         <p>
           The standard error is the standard deviation of the estimator:
@@ -139,7 +140,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible" id="bootstrapCI">
+      <section class="panel" id="bootstrapCI">
         <h2>Bootstrap confidence interval </h2>
         <p>
           The initial sample of data is just one of many possible samples we could have drawn from the data-generating process, and only gives us one realization of the estimator $\hat\theta$.
@@ -214,7 +215,7 @@
         </div>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Mean squared error (MSE) and minimizing it</h2>
         <p>
           A common way to evaluate an estimator is by its mean squared error.
@@ -246,7 +247,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Function estimation: bias-variance and prediction error</h2>
         <p>
           For regression, we often care about prediction error at an input $x$.
@@ -263,7 +264,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Consistency</h2>
         <p>
           An estimator is consistent if it converges to the truth as the sample size grows.
@@ -276,7 +277,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Maximum likelihood estimation (MLE)</h2>
         <p>
           If we assume a probabilistic model $p_\theta(x)$ for the data, the likelihood $L(\theta)$ of a dataset $\mathcal{D}=\{x_i\}_{i=1}^n$ is
@@ -293,7 +294,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Conditional log-likelihood (discriminative objective)</h2>
         <p>
           In supervised learning we often model $p_\theta(y\mid x)$ directly.
@@ -306,7 +307,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Conditional log-likelihood vs. mean squared error</h2>
         <p>
           Both are valid training objectives, but they encode different assumptions. MLE assumes a full generative model for the data, while conditional log-likelihood only models the conditional distribution of $Y$ given $X$.
@@ -329,8 +330,8 @@
       </section>
     </main>
 
-    <footer class="footer">
-      <p class="footer-tag">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></p>
+    <footer class="site-footer">
+      <span class="credit">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></span>
     </footer>
   </div>
 </body>
