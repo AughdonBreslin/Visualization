@@ -62,3 +62,29 @@
 .ui .data-table tr:last-child td { border-bottom: 0; }
 .ui .data-table .best td { color: #cfd1d8; }
 .ui .data-table .best .hl { color: var(--accent); }
+
+/* Tooltip (card default; .pill for a single value). JS positions it. */
+.ui .tooltip {
+  display: inline-block;
+  background: #141418;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: var(--radius-md);
+  padding: 9px 11px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 28px -10px rgba(0, 0, 0, 0.8);
+  font-family: var(--font-sans);
+}
+.ui .tooltip .tt-title { font: 600 11px/1 var(--font-sans); color: #ededf0; margin-bottom: 7px; }
+.ui .tooltip .tt-row { display: flex; justify-content: space-between; gap: 18px; font: 500 11.5px/1.5 var(--font-mono); }
+.ui .tooltip .tt-row span { color: #7a7c84; }
+.ui .tooltip .tt-value { color: var(--accent); font-weight: 500; }
+.ui .tooltip.pill {
+  padding: 6px 9px;
+  background: #06070a;
+  border-color: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.8);
+  font: 500 11.5px/1 var(--font-mono);
+  color: #cfd1d8;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
