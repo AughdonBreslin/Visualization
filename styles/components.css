@@ -36,3 +36,29 @@
 .ui .codeblock .kw { color: #9fb0ff; }
 .ui .codeblock .fn { color: #cfd1d8; }
 .ui .codeblock .cm { color: #5d5f68; }
+
+/* Data table (row hairlines). */
+.ui .data-table { border-collapse: collapse; width: 100%; max-width: 620px; }
+.ui .data-table th {
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6c6e77;
+  text-align: right;
+  padding: 0 0 11px;
+  border-bottom: 1px solid var(--hairline-strong);
+}
+.ui .data-table th:first-child { text-align: left; }
+.ui .data-table td {
+  font: 400 13px/1 var(--font-sans);
+  color: #b6b8c0;
+  text-align: right;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.ui .data-table td:first-child { text-align: left; color: #dadbe0; font-weight: 500; }
+.ui .data-table td.num { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+.ui .data-table th + th, .ui .data-table td + td { padding-left: 26px; }
+.ui .data-table tr:last-child td { border-bottom: 0; }
+.ui .data-table .best td { color: #cfd1d8; }
+.ui .data-table .best .hl { color: var(--accent); }
