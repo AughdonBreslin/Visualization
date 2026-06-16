@@ -93,20 +93,20 @@
         <h2>Determining an unbiased estimator</h2>
         <p>
           Let $X_1,\dots,X_n$ be i.i.d. Bernoulli($p$), i.e., $\mathbb{P}(X_i=1)=p$ and $\mathbb{P}(X_i=0)=1-p$.
-          A natural estimator of $p$ is the sample mean
-          $$\hat p = \bar X = \frac{1}{n}\sum_{i=1}^n X_i.$$
+          A natural estimator of $p$ is the sample mean:
         </p>
+        <div class="formula">$$\hat p = \bar X = \frac{1}{n}\sum_{i=1}^n X_i$$</div>
         <p>
           First compute the expectation of a Bernoulli random variable:
-          $$\mathbb{E}[X_i] = 0\cdot\mathbb{P}(X_i=0) + 1\cdot\mathbb{P}(X_i=1) = p.$$
         </p>
+        <div class="formula">$$\mathbb{E}[X_i] = 0\cdot\mathbb{P}(X_i=0) + 1\cdot\mathbb{P}(X_i=1) = p$$</div>
         <p>
           Then apply linearity of expectation (independence is not required for this step):
-          $$\mathbb{E}[\hat p] = \mathbb{E}\!\left[\frac{1}{n}\sum_{i=1}^n X_i\right]
+        </p>
+        <div class="formula">$$\mathbb{E}[\hat p] = \mathbb{E}\!\left[\frac{1}{n}\sum_{i=1}^n X_i\right]
           = \frac{1}{n}\sum_{i=1}^n \mathbb{E}[X_i]
           = \frac{1}{n}\sum_{i=1}^n p
-          = p.$$
-        </p>
+          = p$$</div>
         <p>
           Therefore $\mathbb{E}[\hat p]=p$, so $\hat p$ is an unbiased estimator of $p$.
         </p>
