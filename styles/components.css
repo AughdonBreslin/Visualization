@@ -429,3 +429,22 @@
 .ui .player .step-nav { display: flex; gap: 10px; }
 .ui .player .step-nav .btn { font: 500 12.5px/1 var(--font-sans); color: #c4c6cd; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 9px 13px; cursor: pointer; }
 .ui .player .transcript { margin-top: 18px; font: 400 14px/1.7 var(--font-sans); color: var(--text-body); max-width: 64ch; }
+
+/* Section-outline rail re-skin (mono-numbered). Overrides section-outline.css only under
+   .ui, so the eight live pages keep their current rail until they opt in. */
+.ui .section-outline-list a {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 6px 10px;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: #74767f;
+  font: 500 13px/1.3 var(--font-sans);
+  text-decoration: none;
+}
+.ui .section-outline-list a .rail-n { font: 500 10.5px/1.3 var(--font-mono); color: #4d4f57; }
+.ui .section-outline-list a:hover { color: #cfd1d8; background: rgba(255, 255, 255, 0.03); }
+.ui .section-outline-list a.active { color: var(--text); border-left-color: var(--accent); background: var(--accent-muted); font-weight: 600; }
+.ui .section-outline-list a.active .rail-n { color: var(--accent); }
