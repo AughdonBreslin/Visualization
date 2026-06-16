@@ -21,9 +21,9 @@
 .ui .callout.warning { --co: var(--warning); --co-label: var(--warning-text); }
 .ui .callout.error   { --co: #e06a6a;        --co-label: #f0a0a0; }
 
-/* Code / pseudocode block (dark inset). Monochrome by design: the accent is reserved
-   for interactive elements, so code is not syntax-colored. Comments are dimmed, keywords
-   are a slightly brighter neutral. */
+/* Code / pseudocode block (dark inset). No syntax highlighting: all code is one uniform
+   color. The .kw/.fn/.cm spans are kept for markup compatibility but are not colored.
+   Only the line-number gutter is dimmed. */
 .ui .codeblock {
   margin: 0 0 var(--sp-5);
   font: 500 12.5px/1.85 var(--font-mono);
@@ -34,10 +34,19 @@
   padding: 16px 18px;
   overflow-x: auto;
 }
+/* Reset the inline-code styling (system.css .ui code) that would otherwise tint the
+   whole block periwinkle with an accent background. */
+.ui .codeblock code {
+  color: inherit;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
 .ui .codeblock .ln { display: inline-block; width: 20px; color: #4d4f57; user-select: none; }
-.ui .codeblock .kw { color: #d6d9df; }
-.ui .codeblock .fn { color: inherit; }
-.ui .codeblock .cm { color: #5d5f68; font-style: italic; }
+.ui .codeblock .kw,
+.ui .codeblock .fn,
+.ui .codeblock .cm { color: inherit; font-style: normal; }
 
 /* Data table (row hairlines). */
 .ui .data-table { border-collapse: collapse; width: 100%; max-width: 620px; margin: 0 0 var(--sp-5); }
