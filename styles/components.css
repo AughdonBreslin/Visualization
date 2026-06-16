@@ -189,7 +189,6 @@
 .ui .field select:focus-visible,
 .ui .field input:focus-visible,
 .ui .tab:focus-visible,
-.ui .seg-option:focus-visible,
 .ui input[type="range"]:focus-visible,
 .ui .toggle:focus-visible,
 .ui .check:focus-visible {
@@ -242,19 +241,8 @@
 }
 .ui .tab:hover { color: #cfd1d8; }
 .ui .tab.is-active { color: #ececf0; border-bottom-color: var(--accent); }
-
-/* Segmented control (same visual language as tabs). */
-.ui .segmented { display: inline-flex; gap: 6px; }
-.ui .seg-option {
-  font: 500 12.5px/1 var(--font-sans);
-  color: #74767f;
-  background: none;
-  border: 0;
-  padding: 6px 10px 7px;
-  border-bottom: 1.5px solid transparent;
-  cursor: pointer;
-}
-.ui .seg-option.is-active { color: #ececf0; border-bottom-color: var(--accent); }
+/* Tabs are the single "pick one of N" control (used for both view switches and
+   compact toggles); there is no separate segmented control. */
 
 /* Range slider. (Progress fill is added per-page via JS if needed.) */
 .ui input[type="range"] {
@@ -341,7 +329,6 @@
   .ui .field select,
   .ui .field input,
   .ui .tab,
-  .ui .seg-option,
   .ui .toggle,
   .ui .check {
     position: relative;
@@ -350,7 +337,6 @@
   .ui .btn-upload::before,
   .ui .field select::before,
   .ui .tab::before,
-  .ui .seg-option::before,
   .ui .toggle::before,
   .ui .check::before {
     content: '';

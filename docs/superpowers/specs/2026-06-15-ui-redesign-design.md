@@ -203,7 +203,8 @@ Shared component set; one definition each, no per-page reimplementation.
 - Tabs: `color:#74767f; padding-bottom:6-7px; border-bottom:1.5px solid transparent`. Active:
   `color:#ececf0; border-bottom-color: var(--accent)`. Use `aria-selected` (one ARIA-native
   pattern site-wide; retire the `is-active` clones from the audit).
-- Segmented control: same visual language as tabs.
+- No separate segmented control. Tabs are the single "pick one of N" control, used for both
+  view switches (e.g. Fourier/Haar/DCT) and compact toggles (e.g. PDF/CDF).
 - Slider: track `2px rgba(255,255,255,0.16)`; filled portion `var(--accent)` at ~.5 opacity;
   handle `11px` circle `var(--accent)`.
 - Toggle: pill `30x17`; off `rgba(255,255,255,0.12)`; on `rgba(107,124,255,0.55)`; knob `13px #e9e9ee`.
