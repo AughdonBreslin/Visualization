@@ -214,6 +214,10 @@ Shared component set; one definition each, no per-page reimplementation.
   file input.)
 - Focus: every interactive element gets `:focus-visible { outline: var(--focus-ring); outline-offset:2px }`.
 
+CONTROL SELECTION GUIDELINE (per page, at migration): pick the control to the parameter, not by
+default. Exact integer counts (e.g. k / neighbors) use a number input, not a slider; a slider is
+for continuous ranges where the precise value matters less than the sweep.
+
 OPEN REFINEMENT (mobile hit areas): the visible control stays minimal, but the interactive
 target is enlarged to >=44px via padding or an invisible `::before` overlay so touch targets
 meet the touch/Fitts guideline. Finalize in a dedicated mobile pass.
