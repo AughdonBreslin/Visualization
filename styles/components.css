@@ -228,3 +228,30 @@
 }
 .ui .field input { cursor: text; }
 .ui .field select:hover, .ui .field input:hover { border-bottom-color: rgba(255, 255, 255, 0.4); }
+
+/* Tabs (one shared pattern; active = .is-active). */
+.ui .tabs { display: inline-flex; gap: 18px; }
+.ui .tab {
+  font: 500 13px/1 var(--font-sans);
+  color: #74767f;
+  background: none;
+  border: 0;
+  padding: 0 0 7px;
+  border-bottom: 1.5px solid transparent;
+  cursor: pointer;
+}
+.ui .tab:hover { color: #cfd1d8; }
+.ui .tab.is-active { color: #ececf0; border-bottom-color: var(--accent); }
+
+/* Segmented control (same visual language as tabs). */
+.ui .segmented { display: inline-flex; gap: 6px; }
+.ui .seg-option {
+  font: 500 12.5px/1 var(--font-sans);
+  color: #74767f;
+  background: none;
+  border: 0;
+  padding: 6px 10px 7px;
+  border-bottom: 1.5px solid transparent;
+  cursor: pointer;
+}
+.ui .seg-option.is-active { color: #ececf0; border-bottom-color: var(--accent); }
