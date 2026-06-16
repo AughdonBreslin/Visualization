@@ -378,7 +378,8 @@
 /* Footer */
 .ui .site-footer { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center; }
 .ui .site-footer .credit { font: 400 12px/1 var(--font-sans); color: var(--text-muted); }
-.ui .site-footer .credit a { color: var(--accent-link); }
+.ui .site-footer .credit a { color: inherit; border-bottom: 0; }
+.ui .site-footer .credit a:hover { color: var(--text); text-decoration: underline; }
 .ui .site-footer .meta { font: 500 11px/1 var(--font-mono); letter-spacing: 0.08em; color: #4d4f57; }
 
 /* Paired-visualization layout: two figures side by side, controls below. */
