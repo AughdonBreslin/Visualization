@@ -112,6 +112,7 @@ function buildNav(entries) {
       if (heading && !heading.querySelector('.sec-n')) {
         const sn = document.createElement('span');
         sn.className = 'sec-n';
+        sn.setAttribute('aria-hidden', 'true');
         sn.textContent = String(i + 1).padStart(2, '0');
         heading.insertBefore(sn, heading.firstChild);
       }
@@ -194,9 +195,11 @@ function wireScrollspy(entries, linkById) {
 // Desktop only: start the rail level with the top of the first panel (below the
 // page header) and let it ride up with the page until it sticks near the top.
 function positionDesktopRail(rail, firstPanel) {
-  const DESKTOP = window.matchMedia('(min-width: 1100px)');
   const MIN_TOP = 24;
   const ui = document.body.classList.contains('ui');
+  // .ui (migrated) pages only show the rail at >=1240px (article-ui.css hides it below that);
+  // un-migrated pages keep the global >=1100px rail. Keep this matchMedia in sync with the CSS.
+  const DESKTOP = window.matchMedia(`(min-width: ${ui ? 1240 : 1100}px)`);
   const container = document.querySelector('.container');
   const gap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--outline-rail-gap'), 10) || 16;
   const update = () => {
