@@ -86,13 +86,22 @@
   color: var(--text-muted);
 }
 
-/* links */
+/* links: underline is off by default (var(--link-ul) == 0); the "Show link underlines"
+   setting raises it to 1px. Hover always reveals the underline. Two roles:
+   .ref = ordinary cross-reference (accent color, solid underline);
+   .def = definition link (blends into prose at body color, dotted underline). */
 .ui a {
   color: var(--accent-link);
   text-decoration: none;
-  border-bottom: 1px solid rgba(154, 166, 255, 0.40);
+  border-bottom: var(--link-ul) solid rgba(154, 166, 255, 0.45);
 }
-.ui a:hover { color: #c2caff; }
+.ui a:hover { color: #c2caff; border-bottom: 1px solid rgba(154, 166, 255, 0.55); }
+
+.ui a.ref { color: var(--accent-link); border-bottom-style: solid; }
+.ui a.ref:hover { border-bottom: 1px solid rgba(154, 166, 255, 0.55); }
+
+.ui a.def { color: inherit; border-bottom: var(--link-ul) dotted rgba(255, 255, 255, 0.30); }
+.ui a.def:hover { color: var(--accent); border-bottom: 1px dotted var(--accent); }
 
 /* inline code */
 .ui code {
