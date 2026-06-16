@@ -25,17 +25,15 @@
   padding-top: 34px;
 }
 
-/* Display math: each .formula is a left-ruled, auto-numbered block (like .math-display).
-   In a .formulas row of several, only the FIRST keeps the accent left wall; the rest are
-   still numbered and aligned, but without the wall. Raw $$ display math inside <p> is just
-   left-aligned (no wall / no number), so .formula blocks read as the emphasized results. */
+/* Display math: every .formula is a left-ruled block (accent wall). Only the key-result rows
+   (a .formulas wrapper holding one or more side-by-side results) are NUMBERED; standalone
+   .formula derivation blocks keep the wall but get no equation number, since nothing on a notes
+   page cites them. In a .formulas row, only the FIRST keeps the accent left wall; the rest are
+   numbered and aligned but wall-less. */
 .ui .article-body { counter-reset: eqn; }
 /* A .formulas row keeps its members side by side (wrapping when needed). */
 .ui .formulas { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 34px; margin: 16px 0; }
-/* Each formula is [equation (n)]: the number sits right next to the content. The first in a
-   row carries the accent left wall; the rest are numbered but wall-less. */
 .ui .formula {
-  counter-increment: eqn;
   display: flex;
   align-items: baseline;
   justify-content: flex-start;
@@ -47,14 +45,15 @@
   max-width: 100%;
   overflow-x: auto;
 }
-.ui .formula::after {
+/* Number only the key-result rows. Each is [equation (n)] with the number hugging the content. */
+.ui .formulas .formula { counter-increment: eqn; margin: 4px 0; }
+.ui .formulas .formula::after {
   content: "(" counter(eqn) ")";
   font: 500 12px/1 var(--font-mono);
   color: var(--text-muted);
   flex-shrink: 0;
   align-self: center;
 }
-.ui .formulas .formula { margin: 4px 0; }
 .ui .formulas .formula:not(:first-child) { border-left-color: transparent; padding-left: 0; }
 .ui .formula mjx-container { color: #e4e6ea; text-align: left !important; margin: 0 !important; }
 .ui p mjx-container[display] { text-align: left !important; margin-left: 0 !important; }
