@@ -7,7 +7,6 @@
   margin: 0 0 var(--sp-4);
 }
 .ui .callout .callout-label {
-  display: block;
   font: 600 10.5px/1 var(--font-sans);
   letter-spacing: 0.12em;
   text-transform: uppercase;
