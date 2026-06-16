@@ -5,6 +5,7 @@
   var DEFAULT_ACCENT = '#6b7cff';
   var KEY_ACCENT = 'ui-accent';
   var KEY_DENSITY = 'ui-density';
+  var KEY_LINKUL = 'ui-link-underline';
   var root = document.documentElement;
 
   function hexToRgb(hex) {
@@ -38,21 +39,34 @@
     if (!d || d === 'balanced') root.removeAttribute('data-density');
     else root.setAttribute('data-density', d);
   }
+  function applyLinkUnderline(on) {
+    var enabled = on === true || on === '1' || on === 'true';
+    if (enabled) root.style.setProperty('--link-ul', '1px');
+    else root.style.removeProperty('--link-ul');
+  }
   function get(key, def) { try { return localStorage.getItem(key) || def; } catch (e) { return def; } }
   function set(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
 
   function setAccent(hex) { applyAccent(hex); set(KEY_ACCENT, hex || DEFAULT_ACCENT); }
   function setDensity(d) { applyDensity(d); set(KEY_DENSITY, d || 'balanced'); }
-  function reset() { setAccent(DEFAULT_ACCENT); setDensity('balanced'); }
+  function setLinkUnderline(on) { applyLinkUnderline(on); set(KEY_LINKUL, on ? '1' : '0'); }
+  function reset() { setAccent(DEFAULT_ACCENT); setDensity('balanced'); setLinkUnderline(false); }
 
   // boot: apply saved prefs immediately (before paint)
   applyAccent(get(KEY_ACCENT, DEFAULT_ACCENT));
   applyDensity(get(KEY_DENSITY, 'balanced'));
+  applyLinkUnderline(get(KEY_LINKUL, '0'));
 
   window.UITheme = {
     DEFAULT_ACCENT: DEFAULT_ACCENT,
-    applyAccent: applyAccent, applyDensity: applyDensity,
-    setAccent: setAccent, setDensity: setDensity, reset: reset,
-    current: function () { return { accent: get(KEY_ACCENT, DEFAULT_ACCENT), density: get(KEY_DENSITY, 'balanced') }; }
+    applyAccent: applyAccent, applyDensity: applyDensity, applyLinkUnderline: applyLinkUnderline,
+    setAccent: setAccent, setDensity: setDensity, setLinkUnderline: setLinkUnderline, reset: reset,
+    current: function () {
+      return {
+        accent: get(KEY_ACCENT, DEFAULT_ACCENT),
+        density: get(KEY_DENSITY, 'balanced'),
+        linkUnderline: get(KEY_LINKUL, '0') === '1'
+      };
+    }
   };
 })();
