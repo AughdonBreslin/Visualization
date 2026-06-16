@@ -30,27 +30,32 @@
    still numbered and aligned, but without the wall. Raw $$ display math inside <p> is just
    left-aligned (no wall / no number), so .formula blocks read as the emphasized results. */
 .ui .article-body { counter-reset: eqn; }
-.ui .formulas { display: block; margin: 16px 0; }
+/* A .formulas row keeps its members side by side (wrapping when needed). */
+.ui .formulas { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 34px; margin: 16px 0; }
+/* Each formula is [equation (n)]: the number sits right next to the content. The first in a
+   row carries the accent left wall; the rest are numbered but wall-less. */
 .ui .formula {
   counter-increment: eqn;
-  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 14px;
   color: #e4e6ea;
   border-left: 2px solid var(--accent);
-  padding: 8px 56px 8px 22px;
-  margin: 14px 0;
-  text-align: left;
+  padding: 8px 0 8px 18px;
+  margin: 12px 0;
+  max-width: 100%;
   overflow-x: auto;
 }
 .ui .formula::after {
   content: "(" counter(eqn) ")";
-  position: absolute;
-  right: 18px;
-  top: 50%;
-  transform: translateY(-50%);
   font: 500 12px/1 var(--font-mono);
   color: var(--text-muted);
+  flex-shrink: 0;
+  align-self: center;
 }
-.ui .formulas .formula:not(:first-child) { border-left-color: transparent; }
+.ui .formulas .formula { margin: 4px 0; }
+.ui .formulas .formula:not(:first-child) { border-left-color: transparent; padding-left: 0; }
 .ui .formula mjx-container { color: #e4e6ea; text-align: left !important; margin: 0 !important; }
 .ui p mjx-container[display] { text-align: left !important; margin-left: 0 !important; }
 .ui ul {
