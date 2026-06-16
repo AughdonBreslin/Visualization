@@ -152,3 +152,47 @@
   margin-top: 8px;
 }
 .ui .figcap b { color: #bdc0c8; font-weight: 600; }
+
+/* ===== Controls (minimal / underline) ===== */
+
+/* Buttons */
+.ui .btn {
+  font: 500 13px/1 var(--font-sans);
+  color: var(--accent);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--accent);
+  padding: 6px 1px;
+  cursor: pointer;
+}
+.ui .btn.secondary { color: #a9abb3; border-bottom-color: var(--hairline-strong); }
+.ui .btn:hover { color: #aeb8ff; }
+.ui .btn.secondary:hover { color: #cfd1d8; }
+
+/* Upload: a <label> wrapping a visually-hidden file input (iOS-safe). */
+.ui .btn-upload {
+  display: inline-block;
+  font: 500 13px/1 var(--font-sans);
+  color: var(--accent);
+  border-bottom: 1px solid var(--accent);
+  padding: 6px 1px;
+  cursor: pointer;
+}
+.ui .btn-upload input[type="file"] {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* Focus ring on every interactive control. */
+.ui .btn:focus-visible,
+.ui .btn-upload:focus-within,
+.ui .field select:focus-visible,
+.ui .field input:focus-visible,
+.ui .tab:focus-visible,
+.ui .seg-option:focus-visible,
+.ui input[type="range"]:focus-visible,
+.ui .toggle:focus-visible,
+.ui .check:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}
