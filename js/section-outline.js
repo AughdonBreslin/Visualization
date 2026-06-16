@@ -187,16 +187,26 @@ function wireScrollspy(entries, linkById) {
 function positionDesktopRail(rail, firstPanel) {
   const DESKTOP = window.matchMedia('(min-width: 1100px)');
   const MIN_TOP = 24;
+  const ui = document.body.classList.contains('ui');
+  const container = document.querySelector('.container');
+  const gap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--outline-rail-gap'), 10) || 16;
   const update = () => {
     if (!DESKTOP.matches) {
       rail.style.top = '';
       rail.style.maxHeight = '';
+      rail.style.left = '';
       return;
     }
     const firstTop = firstPanel.getBoundingClientRect().top + window.scrollY;
     const top = Math.max(MIN_TOP, firstTop - window.scrollY);
     rail.style.top = `${top}px`;
     rail.style.maxHeight = `calc(100vh - ${top}px)`;
+    // On redesign (.ui) pages, glue the rail to the left edge of the centered content so
+    // the rail + content read as one centered group instead of pinning to the viewport edge.
+    if (ui && container) {
+      const left = Math.max(12, Math.round(container.getBoundingClientRect().left - rail.offsetWidth - gap));
+      rail.style.left = `${left}px`;
+    }
   };
   update();
   window.addEventListener('scroll', update, { passive: true });
