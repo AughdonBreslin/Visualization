@@ -92,16 +92,26 @@ function buildNav(entries) {
   const list = document.createElement('ul');
   list.className = 'section-outline-list';
   const linkById = new Map();
-  for (const entry of entries) {
+  // On redesign (.ui) pages, prefix each item with a mono index number.
+  const numbered = document.body.classList.contains('ui');
+  entries.forEach((entry, i) => {
     const li = document.createElement('li');
     const a = document.createElement('a');
     a.href = `#${entry.id}`;
-    a.textContent = entry.label;
+    if (numbered) {
+      const num = document.createElement('span');
+      num.className = 'rail-n';
+      num.textContent = String(i + 1).padStart(2, '0');
+      a.appendChild(num);
+      a.appendChild(document.createTextNode(entry.label));
+    } else {
+      a.textContent = entry.label;
+    }
     a.dataset.target = entry.id;
     li.appendChild(a);
     list.appendChild(li);
     linkById.set(entry.id, a);
-  }
+  });
   panel.appendChild(list);
 
   nav.append(btn, backdrop, panel);
