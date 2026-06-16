@@ -404,7 +404,8 @@
 .ui .player .big-play::after { content: ''; border-left: 15px solid var(--accent); border-top: 9px solid transparent; border-bottom: 9px solid transparent; margin-left: 4px; }
 
 .ui .player .scrub { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
-.ui .player .scrub-play { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.04); flex-shrink: 0; cursor: pointer; }
+.ui .player .scrub-play { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.04); flex-shrink: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.ui .player .scrub-play::after { content: ''; border-left: 9px solid #e7e8ec; border-top: 5.5px solid transparent; border-bottom: 5.5px solid transparent; margin-left: 2px; }
 .ui .player .scrub-track { position: relative; flex: 1; height: 4px; background: rgba(255, 255, 255, 0.12); border-radius: 3px; }
 .ui .player .scrub-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 34%; background: var(--accent); border-radius: 3px; }
 .ui .player .scrub-tick { position: absolute; top: -3px; width: 2px; height: 10px; background: rgba(255, 255, 255, 0.22); border-radius: 1px; }
