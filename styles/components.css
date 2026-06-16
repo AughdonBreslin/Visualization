@@ -121,3 +121,18 @@
 }
 .ui .worked .mat { border-left: 1.5px solid rgba(255, 255, 255, 0.25); border-right: 1.5px solid rgba(255, 255, 255, 0.25); padding: 2px 12px; }
 .ui .worked .hl { color: var(--accent); }
+
+/* Figure frame + caption. The figure carries its own edge (no-frames page, framed instrument). */
+.ui .figure-frame {
+  background: radial-gradient(120% 120% at 50% 45%, #0e0f15, #070709);
+  border: 1px solid var(--figure-edge);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.ui .figcap {
+  font: 500 10.5px/1.3 var(--font-mono);
+  letter-spacing: 0.04em;
+  color: #7a7c84;
+  margin-top: 8px;
+}
+.ui .figcap b { color: #bdc0c8; font-weight: 600; }
