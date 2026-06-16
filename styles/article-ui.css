@@ -136,10 +136,12 @@
 /* shared tabs.js toggles .active; alias it to the new active tab style. */
 .ui .tab.active { color: #ececf0; border-bottom-color: var(--accent); }
 
-/* Wider rail + wider content column on migrated article pages. section-outline.js glues the
-   rail to the content's left edge so the two read as one centered group. */
+/* On migrated article pages the rail + content read as one centered group (like the mock):
+   the content column is capped (was --container-wide / 1400px, which stretched nearly edge to
+   edge) and the global rail gutter then centers the rail + content as a balanced group.
+   section-outline.js glues the rail to the content's left edge. */
 body.ui { --outline-rail-w: 210px; }
-.ui.has-section-outline .container { max-width: var(--container-wide); }
+.ui.has-section-outline .container { max-width: 950px; }
 
 /* Outline rail: hide the overflow scrollbar. It only appeared because the rail, positioned
    level with the first panel, can be taller than the remaining viewport near the top. */
