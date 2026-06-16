@@ -45,6 +45,9 @@
 .ui .formulas .formula:not(:first-child) { border-left-color: transparent; padding-left: 0; }
 .ui .formula mjx-container { color: #e4e6ea; text-align: left !important; margin: 0 !important; }
 .ui p mjx-container[display] { text-align: left !important; margin-left: 0 !important; }
+/* Render math at the body text size. MathJax defaults to ~16px, a touch large next to the
+   14.5px prose; matching it keeps inline symbols and display equations in the text rhythm. */
+.ui .article-body mjx-container { font-size: var(--body-size); }
 .ui ul {
   color: var(--text-body);
   font: 400 var(--body-size)/var(--body-lh) var(--font-sans);
