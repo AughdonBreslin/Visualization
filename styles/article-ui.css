@@ -21,8 +21,8 @@
 .ui .article-body > section { scroll-margin-top: 16px; }
 .ui .article-body > section + section {
   border-top: 1px solid var(--hairline);
-  margin-top: var(--sp-6);
-  padding-top: var(--sp-6);
+  margin-top: 34px;
+  padding-top: 34px;
 }
 
 /* Display math: each .formula is a left-ruled, auto-numbered block (like .math-display).
