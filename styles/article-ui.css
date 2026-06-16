@@ -25,11 +25,34 @@
   padding-top: var(--sp-6);
 }
 
-/* Display math (existing .formula / .formulas, arranged by formulas_layout.js). */
-.ui .formulas { display: flex; flex-wrap: wrap; gap: 4px 30px; margin: 16px 0; }
-.ui .formula { color: #e4e6ea; margin: 12px 0; overflow-x: auto; max-width: 100%; }
-.ui .formulas .formula { margin: 6px 0; }
-.ui .formula mjx-container { color: #e4e6ea; }
+/* Display math: each .formula is a left-ruled, auto-numbered block (like .math-display).
+   In a .formulas row of several, only the FIRST keeps the accent left wall; the rest are
+   still numbered and aligned, but without the wall. Raw $$ display math inside <p> is just
+   left-aligned (no wall / no number), so .formula blocks read as the emphasized results. */
+.ui .article-body { counter-reset: eqn; }
+.ui .formulas { display: block; margin: 16px 0; }
+.ui .formula {
+  counter-increment: eqn;
+  position: relative;
+  color: #e4e6ea;
+  border-left: 2px solid var(--accent);
+  padding: 8px 56px 8px 22px;
+  margin: 14px 0;
+  text-align: left;
+  overflow-x: auto;
+}
+.ui .formula::after {
+  content: "(" counter(eqn) ")";
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font: 500 12px/1 var(--font-mono);
+  color: var(--text-muted);
+}
+.ui .formulas .formula:not(:first-child) { border-left-color: transparent; }
+.ui .formula mjx-container { color: #e4e6ea; text-align: left !important; margin: 0 !important; }
+.ui p mjx-container[display] { text-align: left !important; margin-left: 0 !important; }
 .ui ul {
   color: var(--text-body);
   font: 400 var(--body-size)/var(--body-lh) var(--font-sans);
@@ -47,15 +70,18 @@
 .ui .help-text { font: 400 12px/1.5 var(--font-sans); color: var(--text-muted); margin-top: 8px; max-width: 60ch; }
 .ui .h3-section { font: 600 10.5px/1 var(--font-sans); letter-spacing: 0.14em; text-transform: uppercase; color: #6c6e77; margin: 18px 0 10px; }
 
-/* Control grid (label + control pairs) restyled to the underline language. */
-.ui .control-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+/* Control grid (label + control pairs) restyled to the underline language. Tight gap with a
+   larger top margin on each label groups the label with its control. */
+.ui .tab-panel { margin-top: 16px; }
+.ui .control-grid { display: grid; grid-template-columns: 1fr; gap: 7px; }
 .ui .control-grid label {
   font: 600 10.5px/1 var(--font-sans);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #6c6e77;
-  margin-bottom: -6px;
+  margin-top: 13px;
 }
+.ui .control-grid label:first-child { margin-top: 0; }
 .ui .control-grid select,
 .ui .control-grid input[type="number"],
 .ui .control-grid input[type="text"] {
@@ -78,6 +104,16 @@
 
 /* shared tabs.js toggles .active; alias it to the new active tab style. */
 .ui .tab.active { color: #ececf0; border-bottom-color: var(--accent); }
+
+/* Outline rail: hide the overflow scrollbar. It only appeared because the rail, positioned
+   level with the first panel, can be taller than the remaining viewport near the top. */
+.ui .section-outline-panel { scrollbar-width: none; }
+.ui .section-outline-panel::-webkit-scrollbar { width: 0; height: 0; }
+
+/* Below the rail breakpoint the hamburger is fixed top-left; clear the back-home past it. */
+@media (max-width: 1099px) {
+  .ui .back-home { margin-left: 44px; }
+}
 
 @media (max-width: 700px) {
   .ui .viz-row { flex-direction: column; }
