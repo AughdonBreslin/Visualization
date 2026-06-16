@@ -313,3 +313,23 @@
   border-radius: 1px;
 }
 .ui .control-row { display: inline-flex; align-items: center; gap: 9px; font: 500 13px/1 var(--font-sans); color: #b7b9c1; }
+
+/* ===== Control-management patterns (chosen per page; tabbed is the default for dense sets) ===== */
+
+/* A. Grouped grid: labelled groups in an auto-fit grid. */
+.ui .control-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 24px 30px; }
+.ui .control-group { display: flex; flex-direction: column; gap: 11px; }
+.ui .control-group > .group-label {
+  font: 600 9.5px/1 var(--font-sans); letter-spacing: 0.14em; text-transform: uppercase; color: #6c6e77;
+  padding-bottom: 8px; border-bottom: 1px solid var(--surface-border);
+}
+
+/* B. Primary + "more" disclosure. */
+.ui .control-primary { display: flex; gap: 30px; flex-wrap: wrap; align-items: flex-end; }
+.ui .control-more { display: block; margin-top: 16px; }
+.ui .control-more-toggle { font: 500 12px/1 var(--font-sans); color: var(--accent-link); background: none; border: 0; cursor: pointer; padding: 0; }
+.ui .control-advanced { margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(255, 255, 255, 0.1); display: flex; gap: 30px; flex-wrap: wrap; align-items: center; }
+.ui .control-more[hidden] .control-advanced { display: none; }
+
+/* C. Tabbed groups (default for dense control sets). */
+.ui .control-tabs { display: inline-flex; gap: 18px; margin-bottom: 16px; }
