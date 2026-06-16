@@ -305,20 +305,65 @@ Order top-to-bottom: video, scrubber, step bar (with dropdown nav), transcript.
 
 ---
 
-## 11. Components still to finalize (mock before implementing)
+## 11. Content and composite components (finalized; mockups cited)
 
-These were not yet mocked; interim direction comes from the audit. Each gets a quick mock and
-sign-off before its implementation task:
+These were mocked and chosen. Exact CSS lives in the cited `docs/design/mockups/*.html`.
 
-- Tooltip: one component (replaces the 4 in the audit). `background: var(--surface-strong)`
-  (or a dedicated `--tooltip-bg`), border `rgba(255,255,255,0.10)`, `radius:6-8px`, mono/sans
-  `~11.5px`, layered shadow, optional reveal transform.
-- Data table: hairline borders `var(--hairline)` (remove `#ccc`), `font-size:0.8rem`,
-  tabular-nums on numeric columns, `::selection` styled.
-- Callout / alert: a single `.callout` with variants; warning uses the warning tokens; structure
-  is a left-border accent + tinted bg.
-- Code / pseudocode block: mono on `var(--surface)`, hairline border, `radius`.
-- `section-outline` rail restyle to the new tokens.
+### 11.1 Callout / alert (`callouts.html`, treatment C: minimal left rule, no fill)
+
+One `.callout` component, no background fill. Structure: a `2px` colored left rule +
+`padding: 2px 0 2px 16px`, an uppercase label (`600 10.5px .12em`) in the variant color, then the
+body (`400 13.5px/1.6 #9a9ca4`). Variants by token: note = `var(--accent)` (label `#9fb0ff`),
+warning = `var(--warning)` (label `var(--warning-text)`), error = a red token (same shape). Matches
+the no-frames math rule; differentiated from code by having no surface.
+
+### 11.2 Code / pseudocode block (`code-blocks.html` + `code-in-context.html`, treatment C: dark inset)
+
+`pre` on a darker-than-page inset: `background:#060607; border:1px solid rgba(255,255,255,0.08);
+border-radius: var(--radius-lg); padding:16px 18px; overflow-x:auto`. Text `500 12.5px/1.85
+var(--font-mono)`. Gutter line numbers (`.ln`, width ~20-22px, `#4d4f57`, `user-select:none`).
+Light tinting: keywords `#9fb0ff`, identifiers `#cfd1d8`, comments `#5d5f68`, default `#9a9ca4`.
+The dark inset deliberately reads as a distinct artifact, set apart from the left-ruled prose and
+math.
+
+### 11.3 Data table (`tables.html`, treatment A: row hairlines)
+
+`border-collapse: collapse`. Header `th`: `600 10px .1em uppercase var(--font-mono) #6c6e77`,
+`border-bottom: 1px solid var(--hairline-strong)`. Body `td`: `400 13px var(--font-sans) #b6b8c0`,
+`border-bottom: 1px solid var(--hairline)` (last row none), `padding:11px 0`. Numeric columns use
+`var(--font-mono)`, `font-variant-numeric: tabular-nums`, right-aligned; the first (label) column
+is left-aligned `#dadbe0 500`. A highlighted cell/row (e.g. best metric) uses `var(--accent)`.
+No vertical borders, no zebra. Replaces the base `data-table` (`#ccc`, `12px`).
+
+### 11.4 Tooltip (`tooltips.html`, content-driven: card A or pill B)
+
+One component with two layouts chosen by content:
+- Card (A) when points are labelled, carry multiple values, or hold explanatory text (e.g. the
+  manifold param tooltips): `background:#141418; border:1px solid rgba(255,255,255,0.10);
+  border-radius: var(--radius-md); padding:9px 11px; box-shadow: layered (inset highlight +
+  `0 10px 28px -10px rgba(0,0,0,0.8)`)`. Title `600 11px #ededf0`; rows are `label`(`#7a7c84`) /
+  `value`(mono `var(--accent)`); small arrow.
+- Pill (B) when a single simple value: `background:#06070a; border:1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm); padding:6px 9px`; one line of tabular mono `#cfd1d8` with the
+  key value in `var(--accent)`; no arrow.
+
+Replaces the four tooltip implementations in the audit.
+
+### 11.5 Section-outline rail re-skin (`outline-rail.html`, treatment B: mono-numbered)
+
+Keep the shipped rail's behavior (sticky, scrollspy, click-to-jump, hamburger drawer on mobile,
+aligned with the first panel); re-skin to the new tokens. Each item: a mono number (`500 10.5px
+var(--font-mono) #4d4f57`) + label (`500 13px var(--font-sans) #74767f`), `padding:6px 10px`,
+`border-left: 2px solid transparent`. Active: label `#fafafa 600`, number `var(--accent)`,
+`border-left-color: var(--accent)`, `background: var(--accent-muted)` (the `0.08` tint). Hover:
+label `#cfd1d8`, faint `rgba(255,255,255,0.03)` bg. The numbers echo the home index and the
+walkthrough step numbers, tying the system together. Replaces the rail's own `#6ea8fe`/literals.
+
+NOTE: section titles should be shortened for succinctness during page migration to suit the
+numbered rail and the home index.
+
+## 11b. Still to finalize
+
 - Hidden settings page shell (see section 12).
 - Mobile pass: control hit areas, step-nav on mobile, paired-figure stacking, dense-control
   patterns on small screens.

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock: code in page context</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  body{ background:#0c0c0d; color:#8b8d96; font-family:'Inter',system-ui; margin:0; padding:28px 40px 60px; --acc:#6b7cff; }
+  h2.scr{ font:600 22px/1.2 'Inter'; color:#fff; margin:0 0 6px; }
+  .subtitle{ color:#8b8d96; font:400 14px/1.6 'Inter'; margin:0 0 22px; max-width:84ch; }
+  .options{ display:flex; flex-direction:column; gap:10px; margin-top:18px; max-width:780px; }
+  .option{ display:flex; gap:14px; background:#141416; border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:14px 16px; cursor:pointer; }
+  .option:hover{ border-color:rgba(107,124,255,.5); } .option.sel{ border-color:#6b7cff; background:rgba(107,124,255,.08); }
+  .option .letter{ width:26px; height:26px; border-radius:7px; background:rgba(255,255,255,.08); color:#cfd1d8; display:flex; align-items:center; justify-content:center; font:600 13px 'Inter'; flex-shrink:0; }
+  .option.sel .letter{ background:#6b7cff; color:#fff; }
+  .option .content h3{ font:600 14px 'Inter'; color:#ededf0; margin:0 0 3px; } .option .content p{ font:400 13px/1.5 'Inter'; color:#9a9ca4; margin:0; }
+
+  /* page (editorial language) */
+  .pg{ border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:18px; position:relative; }
+  .pg .slice{ padding:34px 40px 40px; max-width:760px; }
+  .pg .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+  .pg .eyebrow{ font:600 11px/1 'Inter'; letter-spacing:.2em; text-transform:uppercase; color:var(--acc); display:block; margin-bottom:12px; }
+  .pg h1{ font:600 33px/1.1 'Inter'; letter-spacing:-.025em; color:#fafafa; margin:0 0 12px; }
+  .pg .lede{ font:400 15px/1.6 'Inter'; color:#8b8d96; max-width:56ch; margin:0; }
+  .pg .rule{ height:1px; background:rgba(255,255,255,.08); margin:26px 0; border:0; }
+  .pg h2{ font:600 19px/1.25 'Inter'; letter-spacing:-.014em; color:#ededf0; margin:0 0 10px; }
+  .pg p{ font:400 14.5px/1.7 'Inter'; color:#8b8d96; max-width:62ch; margin:0 0 16px; }
+  .pg p:last-child{ margin-bottom:0; }
+  .pg a{ color:#9aa6ff; text-decoration:none; border-bottom:1px solid rgba(154,166,255,.4); }
+  .pg code.inl{ font-family:'JetBrains Mono'; font-size:.88em; color:#c9cdfb; background:rgba(107,124,255,.1); padding:1px 5px; border-radius:3px; }
+  /* callout C */
+  .pg .call{ border-left:2px solid var(--acc); padding:2px 0 2px 16px; margin:0 0 18px; }
+  .pg .call .lbl{ font:600 10.5px/1 'Inter'; letter-spacing:.12em; text-transform:uppercase; color:#9fb0ff; }
+  .pg .call .cbd{ font:400 13.5px/1.6 'Inter'; color:#9a9ca4; margin-top:6px; max-width:60ch; }
+  /* display math (left rule + number) */
+  .pg .disp{ position:relative; border-left:2px solid var(--acc); padding:13px 56px 13px 22px; margin:20px 0; }
+  .pg .disp .eq{ font:400 17px/1.5 'Newsreader'; color:#e4e6ea; } .pg .disp .eq i{ font-style:italic; color:#e4e6ea; } .pg .disp .eq sub{ font-size:.62em; font-style:italic; }
+  .pg .disp .num{ position:absolute; right:18px; top:50%; transform:translateY(-50%); font:500 12px/1 'JetBrains Mono'; color:#5d5f68; }
+  /* code */
+  .pg .secmark{ font:600 10.5px/1 'JetBrains Mono'; letter-spacing:.16em; text-transform:uppercase; color:#62646c; margin:0 0 14px; }
+  .pg pre{ margin:0; font:500 12.5px/1.85 'JetBrains Mono'; overflow-x:auto; }
+  .pg .ln{ display:inline-block; width:20px; color:#4d4f57; user-select:none; }
+  .pg .kw{ color:#9fb0ff; } .pg .fn{ color:#cfd1d8; } .pg .cm{ color:#5d5f68; } .pg pre code{ color:#9a9ca4; }
+  .B pre{ border-left:2px solid var(--acc); padding:4px 0 4px 18px; }
+  .C pre{ background:#060607; border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:16px 18px; }
+</style></head>
+<body>
+<script>function toggleSelect(el){el.parentElement.querySelectorAll('.option').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');}</script>
+
+<h2 class="scr">Code block in page context: B vs C</h2>
+<p class="subtitle">The same Isomap page slice twice. Note the other left-ruled elements already in the page (the Note callout and the display equation). Top uses code treatment B (left rule); bottom uses C (dark inset). Which reads better amid the rest?</p>
+
+<div class="pg B"><div class="slice"><span class="tag">CODE = B (LEFT RULE)</span>
+  <span class="eyebrow">Manifold Learning</span>
+  <h1>Isomap</h1>
+  <p class="lede">Recover a low-dimensional embedding by preserving geodesic distances along the data manifold.</p>
+  <hr class="rule">
+  <h2>Geodesic distances</h2>
+  <p>Straight-line distance cuts across the fold, so Isomap instead measures distance <i>along</i> the manifold: build a neighborhood graph, then take shortest paths. Set the neighbor count with <code class="inl">k = 10</code>.</p>
+  <div class="call"><span class="lbl">Note</span><div class="cbd">Too small a <b style="color:#cfd1d8">k</b> fragments the graph; too large a <b style="color:#cfd1d8">k</b> short-circuits across the fold.</div></div>
+  <p>The geodesic between two points is approximated by the graph shortest path:</p>
+  <div class="disp"><span class="eq"><i>D</i><sub>ij</sub> = min<sub>paths</sub> &#8721; ||<i>x</i><sub>a</sub> &minus; <i>x</i><sub>b</sub>||</span><span class="num">(3)</span></div>
+  <p>Double-centering this distance matrix and taking the top eigenvectors yields the embedding.</p>
+  <hr class="rule">
+  <div class="secmark">Full pseudocode</div>
+<pre><code><span class="ln">1</span><span class="kw">function</span> <span class="fn">isomap</span>(X, k, d):
+<span class="ln">2</span>    G = <span class="fn">knn_graph</span>(X, k)            <span class="cm"># k nearest neighbors</span>
+<span class="ln">3</span>    D = <span class="fn">shortest_paths</span>(G)         <span class="cm"># geodesic distances</span>
+<span class="ln">4</span>    B = -0.5 * J @ (D ** 2) @ J   <span class="cm"># double centering</span>
+<span class="ln">5</span>    L, V = <span class="fn">eig</span>(B)                  <span class="cm"># top eigenpairs</span>
+<span class="ln">6</span>    <span class="kw">return</span> V[:, :d] * <span class="fn">sqrt</span>(L[:d])  <span class="cm"># embedding</span></code></pre>
+</div></div>
+
+<div class="pg C"><div class="slice"><span class="tag">CODE = C (DARK INSET)</span>
+  <span class="eyebrow">Manifold Learning</span>
+  <h1>Isomap</h1>
+  <p class="lede">Recover a low-dimensional embedding by preserving geodesic distances along the data manifold.</p>
+  <hr class="rule">
+  <h2>Geodesic distances</h2>
+  <p>Straight-line distance cuts across the fold, so Isomap instead measures distance <i>along</i> the manifold: build a neighborhood graph, then take shortest paths. Set the neighbor count with <code class="inl">k = 10</code>.</p>
+  <div class="call"><span class="lbl">Note</span><div class="cbd">Too small a <b style="color:#cfd1d8">k</b> fragments the graph; too large a <b style="color:#cfd1d8">k</b> short-circuits across the fold.</div></div>
+  <p>The geodesic between two points is approximated by the graph shortest path:</p>
+  <div class="disp"><span class="eq"><i>D</i><sub>ij</sub> = min<sub>paths</sub> &#8721; ||<i>x</i><sub>a</sub> &minus; <i>x</i><sub>b</sub>||</span><span class="num">(3)</span></div>
+  <p>Double-centering this distance matrix and taking the top eigenvectors yields the embedding.</p>
+  <hr class="rule">
+  <div class="secmark">Full pseudocode</div>
+<pre><code><span class="ln">1</span><span class="kw">function</span> <span class="fn">isomap</span>(X, k, d):
+<span class="ln">2</span>    G = <span class="fn">knn_graph</span>(X, k)            <span class="cm"># k nearest neighbors</span>
+<span class="ln">3</span>    D = <span class="fn">shortest_paths</span>(G)         <span class="cm"># geodesic distances</span>
+<span class="ln">4</span>    B = -0.5 * J @ (D ** 2) @ J   <span class="cm"># double centering</span>
+<span class="ln">5</span>    L, V = <span class="fn">eig</span>(B)                  <span class="cm"># top eigenpairs</span>
+<span class="ln">6</span>    <span class="kw">return</span> V[:, :d] * <span class="fn">sqrt</span>(L[:d])  <span class="cm"># embedding</span></code></pre>
+</div></div>
+
+<div class="options">
+  <div class="option" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Left rule, no fill</h3><p>Cohesive: code, callout, and equation all share the periwinkle left rule. Calmest, but the three can blur together.</p></div></div>
+  <div class="option" onclick="toggleSelect(this)"><div class="letter">C</div><div class="content"><h3>Dark inset (terminal)</h3><p>Code reads as a distinct artifact, set apart from the left-ruled prose elements. Clearer "this is code"; one more surface.</p></div></div>
+</div>
+</body></html>

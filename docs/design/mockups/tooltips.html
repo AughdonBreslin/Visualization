@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock: tooltips</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body{ background:#0c0c0d; color:#8b8d96; font-family:'Inter',system-ui; margin:0; padding:28px 40px 60px; --acc:#6b7cff; }
+  h2.scr{ font:600 22px/1.2 'Inter'; color:#fff; margin:0 0 6px; }
+  .subtitle{ color:#8b8d96; font:400 14px/1.6 'Inter'; margin:0 0 22px; max-width:84ch; }
+  .options{ display:flex; flex-direction:column; gap:10px; margin-top:18px; max-width:780px; }
+  .option{ display:flex; gap:14px; background:#141416; border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:14px 16px; cursor:pointer; }
+  .option:hover{ border-color:rgba(107,124,255,.5); } .option.sel{ border-color:#6b7cff; background:rgba(107,124,255,.08); }
+  .option .letter{ width:26px; height:26px; border-radius:7px; background:rgba(255,255,255,.08); color:#cfd1d8; display:flex; align-items:center; justify-content:center; font:600 13px 'Inter'; flex-shrink:0; }
+  .option.sel .letter{ background:#6b7cff; color:#fff; }
+  .option .content h3{ font:600 14px 'Inter'; color:#ededf0; margin:0 0 3px; } .option .content p{ font:400 13px/1.5 'Inter'; color:#9a9ca4; margin:0; }
+
+  .tt{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; display:inline-block; width:calc(50% - 10px); box-sizing:border-box; vertical-align:top; }
+  .tt:first-of-type{ margin-right:16px; }
+  .tt .slice{ padding:24px 28px 28px; }
+  .tt .tag{ font:600 10.5px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); margin-bottom:16px; display:block; }
+  .chart{ position:relative; height:170px; }
+  .chart svg{ position:absolute; inset:0; width:100%; height:100%; }
+
+  /* A: card tooltip */
+  .ttA{ position:absolute; left:46%; top:14px; background:#141418; border:1px solid rgba(255,255,255,.10); border-radius:8px; padding:9px 11px; box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 10px 28px -10px rgba(0,0,0,.8); }
+  .ttA .tt-t{ font:600 11px/1 'Inter'; color:#ededf0; margin-bottom:7px; }
+  .ttA .tt-r{ display:flex; justify-content:space-between; gap:18px; font:500 11.5px/1.5 'JetBrains Mono'; }
+  .ttA .tt-r span{ color:#7a7c84; } .ttA .tt-r b{ color:var(--acc); font-weight:500; }
+  .ttA::after{ content:''; position:absolute; top:100%; left:24px; border:6px solid transparent; border-top-color:#141418; }
+
+  /* B: minimal pill */
+  .ttB{ position:absolute; left:46%; top:30px; background:#06070a; border:1px solid rgba(255,255,255,.06); border-radius:6px; padding:6px 9px; box-shadow:0 6px 18px -8px rgba(0,0,0,.8); white-space:nowrap; }
+  .ttB span{ font:500 11.5px/1 'JetBrains Mono'; color:#cfd1d8; font-variant-numeric:tabular-nums; }
+  .ttB b{ color:var(--acc); font-weight:500; }
+</style></head>
+<body>
+<script>function toggleSelect(el){el.parentElement.querySelectorAll('.option').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');}</script>
+
+<h2 class="scr">Tooltips (chart hover)</h2>
+<p class="subtitle">One shared tooltip (replaces the 4 in the audit). Both shown on hover over the highlighted point. These usually carry numeric values, so the figures are tabular mono with the key value in periwinkle.</p>
+
+<div class="tt"><div class="slice"><span class="tag">A · CARD</span>
+  <div class="chart">
+    <svg viewBox="0 0 280 170" preserveAspectRatio="none">
+      <polyline points="10,150 50,120 90,128 130,88 170,70 210,40 250,52" fill="none" stroke="#3a3c46" stroke-width="2"/>
+      <polyline points="10,150 50,120 90,128 130,88 170,70 210,40 250,52" fill="none" stroke="#6b7cff" stroke-width="2" opacity=".5" transform="translate(0,2)"/>
+      <line x1="130" y1="0" x2="130" y2="170" stroke="rgba(255,255,255,.08)"/>
+      <circle cx="130" cy="88" r="4.5" fill="#6b7cff"/>
+    </svg>
+    <div class="ttA"><div class="tt-t">Sample 14</div><div class="tt-r"><span>x</span><b>1.42</b></div><div class="tt-r"><span>density</span><b>0.83</b></div></div>
+  </div>
+</div></div>
+
+<div class="tt"><div class="slice"><span class="tag">B · MINIMAL PILL</span>
+  <div class="chart">
+    <svg viewBox="0 0 280 170" preserveAspectRatio="none">
+      <polyline points="10,150 50,120 90,128 130,88 170,70 210,40 250,52" fill="none" stroke="#3a3c46" stroke-width="2"/>
+      <polyline points="10,150 50,120 90,128 130,88 170,70 210,40 250,52" fill="none" stroke="#6b7cff" stroke-width="2" opacity=".5" transform="translate(0,2)"/>
+      <line x1="130" y1="0" x2="130" y2="170" stroke="rgba(255,255,255,.08)"/>
+      <circle cx="130" cy="88" r="4.5" fill="#6b7cff"/>
+    </svg>
+    <div class="ttB"><span>x <b>1.42</b> &nbsp;&middot;&nbsp; &rho; <b>0.83</b></span></div>
+  </div>
+</div></div>
+
+<div style="clear:both"></div>
+
+<div class="options">
+  <div class="option" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>Card</h3><p>Title + label/value rows, hairline border, soft layered shadow, small arrow. Best when a point has several values. Most informative.</p></div></div>
+  <div class="option" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Minimal pill</h3><p>Single compact line, no arrow. Lightest, least occluding; great for fast scrubbing. Tight for 3+ values.</p></div></div>
+</div>
+</body></html>

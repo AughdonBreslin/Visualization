@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock: code blocks</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body{ background:#0c0c0d; color:#e8e8ea; font-family:'Inter',system-ui; margin:0; padding:28px 40px 60px; }
+  h2{ font:600 22px/1.2 'Inter'; color:#fff; margin:0 0 6px; letter-spacing:-.01em; }
+  .subtitle{ color:#8b8d96; font:400 14px/1.6 'Inter'; margin:0 0 22px; max-width:84ch; }
+  .options{ display:flex; flex-direction:column; gap:10px; margin-top:18px; max-width:780px; }
+  .option{ display:flex; gap:14px; background:#141416; border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:14px 16px; cursor:pointer; transition:border-color .12s; }
+  .option:hover{ border-color:rgba(107,124,255,.5); }
+  .option.sel{ border-color:#6b7cff; background:rgba(107,124,255,.08); }
+  .option .letter{ width:26px; height:26px; border-radius:7px; background:rgba(255,255,255,.08); color:#cfd1d8; display:flex; align-items:center; justify-content:center; font:600 13px 'Inter'; flex-shrink:0; }
+  .option.sel .letter{ background:#6b7cff; color:#fff; }
+  .option .content h3{ font:600 14px 'Inter'; color:#ededf0; margin:0 0 3px; }
+  .option .content p{ font:400 13px/1.5 'Inter'; color:#9a9ca4; margin:0; }
+</style></head>
+<body>
+<script>function toggleSelect(el){el.parentElement.querySelectorAll('.option').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');}</script>
+
+<h2>Code / pseudocode blocks</h2>
+<p class="subtitle">For the "Full pseudocode" sections (manifold, pca). Same Isomap snippet in three treatments: gutter line numbers, keywords in periwinkle, comments muted. Decision is the surrounding surface.</p>
+
+<style>
+.cb{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; --acc:#6b7cff; }
+.cb .slice{ padding:26px 32px 30px; }
+.cb .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+.cb pre{ margin:0; font:500 12.5px/1.85 'JetBrains Mono'; overflow-x:auto; }
+.cb .ln{ display:inline-block; width:22px; color:#4d4f57; user-select:none; }
+.cb .kw{ color:#9fb0ff; }
+.cb .fn{ color:#cfd1d8; }
+.cb .cm{ color:#5d5f68; }
+.cb code{ color:#9a9ca4; }
+.A pre{ background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); border-radius:10px; padding:16px 18px; }
+.B pre{ border-left:2px solid var(--acc); padding:4px 0 4px 18px; }
+.C pre{ background:#060607; border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:16px 18px; }
+</style>
+
+<div class="cb A"><div class="slice"><span class="tag">A · RAISED SURFACE</span>
+<pre><code><span class="ln">1</span><span class="kw">function</span> <span class="fn">isomap</span>(X, k, d):
+<span class="ln">2</span>    G = <span class="fn">knn_graph</span>(X, k)            <span class="cm"># k nearest neighbors</span>
+<span class="ln">3</span>    D = <span class="fn">shortest_paths</span>(G)         <span class="cm"># geodesic distances</span>
+<span class="ln">4</span>    B = -0.5 * J @ (D ** 2) @ J   <span class="cm"># double centering</span>
+<span class="ln">5</span>    L, V = <span class="fn">eig</span>(B)                  <span class="cm"># top eigenpairs</span>
+<span class="ln">6</span>    <span class="kw">return</span> V[:, :d] * <span class="fn">sqrt</span>(L[:d])  <span class="cm"># embedding</span></code></pre>
+</div></div>
+
+<div class="cb B"><div class="slice"><span class="tag">B · LEFT RULE, NO FILL</span>
+<pre><code><span class="ln">1</span><span class="kw">function</span> <span class="fn">isomap</span>(X, k, d):
+<span class="ln">2</span>    G = <span class="fn">knn_graph</span>(X, k)            <span class="cm"># k nearest neighbors</span>
+<span class="ln">3</span>    D = <span class="fn">shortest_paths</span>(G)         <span class="cm"># geodesic distances</span>
+<span class="ln">4</span>    B = -0.5 * J @ (D ** 2) @ J   <span class="cm"># double centering</span>
+<span class="ln">5</span>    L, V = <span class="fn">eig</span>(B)                  <span class="cm"># top eigenpairs</span>
+<span class="ln">6</span>    <span class="kw">return</span> V[:, :d] * <span class="fn">sqrt</span>(L[:d])  <span class="cm"># embedding</span></code></pre>
+</div></div>
+
+<div class="cb C"><div class="slice"><span class="tag">C · DARK INSET (TERMINAL)</span>
+<pre><code><span class="ln">1</span><span class="kw">function</span> <span class="fn">isomap</span>(X, k, d):
+<span class="ln">2</span>    G = <span class="fn">knn_graph</span>(X, k)            <span class="cm"># k nearest neighbors</span>
+<span class="ln">3</span>    D = <span class="fn">shortest_paths</span>(G)         <span class="cm"># geodesic distances</span>
+<span class="ln">4</span>    B = -0.5 * J @ (D ** 2) @ J   <span class="cm"># double centering</span>
+<span class="ln">5</span>    L, V = <span class="fn">eig</span>(B)                  <span class="cm"># top eigenpairs</span>
+<span class="ln">6</span>    <span class="kw">return</span> V[:, :d] * <span class="fn">sqrt</span>(L[:d])  <span class="cm"># embedding</span></code></pre>
+</div></div>
+
+<div class="options">
+  <div class="option" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>Raised surface</h3><p>Faint lifted panel + hairline border. Matches the worked-numeric block and inline-code tint; quietly delineated.</p></div></div>
+  <div class="option" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Left rule, no fill</h3><p>Just an accent left rule. Most no-frames-consistent (matches math + callouts). Subtlest; code floats on the page.</p></div></div>
+  <div class="option" onclick="toggleSelect(this)"><div class="letter">C</div><div class="content"><h3>Dark inset (terminal)</h3><p>Slightly darker-than-page panel. Reads as a distinct "code" surface; most familiar for code. A touch more contrast.</p></div></div>
+</div>
+</body></html>
