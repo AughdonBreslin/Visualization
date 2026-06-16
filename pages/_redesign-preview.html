@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles/tokens.css">
   <link rel="stylesheet" href="../styles/system.css">
+  <link rel="stylesheet" href="../styles/components.css">
 </head>
 <body class="ui">
   <div class="container">
@@ -27,6 +28,13 @@
         <p class="caption">Figure 1 - projection onto the first two components</p>
         <div class="label">Components</div>
         <p class="readout">variance explained <b>92.4%</b></p>
+      </section>
+      <hr class="rule">
+      <section id="components">
+        <div class="callout"><span class="callout-label">Note</span>
+          <div class="callout-body">The DFT assumes the image tiles periodically.</div></div>
+        <div class="callout warning"><span class="callout-label">Warning</span>
+          <div class="callout-body">Non-periodic images produce checkerboard artifacts.</div></div>
       </section>
     </main>
   </div>
