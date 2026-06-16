@@ -107,6 +107,15 @@ function buildNav(entries) {
     } else {
       a.textContent = entry.label;
     }
+    if (numbered) {
+      const heading = entry.panel.querySelector(':scope > h2, :scope > h3');
+      if (heading && !heading.querySelector('.sec-n')) {
+        const sn = document.createElement('span');
+        sn.className = 'sec-n';
+        sn.textContent = String(i + 1).padStart(2, '0');
+        heading.insertBefore(sn, heading.firstChild);
+      }
+    }
     a.dataset.target = entry.id;
     li.appendChild(a);
     list.appendChild(li);
