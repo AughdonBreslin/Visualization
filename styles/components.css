@@ -88,3 +88,36 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* Display math wrapper (left rule, left-aligned, numbered) around MathJax output. */
+.ui .math-display {
+  position: relative;
+  border-left: 2px solid var(--accent);
+  padding: 13px 56px 13px 22px;
+  margin: 20px 0;
+  text-align: left;
+}
+.ui .math-display .eq-num {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font: 500 12px/1 var(--font-mono);
+  color: var(--text-muted);
+}
+
+/* Worked numeric block (matrices / step values). */
+.ui .worked {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 9px;
+  padding: 14px 18px;
+  font: 500 13px/1.6 var(--font-mono);
+  color: #d2d4db;
+  font-variant-numeric: tabular-nums;
+}
+.ui .worked .mat { border-left: 1.5px solid rgba(255, 255, 255, 0.25); border-right: 1.5px solid rgba(255, 255, 255, 0.25); padding: 2px 12px; }
+.ui .worked .hl { color: var(--accent); }
