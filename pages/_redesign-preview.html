@@ -38,6 +38,11 @@
         <pre class="codeblock"><code><span class="ln">1</span><span class="kw">function</span> <span class="fn">isomap</span>(X, k, d):
 <span class="ln">2</span>    G = <span class="fn">knn_graph</span>(X, k)   <span class="cm"># neighbors</span>
 <span class="ln">3</span>    <span class="kw">return</span> <span class="fn">embed</span>(G, d)</code></pre>
+        <table class="data-table"><thead><tr><th>Model</th><th>Test MSE</th><th>Var</th></tr></thead>
+        <tbody>
+          <tr><td>OLS</td><td class="num">0.471</td><td class="num">0.410</td></tr>
+          <tr class="best"><td>Ridge</td><td class="num hl">0.388</td><td class="num">0.246</td></tr>
+        </tbody></table>
       </section>
     </main>
   </div>
