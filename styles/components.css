@@ -380,3 +380,10 @@
 .ui .site-footer .credit { font: 400 12px/1 var(--font-sans); color: var(--text-muted); }
 .ui .site-footer .credit a { color: var(--accent-link); }
 .ui .site-footer .meta { font: 500 11px/1 var(--font-mono); letter-spacing: 0.08em; color: #4d4f57; }
+
+/* Paired-visualization layout: two figures side by side, controls below. */
+.ui .viz-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.ui .viz-controls { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--hairline); }
+@media (max-width: 640px) {
+  .ui .viz-pair { grid-template-columns: 1fr; }
+}
