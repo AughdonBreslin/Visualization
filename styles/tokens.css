@@ -42,4 +42,11 @@
   /* containers */
   --container-narrow: 1100px; --container-default: 1200px;
   --container-wide: 1400px; --container-xl: 1560px;
+
+  /* type scale (default = Balanced; density overrides below switch these) */
+  --h1-size: 33px;   --h1-lh: 1.1;   --h1-track: -0.025em;
+  --h2-size: 19px;   --h2-lh: 1.25;  --h2-track: -0.014em;
+  --h3-size: 15px;   --h3-lh: 1.35;
+  --body-size: 14.5px; --body-lh: 1.7;
+  --lede-size: 15px; --lede-lh: 1.6;
 }

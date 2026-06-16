@@ -16,26 +16,38 @@
 
 /* type scale (Balanced) */
 .ui h1 {
-  font: 600 33px/1.1 var(--font-sans);
-  letter-spacing: -0.025em;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--h1-size);
+  line-height: var(--h1-lh);
+  letter-spacing: var(--h1-track);
   color: var(--text);
   text-wrap: balance;
   margin: 0 0 var(--sp-3);
 }
 .ui h2 {
-  font: 600 19px/1.25 var(--font-sans);
-  letter-spacing: -0.014em;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--h2-size);
+  line-height: var(--h2-lh);
+  letter-spacing: var(--h2-track);
   color: #ededf0;
   text-wrap: balance;
   margin: 0 0 var(--sp-2);
 }
 .ui h3 {
-  font: 600 15px/1.35 var(--font-sans);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--h3-size);
+  line-height: var(--h3-lh);
   color: #cfd1d8;
   margin: 0 0 var(--sp-2);
 }
 .ui p {
-  font: 400 14.5px/1.7 var(--font-sans);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--body-size);
+  line-height: var(--body-lh);
   color: var(--text-body);
   max-width: 62ch;
   text-wrap: pretty;
@@ -43,7 +55,10 @@
 }
 .ui .page-head { margin-bottom: var(--sp-5); }
 .ui .lede {
-  font: 400 15px/1.6 var(--font-sans);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--lede-size);
+  line-height: var(--lede-lh);
   color: var(--text-body);
   max-width: 56ch;
 }
