@@ -20,3 +20,19 @@
 }
 .ui .callout.warning { --co: var(--warning); --co-label: var(--warning-text); }
 .ui .callout.error   { --co: #e06a6a;        --co-label: #f0a0a0; }
+
+/* Code / pseudocode block (dark inset). */
+.ui .codeblock {
+  margin: 0;
+  font: 500 12.5px/1.85 var(--font-mono);
+  color: #9a9ca4;
+  background: #060607;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  overflow-x: auto;
+}
+.ui .codeblock .ln { display: inline-block; width: 20px; color: #4d4f57; user-select: none; }
+.ui .codeblock .kw { color: #9fb0ff; }
+.ui .codeblock .fn { color: #cfd1d8; }
+.ui .codeblock .cm { color: #5d5f68; }
