@@ -52,6 +52,15 @@
       </div>
     </section>
 
+    <section class="setting">
+      <div class="setting-label">Link underlines</div>
+      <p class="setting-help">Underline links all the time, or only on hover. Hidden is the default.</p>
+      <div class="tabs underline-tabs">
+        <button class="tab underline-tab is-active" data-underline="0">Hidden</button>
+        <button class="tab underline-tab" data-underline="1">Shown</button>
+      </div>
+    </section>
+
     <hr class="rule">
     <div class="settings-foot">
       <span class="settings-note">Saved automatically on this device.</span>
@@ -65,6 +74,7 @@
       var hex = document.getElementById('accent-hex');
       var swatches = Array.prototype.slice.call(document.querySelectorAll('.swatch'));
       var dtabs = Array.prototype.slice.call(document.querySelectorAll('.density-tab'));
+      var utabs = Array.prototype.slice.call(document.querySelectorAll('.underline-tab'));
       var well = document.querySelector('.hex-well');
 
       function markSwatch(accent) {
@@ -73,6 +83,7 @@
         if (hex && document.activeElement !== hex) hex.value = accent;
       }
       function markDensity(d) { dtabs.forEach(function (t) { t.classList.toggle('is-active', t.dataset.density === d); }); }
+      function markUnderline(on) { utabs.forEach(function (t) { t.classList.toggle('is-active', (t.dataset.underline === '1') === on); }); }
 
       swatches.forEach(function (s) {
         s.addEventListener('click', function () { T.setAccent(s.dataset.accent); markSwatch(s.dataset.accent); });
@@ -84,13 +95,16 @@
       dtabs.forEach(function (t) {
         t.addEventListener('click', function () { T.setDensity(t.dataset.density); markDensity(t.dataset.density); });
       });
+      utabs.forEach(function (t) {
+        t.addEventListener('click', function () { var on = t.dataset.underline === '1'; T.setLinkUnderline(on); markUnderline(on); });
+      });
       document.getElementById('reset').addEventListener('click', function () {
-        T.reset(); markSwatch(T.DEFAULT_ACCENT); markDensity('balanced');
+        T.reset(); markSwatch(T.DEFAULT_ACCENT); markDensity('balanced'); markUnderline(false);
       });
 
       // reflect current saved state in the UI
       var cur = T.current();
-      markSwatch(cur.accent); markDensity(cur.density);
+      markSwatch(cur.accent); markDensity(cur.density); markUnderline(cur.linkUnderline);
     })();
   </script>
 </body>
