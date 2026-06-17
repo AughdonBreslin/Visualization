@@ -82,19 +82,24 @@ considered and rejected.
 
 ## Demos in context
 
-The approved pattern for an embedded interactive (Option A, decided 2026-06-17):
+The approved pattern for an embedded interactive (decided 2026-06-17). The `.demo` is a container
+(`container-type: inline-size`) so it reflows by its own width regardless of the rail.
 
 - Plots flow two-up. A `.demo-figs` auto-fit grid lays figures side by side; one plot fills the
-  row, two sit side by side, collapsing to a single column below ~720px. Each figure carries its
+  row, two sit side by side, collapsing to a single column when narrow. Each figure carries its
   own mono caption above the framed dark-inset plot, and its help text below.
-- Controls form a horizontal grouped bar below the plots, separated by a hairline: control groups
-  are `.demo-col` columns (and a `.field-row` of `.control-item` cells for tabbed fields), so the
-  controls flow across the width instead of stacking into a tall vertical list. Uppercase labels,
-  underline-style inputs and selects.
-- Results readout: a boxed readout column at the right for structured metrics (for example the
-  bootstrap demo, mono tabular numbers with the primary estimate in the accent color); for prose
-  summaries (the bayesian demos) it drops to a full-width band below the controls, capped for
-  readability.
+- Controls are a banded bar: `.demo-controls` is a grid of an input area (left) and a results
+  column (right). The input area (`.demo-inputs`) stacks bands, a configuration band over a data
+  band; each `.demo-band` lays its `.demo-group` columns on a shared equal-column grid
+  (`.cols-2` / `.cols-3`), and `.demo-stack` stacks two groups within one column. Fields use
+  `.demo-pair` of `.demo-item` cells, `.demo-inline` for an input plus button, uppercase
+  `.demo-label`s, and underline-style inputs/selects. Model-specific groups (the conjugate
+  Beta/Normal sets) are toggled by a `data-model` attribute so they sit directly in the bands.
+- Results readout: a boxed metric list (`.metrics`, label/value rows, mono tabular) in the right
+  column, matching the bootstrap. Both structured metrics (estimation) and the bayesian summaries
+  use it.
+- Reflow (container queries on `.demo`): the results column drops to a band below the inputs at
+  about 840px, and the control bands collapse to a single column at about 480px.
 
 ## Links and definitions
 
