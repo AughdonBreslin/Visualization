@@ -100,6 +100,11 @@ The approved pattern for an embedded interactive (decided 2026-06-17). The `.dem
   use it.
 - Reflow (container queries on `.demo`): the results column drops to a band below the inputs at
   about 840px, and the control bands collapse to a single column at about 480px.
+- Column-flow variant (`.demo-inputs.demo-columns` of `.demo-colstack` columns): where row-bands
+  would couple column heights and leave dead space below a short group, the inputs instead use two
+  columns that each stack their groups independently (no row alignment, no dead space). The three
+  bayesian demos use this so a short group does not leave a gap above the next (e.g. Generate data
+  fills the space below the optimizer in the VI demo).
 
 ## Links and definitions
 
