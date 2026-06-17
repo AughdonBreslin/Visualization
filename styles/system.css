@@ -7,7 +7,12 @@
   font-family: var(--font-sans);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  /* Dark-theme the native form controls (notably the <select> option popup, which otherwise
+     renders light-on-white because the select background is transparent). */
+  color-scheme: dark;
 }
+.ui select option,
+.ui select optgroup { background-color: #141416; color: #f0f1f3; }
 .ui .container {
   max-width: var(--container-default);
   margin: 0 auto;
