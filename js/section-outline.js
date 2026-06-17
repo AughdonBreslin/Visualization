@@ -227,7 +227,12 @@ function positionDesktopRail(rail, firstPanel) {
       return;
     }
     const firstTop = firstPanel.getBoundingClientRect().top + window.scrollY;
-    const top = Math.max(MIN_TOP, firstTop - window.scrollY);
+    // The Home item sits at the top of the rail (.ui pages). Offset by its height so the FIRST
+    // SECTION entry (e.g. Overview) lines up with the first section header, not the Home link.
+    let homeOffset = 0;
+    const homeItem = rail.querySelector('.rail-home-item');
+    if (homeItem) homeOffset = homeItem.getBoundingClientRect().height + (parseFloat(getComputedStyle(homeItem).marginBottom) || 0);
+    const top = Math.max(MIN_TOP, firstTop - window.scrollY - homeOffset);
     rail.style.top = `${top}px`;
     rail.style.maxHeight = `calc(100vh - ${top}px)`;
     // On redesign (.ui) pages, glue the rail to the left edge of the centered content so
