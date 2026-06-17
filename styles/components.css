@@ -376,7 +376,7 @@
 .ui .home-index .index-row:hover .index-arrow { transform: translateX(3px); }
 
 /* Footer */
-.ui .site-footer { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center; }
+.ui .site-footer { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--hairline); display: flex; justify-content: flex-end; align-items: center; }
 .ui .site-footer .credit { font: 400 12px/1 var(--font-sans); color: var(--text-muted); }
 .ui .site-footer .credit a { color: inherit; border-bottom: 0; }
 .ui .site-footer .credit a:hover { color: var(--text); text-decoration: underline; }
