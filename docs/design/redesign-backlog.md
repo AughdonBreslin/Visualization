@@ -6,10 +6,11 @@ here are not started; each becomes its own brainstorm -> spec -> plan when picke
 
 ## In-progress / next
 
-- Phase 4 (page migration): migrate the remaining article pages onto the archetype, next
-  bayesian, then regularization, then the canvas pages (pca, fourier, manifold,
-  generative_classification, distributions). The archetype lives in `styles/article-ui.css`,
-  `styles/system.css`, `styles/tokens.css`, `js/section-outline.js`, `js/theme.js`.
+- Phase 4 (page migration): migrate the remaining article pages onto the archetype. Done:
+  estimation (pilot), bayesian. Next: regularization, then the canvas pages (pca, fourier,
+  manifold, generative_classification, distributions). The archetype lives in
+  `styles/article-ui.css`, `styles/system.css`, `styles/tokens.css`, `js/section-outline.js`,
+  `js/theme.js`.
 
 ## Deferred phases (later, in no fixed order)
 
