@@ -1,75 +1,63 @@
-/* bayesian.css - page-specific styles for bayesian.html */
+/* bayesian.css - migrated (.ui) page: chart containers + the dense demo-control sub-layouts.
+ * Typography, sections, callouts, links, math, and the demo frame come from system.css /
+ * components.css / article-ui.css. This file only adds the bayesian-specific pieces. */
 
-.bayesian p {
-  margin-bottom: 8px;
-}
+.ui.bayesian .bayes-viz { min-height: 280px; }
+.ui.bayesian .bayes-viz + .figcap { margin-top: 22px; }
+.ui.bayesian .demo-results .help-text { margin-top: 0; max-width: none; }
 
-.bayesian ul {
-  padding-left: 1.25em;
-  list-style-position: outside;
-}
-
-.bayesian li {
-  margin: 6px 0;
-}
-
-.bayesian .bayes-viz {
-  min-height: 280px;
-}
-
-.bayesian #bayesSummary {
-  margin-top: 10px;
-}
-
-.bayesian .control-grid > label,
-.bayesian .control-grid > input,
-.bayesian .control-grid > select,
-.bayesian .control-grid > textarea,
-.bayesian .control-grid > .small {
-  grid-column: 1 / -1;
-}
-
-.bayesian .control-grid > button {
-  justify-self: start;
-  width: auto;
-  min-width: 0;
-}
-
-.bayesian .compact-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: end;
-}
-
-.bayesian .compact-grid > label,
-.bayesian .compact-grid > .control-inline-row {
-  grid-column: 1 / -1;
-}
-
-.bayesian .control-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
-.bayesian .control-item > input,
-.bayesian .control-item > select {
+/* Textarea in the underline control language (article-ui's control-grid covers select/input
+   only). A light boxed field reads better than an underline for multi-line paste areas. */
+.ui.bayesian .control-grid textarea {
+  appearance: none;
+  -webkit-appearance: none;
+  font: 500 13px/1.5 var(--font-sans);
+  color: #dadbe0;
+  background: transparent;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
   width: 100%;
+  max-width: 360px;
+  resize: vertical;
+}
+.ui.bayesian .control-grid .small {
+  font: 400 11.5px/1.5 var(--font-sans);
+  color: var(--text-muted);
+  grid-column: 1 / -1;
 }
 
-.bayesian .control-inline-row {
+/* Keep single-field selects/inputs from stretching the full width of the wide controls row. */
+.ui.bayesian .control-grid > select,
+.ui.bayesian .control-grid > input { max-width: 320px; }
+
+/* Sub-group header spacing inside the demo controls. */
+.ui.bayesian .demo-inputs .h3-section { margin: 20px 0 10px; }
+.ui.bayesian .demo-inputs .h3-section:first-child { margin-top: 0; }
+.ui.bayesian .bayes-controls { margin-top: 4px; }
+
+/* Two-up rows for paired numeric inputs. */
+.ui.bayesian .compact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 18px;
+  align-items: end;
+  max-width: 360px;
+}
+.ui.bayesian .compact-grid > label,
+.ui.bayesian .compact-grid > .control-inline-row { grid-column: 1 / -1; }
+
+.ui.bayesian .control-item { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.ui.bayesian .control-item > label { margin-top: 0; }
+.ui.bayesian .control-item > input,
+.ui.bayesian .control-item > select { width: 100%; max-width: none; }
+
+/* Number + button on one line (Flip a coin, Generate a sample). */
+.ui.bayesian .control-inline-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
 }
-
-.bayesian .control-inline-row > input,
-.bayesian .control-inline-row > select {
-  width: 100%;
-}
-
-.bayesian .control-inline-row > button {
-  width: auto;
-  white-space: nowrap;
-}
+.ui.bayesian .control-inline-row > input { width: 100%; max-width: none; }
+.ui.bayesian .control-inline-row > button { white-space: nowrap; }
