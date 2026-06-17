@@ -363,15 +363,15 @@
 
       <section class="panel">
         <h2>Interpreting the visualization</h2>
-        <div class="fourier-tabs" role="tablist">
-          <button type="button" class="fourier-tab is-active" data-tab="gibbs" role="tab" aria-selected="true">Gibbs ringing</button>
-          <button type="button" class="fourier-tab" data-tab="extrap" role="tab" aria-selected="false">Extrapolation</button>
-          <button type="button" class="fourier-tab" data-tab="overshoot" role="tab" aria-selected="false">Overshoot colors</button>
-          <button type="button" class="fourier-tab" data-tab="center" role="tab" aria-selected="false">Center panel</button>
-          <button type="button" class="fourier-tab" data-tab="poly" role="tab" aria-selected="false">Polynomial bases</button>
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab active" data-tab="gibbs">Gibbs ringing</button>
+          <button type="button" class="tab" data-tab="extrap">Extrapolation</button>
+          <button type="button" class="tab" data-tab="overshoot">Overshoot colors</button>
+          <button type="button" class="tab" data-tab="center">Center panel</button>
+          <button type="button" class="tab" data-tab="poly">Polynomial bases</button>
         </div>
 
-        <div class="fourier-tabpanel is-active" data-tab="gibbs" role="tabpanel">
+        <div class="tab-panel" data-panel="gibbs" role="tabpanel">
           <p>
             With the Fourier basis, the ringing in a low-pass reconstruction is
             called the Gibbs phenomenon. Near any jump discontinuity, a
@@ -413,7 +413,7 @@
           </p>
         </div>
 
-        <div class="fourier-tabpanel" data-tab="extrap" role="tabpanel">
+        <div class="tab-panel" data-panel="extrap" role="tabpanel" hidden>
           <p>
             The demo's "Show periodic extension" toggle, and its
             basis-dependent equivalents, reveal what happens outside the
@@ -443,14 +443,14 @@
           </p>
         </div>
 
-        <div class="fourier-tabpanel" data-tab="overshoot" role="tabpanel">
+        <div class="tab-panel" data-panel="overshoot" role="tabpanel" hidden>
           <p>
             Reconstructions, especially extrapolated ones, can produce pixel
             values outside the natural 0 to 255 grayscale range. The demo
             colors these explicitly.
-            Red shading marks pixels
+            <span class="fourier-legend-red">Red shading</span> marks pixels
             above 255 (overshoot), and
-            blue shading marks pixels
+            <span class="fourier-legend-blue">blue shading</span> marks pixels
             below 0 (undershoot). Saturation ramps up with the magnitude, so a
             small overshoot is faint and an extreme one is fully saturated.
           </p>
@@ -474,7 +474,7 @@
           </p>
         </div>
 
-        <div class="fourier-tabpanel" data-tab="center" role="tabpanel">
+        <div class="tab-panel" data-panel="center" role="tabpanel" hidden>
           <p>
             The center panel of the demo changes per basis, but every variant
             answers the same question: where is this basis concentrating the
@@ -518,7 +518,7 @@
           </p>
         </div>
 
-        <div class="fourier-tabpanel" data-tab="poly" role="tabpanel">
+        <div class="tab-panel" data-panel="poly" role="tabpanel" hidden>
           <p>
             The Legendre and Chebyshev bases are built from one-dimensional
             polynomials, one family per axis. The 2D building block is a
@@ -613,25 +613,6 @@
       <span class="credit">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></span>
     </footer>
   </div>
-  <script>
-    (function () {
-      var tabs = document.querySelectorAll('.fourier-tab');
-      var panels = document.querySelectorAll('.fourier-tabpanel');
-      tabs.forEach(function (tab) {
-        tab.addEventListener('click', function () {
-          var key = tab.getAttribute('data-tab');
-          tabs.forEach(function (t) {
-            var on = t === tab;
-            t.classList.toggle('is-active', on);
-            t.setAttribute('aria-selected', on ? 'true' : 'false');
-          });
-          panels.forEach(function (p) {
-            p.classList.toggle('is-active', p.getAttribute('data-tab') === key);
-          });
-        });
-      });
-    })();
-  </script>
 </body>
 
 </html>
