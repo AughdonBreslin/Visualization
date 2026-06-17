@@ -122,6 +122,23 @@ function buildNav(entries) {
     list.appendChild(li);
     linkById.set(entry.id, a);
   });
+  // On redesign (.ui) pages, the Home link lives at the top of the rail (position 0) with a
+  // back-arrow instead of a number, so the mobile drawer exposes it cleanly too.
+  if (numbered) {
+    const homeLi = document.createElement('li');
+    homeLi.className = 'rail-home-item';
+    const homeA = document.createElement('a');
+    homeA.className = 'rail-home';
+    homeA.href = '../index.html';
+    const arrow = document.createElement('span');
+    arrow.className = 'rail-arrow';
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '←';
+    homeA.appendChild(arrow);
+    homeA.appendChild(document.createTextNode('Home'));
+    homeLi.appendChild(homeA);
+    list.insertBefore(homeLi, list.firstChild);
+  }
   panel.appendChild(list);
 
   nav.append(btn, backdrop, panel);
