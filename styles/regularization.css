@@ -3,6 +3,13 @@
  * D3 chart styling and adds the integrated Models table, the regularization slider, and the
  * table + tabbed-controls layout for the visualization demo. */
 
+/* --- Overview: the five methods as a compact table (method name + formula, row hairlines) --- */
+.ui.regularization .fn-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 18px 0; }
+.ui.regularization table.fn-table { width: 100%; border-collapse: collapse; }
+.ui.regularization table.fn-table td { border-top: 1px solid var(--hairline); padding: 13px 0; vertical-align: middle; }
+.ui.regularization table.fn-table tr:first-child td { border-top: 0; }
+.ui.regularization table.fn-table td.fn-method { width: 1%; white-space: nowrap; padding-right: 30px; font: 600 13px/1.2 var(--font-sans); color: #cfd1d8; }
+
 /* --- Charts (D3 stays mostly data-driven; these set typography/axis colors) --- */
 .ui.regularization .reg-svg,
 .ui.regularization .coef-svg,

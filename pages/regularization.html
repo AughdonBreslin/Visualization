@@ -43,16 +43,14 @@
                 <p>
                     This demonstration compares how different regularization schemes affect linear regression fits when the model can overfit (e.g., high-degree polynomial features). You can regenerate synthetic data, change feature degree, and sweep $\lambda$ to see how the fitted function, coefficient magnitudes, and train/test error change.
                 </p>
-                <div class="formulas">
-                    <div class="formula">$$\text{Control (OLS): }\min_w\ \frac{1}{N}\lVert Xw - y\rVert^2$$</div>
-                    <div class="formula">$$\text{Ridge: }\min_w\ \frac{1}{N}\lVert Xw - y\rVert^2 + \lambda\lVert w\rVert^2$$</div>
-                </div>
-                <div class="formulas">
-                    <div class="formula">$$\text{Lasso: }\min_w\ \frac{1}{N}\lVert Xw - y\rVert^2 + \lambda\lVert w\rVert_1$$</div>
-                    <div class="formula">$$\text{Weight decay (GD): } w\leftarrow (1-2\eta\lambda)w - \eta\nabla_w\,\tfrac{1}{N}\lVert Xw-y\rVert^2$$</div>
-                </div>
-                <div class="formulas">
-                    <div class="formula">$$\text{L2 penalty (GD): } w\leftarrow w - \eta\left(\nabla_w\,\tfrac{1}{N}\lVert Xw-y\rVert^2 + 2\lambda w\right)$$</div>
+                <div class="fn-table-wrap">
+                    <table class="fn-table">
+                        <tr><td class="fn-method">Control (OLS)</td><td>$\min_w\ \tfrac{1}{N}\lVert Xw - y\rVert^2$</td></tr>
+                        <tr><td class="fn-method">Ridge</td><td>$\min_w\ \tfrac{1}{N}\lVert Xw - y\rVert^2 + \lambda\lVert w\rVert^2$</td></tr>
+                        <tr><td class="fn-method">Lasso</td><td>$\min_w\ \tfrac{1}{N}\lVert Xw - y\rVert^2 + \lambda\lVert w\rVert_1$</td></tr>
+                        <tr><td class="fn-method">L2 penalty (GD)</td><td>$w\leftarrow w - \eta\left(\nabla_w\,\tfrac{1}{N}\lVert Xw-y\rVert^2 + 2\lambda w\right)$</td></tr>
+                        <tr><td class="fn-method">Weight decay (GD)</td><td>$w\leftarrow (1-2\eta\lambda)w - \eta\nabla_w\,\tfrac{1}{N}\lVert Xw-y\rVert^2$</td></tr>
+                    </table>
                 </div>
                 <div class="callout">
                     <div class="callout-label">Note</div>
