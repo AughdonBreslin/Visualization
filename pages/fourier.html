@@ -306,121 +306,54 @@
     </div>
   </div>
 
-        <div class="fourier-controls-block">
+  <div class="demo">
+    <div class="fourier-demo-head"><span class="eyebrow">Demo 2</span><h3>3D height-map</h3></div>
+    <canvas id="fourier3dCanvas" class="fourier-3d-canvas" aria-label="3D height-map surface of the current image"></canvas>
 
-          <div class="fourier-control-section">
-            <h3 class="fourier-control-heading">3D View</h3>
-            <div class="fourier-control-grid fourier-3d-grid">
-
-              <div class="fourier-control-column">
-                <div class="fourier-control-item fourier-3d-source-group">
-                  <label class="fourier-upload-label">Source</label>
-                  <label>
-                    <input type="radio" name="fourier3dSource" value="recon" checked />
-                    Reconstruction
-                  </label>
-                  <label>
-                    <input type="radio" name="fourier3dSource" value="orig" />
-                    Original image
-                  </label>
-                </div>
-              </div>
-
-              <div class="fourier-control-column">
-                <div class="fourier-control-item fourier-3d-source-group fourier-3d-camera-item">
-                  <label class="fourier-upload-label">Camera</label>
-                  <label>
-                    <input type="radio" name="fourier3dCamera" value="orbit" checked />
-                    Orbit
-                  </label>
-                  <label>
-                    <input type="radio" name="fourier3dCamera" value="fly" />
-                    <span id="fourier3dFlyLabel">Fly</span>
-                  </label>
-                  <p
-                    id="fourier3dFlyHint"
-                    class="fourier-fly-hint"
-                    style="display:none"
-                  >
-                    Click the canvas to lock the cursor; click again or press ESC
-                    to release. WASD to move, Q/E for down/up, Shift to sprint.
-                  </p>
-                </div>
-              </div>
-
-              <div class="fourier-control-column">
-                <div class="fourier-control-item">
-                  <label for="fourier3dScale">Height scale</label>
-                  <div class="fourier-slider-row">
-                    <input
-                      id="fourier3dScale"
-                      type="range"
-                      min="10"
-                      max="200"
-                      step="5"
-                      value="60"
-                    />
-                  </div>
-                  <output id="fourier3dScaleOut" class="fourier-radius-out">60</output>
-                </div>
-
-                <div
-                  id="fourier3dTileExtentRow"
-                  class="fourier-control-item"
-                  style="display:none"
-                >
-                  <label for="fourier3dTileExtent">Tile extent</label>
-                  <div class="fourier-slider-row">
-                    <input
-                      id="fourier3dTileExtent"
-                      type="range"
-                      min="3"
-                      max="21"
-                      step="2"
-                      value="5"
-                      disabled
-                    />
-                  </div>
-                  <output id="fourier3dTileExtentOut" class="fourier-radius-out">
-                    5 × 5 = 25 tiles
-                  </output>
-                </div>
-
-              </div>
-
-              <div class="fourier-control-column">
-                <div class="fourier-control-item fourier-checkbox-item">
-                  <label class="fourier-check-label">
-                    <input id="fourier3dHideOOR" type="checkbox" />
-                    Hide overshoot regions
-                  </label>
-                </div>
-
-                <div class="fourier-control-item fourier-checkbox-item">
-                  <label class="fourier-check-label">
-                    <input id="fourier3dTile" type="checkbox" />
-                    Periodic tiling
-                  </label>
-                  <p
-                    id="fourier3dTileBasisNote"
-                    class="fourier-warning"
-                    style="display:none"
-                  >
-                    Basis isn't periodic - replicating tiles instead
-                  </p>
-                </div>
-              </div>
-
-            </div>
+    <div class="demo-controls fourier-controls">
+      <div class="demo-band fourier-band">
+        <div class="demo-group">
+          <span class="demo-label">Source</span>
+          <div class="fourier-radios">
+            <label class="fourier-radio"><input type="radio" name="fourier3dSource" value="recon" checked />Reconstruction</label>
+            <label class="fourier-radio"><input type="radio" name="fourier3dSource" value="orig" />Original image</label>
           </div>
-
         </div>
 
-        <canvas
-          id="fourier3dCanvas"
-          class="fourier-3d-canvas"
-          aria-label="3D height-map surface of the current image"
-        ></canvas>
+        <div class="demo-group">
+          <span class="demo-label">Camera</span>
+          <div class="fourier-radios">
+            <label class="fourier-radio"><input type="radio" name="fourier3dCamera" value="orbit" checked />Orbit</label>
+            <label class="fourier-radio"><input type="radio" name="fourier3dCamera" value="fly" /><span id="fourier3dFlyLabel">Fly</span></label>
+          </div>
+          <p id="fourier3dFlyHint" class="fourier-hint" style="display:none">Click the canvas to lock the cursor; click again or press ESC to release. WASD to move, Q/E for down/up, Shift to sprint.</p>
+        </div>
+
+        <div class="demo-group">
+          <div class="fourier-slabel">
+            <label class="demo-label" for="fourier3dScale">Height scale</label>
+            <output id="fourier3dScaleOut" class="fourier-out">60</output>
+          </div>
+          <input id="fourier3dScale" type="range" min="10" max="200" step="5" value="60" class="fourier-slider" />
+
+          <div id="fourier3dTileExtentRow" class="fourier-subitem" style="display:none">
+            <div class="fourier-slabel">
+              <label class="demo-label" for="fourier3dTileExtent">Tile extent</label>
+              <output id="fourier3dTileExtentOut" class="fourier-out">5 x 5 = 25 tiles</output>
+            </div>
+            <input id="fourier3dTileExtent" type="range" min="3" max="21" step="2" value="5" disabled class="fourier-slider" />
+          </div>
+        </div>
+
+        <div class="demo-group">
+          <span class="demo-label">Display</span>
+          <label class="fourier-check"><input id="fourier3dHideOOR" type="checkbox" />Hide overshoot regions</label>
+          <label class="fourier-check"><input id="fourier3dTile" type="checkbox" />Periodic tiling</label>
+          <p id="fourier3dTileBasisNote" class="fourier-warning" style="display:none">Basis isn't periodic, replicating tiles instead</p>
+        </div>
+      </div>
+    </div>
+  </div>
       </section>
 
       <section class="panel">
