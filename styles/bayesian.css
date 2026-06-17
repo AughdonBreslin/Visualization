@@ -4,7 +4,10 @@
 
 .ui.bayesian .bayes-viz { min-height: 280px; }
 .ui.bayesian .bayes-viz + .figcap { margin-top: 22px; }
-.ui.bayesian .demo-results .help-text { margin-top: 0; max-width: none; }
+/* The bayesian summaries are prose sentences, so the results sit as a full-width band below the
+   controls (capped for readability) rather than in a narrow right column. */
+.ui.bayesian .demo-results { flex-basis: 100%; margin-left: 0; margin-top: 12px; }
+.ui.bayesian .demo-results .help-text { margin-top: 0; max-width: 82ch; }
 
 /* Textarea in the underline control language (article-ui's control-grid covers select/input
    only). A light boxed field reads better than an underline for multi-line paste areas. */

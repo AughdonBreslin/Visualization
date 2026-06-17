@@ -161,9 +161,13 @@
           For dependent data (e.g., time series), we typically need variants such as the block bootstrap.
         </p>
         <div class="demo">
-          <div class="figcap">Fig. 1 &middot; bootstrap distribution of the statistic</div>
-          <div id="bootstrapPlot" class="viz"></div>
-          <div class="help-text">Note the standard error and confidence interval tend to tighten as $n$ grows.</div>
+          <div class="demo-figs">
+            <div class="demo-fig">
+              <div class="figcap">Fig. 1 &middot; bootstrap distribution of the statistic</div>
+              <div id="bootstrapPlot" class="viz"></div>
+              <div class="help-text">Note the standard error and confidence interval tend to tighten as $n$ grows.</div>
+            </div>
+          </div>
 
           <div class="demo-controls">
             <div class="demo-inputs">
@@ -173,38 +177,47 @@
               </div>
 
               <div class="tab-panel" data-panel="sample" role="tabpanel">
-                <div class="control-grid">
-                  <label for="bootStat">Statistic</label>
-                  <select id="bootStat">
-                    <option value="mean" selected>Mean</option>
-                    <option value="median">Median</option>
-                  </select>
-
-                  <label for="bootN">Sample size (n)</label>
-                  <input id="bootN" type="number" min="5" max="500" step="1" value="40" />
-
-                  <label for="bootB">Bootstrap reps (B)</label>
-                  <input id="bootB" type="number" min="100" max="20000" step="100" value="2000" />
-
-                  <label for="bootLevel">Confidence level</label>
-                  <select id="bootLevel">
-                    <option value="0.90">90%</option>
-                    <option value="0.95" selected>95%</option>
-                    <option value="0.99">99%</option>
-                  </select>
+                <div class="field-row">
+                  <div class="control-item">
+                    <label for="bootStat">Statistic</label>
+                    <select id="bootStat">
+                      <option value="mean" selected>Mean</option>
+                      <option value="median">Median</option>
+                    </select>
+                  </div>
+                  <div class="control-item">
+                    <label for="bootN">Sample size (n)</label>
+                    <input id="bootN" type="number" min="5" max="500" step="1" value="40" />
+                  </div>
+                  <div class="control-item">
+                    <label for="bootB">Bootstrap reps (B)</label>
+                    <input id="bootB" type="number" min="100" max="20000" step="100" value="2000" />
+                  </div>
+                  <div class="control-item">
+                    <label for="bootLevel">Confidence level</label>
+                    <select id="bootLevel">
+                      <option value="0.90">90%</option>
+                      <option value="0.95" selected>95%</option>
+                      <option value="0.99">99%</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
               <div class="tab-panel" data-panel="population" role="tabpanel" hidden>
-                <div class="control-grid">
-                  <label for="bootMu">Population &mu;</label>
-                  <input id="bootMu" type="number" min="-10" max="10" step="0.1" value="0" />
-
-                  <label for="bootSigma">Population &sigma;</label>
-                  <input id="bootSigma" type="number" min="0.05" max="10" step="0.05" value="1" />
-
-                  <label for="bootSeed">Seed</label>
-                  <input id="bootSeed" type="number" step="1" value="7" />
+                <div class="field-row">
+                  <div class="control-item">
+                    <label for="bootMu">Population &mu;</label>
+                    <input id="bootMu" type="number" min="-10" max="10" step="0.1" value="0" />
+                  </div>
+                  <div class="control-item">
+                    <label for="bootSigma">Population &sigma;</label>
+                    <input id="bootSigma" type="number" min="0.05" max="10" step="0.05" value="1" />
+                  </div>
+                  <div class="control-item">
+                    <label for="bootSeed">Seed</label>
+                    <input id="bootSeed" type="number" step="1" value="7" />
+                  </div>
                 </div>
               </div>
             </div>

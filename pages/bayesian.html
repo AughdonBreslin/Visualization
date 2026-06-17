@@ -131,21 +131,26 @@
         </p>
 
         <div class="demo">
-          <div class="figcap">Prior vs likelihood vs posterior</div>
-          <p id="bayesParamContext" class="help-text">
-            The prior shows what parameter values were plausible before seeing the dataset, the likelihood shows which parameter values best explain the observed data, and the posterior shows the updated belief after combining both. The shaded interval on the posterior plot is a 95% credible interval, which contains parameter values that together have 95% of the posterior probability mass.
-          </p>
-          <div id="bayesParamViz" class="viz bayes-viz" aria-label="Bayesian parameter update visualization"></div>
-
-          <div class="figcap">Posterior predictive for a new observation</div>
-          <p id="bayesPredContext" class="help-text">
-            This plot summarizes predictions for new data after averaging over parameter uncertainty rather than plugging in a single estimate.
-          </p>
-          <div id="bayesPredViz" class="viz bayes-viz" aria-label="Posterior predictive visualization"></div>
+          <div class="demo-figs">
+            <div class="demo-fig">
+              <div class="figcap">Prior vs likelihood vs posterior</div>
+              <div id="bayesParamViz" class="viz bayes-viz" aria-label="Bayesian parameter update visualization"></div>
+              <p id="bayesParamContext" class="help-text">
+                The prior shows what parameter values were plausible before seeing the dataset, the likelihood shows which parameter values best explain the observed data, and the posterior shows the updated belief after combining both. The shaded interval on the posterior plot is a 95% credible interval, which contains parameter values that together have 95% of the posterior probability mass.
+              </p>
+            </div>
+            <div class="demo-fig">
+              <div class="figcap">Posterior predictive for a new observation</div>
+              <div id="bayesPredViz" class="viz bayes-viz" aria-label="Posterior predictive visualization"></div>
+              <p id="bayesPredContext" class="help-text">
+                This plot summarizes predictions for new data after averaging over parameter uncertainty rather than plugging in a single estimate.
+              </p>
+            </div>
+          </div>
 
           <div class="demo-controls">
             <div class="demo-inputs">
-              <div class="control-grid">
+              <div class="control-grid demo-col">
                 <label for="bayesModel">Conjugate pair</label>
                 <select id="bayesModel">
                   <option value="beta-binomial" selected>Beta-Binomial (coin flips)</option>
@@ -157,7 +162,7 @@
                 <div class="small" id="bayesDataHint">For coin flips: use 1/0 or H/T. For normals: paste numbers like 0.2, -1.1, 0.7.</div>
               </div>
 
-              <div id="bayesControlsBeta" class="bayes-controls">
+              <div id="bayesControlsBeta" class="bayes-controls demo-col">
                 <h3 class="h3-section">Prior (Beta)</h3>
                 <div class="control-grid compact-grid">
                   <div class="control-item">
@@ -179,7 +184,7 @@
                 </div>
               </div>
 
-              <div id="bayesControlsNormal" class="bayes-controls" hidden>
+              <div id="bayesControlsNormal" class="bayes-controls demo-col" hidden>
                 <h3 class="h3-section">Prior (Normal)</h3>
                 <div class="control-grid compact-grid">
                   <div class="control-item">
@@ -288,44 +293,51 @@
         <div class="formula">$$\hat\mu_{\mathrm{MAP}} = \arg\min_{\mu}\ \underbrace{\frac{n}{2\sigma^2}(\mu-\bar x)^2}_{-\log p(\mathcal{D}\mid\mu)} + \underbrace{\frac{1}{2\tau^2}(\mu-\mu_0)^2}_{-\log p(\mu)}$$</div>
 
         <div class="demo">
-          <div class="figcap">Objectives over $\mu$</div>
-          <p class="help-text">
-            The blue curve is the data-fit term, the white curve is the prior penalty, and the green curve is their sum, whose minimum gives the MAP estimate.
-          </p>
-          <div id="mapObjViz" class="viz bayes-viz" aria-label="MAP objective curves visualization"></div>
+          <div class="demo-figs">
+            <div class="demo-fig">
+              <div class="figcap">Objectives over $\mu$</div>
+              <div id="mapObjViz" class="viz bayes-viz" aria-label="MAP objective curves visualization"></div>
+              <p class="help-text">
+                The blue curve is the data-fit term, the white curve is the prior penalty, and the green curve is their sum, whose minimum gives the MAP estimate.
+              </p>
+            </div>
+          </div>
 
           <div class="demo-controls">
             <div class="demo-inputs">
-              <div class="control-grid">
+              <div class="control-grid demo-col">
                 <label for="mapData">Paste numbers</label>
                 <textarea id="mapData" rows="3">0.2, -0.1, 0.4, 0.3, 0.0</textarea>
                 <div class="small">Numbers separated by commas/spaces/newlines. The plot updates automatically as you type.</div>
               </div>
 
-              <h3 class="h3-section">Prior</h3>
-              <div class="control-grid compact-grid">
-                <div class="control-item">
-                  <label for="mapMu0">Prior mean ($\mu_0$)</label>
-                  <input id="mapMu0" type="number" step="0.1" value="0" />
+              <div class="demo-col">
+                <h3 class="h3-section">Prior</h3>
+                <div class="control-grid compact-grid">
+                  <div class="control-item">
+                    <label for="mapMu0">Prior mean ($\mu_0$)</label>
+                    <input id="mapMu0" type="number" step="0.1" value="0" />
+                  </div>
+                  <div class="control-item">
+                    <label for="mapTau">Prior std ($\tau$)</label>
+                    <input id="mapTau" type="number" min="0.05" step="0.05" value="1" />
+                  </div>
                 </div>
-                <div class="control-item">
-                  <label for="mapTau">Prior std ($\tau$)</label>
-                  <input id="mapTau" type="number" min="0.05" step="0.05" value="1" />
+                <h3 class="h3-section">Likelihood</h3>
+                <div class="control-grid">
+                  <label for="mapSigma">Known std ($\sigma$)</label>
+                  <input id="mapSigma" type="number" min="0.05" step="0.05" value="0.3" />
                 </div>
               </div>
 
-              <h3 class="h3-section">Likelihood</h3>
-              <div class="control-grid">
-                <label for="mapSigma">Known std ($\sigma$)</label>
-                <input id="mapSigma" type="number" min="0.05" step="0.05" value="0.3" />
-              </div>
-
-              <h3 class="h3-section">Generate data</h3>
-              <div class="control-grid compact-grid">
-                <label for="mapTrueMean">True mean</label>
-                <div class="control-inline-row">
-                  <input id="mapTrueMean" type="number" step="0.1" value="0" />
-                  <button class="btn" id="mapGenerateSample" type="button">Generate a sample</button>
+              <div class="demo-col">
+                <h3 class="h3-section">Generate data</h3>
+                <div class="control-grid compact-grid">
+                  <label for="mapTrueMean">True mean</label>
+                  <div class="control-inline-row">
+                    <input id="mapTrueMean" type="number" step="0.1" value="0" />
+                    <button class="btn" id="mapGenerateSample" type="button">Generate a sample</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -383,68 +395,77 @@
         <div class="formula">$$q(p)\ \text{defined by}\ z\sim\mathcal{N}(m,s^2),\ \ p=\sigma(z)$$</div>
 
         <div class="demo">
-          <div class="figcap">True posterior vs q during optimization</div>
-          <p class="help-text">
-            This plot compares the prior, the exact posterior, and the variational approximation at several stages of optimization, so you can see both how the data updated the prior and how $q$ changes from its starting shape to its final fitted form.
-          </p>
-          <div id="viPostViz" class="viz bayes-viz" aria-label="VI posterior approximation visualization"></div>
-
-          <div class="figcap">ELBO during optimization</div>
-          <div id="viElboViz" class="viz bayes-viz" aria-label="VI ELBO visualization"></div>
+          <div class="demo-figs">
+            <div class="demo-fig">
+              <div class="figcap">True posterior vs q during optimization</div>
+              <div id="viPostViz" class="viz bayes-viz" aria-label="VI posterior approximation visualization"></div>
+              <p class="help-text">
+                This plot compares the prior, the exact posterior, and the variational approximation at several stages of optimization, so you can see both how the data updated the prior and how $q$ changes from its starting shape to its final fitted form.
+              </p>
+            </div>
+            <div class="demo-fig">
+              <div class="figcap">ELBO during optimization</div>
+              <div id="viElboViz" class="viz bayes-viz" aria-label="VI ELBO visualization"></div>
+            </div>
+          </div>
 
           <div class="demo-controls">
             <div class="demo-inputs">
-              <div class="control-grid">
-                <label for="viData">Paste flips, or generate data.</label>
-                <textarea id="viData" rows="3">1</textarea>
-              </div>
-
-              <h3 class="h3-section">Generate data</h3>
-              <div class="control-grid compact-grid">
-                <label for="viProbHeads">Probability of heads</label>
-                <div class="control-inline-row">
-                  <input id="viProbHeads" type="number" min="0" max="1" step="0.05" value="0.6" />
-                  <button class="btn" id="viFlipCoin" type="button">Flip a coin</button>
+              <div class="demo-col">
+                <div class="control-grid">
+                  <label for="viData">Paste flips, or generate data.</label>
+                  <textarea id="viData" rows="3">1</textarea>
+                </div>
+                <h3 class="h3-section">Generate data</h3>
+                <div class="control-grid compact-grid">
+                  <label for="viProbHeads">Probability of heads</label>
+                  <div class="control-inline-row">
+                    <input id="viProbHeads" type="number" min="0" max="1" step="0.05" value="0.6" />
+                    <button class="btn" id="viFlipCoin" type="button">Flip a coin</button>
+                  </div>
                 </div>
               </div>
 
-              <h3 class="h3-section">Prior (Beta)</h3>
-              <div class="control-grid compact-grid">
-                <div class="control-item">
-                  <label for="viAlpha">Alpha ($\alpha$)</label>
-                  <input id="viAlpha" type="number" min="0.1" step="0.1" value="2" />
+              <div class="demo-col">
+                <h3 class="h3-section">Prior (Beta)</h3>
+                <div class="control-grid compact-grid">
+                  <div class="control-item">
+                    <label for="viAlpha">Alpha ($\alpha$)</label>
+                    <input id="viAlpha" type="number" min="0.1" step="0.1" value="2" />
+                  </div>
+                  <div class="control-item">
+                    <label for="viBeta">Beta ($\beta$)</label>
+                    <input id="viBeta" type="number" min="0.1" step="0.1" value="2" />
+                  </div>
                 </div>
-                <div class="control-item">
-                  <label for="viBeta">Beta ($\beta$)</label>
-                  <input id="viBeta" type="number" min="0.1" step="0.1" value="2" />
+                <h3 class="h3-section">Variational parameters</h3>
+                <div class="control-grid compact-grid">
+                  <div class="control-item">
+                    <label for="viM">Mean ($m$)</label>
+                    <input id="viM" type="number" step="0.1" value="0" />
+                  </div>
+                  <div class="control-item">
+                    <label for="viLogS">Log std ($\log s$)</label>
+                    <input id="viLogS" type="number" step="0.1" value="1" />
+                  </div>
                 </div>
               </div>
 
-              <h3 class="h3-section">Variational parameters</h3>
-              <div class="control-grid compact-grid">
-                <div class="control-item">
-                  <label for="viM">Mean ($m$)</label>
-                  <input id="viM" type="number" step="0.1" value="0" />
-                </div>
-                <div class="control-item">
-                  <label for="viLogS">Log std ($\log s$)</label>
-                  <input id="viLogS" type="number" step="0.1" value="1" />
-                </div>
-              </div>
-
-              <h3 class="h3-section">Optimizer</h3>
-              <div class="control-grid compact-grid">
-                <div class="control-item">
-                  <label for="viSteps">Steps</label>
-                  <input id="viSteps" type="number" min="1" step="10" value="100" />
-                </div>
-                <div class="control-item">
-                  <label for="viLR">Learning rate</label>
-                  <input id="viLR" type="number" min="0.0001" step="0.005" value="0.05" />
-                </div>
-                <div class="control-item">
-                  <label for="viMC">MC samples / step</label>
-                  <input id="viMC" type="number" min="5" step="5" value="50" />
+              <div class="demo-col">
+                <h3 class="h3-section">Optimizer</h3>
+                <div class="control-grid compact-grid">
+                  <div class="control-item">
+                    <label for="viSteps">Steps</label>
+                    <input id="viSteps" type="number" min="1" step="10" value="100" />
+                  </div>
+                  <div class="control-item">
+                    <label for="viLR">Learning rate</label>
+                    <input id="viLR" type="number" min="0.0001" step="0.005" value="0.05" />
+                  </div>
+                  <div class="control-item">
+                    <label for="viMC">MC samples / step</label>
+                    <input id="viMC" type="number" min="5" step="5" value="50" />
+                  </div>
                 </div>
               </div>
             </div>
