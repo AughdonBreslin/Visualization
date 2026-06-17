@@ -17,36 +17,35 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <link rel="stylesheet" href="../styles/base.css">
-  <link rel="stylesheet" href="../styles/article.css">
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../styles/system.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/article-ui.css">
   <link rel="stylesheet" href="../styles/fourier.css">
-  <link rel="stylesheet" href="../styles/responsive.css">
   <link rel="stylesheet" href="../styles/section-outline.css">
+  <script src="../js/theme.js"></script>
 
-  <script defer src="../js/formulas_layout.js"></script>
+  <script defer src="../js/fourier-image-dropdown.js"></script>
   <script defer src="../js/fourier.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/PointerLockControls.js"></script>
   <script defer src="../js/fourier3d.js"></script>
-  <script defer src="../js/collapsible.js"></script>
+  <script defer src="../js/tabs.js"></script>
   <script defer src="../js/favicon.js"></script>
   <script type="module" src="../js/section-outline.js"></script>
 </head>
 
-<body>
-  <div class="container article fourier">
-    <header>
+<body class="ui fourier">
+  <div class="container">
+    <header class="page-head">
+      <div class="eyebrow">// Signals</div>
       <h1>Fourier Image Decomposition</h1>
-      <div class="subtitle">
-        Periodicity, smoothness assumptions, and why the DFT tiles your image into an infinite checkerboard
-      </div>
-      <div class="home-link"><a href="../index.html">← Home</a></div>
+      <p class="lede">Periodicity, smoothness assumptions, and why the DFT tiles an image into an infinite checkerboard.</p>
     </header>
-
     <main class="article-body">
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Assumption of Smoothness</h2>
         <p>
           Linear and polynomial regression both rest on an assumption that
@@ -78,7 +77,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Representing Periodicity</h2>
         <p>
           The simplest non-decaying periodic function on the real line is
@@ -87,9 +86,9 @@
           approximated by a sum of sines and cosines at integer-multiple
           frequencies. For a function $g(t)$ with period $T$,
         </p>
-        <div class="formula">
+        <div class="formulas"><div class="formula">
           $$g(t) \approx \sum_{k=0}^{K} a_k \cos(2\pi k t / T) + b_k \sin(2\pi k t / T)$$
-        </div>
+        </div></div>
         <p>
           and as $K$ grows the partial sum converges to $g$ at every point
           where $g$ is continuous. The sines and cosines at frequencies
@@ -102,9 +101,9 @@
           and phase of the wave end up encoded in the magnitude and argument
           of one complex coefficient. This gives:
         </p>
-        <div class="formula">
+        <div class="formulas"><div class="formula">
           $$g(t) \approx \sum_{k=0}^{K} c_k e^{i 2\pi k t / T}$$
-        </div>
+        </div></div>
         <p>
           For an $N \times N$ image, the natural frequencies (cycles per image) along each axis are the whole numbers
           up to $N/2$. This is because the highest frequency wave that can be represented on an image
@@ -115,24 +114,21 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>The Discrete Fourier Transform</h2>
         <p>
           The 2D Discrete Fourier Transform turns an $N \times N$ image
           $f[x, y]$, where $x$ and $y$ are pixel coordinates, into an $N \times N$ matrix of complex weights. $f[x, y]$ gives the individual pixel value at coordinates $x$ and $y$.
         </p>
-        <div class="formula">
+        <div class="formulas"><div class="formula">
           $$F[u, v] = \sum_{x=0}^{N-1} \sum_{y=0}^{N-1} f[x, y]\,e^{-i 2\pi(ux + vy)/N}$$
+        </div></div>
+        <div class="callout">
+          <div class="callout-label">Note</div>
+          <div class="callout-body">
+            The summations span $0$ to $N-1$ instead of $0$ to $N/2$. Indices $0$ to $N/2$ are those natural frequencies; indices $N/2$ to $N-1$ are their complex conjugates. For a real image, the conjugate half is redundant, carrying the same magnitude information as the positive half, but it is still required in the reconstruction sum so the imaginary parts cancel out and the rebuilt image comes out real-valued.
+          </div>
         </div>
-        <p class="note">
-          Note: The summations span $0$ to $N-1$ instead of $0$ to $N/2$. 
-          Indices $0$ to $N/2$ are those natural frequencies;
-          indices $N/2$ to $N-1$ are their complex conjugates. For a real image, the
-          conjugate half is redundant, carrying the same magnitude
-          information as the positive half, but it is still required in the
-          reconstruction sum so the imaginary parts cancel out and the rebuilt
-          image comes out real-valued.
-        </p>
         <p>
           Each $F[u, v]$ tells you how much of the wave
           $e^{i 2\pi(ux + vy)/N}$ is present, and its squared magnitude
@@ -144,9 +140,9 @@
           The inverse transform rebuilds
           the image by summing the waves back together:
         </p>
-        <div class="formula">
+        <div class="formulas"><div class="formula">
           $$f[x, y] = \frac{1}{N^2}\sum_{u=0}^{N-1} \sum_{v=0}^{N-1} F[u, v]\,e^{\,i 2\pi(ux + vy)/N}$$
-        </div>
+        </div></div>
         <p>
           This is a change of basis. The image still has $N^2$ degrees of
           freedom; we have just rewritten them as frequency coefficients
@@ -164,9 +160,9 @@
           expansion inherits that periodicity, effectively treating
           the image as one tile of an infinite wallpaper:
         </p>
-        <div class="formula">
+        <div class="formulas"><div class="formula">
           $$f_{\text{ext}}[x, y] = f\bigl[x \bmod N,\; y \bmod N\bigr]$$
-        </div>
+        </div></div>
         <p>
           If the image's edges happen to match (it fades to zero on every
           side, say), the wallpaper is seamless. If they do not, the tiling
@@ -179,7 +175,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Other Image Reconstruction Techniques</h2>
         <p>
           Sine waves describe periodic structure, but most images are not
@@ -206,9 +202,9 @@
           Chebyshev polynomials $T_k(t)$ are also
           orthogonal on $[-1, 1]$, but under the weighted inner product:
         </p>
-        <div class="formula">
+        <div class="formulas"><div class="formula">
           $$\langle f,\, g \rangle_w = \int_{-1}^{1} \frac{f(t)\,g(t)}{\sqrt{1 - t^2}}\, dt$$
-        </div>
+        </div></div>
         <p>
           The weighting concentrates information near the endpoints, which
           gives Chebyshev a useful property called the minimax
@@ -246,7 +242,7 @@
         </p>
       </section>
 
-      <section class="panel fourier-demo-panel collapsible" data-open-mobile>
+      <section class="panel fourier-demo-panel" data-open-mobile>
         <h2>Interactive Demo</h2>
 
         <div class="fourier-canvas-grid">
@@ -457,12 +453,12 @@
         ></canvas>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Reconstruction Formula</h2>
         <div id="fourierFormulaBox" class="fourier-formula-box" aria-live="polite"></div>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Interpreting the visualization</h2>
         <div class="fourier-tabs" role="tablist">
           <button type="button" class="fourier-tab is-active" data-tab="gibbs" role="tab" aria-selected="true">Gibbs ringing</button>
@@ -657,7 +653,7 @@
         </div>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Summary</h2>
         <p>
           Every technique on this page rewrites the same image in a different
@@ -710,11 +706,8 @@
 
     </main>
 
-    <footer class="footer">
-      <p class="footer-tag">
-        Created by
-        <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a>
-      </p>
+    <footer class="site-footer">
+      <span class="credit">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></span>
     </footer>
   </div>
   <script>
