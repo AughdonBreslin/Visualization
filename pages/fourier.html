@@ -245,98 +245,68 @@
       <section class="panel fourier-demo-panel" data-open-mobile>
         <h2>Interactive Demo</h2>
 
-        <div class="fourier-canvas-grid">
-          <section class="fourier-canvas-card">
-            <h3 class="h3-tight"><span id="fourierOrigLabel">Original Image</span></h3>
-            <canvas
-              id="fourierOrigCanvas"
-              width="256"
-              height="256"
-              class="fourier-canvas"
-              aria-label="Original image or periodic extension"
-            ></canvas>
-          </section>
+  <div class="demo">
+    <div class="fourier-demo-head"><span class="eyebrow">Demo 1</span><h3>Image decomposition</h3></div>
 
-          <section class="fourier-canvas-card">
-            <h3 class="h3-tight"><span id="fourierSpecLabel">Frequency Spectrum (log magnitude)</span></h3>
-            <canvas
-              id="fourierSpecCanvas"
-              width="256"
-              height="256"
-              class="fourier-canvas"
-              aria-label="Frequency magnitude spectrum"
-            ></canvas>
-          </section>
+    <div class="fourier-canvases">
+      <div class="fourier-canvas-card">
+        <div class="figcap"><span id="fourierOrigLabel">Original image</span></div>
+        <canvas id="fourierOrigCanvas" width="256" height="256" class="fourier-canvas" aria-label="Original image or periodic extension"></canvas>
+      </div>
+      <div class="fourier-canvas-card">
+        <div class="figcap"><span id="fourierSpecLabel">Frequency spectrum (log magnitude)</span></div>
+        <canvas id="fourierSpecCanvas" width="256" height="256" class="fourier-canvas" aria-label="Frequency magnitude spectrum"></canvas>
+      </div>
+      <div class="fourier-canvas-card">
+        <div class="figcap"><span id="fourierReconLabel">Reconstruction</span></div>
+        <canvas id="fourierReconCanvas" width="256" height="256" class="fourier-canvas" aria-label="Low-pass reconstructed image"></canvas>
+      </div>
+    </div>
 
-          <section class="fourier-canvas-card">
-            <h3 class="h3-tight"><span id="fourierReconLabel">Reconstruction</span></h3>
-            <canvas
-              id="fourierReconCanvas"
-              width="256"
-              height="256"
-              class="fourier-canvas"
-              aria-label="Low-pass reconstructed image"
-            ></canvas>
-          </section>
+    <div class="demo-controls fourier-controls">
+      <div class="demo-band fourier-band">
+        <div class="demo-group">
+          <label class="demo-label" for="fourierBasis">Basis</label>
+          <select id="fourierBasis">
+            <option value="fourier" selected>Fourier series</option>
+            <option value="poly">Legendre polynomials</option>
+            <option value="cheb">Chebyshev polynomials</option>
+            <option value="haar">Haar wavelets</option>
+          </select>
         </div>
 
-        <div class="fourier-controls-block">
+        <div class="demo-group fourier-image-group">
+          <span class="demo-label">Image</span>
+          <select id="fourierPreset" class="fourier-preset-native">
+            <option value="quadrant" selected>Quadrant</option>
+            <option value="circle">Hard circle</option>
+            <option value="gaussian">Gaussian blob</option>
+            <option value="step">Step function</option>
+            <option value="rect">Rectangle</option>
+          </select>
+          <input id="fourierUpload" type="file" accept="image/*" class="fourier-upload-input" hidden />
+        </div>
 
-          <div class="fourier-control-section">
-            <h3 class="fourier-control-heading">Decomposition</h3>
-            <div class="fourier-control-grid">
-
-              <div class="fourier-control-item">
-                <label for="fourierBasis">Basis</label>
-                <select id="fourierBasis">
-                  <option value="fourier" selected>Fourier series</option>
-                  <option value="poly">Legendre polynomials</option>
-                  <option value="cheb">Chebyshev polynomials</option>
-                  <option value="haar">Haar wavelets</option>
-                </select>
-              </div>
-
-              <div class="fourier-control-item">
-                <label for="fourierPreset">Image</label>
-                <select id="fourierPreset">
-                  <option value="quadrant" selected>Quadrant</option>
-                  <option value="circle">Hard circle</option>
-                  <option value="gaussian">Gaussian blob</option>
-                  <option value="step">Step function</option>
-                  <option value="rect">Rectangle</option>
-                </select>
-                <label class="fourier-upload-btn">
-                  <span>Choose file…</span>
-                  <input id="fourierUpload" type="file" accept="image/*" class="fourier-visually-hidden" />
-                </label>
-              </div>
-
-              <div class="fourier-control-item">
-                <label id="fourierRadiusLabel" for="fourierRadius">Low-pass filter radius</label>
-                <div class="fourier-slider-row">
-                  <input
-                    id="fourierRadius"
-                    type="range"
-                    min="1"
-                    max="128"
-                    step="1"
-                    value="20"
-                  />
-                </div>
-                <output id="fourierRadiusValue" for="fourierRadius" class="fourier-radius-out">
-                  r = 20
-                </output>
-              </div>
-
-              <div class="fourier-control-item fourier-checkbox-item">
-                <label class="fourier-check-label">
-                  <input id="fourierTiling" type="checkbox"/>
-                  <span id="fourierTilingText">Show periodic extension (2×2 tile)</span>
-                </label>
-              </div>
-
-            </div>
+        <div class="demo-group">
+          <div class="fourier-slabel">
+            <label class="demo-label" id="fourierRadiusLabel" for="fourierRadius">Low-pass filter radius</label>
+            <output id="fourierRadiusValue" for="fourierRadius" class="fourier-out">r = 20</output>
           </div>
+          <input id="fourierRadius" type="range" min="1" max="128" step="1" value="20" class="fourier-slider" />
+        </div>
+
+        <div class="demo-group">
+          <span class="demo-label">Options</span>
+          <label class="fourier-check">
+            <input id="fourierTiling" type="checkbox" />
+            <span id="fourierTilingText">Show periodic extension (2x2 tile)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+        <div class="fourier-controls-block">
 
           <div class="fourier-control-section">
             <h3 class="fourier-control-heading">3D View</h3>
