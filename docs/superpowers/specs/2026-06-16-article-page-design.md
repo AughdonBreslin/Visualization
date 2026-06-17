@@ -82,14 +82,19 @@ considered and rejected.
 
 ## Demos in context
 
-The bootstrap demo layout is the approved pattern for an embedded interactive:
+The approved pattern for an embedded interactive (Option A, decided 2026-06-17):
 
-- A mono caption (`Fig. N, short description`) above the figure.
-- The plot in a framed dark inset (border, rounded, very dark background), full content width.
-- Controls below the plot, separated by a hairline: the Sample/Population tabs, then a grid of
-  labelled fields (uppercase mono-ish labels with underline-style inputs and selects).
-- A separate Results readout column: mono tabular-number metrics, with the primary estimate in
-  the accent color.
+- Plots flow two-up. A `.demo-figs` auto-fit grid lays figures side by side; one plot fills the
+  row, two sit side by side, collapsing to a single column below ~720px. Each figure carries its
+  own mono caption above the framed dark-inset plot, and its help text below.
+- Controls form a horizontal grouped bar below the plots, separated by a hairline: control groups
+  are `.demo-col` columns (and a `.field-row` of `.control-item` cells for tabbed fields), so the
+  controls flow across the width instead of stacking into a tall vertical list. Uppercase labels,
+  underline-style inputs and selects.
+- Results readout: a boxed readout column at the right for structured metrics (for example the
+  bootstrap demo, mono tabular numbers with the primary estimate in the accent color); for prose
+  summaries (the bayesian demos) it drops to a full-width band below the controls, capped for
+  readability.
 
 ## Links and definitions
 
