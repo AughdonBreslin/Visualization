@@ -19,6 +19,9 @@
 
 /* Flat sections, separated by hairlines (no boxed panels). */
 .ui .article-body > section { scroll-margin-top: 16px; }
+/* Body text runs the full content width, out to the section spacer lines. */
+.ui .article-body > section > p,
+.ui .article-body > section > ul { max-width: none; }
 .ui .article-body > section + section {
   border-top: 1px solid var(--hairline);
   margin-top: 34px;
