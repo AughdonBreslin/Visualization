@@ -409,6 +409,9 @@ git commit -m "redesign: rebuild fourier Demo 1 (image decomposition) on the dem
     uploadLabel.textContent = "Upload image…"; // "Upload image..." with an ellipsis char
     upload.removeAttribute("hidden");
     uploadLabel.appendChild(upload);
+    // The upload label must live inside the menu so #fourierUpload stays in the document
+    // (fourier.js binds to it by id) and renderMenu can insert preset items before it.
+    menu.appendChild(uploadLabel);
 
     wrap.appendChild(trigger);
     wrap.appendChild(menu);
