@@ -177,23 +177,23 @@
               </div>
 
               <div class="tab-panel" data-panel="sample" role="tabpanel">
-                <div class="field-row">
-                  <div class="control-item">
+                <div class="demo-band cols-2">
+                  <div class="demo-group">
                     <label for="bootStat">Statistic</label>
                     <select id="bootStat">
                       <option value="mean" selected>Mean</option>
                       <option value="median">Median</option>
                     </select>
                   </div>
-                  <div class="control-item">
+                  <div class="demo-group">
                     <label for="bootN">Sample size (n)</label>
                     <input id="bootN" type="number" min="5" max="500" step="1" value="40" />
                   </div>
-                  <div class="control-item">
+                  <div class="demo-group">
                     <label for="bootB">Bootstrap reps (B)</label>
                     <input id="bootB" type="number" min="100" max="20000" step="100" value="2000" />
                   </div>
-                  <div class="control-item">
+                  <div class="demo-group">
                     <label for="bootLevel">Confidence level</label>
                     <select id="bootLevel">
                       <option value="0.90">90%</option>
@@ -205,16 +205,16 @@
               </div>
 
               <div class="tab-panel" data-panel="population" role="tabpanel" hidden>
-                <div class="field-row">
-                  <div class="control-item">
+                <div class="demo-band cols-2">
+                  <div class="demo-group">
                     <label for="bootMu">Population &mu;</label>
                     <input id="bootMu" type="number" min="-10" max="10" step="0.1" value="0" />
                   </div>
-                  <div class="control-item">
+                  <div class="demo-group">
                     <label for="bootSigma">Population &sigma;</label>
                     <input id="bootSigma" type="number" min="0.05" max="10" step="0.05" value="1" />
                   </div>
-                  <div class="control-item">
+                  <div class="demo-group">
                     <label for="bootSeed">Seed</label>
                     <input id="bootSeed" type="number" step="1" value="7" />
                   </div>
@@ -223,7 +223,7 @@
             </div>
 
             <div class="demo-results">
-              <div class="label">Results</div>
+              <div class="demo-label">Results</div>
               <div id="bootstrapStats">-</div>
             </div>
           </div>

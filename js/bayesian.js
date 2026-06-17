@@ -11,9 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const predTitleEl = document.getElementById('bayesPredTitle');
   const predContextEl = document.getElementById('bayesPredContext');
 
-  const betaControls = document.getElementById('bayesControlsBeta');
-  const normalControls = document.getElementById('bayesControlsNormal');
-
   const alphaInput = document.getElementById('alpha');
   const betaInput = document.getElementById('beta');
   const probHeadsInput = document.getElementById('bayesProbHeads');
@@ -1009,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ['Data', `\\(n=${n}\\) flips, \\(k=${k}\\) ones`],
       ['Posterior', `\\(\\mathrm{Beta}(${aPost.toFixed(2)},\\ ${bPost.toFixed(2)})\\)`],
       ['Next flip', `\\(P(1\\mid D)=${pNext.toFixed(3)}\\)`],
-      ['95% credible interval', `\\([${q025.toFixed(3)},\\ ${q975.toFixed(3)}]\\)`],
+      ['95% CI', `\\([${q025.toFixed(3)},\\ ${q975.toFixed(3)}]\\)`],
     ]);
   }
 
@@ -1090,20 +1087,17 @@ document.addEventListener('DOMContentLoaded', () => {
       ['Posterior mean', `\\(\\mu_n = ${muN.toFixed(3)}\\)`],
       ['Posterior std', `\\(${postSd.toFixed(3)}\\)`],
       ['Predictive std', `\\(${predSd.toFixed(3)}\\)`],
-      ['95% credible interval', `\\([${ciLow.toFixed(3)},\\ ${ciHigh.toFixed(3)}]\\)`],
+      ['95% CI', `\\([${ciLow.toFixed(3)},\\ ${ciHigh.toFixed(3)}]\\)`],
     ]);
   }
 
   function setModel(model) {
     const isBeta = model === 'beta-binomial';
-    betaControls.hidden = !isBeta;
-    normalControls.hidden = isBeta;
-
-    if (isBeta) {
-      document.getElementById('bayesDataHint').textContent = 'For coin flips: use 1/0 or H/T. You can also use k/n as a shorthand (e.g., 7/10).';
-    } else {
-      document.getElementById('bayesDataHint').textContent = 'For Normal-Normal: paste numbers separated by commas/spaces/newlines.';
-    }
+    document.querySelectorAll('[data-model="beta"]').forEach((el) => { el.hidden = !isBeta; });
+    document.querySelectorAll('[data-model="normal"]').forEach((el) => { el.hidden = isBeta; });
+    document.getElementById('bayesDataHint').textContent = isBeta
+      ? 'For coin flips: use 1/0 or H/T. You can also use k/n as a shorthand (e.g., 7/10).'
+      : 'For Normal-Normal: paste numbers separated by commas/spaces/newlines.';
   }
 
   function loadDefaults(model = modelSelect.value) {
