@@ -32,25 +32,28 @@ pages it points to are a separate follow-on). The running glossary of terms live
 - The rail is the on-page section outline. Each entry is a mono two-digit number plus the
   section title (`01 Overview`, `02 Bias and variance`). The active entry carries the accent
   left border and the accent-muted background; its number is in the accent color.
-- Content paragraphs run wider than the estimation pilot: a max-width near 82ch, so prose uses
-  more horizontal room when the window allows while still stopping short of the column edge.
+- Body paragraphs and lists run the full content width, out to the section spacer lines (no
+  prose max-width cap on article sections). The content column itself is capped (about 950px) and
+  centered with the rail as one group, so the line length stays bounded by the column.
 
 ### Rail responsive behavior
 
-- Desktop: the rail is shown while the window is wide enough to fit it. When the window is too
-  narrow to fit the rail, the rail is hidden entirely. There is no desktop hamburger.
-- Mobile: a hamburger control sits at the bottom-left and opens the outline as a drawer. (The
-  current top-left hamburger is moved to the bottom-left, which also clears the back-home link.)
+- The Home link lives at the top of the rail (position 0) with a back-arrow icon instead of a
+  mono number; it is not in the page header. The rail is offset so the first section entry lines
+  up with its section header at the top of the page.
+- Desktop wide (>=1240px): the rail is shown.
+- Every width below 1240px (the thin desktop band and mobile): the outline becomes a bottom-left
+  hamburger drawer that carries Home plus the section outline, so both stay reachable in the thin
+  band rather than disappearing. One mechanism across all non-wide widths.
 
 ## Header and identity
 
-The header, top to bottom:
+The header, top to bottom (Home is not here; it lives at the top of the rail, see above):
 
-1. Back-home link: quiet, `left-arrow Home`, muted color, accent on hover.
-2. Eyebrow: the page category in mono, uppercase, letter-spaced, accent color (for example
+1. Eyebrow: the page category in mono, uppercase, letter-spaced, accent color (for example
    `// Statistics`).
-3. Title: the page name as the h1 (about 40px, tight tracking).
-4. Lede: one or two sentences summarizing the page, body color.
+2. Title: the page name as the h1 (about 40px, tight tracking).
+3. Lede: one or two sentences summarizing the page, body color.
 
 There is no meta row (no section count, interactive count, or read-time estimate). It was
 considered and rejected.
