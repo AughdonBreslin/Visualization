@@ -73,5 +73,6 @@
 .ui.fourier .fourier-legend-blue { color: #6f9bff; font-weight: 600; }
 
 /* --- Canvas grid responsive --- */
-@container (max-width: 1100px) { .ui.fourier .fourier-canvases { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@container (max-width: 680px) { .ui.fourier .fourier-canvases { grid-template-columns: 1fr; } }
+/* The three panels are a comparison set (original / spectrum / reconstruction), so they stay
+   side by side across the article column and only stack when the demo is genuinely narrow. */
+@container (max-width: 560px) { .ui.fourier .fourier-canvases { grid-template-columns: 1fr; } }
