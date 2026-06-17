@@ -45,14 +45,13 @@
 .ui.regularization table.metric-table th:first-child { text-align: left; padding-left: 10px; }
 .ui.regularization table.metric-table td { text-align: right; color: #cfd1d8; padding: 7px 8px; border-top: 1px solid var(--hairline); white-space: nowrap; }
 .ui.regularization table.metric-table td:first-child { text-align: left; }
-.ui.regularization table.metric-table td.best { color: #5ec99a; }
 .ui.regularization table.metric-table tbody tr { cursor: pointer; }
 .ui.regularization .m-wrap { display: flex; align-items: center; gap: 9px; padding-left: 10px; }
 .ui.regularization .m-check { accent-color: var(--accent); width: 14px; height: 14px; flex: none; cursor: pointer; }
 .ui.regularization .m-sw { width: 15px; height: 3px; border-radius: 2px; flex: none; }
 .ui.regularization table.metric-table tr.off .m-sw { opacity: 0.3; }
 .ui.regularization table.metric-table tr.off .m-label { color: var(--text-muted); }
-.ui.regularization table.metric-table tr.selected td { background: var(--accent-muted); color: #dfe2ff; }
+.ui.regularization table.metric-table tr.selected td { background: var(--accent-muted); }
 .ui.regularization table.metric-table tr.selected td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
 .ui.regularization table.metric-table tr.selected .m-label { color: #fff; }
 

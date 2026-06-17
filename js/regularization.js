@@ -1531,12 +1531,6 @@
                 .attr("class", (_, i) => (i === 0 ? "m-head" : null))
                 .text(d => d);
 
-            // Lowest test MSE among the visible methods, for highlighting the best row.
-            let bestTest = Infinity;
-            rows.forEach(r => {
-                if (state.visible[r.key] !== false && Number.isFinite(r.test) && r.test < bestTest) bestTest = r.test;
-            });
-
             const tbody = table.append("tbody");
             const tr = tbody.selectAll("tr")
                 .data(rows)
@@ -1575,9 +1569,7 @@
             mwrap.append("span").attr("class", "m-label").text(d => d.label);
 
             tr.append("td").text(d => fmt3(d.train));
-            tr.append("td")
-                .attr("class", d => (state.visible[d.key] !== false && Number.isFinite(d.test) && d.test <= bestTest ? "best" : null))
-                .text(d => fmt3(d.test));
+            tr.append("td").text(d => fmt3(d.test));
             tr.append("td").text(d => fmt3(d.l2));
             tr.append("td").text(d => String(d.nnz));
 
