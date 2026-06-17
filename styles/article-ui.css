@@ -63,7 +63,7 @@
 /* Embedded demo (Option A). The demo is a container so it reflows by its own width regardless of
    the rail. Plots flow two-up; controls are a banded bar (config band over data band); the
    results readout sits in a right-hand column that drops below the inputs when the demo narrows. */
-.ui .demo { container-type: inline-size; margin-top: 18px; }
+.ui .demo { container-type: inline-size; margin: 18px 0 var(--sp-6); }
 .ui .figcap {
   font: 500 10.5px/1.3 var(--font-mono);
   letter-spacing: 0.06em;
