@@ -5,10 +5,8 @@
 .ui.bayesian .bayes-viz { min-height: 280px; }
 .ui.bayesian .bayes-viz + .figcap { margin-top: 22px; }
 /* The bayesian summaries render as a boxed .metrics list (set by bayesian.js, matching the
-   bootstrap results). The demos have up to three control columns, so the readout sits as a band
-   below the controls rather than in a right-hand column. */
-.ui.bayesian .demo-results { flex-basis: 100%; margin-left: 0; margin-top: 12px; }
-.ui.bayesian .demo-results .help-text { margin-top: 0; max-width: 82ch; }
+   bootstrap results) and sit in a right-hand column beside the inputs, like estimation. */
+.ui.bayesian .demo-results .help-text { margin-top: 0; max-width: 30ch; }
 
 /* Textarea in the underline control language (article-ui's control-grid covers select/input
    only). A light boxed field reads better than an underline for multi-line paste areas. */
@@ -22,18 +20,19 @@
   border-radius: var(--radius-sm);
   padding: 8px 10px;
   width: 100%;
-  max-width: 360px;
+  max-width: 230px;
   resize: vertical;
 }
 .ui.bayesian .control-grid .small {
   font: 400 11.5px/1.5 var(--font-sans);
   color: var(--text-muted);
   grid-column: 1 / -1;
+  max-width: 230px;
 }
 
-/* Keep single-field selects/inputs from stretching the full width of the wide controls row. */
+/* Keep single-field selects/inputs from stretching the full width of the controls row. */
 .ui.bayesian .control-grid > select,
-.ui.bayesian .control-grid > input { max-width: 320px; }
+.ui.bayesian .control-grid > input { max-width: 230px; }
 
 /* Sub-group header spacing inside the demo controls. */
 .ui.bayesian .demo-inputs .h3-section { margin: 20px 0 10px; }
@@ -46,7 +45,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 7px 18px;
   align-items: end;
-  max-width: 360px;
+  max-width: 230px;
 }
 .ui.bayesian .compact-grid > label,
 .ui.bayesian .compact-grid > .control-inline-row { grid-column: 1 / -1; }
