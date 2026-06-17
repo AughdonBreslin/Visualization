@@ -95,6 +95,16 @@
 .ui .demo-inputs > .tab-panel { flex-basis: 100%; }
 .ui .demo-results { min-width: 180px; margin-left: auto; }
 .ui .demo-results .label { margin-bottom: 10px; }
+/* Structured metric readout (label: value rows), boxed and mono tabular. Matches the bootstrap
+   results format so every demo's summary reads the same. */
+.ui .metrics {
+  width: fit-content; max-width: 100%;
+  background: var(--surface); border: 1px solid var(--surface-border); border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+  font: 500 13px/1.5 var(--font-mono); color: #cfd1d8; font-variant-numeric: tabular-nums;
+}
+.ui .metrics b { font-weight: 600; }
 /* A label+control pair as a vertical cell; .field-row flows several across the control bar. */
 .ui .control-item { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
 .ui .control-item > label {

@@ -4,8 +4,9 @@
 
 .ui.bayesian .bayes-viz { min-height: 280px; }
 .ui.bayesian .bayes-viz + .figcap { margin-top: 22px; }
-/* The bayesian summaries are prose sentences, so the results sit as a full-width band below the
-   controls (capped for readability) rather than in a narrow right column. */
+/* The bayesian summaries render as a boxed .metrics list (set by bayesian.js, matching the
+   bootstrap results). The demos have up to three control columns, so the readout sits as a band
+   below the controls rather than in a right-hand column. */
 .ui.bayesian .demo-results { flex-basis: 100%; margin-left: 0; margin-top: 12px; }
 .ui.bayesian .demo-results .help-text { margin-top: 0; max-width: 82ch; }
 
