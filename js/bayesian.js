@@ -50,6 +50,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const viLRInput = document.getElementById('viLR');
   const viMCInput = document.getElementById('viMC');
 
+  // Render a demo summary as a boxed list of [label, value] metric rows (value may contain LaTeX),
+  // matching the bootstrap demo's results format. Re-typesets the math after insertion.
+  function retypeset(el) {
+    if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+      if (typeof window.MathJax.typesetClear === 'function') window.MathJax.typesetClear([el]);
+      window.MathJax.typesetPromise([el]).catch((err) => console.error(err));
+    }
+  }
+  function setMetrics(el, rows) {
+    el.innerHTML = '<div class="metrics">' +
+      rows.map((r) => '<div><b>' + r[0] + '</b>: ' + r[1] + '</div>').join('') +
+      '</div>';
+    retypeset(el);
+  }
+
   function clampPositive(x, minValue = 1e-6) {
     if (!Number.isFinite(x)) return minValue;
     return Math.max(minValue, x);
@@ -621,7 +636,12 @@ document.addEventListener('DOMContentLoaded', () => {
       ],
     });
 
-    mapSummaryEl.textContent = `Parsed n=${n} values, mean=${muMLE.toFixed(3)}. MLE = ${muMLE.toFixed(3)}. MAP = ${muMAP.toFixed(3)} (prior mean \u03bc0=${mu0.toFixed(3)}, \u03c4=${tau.toFixed(3)}, \u03c3=${sigma.toFixed(3)}).`;
+    setMetrics(mapSummaryEl, [
+      ['Data', `\\(n=${n},\\ \\bar x=${muMLE.toFixed(3)}\\)`],
+      ['MLE', `\\(\\hat\\mu_{\\mathrm{MLE}} = ${muMLE.toFixed(3)}\\)`],
+      ['MAP', `\\(\\hat\\mu_{\\mathrm{MAP}} = ${muMAP.toFixed(3)}\\)`],
+      ['Prior', `\\(\\mu_0=${mu0.toFixed(3)},\\ \\tau=${tau.toFixed(3)},\\ \\sigma=${sigma.toFixed(3)}\\)`],
+    ]);
   }
 
   function renderVIDemoOnce() {
@@ -700,7 +720,11 @@ document.addEventListener('DOMContentLoaded', () => {
       color: 'rgba(255, 255, 255, 0.85)',
     });
 
-    viSummaryEl.textContent = `Parsed n=${n} flips, k=${k}. True posterior is Beta(${aPost.toFixed(2)}, ${bPost.toFixed(2)}). Set variational params to m=${(Number.isFinite(m) ? m : 0).toFixed(2)}, log s=${(Number.isFinite(logS) ? logS : -0.5).toFixed(2)}.`;
+    setMetrics(viSummaryEl, [
+      ['Data', `\\(n=${n},\\ k=${k}\\)`],
+      ['True posterior', `\\(\\mathrm{Beta}(${aPost.toFixed(2)},\\ ${bPost.toFixed(2)})\\)`],
+      ['q params', `\\(m=${(Number.isFinite(m) ? m : 0).toFixed(2)},\\ \\log s=${(Number.isFinite(logS) ? logS : -0.5).toFixed(2)}\\)`],
+    ]);
   }
 
   function buildVariationalApproximationPoints({ m, s, seed, nSamples = 8000, bins = 60 }) {
@@ -913,7 +937,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const elbo0 = elbos[0];
     const elboN = elbos[elbos.length - 1];
-    viSummaryEl.textContent = `Parsed n=${n} flips, k=${k}. True posterior: Beta(${aPost.toFixed(2)}, ${bPost.toFixed(2)}). q starts at m=${initialM.toFixed(3)}, log s=${initialLogS.toFixed(3)} and ends at m=${m.toFixed(3)}, log s=${logS.toFixed(3)}. ELBO: ${elbo0.toFixed(3)} → ${elboN.toFixed(3)}.`;
+    setMetrics(viSummaryEl, [
+      ['Data', `\\(n=${n},\\ k=${k}\\)`],
+      ['True posterior', `\\(\\mathrm{Beta}(${aPost.toFixed(2)},\\ ${bPost.toFixed(2)})\\)`],
+      ['q start', `\\(m=${initialM.toFixed(3)},\\ \\log s=${initialLogS.toFixed(3)}\\)`],
+      ['q end', `\\(m=${m.toFixed(3)},\\ \\log s=${logS.toFixed(3)}\\)`],
+      ['ELBO', `\\(${elbo0.toFixed(3)} \\to ${elboN.toFixed(3)}\\)`],
+    ]);
   }
 
   function renderBetaBinomial() {
@@ -975,7 +1005,12 @@ document.addEventListener('DOMContentLoaded', () => {
       title: 'P(X_new | D) for next flip',
     });
 
-    summaryEl.textContent = `Parsed n=${n} flips, k=${k} ones. Posterior is Beta(${aPost.toFixed(2)}, ${bPost.toFixed(2)}). Next-flip probabilities: P(0 | D)=${(1 - pNext).toFixed(3)}, P(1 | D)=${pNext.toFixed(3)}. 95% credible interval for p ≈ [${q025.toFixed(3)}, ${q975.toFixed(3)}].`;
+    setMetrics(summaryEl, [
+      ['Data', `\\(n=${n}\\) flips, \\(k=${k}\\) ones`],
+      ['Posterior', `\\(\\mathrm{Beta}(${aPost.toFixed(2)},\\ ${bPost.toFixed(2)})\\)`],
+      ['Next flip', `\\(P(1\\mid D)=${pNext.toFixed(3)}\\)`],
+      ['95% credible interval', `\\([${q025.toFixed(3)},\\ ${q975.toFixed(3)}]\\)`],
+    ]);
   }
 
   function renderNormalNormal() {
@@ -1050,7 +1085,13 @@ document.addEventListener('DOMContentLoaded', () => {
       series: [{ name: 'predictive', color: 'rgba(255, 255, 255, 0.85)', points: predPts, opacity: 1 }],
     });
 
-    summaryEl.textContent = `Parsed n=${n} values, mean=${xbar.toFixed(3)}. Posterior mean for μ is ${muN.toFixed(3)} with posterior std ${postSd.toFixed(3)}. A new observation is predicted to vary with predictive std ${predSd.toFixed(3)}. 95% credible interval for μ ≈ [${ciLow.toFixed(3)}, ${ciHigh.toFixed(3)}].`;
+    setMetrics(summaryEl, [
+      ['Data', `\\(n=${n},\\ \\bar x=${xbar.toFixed(3)}\\)`],
+      ['Posterior mean', `\\(\\mu_n = ${muN.toFixed(3)}\\)`],
+      ['Posterior std', `\\(${postSd.toFixed(3)}\\)`],
+      ['Predictive std', `\\(${predSd.toFixed(3)}\\)`],
+      ['95% credible interval', `\\([${ciLow.toFixed(3)},\\ ${ciHigh.toFixed(3)}]\\)`],
+    ]);
   }
 
   function setModel(model) {
@@ -1061,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isBeta) {
       document.getElementById('bayesDataHint').textContent = 'For coin flips: use 1/0 or H/T. You can also use k/n as a shorthand (e.g., 7/10).';
     } else {
-      document.getElementById('bayesDataHint').textContent = 'For Normal–Normal: paste numbers separated by commas/spaces/newlines.';
+      document.getElementById('bayesDataHint').textContent = 'For Normal-Normal: paste numbers separated by commas/spaces/newlines.';
     }
   }
 
