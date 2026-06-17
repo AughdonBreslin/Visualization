@@ -1,310 +1,63 @@
-/* regularization.css - page-specific styles for linear_regression_regularization.html */
+/* regularization.css - migrated (.ui) page. Typography, sections, callouts, links, math, and the
+ * demo control system come from the archetype (system/components/article-ui). This file keeps the
+ * D3 chart styling and adds the integrated Models table, the regularization slider, and the
+ * table + tabbed-controls layout for the visualization demo. */
 
-/* Shared “card” styling for boxed sections */
+/* --- Charts (D3 stays mostly data-driven; these set typography/axis colors) --- */
+.ui.regularization .reg-svg,
+.ui.regularization .coef-svg,
+.ui.regularization .bv-svg { display: block; width: 100%; height: auto; }
+.ui.regularization .coef-viz,
+.ui.regularization .bv-viz { min-height: 220px; }
+.ui.regularization .coef-info { font: 400 11.5px/1.5 var(--font-sans); color: var(--text-muted); margin-top: 8px; max-width: 60ch; }
 
-.regularization .metrics-table,
-.regularization .coef-viz,
-.regularization .bv-viz {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
+.ui.regularization .reg-svg .tick text,
+.ui.regularization .coef-svg .tick text,
+.ui.regularization .bv-svg .tick text { fill: rgba(255, 255, 255, 0.62); }
+.ui.regularization .coef-svg .tick text { font-size: 10px; }
+.ui.regularization svg .domain,
+.ui.regularization svg .tick line { stroke: rgba(255, 255, 255, 0.18); }
+.ui.regularization .legend-text { font-size: 12px; fill: rgba(255, 255, 255, 0.8); }
+.ui.regularization .axis-label { font-size: 12px; fill: rgba(255, 255, 255, 0.6); }
+.ui.regularization .bv-placeholder,
+.ui.regularization .plot-warning { font-size: 12px; fill: var(--text-muted); }
+.ui.regularization .bv-overlay { pointer-events: all; }
+.ui.regularization .bv-tooltip {
+  position: absolute; pointer-events: none; left: 0; top: 0;
+  background: var(--surface-strong, #141418); border: 1px solid var(--hairline-strong); border-radius: 8px;
+  padding: 8px 10px; font: 400 12px/1.4 var(--font-sans); color: #cfd1d8;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); opacity: 0; transform: translateY(2px);
+  transition: opacity 80ms ease, transform 80ms ease; max-width: 260px; z-index: 5;
 }
+.ui.regularization .bv-tooltip.visible { opacity: 1; transform: translateY(0); }
 
-.regularization .reg-svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
+/* --- Visualization demo lower section: Models table (left) + tabbed controls (right) --- */
+.ui.regularization .demo-controls.reg-lower { grid-template-columns: 1.6fr 1fr; }
+@container (max-width: 840px) { .ui.regularization .demo-controls.reg-lower { grid-template-columns: 1fr; } }
+.ui.regularization .reg-models,
+.ui.regularization .reg-controls-col { min-width: 0; }
+.ui.regularization .metric-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
+/* --- Metric tables (Models + bias-variance summary). The Models table also carries a checkbox
+   per row that toggles the curve; clicking a row selects the method (highlight). --- */
+.ui.regularization table.metric-table { width: 100%; border-collapse: collapse; font: 500 11.5px/1.4 var(--font-mono); font-variant-numeric: tabular-nums; }
+.ui.regularization table.metric-table th { text-align: right; font-weight: 500; color: #62646c; text-transform: uppercase; letter-spacing: 0.05em; font-size: 9px; padding: 0 8px 9px; white-space: nowrap; }
+.ui.regularization table.metric-table th:first-child { text-align: left; padding-left: 10px; }
+.ui.regularization table.metric-table td { text-align: right; color: #cfd1d8; padding: 7px 8px; border-top: 1px solid var(--hairline); white-space: nowrap; }
+.ui.regularization table.metric-table td:first-child { text-align: left; }
+.ui.regularization table.metric-table td.best { color: #5ec99a; }
+.ui.regularization table.metric-table tbody tr { cursor: pointer; }
+.ui.regularization .m-wrap { display: flex; align-items: center; gap: 9px; padding-left: 10px; }
+.ui.regularization .m-check { accent-color: var(--accent); width: 14px; height: 14px; flex: none; cursor: pointer; }
+.ui.regularization .m-sw { width: 15px; height: 3px; border-radius: 2px; flex: none; }
+.ui.regularization table.metric-table tr.off .m-sw { opacity: 0.3; }
+.ui.regularization table.metric-table tr.off .m-label { color: var(--text-muted); }
+.ui.regularization table.metric-table tr.selected td { background: var(--accent-muted); color: #dfe2ff; }
+.ui.regularization table.metric-table tr.selected td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+.ui.regularization table.metric-table tr.selected .m-label { color: #fff; }
 
-.regularization .viz-controls h3 {
-  margin-top: 4px;
-  margin-bottom: 8px;
-}
-
-.regularization .reg-row {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-
-.regularization .metrics,
-.regularization .coeffs {
-  flex: 1 1 360px;
-  min-width: 300px;
-}
-
-.regularization .metrics-table {
-  padding: 10px;
-  /* Wide stat tables (e.g. Lowest Testing MSE) scroll inside the card instead
-     of pushing the whole page sideways on narrow screens. */
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.regularization table.metric-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.92rem;
-}
-
-.regularization table.metric-table th,
-.regularization table.metric-table td {
-  padding: 6px 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.regularization table.metric-table th {
-  text-align: left;
-  color: rgba(255, 255, 255, 0.82);
-  font-weight: 650;
-}
-
-.regularization table.metric-table td {
-  text-align: right;
-  color: rgba(255, 255, 255, 0.78);
-}
-
-.regularization table.metric-table td:first-child {
-  text-align: left;
-}
-
-.regularization table.metric-table tr.selected {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.regularization .coef-viz {
-  padding: 8px;
-}
-
-.regularization .coef-svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.regularization .coef-info {
-  font-size: 0.92rem;
-  opacity: 0.85;
-  margin-bottom: 6px;
-}
-
-.regularization .panel ul {
-  margin: 8px 0 12px;
-  padding-left: 1.25em;
-  list-style-position: outside;
-}
-
-/* --- Bias–variance section --- */
-.regularization .bv-row {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
-.regularization .bv-panel {
-  flex: 1 1 360px;
-  min-width: 300px;
-}
-
-.regularization .bv-viz {
-  position: relative;
-  width: 100%;
-  padding: 8px;
-}
-
-.regularization #lambdaValue {
-  grid-column: 1 / -1;
-  opacity: 0.9;
-}
-
-.regularization .bv-tooltip {
-  position: absolute;
-  pointer-events: none;
-  left: 0;
-  top: 0;
-  background: rgba(20, 20, 20, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 10px;
-  padding: 8px 10px;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  opacity: 0;
-  transform: translateY(2px);
-  transition: opacity 80ms ease, transform 80ms ease;
-  max-width: 260px;
-  z-index: 5;
-}
-
-.regularization .bv-tooltip.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.regularization .bv-svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.regularization .bv-summary {
-  margin-top: 10px;
-}
-
-/* SVG typography/styling (keeps D3 code mostly data-driven) */
-.regularization .reg-svg .tick text,
-.regularization .coef-svg .tick text,
-.regularization .bv-svg .tick text {
-  fill: rgba(255, 255, 255, 0.75);
-}
-
-.regularization .coef-svg .tick text {
-  font-size: 10px;
-}
-
-.regularization svg .domain,
-.regularization svg .tick line {
-  stroke: rgba(255, 255, 255, 0.42);
-}
-
-.regularization .legend-text {
-  font-size: 12px;
-  fill: rgba(255, 255, 255, 0.85);
-}
-
-.regularization .axis-label {
-  font-size: 12px;
-  fill: rgba(255, 255, 255, 0.7);
-}
-
-.regularization .bv-placeholder {
-  font-size: 13px;
-  fill: rgba(255, 255, 255, 0.75);
-}
-
-.regularization .plot-warning {
-  font-size: 12px;
-  fill: rgba(255, 255, 255, 0.75);
-}
-
-.regularization .bv-overlay {
-  pointer-events: all;
-}
-
-/* Clickable metric tables */
-.regularization table.metric-table tbody tr[role="button"] {
-  cursor: pointer;
-}
-
-.regularization .bv-actions {
-  margin-top: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-}
-
-/* Link styling for this page */
-.regularization .page-link,
-.regularization .page-link:link {
-  color: #4aa3ff;
-  text-decoration: none;
-}
-
-.regularization .page-link:visited {
-  color: #d38bff;
-  text-decoration: none;
-}
-
-.regularization .page-link:hover,
-.regularization .page-link:active,
-.regularization .page-link:focus {
-  text-decoration: none;
-}
-
-/* --- Tabbed control panel (Data / Curves / Function Params) --- */
-.regularization .viz-controls .tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  border-bottom: 1px solid var(--border-light);
-  margin-bottom: 12px;
-}
-
-.regularization .viz-controls .tab {
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  color: rgba(255, 255, 255, 0.6);
-  font-weight: 650;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
-}
-
-.regularization .viz-controls .tab:hover {
-  color: rgba(255, 255, 255, 0.95);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.regularization .viz-controls .tab[aria-selected="true"] {
-  color: #fff;
-  border-bottom-color: #4aa3ff;
-}
-
-.regularization .viz-controls .tab:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.35);
-  outline-offset: 2px;
-}
-
-.regularization .viz-controls .tab-panel[hidden] {
-  display: none;
-}
-
-/* --- Responsive (phone): side-by-side panels go full width so a 300px
-   min-width never overflows a narrow screen. Charts (width:100%) refit, and
-   redraw on resize, so rotating to landscape re-widens them automatically. --- */
-@media (max-width: 640px) {
-  .regularization .reg-row,
-  .regularization .bv-row {
-    gap: 12px;
-  }
-
-  .regularization .metrics,
-  .regularization .coeffs,
-  .regularization .bv-panel {
-    flex-basis: 100%;
-    min-width: 0;
-  }
-
-  /* Compact controls: two label+input pairs per row (4-col grid: the flat
-     label,input,label,input markup flows two controls across), so the groups
-     take far less vertical space on a phone. */
-  .regularization .control-grid {
-    grid-template-columns: minmax(0, auto) minmax(56px, 1fr) minmax(0, auto) minmax(56px, 1fr);
-    align-items: center;
-    column-gap: 10px;
-    row-gap: 8px;
-  }
-
-  .regularization .control-grid > label {
-    margin: 0;
-  }
-
-  .regularization .control-grid > input,
-  .regularization .control-grid > select {
-    width: 100%;
-  }
-
-  /* The regularization slider, its label, and the value readout span the row. */
-  .regularization .control-grid > label[for="lambda"],
-  .regularization .control-grid > input[type="range"],
-  .regularization .control-grid > .small {
-    grid-column: 1 / -1;
-  }
-}
-
+/* --- Regularization slider + readout (Function params tab) --- */
+.ui.regularization .reg-range { -webkit-appearance: none; appearance: none; width: 100%; height: 3px; border-radius: 2px; background: var(--hairline-strong); margin: 12px 0 8px; cursor: pointer; }
+.ui.regularization .reg-range::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+.ui.regularization .reg-range::-moz-range-thumb { width: 15px; height: 15px; border: 0; border-radius: 50%; background: var(--accent); cursor: pointer; }
+.ui.regularization .reg-readout { font: 500 12.5px/1 var(--font-mono); color: #cfd1d8; }
