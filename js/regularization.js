@@ -993,6 +993,9 @@
                 .attr("tabindex", 0)
                 .attr("role", "button")
                 .attr("aria-label", d => `Select ${d.label} at its lowest Test MSE λ`)
+                // Don't take focus on mouse click (which would scroll the row into view and edge
+                // the page); keyboard Tab focus still works for the keydown handler.
+                .on("mousedown", (event) => event.preventDefault())
                 .on("click", (_, d) => {
                     const log10lambda = (d.key === "ols") ? null : (d.best?.log10lambda ?? null);
                     setSelection({ methodKey: d.key, log10lambda });
@@ -1545,6 +1548,9 @@
                 .attr("tabindex", 0)
                 .attr("role", "button")
                 .attr("aria-label", d => `Select ${d.label}`)
+                // Don't take focus on mouse click (avoids scroll-into-view edging the page); leave
+                // the checkbox alone so it still toggles, and keep keyboard Tab focus working.
+                .on("mousedown", (event) => { if (!event.target.classList.contains("m-check")) event.preventDefault(); })
                 .on("click", (_, d) => {
                     if (el.selectedMethod.value === d.key) return;
                     setSelection({ methodKey: d.key });
