@@ -142,17 +142,48 @@ body.ui { --outline-rail-w: 210px; }
 .ui .section-outline-panel::-webkit-scrollbar { width: 0; height: 0; }
 
 /* Rail behavior on migrated (.ui) pages. The global section-outline.css shows the rail at
-   >=1100 and a top-left hamburger at <=1099. Override so the rail appears only when there is
-   real room for it (>=1240), is hidden entirely in the middle band with no hamburger, and the
-   mobile hamburger sits at the bottom-left (which also frees the top-left for the back-home). */
-@media (min-width: 721px) and (max-width: 1239px) {
+   >=1100 and a top-left hamburger drawer at <=1099. Override so the rail appears only when there
+   is real room for it (>=1240); below that, for EVERY width (the thin desktop band and mobile),
+   the outline is a bottom-left hamburger drawer, so Home + the section outline stay reachable.
+   This re-declares the drawer for .ui because the global drawer is gated at <=1099. */
+@media (max-width: 1239px) {
   body.ui.has-section-outline { padding-left: 0; }
-  .ui .section-outline-toggle,
-  .ui .section-outline-backdrop,
-  .ui .section-outline-panel { display: none !important; }
-}
-@media (max-width: 720px) {
-  .ui .section-outline-toggle { top: auto; bottom: 16px; left: 16px; }
+  .ui .section-outline-toggle {
+    display: grid;
+    position: fixed;
+    top: auto; bottom: 16px; left: 16px;
+    z-index: 1001;
+    width: 40px; height: 40px;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+  }
+  .ui .section-outline-bars,
+  .ui .section-outline-bars::before,
+  .ui .section-outline-bars::after {
+    content: ""; display: block; width: 18px; height: 2px; background: var(--text); position: relative;
+  }
+  .ui .section-outline-bars::before { position: absolute; top: -6px; }
+  .ui .section-outline-bars::after { position: absolute; top: 6px; }
+  .ui .section-outline-backdrop { position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, 0.5); display: block; }
+  .ui .section-outline-backdrop[hidden] { display: none; }
+  .ui .section-outline-panel {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 1002;
+    width: 78%; max-width: 320px; height: 100vh;
+    overflow-y: auto;
+    padding: 56px 16px 24px;
+    background: var(--bg);
+    border-right: 1px solid var(--hairline);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.5);
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+  }
+  .ui .section-outline.open .section-outline-panel { transform: translateX(0); }
 }
 
 @media (max-width: 700px) {
