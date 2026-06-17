@@ -91,6 +91,10 @@
 .ui .demo-band.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
 .ui .demo-stack { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 .ui .demo-group { min-width: 0; }
+/* Column-flow variant: two columns that each stack their groups independently, so a short group
+   leaves no dead space above the next one (used where rows would not align cleanly anyway). */
+.ui .demo-inputs.demo-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 30px 34px; align-items: start; }
+.ui .demo-colstack { display: flex; flex-direction: column; gap: 30px; min-width: 0; }
 
 /* Demo labels + fields (the underline control language). */
 .ui .demo-label,
@@ -140,7 +144,10 @@
 
 /* Demo reflow (container queries on .demo): results drops below, then bands collapse to 1 col. */
 @container (max-width: 840px) { .ui .demo-controls { grid-template-columns: 1fr; gap: 26px; } }
-@container (max-width: 480px) { .ui .demo-band.cols-2, .ui .demo-band.cols-3 { grid-template-columns: 1fr; } }
+@container (max-width: 480px) {
+  .ui .demo-band.cols-2, .ui .demo-band.cols-3 { grid-template-columns: 1fr; }
+  .ui .demo-inputs.demo-columns { grid-template-columns: 1fr; }
+}
 
 /* Mono section number prefixing each section heading; matches the rail numbering. */
 .ui .article-body h2 .sec-n,
