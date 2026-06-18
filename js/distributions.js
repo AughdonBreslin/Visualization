@@ -653,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="color-indicator" aria-hidden="true"></span>
                 ${distributionInfo[key].title}
             </h3>
-            <div class="formula">\\[${info.formula}\\]</div>
+            <div class="formulas"><div class="formula">\\[${info.formula}\\]</div></div>
             <div class="properties">
                 <div class="property">
                 <strong>Expected Value:</strong><br>
