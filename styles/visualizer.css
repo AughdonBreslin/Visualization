@@ -101,9 +101,16 @@
 .ui.distributions .distribution-detail:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
 .ui.distributions .distribution-detail h3 { display: flex; align-items: center; gap: 9px; font: 600 14px/1 var(--font-sans); color: #e7e8ec; margin: 0 0 12px; }
 .ui.distributions .color-indicator { width: 11px; height: 11px; border-radius: 3px; flex: none; display: inline-block; background: var(--indicator-color, var(--accent)); }
-/* density formula uses the archetype display-math layout (.formulas / .formula, left-ruled accent
-   wall) from article-ui.css, matching the other pages. */
-.ui.distributions .distribution-detail .formulas { margin: 0 0 12px; }
+/* per-distribution property table: label column + math value column */
+.ui.distributions .dv-ptable { width: 100%; border-collapse: collapse; margin: 0 0 16px; }
+.ui.distributions .dv-ptable td { border-top: 1px solid var(--hairline); padding: 11px 16px 11px 0; vertical-align: middle; }
+.ui.distributions .dv-ptable tr:first-child td { border-top: 0; }
+.ui.distributions .dv-ptable .dv-pk { width: 150px; white-space: nowrap; vertical-align: top; padding-top: 14px; }
+.ui.distributions .dv-plabel { font: 600 9.5px/1.2 var(--font-sans); letter-spacing: .1em; text-transform: uppercase; color: #6c6e77; }
+.ui.distributions .dv-pv { color: #cfd1d8; }
+.ui.distributions .dv-pv .formula { margin: 0; }
+.ui.distributions .dv-pv mjx-container { text-align: left !important; margin: 0 !important; }
+.ui.distributions .dv-uc-lbl { font: 600 9.5px/1.2 var(--font-sans); letter-spacing: .1em; text-transform: uppercase; color: #6c6e77; margin: 0 0 8px; }
 .ui.distributions .distribution-detail .properties { display: flex; gap: 34px; flex-wrap: wrap; margin: 0 0 12px; }
 .ui.distributions .distribution-detail .property { display: flex; flex-direction: column; gap: 4px; }
 .ui.distributions .distribution-detail .property strong { font: 600 9.5px/1.2 var(--font-sans); letter-spacing: .1em; text-transform: uppercase; color: #6c6e77; }
