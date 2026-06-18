@@ -3,6 +3,8 @@
 
 .ui.distributions .container { max-width: 1080px; }
 .ui.distributions .page-head { margin-bottom: var(--sp-5); }
+.ui.distributions .dv-rule { height: 1px; background: var(--hairline); border: 0; margin: 26px 0; }
+.ui.distributions .dv-details-wrap { margin-top: 0; }
 
 /* ---------- Plots ---------- */
 .ui.distributions .dv-plots { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
@@ -68,28 +70,29 @@
 /* ---------- Mixture (nested components) ---------- */
 .ui.distributions .form-card .add-component-button { background: none; border: 0; color: var(--accent-link); font: 500 12px/1 var(--font-sans); cursor: pointer; padding: 6px 0; }
 .ui.distributions .mixture-empty-message { color: var(--text-muted); font: 400 12.5px/1.5 var(--font-sans); font-style: italic; }
-.ui.distributions .mixture-components { flex-basis: 100%; margin: 10px 0 2px; padding-left: 16px; border-left: 2px solid var(--hairline-strong); display: flex; flex-direction: column; gap: 4px; }
-.ui.distributions .mixture-component { padding: 9px 0; border-top: 1px solid var(--hairline); }
+.ui.distributions .mixture-components { flex-basis: 100%; margin: 8px 0 2px; padding-left: 16px; border-left: 2px solid var(--hairline-strong); }
+/* compact single-row component: type, weight (+ inline share), params, remove */
+.ui.distributions .mixture-component { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid var(--hairline); }
 .ui.distributions .mixture-component:first-child { border-top: 0; }
-.ui.distributions .mixture-component-header { margin-bottom: 8px; }
-.ui.distributions .component-type-select { appearance: none; background: none; color: #dadbe0; border: 0; border-bottom: 1px solid var(--hairline-strong); padding: 4px 18px 5px 0; font: 600 12.5px/1.2 var(--font-sans); cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 6'%3E%3Cpath d='M1 1l3.5 3.5L8 1' fill='none' stroke='%237a7c84' stroke-width='1.3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 2px center; background-size: 9px; }
-.ui.distributions .mixture-component-body { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; }
-.ui.distributions .mixture-component-left { display: flex; align-items: flex-end; gap: 14px; }
-.ui.distributions .mixture-component-right { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
-.ui.distributions .mixture-input { display: flex; flex-direction: column; gap: 6px; }
+.ui.distributions .mixture-input { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .ui.distributions .mixture-input label { font: 600 10px/1.2 var(--font-sans); letter-spacing: .02em; text-transform: none; color: #7e818c; }
-.ui.distributions .mixture-input input { background: none; color: #e7e8ec; border: 0; border-bottom: 1px solid var(--hairline-strong); padding: 5px 2px; font: 500 13px/1.2 var(--font-mono); width: 64px; }
+.ui.distributions .mixture-input input { background: none; color: #e7e8ec; border: 0; border-bottom: 1px solid var(--hairline-strong); padding: 5px 2px; font: 500 13px/1.2 var(--font-mono); width: 60px; }
 .ui.distributions .mixture-input input:focus { outline: none; border-bottom-color: var(--accent); }
 .ui.distributions .mixture-input input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .ui.distributions .mixture-input input[type=number]::-webkit-outer-spin-button,
 .ui.distributions .mixture-input input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.ui.distributions .mixture-remove-btn { background: none; border: 0; color: var(--text-muted); font: 500 12px/1 var(--font-sans); cursor: pointer; padding: 6px 0; }
-.ui.distributions .mixture-remove-btn:hover { color: #ff8f8f; }
-/* weight share bar (added by JS next to the weight input) */
-.ui.distributions .mix-share { display: flex; align-items: center; gap: 9px; }
-.ui.distributions .mix-wbar { position: relative; height: 3px; width: 56px; background: var(--hairline-strong); border-radius: 2px; }
+.ui.distributions .component-type-select { appearance: none; background: none; color: #e7e8ec; border: 0; border-bottom: 1px solid var(--hairline-strong); padding: 5px 18px 5px 2px; font: 500 13px/1.2 var(--font-sans); cursor: pointer; min-width: 110px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 6'%3E%3Cpath d='M1 1l3.5 3.5L8 1' fill='none' stroke='%237a7c84' stroke-width='1.3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 2px center; background-size: 9px; }
+.ui.distributions .component-type-select:focus { outline: none; border-bottom-color: var(--accent); }
+/* weight field: input + inline share bar/percentage on one row */
+.ui.distributions .mc-weight-row { display: flex; align-items: center; gap: 12px; }
+.ui.distributions .mc-weight-row input { width: 54px; }
+.ui.distributions .mix-share { display: flex; align-items: center; gap: 8px; }
+.ui.distributions .mix-wbar { position: relative; height: 3px; width: 46px; background: var(--hairline-strong); border-radius: 2px; }
 .ui.distributions .mix-wbar > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--accent); }
-.ui.distributions .mix-wpct { font: 500 11px/1 var(--font-mono); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.ui.distributions .mix-wpct { font: 500 11px/1 var(--font-mono); color: var(--text-muted); font-variant-numeric: tabular-nums; min-width: 30px; }
+/* remove (x), aligned to the end of the row */
+.ui.distributions .mixture-remove-btn { margin-left: auto; align-self: flex-end; background: none; border: 0; color: var(--text-muted); font: 400 19px/1 var(--font-sans); cursor: pointer; padding: 0 2px 4px; }
+.ui.distributions .mixture-remove-btn:hover { color: #ff8f8f; }
 
 /* ---------- Active distribution details ---------- */
 .ui.distributions .dv-seclbl { font: 600 10px/1 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: #6c6e77; margin-bottom: 14px; }

@@ -309,51 +309,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     formObj.params.components.forEach((comp, idx) => {
                         const componentInfo = distributionInfo[comp.distKey];
+                        // Compact single-row component: type, weight (+ inline share), params, remove.
                         const componentDiv = componentsDiv.append('div')
                             .attr('class', 'mixture-component');
-                        // Component header with type selector and weight/remove controls
-                        const headerDiv = componentDiv.append('div')
-                            .attr('class', 'mixture-component-header');
 
-                        // Add a select inside each component so the user can change its type
-                        const compSelect = headerDiv.append('select')
-                            .attr('class', 'component-type-select');
-
+                        const typeField = componentDiv.append('div').attr('class', 'mixture-input');
+                        typeField.append('label').text('Type');
+                        const compSelect = typeField.append('select').attr('class', 'component-type-select');
                         Object.keys(distributionInfo).forEach(k => {
                             if (k !== 'mixture') compSelect.append('option').attr('value', k).text(distributionInfo[k].title);
                         });
                         compSelect.property('value', comp.distKey);
                         compSelect.on('change', function () {
-                            const newKey = this.value;
-                            comp.distKey = newKey;
-                            // reset params to defaults for the newly selected type
-                            comp.params = [...(distributionInfo[newKey].defaults || [])];
+                            comp.distKey = this.value;
+                            comp.params = [...(distributionInfo[this.value].defaults || [])];
                             buildParams();
                             redrawAll();
                             saveState();
                         });
 
-
-
-                        // Build body: left column for weight + remove button, right column for params
-                        const body = componentDiv.append('div')
-                            .attr('class', 'mixture-component-body');
-
-                        const leftCol = body.append('div')
-                            .attr('class', 'mixture-component-left');
-
-                        const rightCol = body.append('div')
-                            .attr('class', 'mixture-component-right');
-
-                        // Move weight input into left column (stacked)
-                        const weightWrap = leftCol.append('div')
-                            .attr('class', 'mixture-input');
-
-                        weightWrap.append('label')
-                            .attr('for', 'weightInput')
-                            .text('Weight:');
-
-                        weightWrap.append('input')
+                        const weightField = componentDiv.append('div').attr('class', 'mixture-input mc-weight');
+                        weightField.append('label').text('Weight');
+                        const weightRow = weightField.append('div').attr('class', 'mc-weight-row');
+                        weightRow.append('input')
                             .attr('name', 'weightInput')
                             .attr('type', 'number')
                             .attr('min', '0')
@@ -367,31 +345,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                 redrawAll();
                                 saveState();
                             });
-
-                        // Share bar + percentage (the normalized proportion w_i / sum).
-                        const shareWrap = weightWrap.append('div').attr('class', 'mix-share');
+                        const shareWrap = weightRow.append('span').attr('class', 'mix-share');
                         shareWrap.append('span').attr('class', 'mix-wbar').append('i');
                         shareWrap.append('span').attr('class', 'mix-wpct');
 
-                        // Remove button below weight in left column
-                        leftCol.append('button')
-                            .attr('class', 'mixture-remove-btn')
-                            .text('Remove')
-                            .on('click', () => {
-                                formObj.params.components.splice(idx, 1);
-                                formObj.params.weights.splice(idx, 1);
-                                buildParams();
-                                redrawAll();
-                                saveState();
-                            });
-
                         componentInfo.params.forEach((paramName, paramIdx) => {
-                            const paramDiv = rightCol.append('div').attr('class', 'mixture-input');
-                            paramDiv.append('label')
-                                .attr('for', 'paramInput')
-                                .text(paramName);
-
-                            paramDiv.append('input')
+                            const paramField = componentDiv.append('div').attr('class', 'mixture-input');
+                            paramField.append('label').text(paramName);
+                            paramField.append('input')
                                 .attr('name', 'paramInput')
                                 .attr('type', 'number')
                                 .attr('step', '0.1')
@@ -402,6 +363,19 @@ document.addEventListener('DOMContentLoaded', () => {
                                     saveState();
                                 });
                         });
+
+                        componentDiv.append('button')
+                            .attr('class', 'mixture-remove-btn')
+                            .attr('type', 'button')
+                            .attr('aria-label', 'Remove component')
+                            .html('&times;')
+                            .on('click', () => {
+                                formObj.params.components.splice(idx, 1);
+                                formObj.params.weights.splice(idx, 1);
+                                buildParams();
+                                redrawAll();
+                                saveState();
+                            });
                     });
                     refreshShares();
                 } else {
@@ -536,7 +510,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event listeners
     addBtn.on('click', () => addDistributionForm());
-    d3.select('#addMixture').on('click', () => addDistributionForm({ dist: 'mixture', defaults: [] }));
     resetBtn.on('click', clearAll);
     createMixtureBtn.on('click', showMixtureUI);
     applyMixtureBtn.on('click', createMixture);
