@@ -173,8 +173,11 @@
 .ui.manifold .mfi-fs-wrap:-webkit-full-screen .mfi-datasetnote { display: none; }
 .ui.manifold .mfi-fs-wrap:fullscreen .mfi-transcript,
 .ui.manifold .mfi-fs-wrap:-webkit-full-screen .mfi-transcript {
-  flex: none; margin: 0; border-radius: 0; padding: 7vh max(24px, 6vw) 9vh; background: #0c0c0c;
+  flex: none; margin: 0; border-radius: 0; padding: 6vh max(20px, 3vw) 8vh; background: #0c0c0c;
 }
+/* let the explanation paragraph use the full fullscreen width (the archetype caps p at 82ch) */
+.ui.manifold .mfi-fs-wrap:fullscreen .mfi-transcript .mfi-explain,
+.ui.manifold .mfi-fs-wrap:-webkit-full-screen .mfi-transcript .mfi-explain { max-width: none; }
 .ui.manifold .mfi-fs-hint { display: none; }
 
 .ui.manifold .mfi-steps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0; }
