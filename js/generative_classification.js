@@ -946,12 +946,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderMethod = (lines, label, resultTex, classResults) => {
       let body = '';
       let classOpen = false;
+      let stepOpen = false;
       let classIdx = 0;
       const closeClass = () => { if (classOpen) { body += '</div></details>'; classOpen = false; } };
+      const closeStep = () => { closeClass(); if (stepOpen) { body += '</div></details>'; stepOpen = false; } };
       for (const l of lines) {
         if (l === `${label}:`) continue;
         if (l === '') { closeClass(); continue; }
-        if (l.startsWith('Step')) { closeClass(); body += `<div class="gc-calc-step">${l}</div>`; continue; }
+        if (l.startsWith('Step')) {
+          closeStep();
+          body += `<details class="gc-calc-step-d" open><summary class="gc-calc-step">${l}</summary><div class="gc-calc-step-body">`;
+          stepOpen = true;
+          continue;
+        }
         if (l.startsWith('Class ')) {
           closeClass();
           const res = (classResults && classResults[classIdx]) ? `<span class="gc-calc-c-result">${classResults[classIdx]}</span>` : '';
@@ -963,7 +970,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cls = l.startsWith('Plug') ? 'gc-calc-end' : 'gc-calc-line';
         body += `<div class="${cls}">${l}</div>`;
       }
-      closeClass();
+      closeStep();
       return `<details class="gc-method" open><summary><span class="gc-method-name">${label}</span><span class="gc-method-result">${resultTex}</span></summary><div class="gc-method-body">${body}</div></details>`;
     };
 
