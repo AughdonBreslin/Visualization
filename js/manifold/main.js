@@ -54,6 +54,8 @@ function init() {
   const rightPseudoHost = $('mfRightPseudo');
   const leftTitle = $('mfLeftTitle');
   const rightTitle = $('mfRightTitle');
+  const leftIfwTitle = $('mfLeftIfwTitle');
+  const rightIfwTitle = $('mfRightIfwTitle');
   const samplesControl = $('mfSamplesControl');
   const noiseControl = $('mfNoiseControl');
   const seedControl = $('mfSeedControl');
@@ -276,6 +278,8 @@ function init() {
   store.subscribe((s) => {
     leftTitle.textContent = ALGORITHMS_BY_ID[s.leftAlgoId].label;
     rightTitle.textContent = ALGORITHMS_BY_ID[s.rightAlgoId].label;
+    if (leftIfwTitle) leftIfwTitle.textContent = ALGORITHMS_BY_ID[s.leftAlgoId].label;
+    if (rightIfwTitle) rightIfwTitle.textContent = ALGORITHMS_BY_ID[s.rightAlgoId].label;
     const left = s.cache.left, right = s.cache.right;
     if (!left || !right) {
       stepIndicator.render({
