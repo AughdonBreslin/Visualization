@@ -932,31 +932,46 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const renderLines = (lines) => lines.map(l=>{
-      if (l.startsWith('KDE:') || l.startsWith('GDA:')) {
-        return `<h3 class="calc-step-header">${l}</h3>`;
+    // At-a-glance values for the collapsible summaries: the posterior vector per method, and the
+    // class-conditional likelihood per class block (so a collapsed block still shows its result).
+    const fmtVec = (arr) => `[${arr.map(v => v.toFixed(3)).join(',\\ ')}]`;
+    const kdeResultTex = `$p(y\\mid x^*) = ${fmtVec(kdePosts)}$`;
+    const gdaResultTex = `$p(y\\mid x^*) = ${fmtVec(g.classPosteriors)}$`;
+    const kdeClassResults = classes.map((c, i) => `$p(x^*\\mid y=${c}) = ${ks[i].toExponential(2)}$`);
+    const gdaClassResults = classes.map((c, i) => `$p(x^*\\mid y=${c}) = ${g.classLikelihoods[i].toExponential(2)}$`);
+
+    // Render a method (KDE / GDA) walkthrough as a collapsible section. Lines that begin "Class k"
+    // (the per-class blocks in Step 1) become their own collapsibles, open by default closed; the
+    // rest renders as step headers and content lines.
+    const renderMethod = (lines, label, resultTex, classResults) => {
+      let body = '';
+      let classOpen = false;
+      let classIdx = 0;
+      const closeClass = () => { if (classOpen) { body += '</div></details>'; classOpen = false; } };
+      for (const l of lines) {
+        if (l === `${label}:`) continue;
+        if (l === '') { closeClass(); continue; }
+        if (l.startsWith('Step')) { closeClass(); body += `<div class="gc-calc-step">${l}</div>`; continue; }
+        if (l.startsWith('Class ')) {
+          closeClass();
+          const res = (classResults && classResults[classIdx]) ? `<span class="gc-calc-c-result">${classResults[classIdx]}</span>` : '';
+          classIdx++;
+          body += `<details class="gc-calc-class"><summary><span class="gc-calc-c-name">${l}</span>${res}</summary><div class="gc-calc-c-body">`;
+          classOpen = true;
+          continue;
+        }
+        const cls = l.startsWith('Plug') ? 'gc-calc-end' : 'gc-calc-line';
+        body += `<div class="${cls}">${l}</div>`;
       }
-      if (l.startsWith('Step')) {
-        return `<h4 class="calc-step-subheader">${l}</h4>`;
-      }
-      if (l.startsWith('Class ')) {
-        return `<h5 class="calc-step-subheader">${l}</h5>`;
-      }
-      if (l.startsWith('Plug')) {
-        return `<div class="calc-step-end">${l}</div>`;
-      }
-      return `<div class="calc-step-content">${l}</div>`;
-    }).join('');
+      closeClass();
+      return `<details class="gc-method" open><summary><span class="gc-method-name">${label}</span><span class="gc-method-result">${resultTex}</span></summary><div class="gc-method-body">${body}</div></details>`;
+    };
 
     if (calcQueryPointEl) {
-      calcQueryPointEl.innerHTML = renderLines(queryLines);
+      calcQueryPointEl.innerHTML = `x* = (${x[0].toFixed(2)}, ${x[1].toFixed(2)})<span class="dim">  &middot;  bandwidth h = ${bw}  &middot;  ${classes.length} classes${useLogSpace ? '  &middot;  log-space' : ''}</span>`;
     }
-
-    if (calcPointKDEEl) calcPointKDEEl.innerHTML = renderLines(sKDE);
-    if (calcPointGDAEl) calcPointGDAEl.innerHTML = renderLines(sGDA);
-    if (!calcPointKDEEl && !calcPointGDAEl && calcPointLegacyEl) {
-      calcPointLegacyEl.innerHTML = renderLines(queryLines.concat([''], sKDE, [''], sGDA));
-    }
+    if (calcPointKDEEl) calcPointKDEEl.innerHTML = renderMethod(sKDE, 'KDE', kdeResultTex, kdeClassResults);
+    if (calcPointGDAEl) calcPointGDAEl.innerHTML = renderMethod(sGDA, 'GDA', gdaResultTex, gdaClassResults);
 
     const typesetTargets = [calcQueryPointEl, calcPointKDEEl, calcPointGDAEl, calcPointLegacyEl].filter(Boolean);
     if (typesetTargets.length > 0 && window.MathJax && MathJax.typesetPromise) {
