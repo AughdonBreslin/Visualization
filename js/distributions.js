@@ -647,19 +647,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Create content with MathJax formatting
+            // Property table (label column + math value column), with MathJax formatting.
             detailElement.innerHTML = `
             <h3>
                 <span class="color-indicator" aria-hidden="true"></span>
                 ${distributionInfo[key].title}
             </h3>
-            <div class="formulas"><div class="formula">\\[${info.formula}\\]</div></div>
-            <div class="formulas">
-                <div class="formula">\\[${info.expectedValue}\\]</div>
-                <div class="formula">\\[${info.variance}\\]</div>
-            </div>
+            <table class="dv-ptable">
+                <tr><td class="dv-pk"><span class="dv-plabel">Density</span></td><td class="dv-pv"><div class="formula">\\[${info.formula}\\]</div></td></tr>
+                <tr><td class="dv-pk"><span class="dv-plabel">Expected value</span></td><td class="dv-pv"><div class="formula">\\[${info.expectedValue}\\]</div></td></tr>
+                <tr><td class="dv-pk"><span class="dv-plabel">Variance</span></td><td class="dv-pv"><div class="formula">\\[${info.variance}\\]</div></td></tr>
+            </table>
+            <div class="dv-uc-lbl">Common uses in deep learning</div>
             <div class="use-cases">
-                <strong>Common Use Cases in Deep Learning:</strong>
                 ${info.useCases.map(use => `<div class="use-case">${use}</div>`).join('')}
             </div>
             ${mixtureHtml}
