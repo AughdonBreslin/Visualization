@@ -1,41 +1,56 @@
-/* generative_classification.css - page-specific styles for the Generative Classification demo */
+/* generative_classification.css - migrated (.ui) page. Typography, sections, links, math, the
+ * demo system, buttons, callouts, metrics, and the footer come from the archetype. This file adds
+ * the CSV input, the GDA parameter readout, the KDE/GDA viz demo (plot left, controls right), the
+ * legend, the click-to-query readout, and the posterior-walkthrough readouts. */
 
-.generative-classification .bandwidth-row {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: center;
-  width: fit-content;
-}
+/* --- Zone 1: CSV dataset input --- */
+.ui.generative-classification .gc-csv { width: 100%; min-height: 150px; resize: vertical; background: #060607; border: 1px solid var(--hairline); border-radius: var(--radius-md); color: #cfd1d8; font: 500 12px/1.55 var(--font-mono); padding: 11px 13px; }
+.ui.generative-classification .gc-load-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.ui.generative-classification .gc-warning { margin-top: 14px; }
 
-.generative-classification #classLegend .legend-item {
-	display: flex;
-	align-items: center;
-	margin-bottom: 6px;
-}
+/* --- Zone 2: fitted parameters readout --- */
+.ui.generative-classification .gc-params { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 26px; }
+.ui.generative-classification .gc-params .gda-class { min-width: 0; }
+.ui.generative-classification .gc-params .gda-class-title { font: 600 10px/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: #6c6e77; margin-bottom: 8px; }
+.ui.generative-classification .gc-params .gda-class > div { margin: 4px 0; color: #cfd1d8; font-size: 13px; }
+@container (max-width: 560px) { .ui.generative-classification .gc-params { grid-template-columns: 1fr; } }
 
-.generative-classification #classLegend .legend-swatch {
-	width: 14px;
-	height: 14px;
-	display: inline-block;
-	margin-right: 8px;
-	border: 1px solid #000;
-	background: var(--swatch-color, transparent);
-}
+/* --- Zone 3: viz demo grid --- */
+.ui.generative-classification .gc-viz-grid { display: grid; grid-template-columns: 1fr 270px; gap: 26px; align-items: start; }
+@container (max-width: 840px) { .ui.generative-classification .gc-viz-grid { grid-template-columns: 1fr; gap: 22px; } }
+.ui.generative-classification #viz { width: 520px; max-width: 100%; }
+.ui.generative-classification .gc-viz-controls { min-width: 0; }
+.ui.generative-classification .gc-ctrl-group + .gc-ctrl-group { margin-top: 20px; }
+.ui.generative-classification .gc-opt { display: flex; align-items: center; gap: 9px; font: 500 12.5px/1.35 var(--font-sans); color: #cfd1d8; cursor: pointer; }
+.ui.generative-classification .gc-opt + .gc-opt { margin-top: 9px; }
+.ui.generative-classification .gc-opt input { accent-color: var(--accent); width: 14px; height: 14px; flex: none; }
+.ui.generative-classification .gc-num { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--hairline-strong); color: #dadbe0; font: 500 13px/1 var(--font-sans); padding: 5px 2px; }
 
-.generative-classification #classLegend .legend-label {
-	font-size: 13px;
-}
+/* legend (JS builds .legend-item > .legend-swatch[--swatch-color] + .legend-label) */
+.ui.generative-classification .class-legend { display: flex; flex-direction: column; gap: 7px; font: 400 12px/1.3 var(--font-sans); color: var(--text-muted); }
+.ui.generative-classification .legend-item { display: flex; align-items: center; gap: 9px; color: #cfd1d8; }
+.ui.generative-classification .legend-swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; background: var(--swatch-color, #888); }
 
-/* Per-class blocks rendered into #gdaParams by JS */
-.generative-classification .gda-class {
-	margin-bottom: 8px;
-	padding: 6px;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
+/* click-to-query readout (JS builds a <table> with .query-row-label cells) */
+.ui.generative-classification .gc-query { margin-top: 16px; overflow-x: auto; }
+.ui.generative-classification .gc-query table { border-collapse: collapse; width: 100%; font: 500 12.5px/1.4 var(--font-mono); color: #e7e8ec; font-variant-numeric: tabular-nums; }
+.ui.generative-classification .gc-query th, .ui.generative-classification .gc-query td { padding: 5px 10px; text-align: right; border-top: 1px solid var(--hairline); }
+.ui.generative-classification .gc-query tr:first-child th, .ui.generative-classification .gc-query tr:first-child td { border-top: 0; }
+.ui.generative-classification .gc-query .query-row-label { text-align: left; color: var(--text-body); font-family: var(--font-sans); }
 
-.generative-classification .gda-class-title {
-	font-weight: 700;
-	margin-bottom: 2px;
-}
+/* subsidiary "Interpreting the results" step text */
+.ui.generative-classification .gc-substep { margin-top: 24px; padding-left: 15px; border-left: 2px solid var(--hairline); }
+.ui.generative-classification .gc-substep h4 { font: 600 11px/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin: 0 0 9px; }
+.ui.generative-classification .gc-substep p { font: 400 13px/1.6 var(--font-sans); color: var(--text-body); margin: 0 0 10px; max-width: 78ch; }
+
+/* --- Zone 4: posterior walkthrough --- */
+.ui.generative-classification .gc-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 6px 0 8px; }
+.ui.generative-classification .gc-compute { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ui.generative-classification .gc-compute-text { font: 500 13px/1 var(--font-sans); color: var(--text-body); }
+.ui.generative-classification .gc-inline-num { width: 56px; background: none; border: 0; border-bottom: 1px solid var(--hairline-strong); color: #dadbe0; font: 500 13px/1 var(--font-mono); padding: 4px 2px; text-align: center; }
+.ui.generative-classification .examples-hint { font: 400 12px/1.5 var(--font-sans); color: var(--text-muted); margin: 4px 0 14px; }
+.ui.generative-classification .gc-calc { margin-top: 12px; font: 500 12.5px/1.5 var(--font-mono); color: #cfd1d8; }
+.ui.generative-classification .gc-calc h3, .ui.generative-classification .gc-calc .calc-step-header { font: 600 11px/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 4px 0 8px; }
+.ui.generative-classification .gc-calc h4, .ui.generative-classification .gc-calc h5, .ui.generative-classification .gc-calc .calc-step-subheader { font: 600 12px/1.3 var(--font-sans); color: #cfd1d8; margin: 8px 0 5px; }
+.ui.generative-classification .gc-calc .calc-step-content { margin: 3px 0; }
+.ui.generative-classification .gc-calc .calc-step-end { margin: 5px 0; color: #e7e8ec; }
