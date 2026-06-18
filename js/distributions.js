@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Guard: only run on the distributions visualizer page
     if (!document.querySelector('#pdf') || !document.querySelector('#forms')) return;
-    const colors = d3.schemeTableau10.concat(d3.schemeSet3).flat();
+    // Dark-friendly, distinct palette; the first (default) color is the periwinkle accent.
+    const colors = ['#6b7cff', '#e0a23a', '#4fd1a5', '#ff7a9c', '#a98bff', '#5ad1e6', '#f0c451', '#8fd17a', '#ff9e6b', '#7aa2ff'];
     const distributionInfo = {
         normal: { title: 'Normal', params: ['Mean (μ)', 'Std (σ)'], defaults: [0, 1] },
         uniform: { title: 'Uniform', params: ['Min (a)', 'Max (b)'], defaults: [0, 1] },
@@ -83,10 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'exponential': return x >= 0 ? a * Math.exp(-a * x) : 0;
             case 'laplace': return (1 / (2 * b)) * Math.exp(-Math.abs(x - a) / b);
             case 'dirac': const s = 0.03; return (1 / (s * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * ((x - a) / s) ** 2);
-            case 'mixture':
+            case 'mixture': {
                 if (!p.components || !p.weights) return 0;
+                const wsum = p.weights.reduce((a, b) => a + (b > 0 ? b : 0), 0) || 1;
                 return p.components.reduce((sum, comp, i) =>
-                    sum + (p.weights[i] * pdf(x, comp.distKey, comp.params)), 0);
+                    sum + ((Math.max(0, p.weights[i]) / wsum) * pdf(x, comp.distKey, comp.params)), 0);
+            }
             default: return 0;
         }
     }
@@ -99,10 +102,12 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'exponential': return x >= 0 ? 1 - Math.exp(-a * x) : 0;
             case 'laplace': return x < a ? 0.5 * Math.exp((x - a) / b) : 1 - 0.5 * Math.exp(-(x - a) / b);
             case 'dirac': return x < a ? 0 : 1;
-            case 'mixture':
+            case 'mixture': {
                 if (!p.components || !p.weights) return 0;
+                const wsum = p.weights.reduce((a, b) => a + (b > 0 ? b : 0), 0) || 1;
                 return p.components.reduce((sum, comp, i) =>
-                    sum + (p.weights[i] * cdf(x, comp.distKey, comp.params)), 0);
+                    sum + ((Math.max(0, p.weights[i]) / wsum) * cdf(x, comp.distKey, comp.params)), 0);
+            }
             default: return 0;
         }
     }
@@ -129,18 +134,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let pdfs, cdfs;
 
             if (d.distKey === 'mixture') {
-                // For mixture distributions, use the components and weights stored in params
-                pdfs = xs.map(x => {
-                    if (!d.params.components || !d.params.weights) return 0;
-                    return d.params.components.reduce((sum, comp, j) =>
-                        sum + (d.params.weights[j] * pdf(x, comp.distKey, comp.params)), 0);
-                });
-
-                cdfs = xs.map(x => {
-                    if (!d.params.components || !d.params.weights) return 0;
-                    return d.params.components.reduce((sum, comp, j) =>
-                        sum + (d.params.weights[j] * cdf(x, comp.distKey, comp.params)), 0);
-                });
+                // pdf/cdf normalize the (relative) component weights internally.
+                pdfs = xs.map(x => pdf(x, 'mixture', d.params));
+                cdfs = xs.map(x => cdf(x, 'mixture', d.params));
             } else {
                 // For regular distributions
                 pdfs = xs.map(x => pdf(x, d.distKey, d.params));
@@ -251,6 +247,20 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr('name', 'removeButton')
             .text('Remove');
 
+        // Recompute the mixture component share bars / percentages (the normalized proportion of
+        // each relative weight) without rebuilding the form, so editing a weight keeps focus.
+        function refreshShares() {
+            if (formObj.distKey !== 'mixture' || !formObj.params.weights) return;
+            const ws = formObj.params.weights;
+            const total = ws.reduce((a, b) => a + (b > 0 ? b : 0), 0) || 1;
+            wrapper.selectAll('.mix-wbar > i').each(function (d, i) {
+                this.style.width = (100 * Math.max(0, ws[i]) / total) + '%';
+            });
+            wrapper.selectAll('.mix-wpct').each(function (d, i) {
+                this.textContent = Math.round(100 * Math.max(0, ws[i]) / total) + '%';
+            });
+        }
+
         function buildParams() {
             paramsWrap.selectAll('*').remove();
             const info = distributionInfo[formObj.distKey];
@@ -282,10 +292,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             params: [...distInfo.defaults]
                         };
 
-                        // Add component with equal weight
+                        // Add the component with a unit relative weight (existing weights kept).
                         formObj.params.components.push(newComponent);
-                        const numComponents = formObj.params.components.length;
-                        formObj.params.weights = formObj.params.components.map(() => 1 / numComponents);
+                        formObj.params.weights.push(1);
 
                         buildParams(); // Rebuild the form
                         redrawAll();
@@ -348,18 +357,21 @@ document.addEventListener('DOMContentLoaded', () => {
                             .attr('name', 'weightInput')
                             .attr('type', 'number')
                             .attr('min', '0')
-                            .attr('max', '1')
                             .attr('step', '0.1')
                             .property('value', formObj.params.weights[idx])
                             .on('input', function () {
+                                // Relative weight: store the raw value, leave the others alone, and
+                                // recompute the displayed shares (density normalizes internally).
                                 formObj.params.weights[idx] = +this.value;
-                                // Normalize weights
-                                const sum = formObj.params.weights.reduce((a, b) => a + b, 0);
-                                formObj.params.weights = formObj.params.weights.map(w => w / sum);
-                                buildParams();
+                                refreshShares();
                                 redrawAll();
                                 saveState();
                             });
+
+                        // Share bar + percentage (the normalized proportion w_i / sum).
+                        const shareWrap = weightWrap.append('div').attr('class', 'mix-share');
+                        shareWrap.append('span').attr('class', 'mix-wbar').append('i');
+                        shareWrap.append('span').attr('class', 'mix-wpct');
 
                         // Remove button below weight in left column
                         leftCol.append('button')
@@ -368,11 +380,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             .on('click', () => {
                                 formObj.params.components.splice(idx, 1);
                                 formObj.params.weights.splice(idx, 1);
-                                if (formObj.params.weights.length > 0) {
-                                    // Renormalize remaining weights
-                                    const sum = formObj.params.weights.reduce((a, b) => a + b, 0);
-                                    formObj.params.weights = formObj.params.weights.map(w => w / sum);
-                                }
                                 buildParams();
                                 redrawAll();
                                 saveState();
@@ -396,6 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 });
                         });
                     });
+                    refreshShares();
                 } else {
                     // Show message when no components exist
                     paramsWrap.append('div')
@@ -528,6 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event listeners
     addBtn.on('click', () => addDistributionForm());
+    d3.select('#addMixture').on('click', () => addDistributionForm({ dist: 'mixture', defaults: [] }));
     resetBtn.on('click', clearAll);
     createMixtureBtn.on('click', showMixtureUI);
     applyMixtureBtn.on('click', createMixture);
