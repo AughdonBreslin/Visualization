@@ -120,41 +120,34 @@
         <input id="mfCsvInput" type="file" accept=".csv,text/csv" style="display:none" />
         <div id="mfCsvLabel" class="mf-csv-name"></div>
       </section>
-      <section class="panel sp-frame" id="mfAlgoStepPanel">
-        <h2>Algorithms</h2>
-        <div class="sp-panels">
-          <div class="mf-algo-card sp-panel">
-            <div class="sp-panel-header">
-              <select id="mfAlgoLeft" class="mf-algo-select"></select>
-            </div>
+      <section class="panel" id="mfAlgoStepPanel">
+        <h2>Algorithm comparison</h2>
+        <div class="mf-pickrow">
+          <div class="mf-pick">
+            <span class="mf-pick-eyebrow">Algorithm A</span>
+            <select id="mfAlgoLeft" class="mf-algo-select"></select>
             <div id="mfAlgoLeftParams" class="mf-algo-params"></div>
-            <div class="sp-bar" data-side="a"></div>
-            <div class="sp-detail" data-side="a"></div>
           </div>
-          <div class="mf-algo-card sp-panel">
-            <div class="sp-panel-header">
-              <select id="mfAlgoRight" class="mf-algo-select"></select>
-            </div>
+          <div class="mf-pick">
+            <span class="mf-pick-eyebrow">Algorithm B</span>
+            <select id="mfAlgoRight" class="mf-algo-select"></select>
             <div id="mfAlgoRightParams" class="mf-algo-params"></div>
-            <div class="sp-bar" data-side="b"></div>
-            <div class="sp-detail" data-side="b"></div>
           </div>
         </div>
+        <div class="mf-tracks"></div>
         <div class="sp-nav">
           <button class="step-prev" type="button">&#9664;&#xFE0E; Prev</button>
           <div class="step-desc"></div>
           <button class="step-next" type="button">Next &#9654;&#xFE0E;</button>
         </div>
-      </section>
-      <section class="panel">
-        <h2>Visualization</h2>
+        <div class="mf-section-eyebrow">Visualization</div>
         <div class="mf-viz-row">
-          <div class="mf-viz-card">
-            <h3 class="h3-tight">Left: <span id="mfLeftTitle">A</span></h3>
+          <div class="mf-viz-col">
+            <div class="mf-col-head"><span id="mfLeftTitle">A</span></div>
             <div id="mfLeftViz" class="mf-viz-host"></div>
           </div>
-          <div class="mf-viz-card">
-            <h3 class="h3-tight">Right: <span id="mfRightTitle">B</span></h3>
+          <div class="mf-viz-col">
+            <div class="mf-col-head"><span id="mfRightTitle">B</span></div>
             <div id="mfRightViz" class="mf-viz-host"></div>
           </div>
         </div>
@@ -162,8 +155,14 @@
       <section class="panel">
         <h2>Step notes</h2>
         <div class="mf-ifw-row">
-          <div class="mf-ifw-card" id="mfLeftIfw"></div>
-          <div class="mf-ifw-card" id="mfRightIfw"></div>
+          <div class="mf-ifw-col">
+            <div class="mf-col-head"><span id="mfLeftIfwTitle">A</span></div>
+            <div class="mf-ifw-card" id="mfLeftIfw"></div>
+          </div>
+          <div class="mf-ifw-col">
+            <div class="mf-col-head"><span id="mfRightIfwTitle">B</span></div>
+            <div class="mf-ifw-card" id="mfRightIfw"></div>
+          </div>
         </div>
       </section>
       <section class="panel">
