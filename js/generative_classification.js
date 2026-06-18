@@ -581,13 +581,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     gda.classes = classes; gda.params = params; gda.fitted = true;
 
-    // render GDA params into the #gdaParams container per class (prior, μ, Σ)
+    // render GDA params into the #gdaParams container as a table (one row per class), so it scales
+    // with the number of classes: Class | Prior | mean μ | covariance Σ.
     if (gdaParamsEl) {
-      const blocks = classes.map(c => {
+      const rowsHtml = classes.map(c => {
         const p = params[c];
-        return `<div class="gda-class"><div class="gda-class-title">Class ${c}</div><div>P(y=${c}) = ${p.prior.toFixed(3)}</div><div>$$\\mu = [${p.mu.map(v=>v.toFixed(3)).join(', ')}]$$</div><div>$$\\Sigma = \\begin{bmatrix}${p.sigma[0][0].toFixed(3)} & ${p.sigma[0][1].toFixed(3)} \\\\ ${p.sigma[1][0].toFixed(3)} & ${p.sigma[1][1].toFixed(3)}\\end{bmatrix}$$</div></div>`;
+        const muTex = `$\\mu = [${p.mu.map(v=>v.toFixed(3)).join(',\\ ')}]$`;
+        const sigTex = `$\\Sigma = \\begin{bmatrix}${p.sigma[0][0].toFixed(3)} & ${p.sigma[0][1].toFixed(3)} \\\\ ${p.sigma[1][0].toFixed(3)} & ${p.sigma[1][1].toFixed(3)}\\end{bmatrix}$`;
+        return `<tr><td class="gda-class-cell">${c}</td><td>${p.prior.toFixed(3)}</td><td>${muTex}</td><td>${sigTex}</td></tr>`;
       }).join('');
-      gdaParamsEl.innerHTML = blocks;
+      gdaParamsEl.innerHTML = `<table class="gc-params-table"><thead><tr><th>Class</th><th>Prior p(y)</th><th>Mean</th><th>Covariance</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
     }
 
     const calcP = calcPriorsEl;

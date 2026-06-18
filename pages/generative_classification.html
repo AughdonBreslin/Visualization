@@ -50,7 +50,10 @@
             <section class="panel">
                 <h2>Input dataset</h2>
                 <p>Paste a CSV of points $x_1, x_2, y$ where $x_1, x_2 \in \mathbb{R}$ and the class $y$ is any integer. Edits below apply automatically.</p>
-                <label class="demo-label" for="csvInput">CSV data</label>
+                <div class="gc-ds-head">
+                    <label class="demo-label" for="csvInput">CSV data</label>
+                    <label class="btn-upload">Upload CSV file<input id="fileInput" name="fileInput" type="file" accept="text/csv" /></label>
+                </div>
                 <textarea id="csvInput" rows="15" class="gc-csv">x1,x2,y
 81.0,85.0,1
 71.0,85.0,0
@@ -98,9 +101,6 @@
 75.0,91.0,2
 74.0,98.0,2
 </textarea>
-                <div class="gc-load-row">
-                    <label class="btn-upload">Upload CSV file<input id="fileInput" name="fileInput" type="file" accept="text/csv" /></label>
-                </div>
                 <div id="datasetWarning" class="callout warning gc-warning" role="status" hidden></div>
             </section>
 
