@@ -654,15 +654,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${distributionInfo[key].title}
             </h3>
             <div class="formulas"><div class="formula">\\[${info.formula}\\]</div></div>
-            <div class="properties">
-                <div class="property">
-                <strong>Expected Value:</strong><br>
-                \\(${info.expectedValue}\\)
-                </div>
-                <div class="property">
-                <strong>Variance:</strong><br>
-                \\(${info.variance}\\)
-                </div>
+            <div class="formulas">
+                <div class="formula">\\[${info.expectedValue}\\]</div>
+                <div class="formula">\\[${info.variance}\\]</div>
             </div>
             <div class="use-cases">
                 <strong>Common Use Cases in Deep Learning:</strong>
