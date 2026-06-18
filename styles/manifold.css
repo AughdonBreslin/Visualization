@@ -24,8 +24,9 @@
 .ui.manifold .mf-param-grid { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; }
 .ui.manifold .mf-param-label { display: inline-flex; align-items: center; gap: 6px; }
 .ui.manifold .mf-param-name { color: var(--text-body); }
-.ui.manifold .mf-param-info { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; border: 1px solid var(--hairline-strong); color: var(--text-muted); font-size: 10px; line-height: 1; font-style: italic; cursor: help; flex: 0 0 auto; }
-.ui.manifold .mf-param-info:hover { border-color: var(--accent); color: var(--accent); }
+/* Info chip: identical to the other migrated pages (soft periwinkle fill, accent on hover). */
+.ui.manifold .mf-param-info { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: var(--accent-muted); color: var(--accent-link); font: 600 9px/1 var(--font-sans); cursor: help; flex: 0 0 auto; }
+.ui.manifold .mf-param-info:hover { background: var(--accent); color: #fff; }
 .ui.manifold .mf-param-control input, .ui.manifold .mf-param-control select { background: rgba(0,0,0,0.3); color: #fff; border: 1px solid var(--hairline-strong); border-radius: 6px; padding: 3px 7px; font-size: 0.88rem; }
 .ui.manifold .mf-param-control input { width: 6em; }
 .ui.manifold .mf-param-control input[type=number] { -moz-appearance: textfield; appearance: textfield; }
@@ -119,7 +120,7 @@
 .ui.manifold .viz-weighted-knn { position: absolute; inset: 0; }
 
 /* ===== flat comparison redesign: pickers, aligned dual-track stepper, column headers ===== */
-.ui.manifold .mf-pickrow { display: flex; gap: 48px; flex-wrap: wrap; margin-bottom: 24px; }
+.ui.manifold .mf-pickrow { display: flex; gap: 48px; flex-wrap: wrap; margin: 24px 0; }
 .ui.manifold .mf-pick { display: flex; flex-direction: column; gap: 8px; }
 .ui.manifold .mf-pick-eyebrow { font: 600 10px/1 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: #6c6e77; }
 .ui.manifold .mf-algo-select { appearance: none; font: 600 14px/1.2 var(--font-sans); color: #e7e8ec; background: none; border: 0; border-bottom: 1px solid var(--hairline-strong); padding: 5px 22px 6px 0; cursor: pointer; align-self: flex-start;
