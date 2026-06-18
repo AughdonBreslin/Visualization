@@ -268,6 +268,29 @@ Replace the file with `.ui.generative-classification`-scoped rules:
 - Fitted-params grid: 2-up to 1-up at container `<=560px`.
 - Use container queries on `.demo` (archetype sets `container-type: inline-size` on `.demo`).
 
+## Update (2026-06-18): query table transpose, sort, and collapsibles
+
+Added after review. The original query table put methods as rows and `2K+1` columns, which does not
+scale past a few classes. Changes:
+
+- Transpose the query table (always, regardless of K): one row per class, fixed columns
+  `Class | KDE p(y|x) | KDE p(x|y)` plus `GDA p(y|x) | GDA p(x|y)` when GDA is fitted. The table
+  grows downward, so any number of classes is fine. This is a focused rewrite of `updateQueryTable`
+  in `generative_classification.js` (a second allowed JS change, beyond the Σ-matrix fix).
+- Sortable columns: each header cell (`.gc-sort-th`, `data-col`) is clickable. Clicking sorts the
+  class rows by that column; clicking the active column toggles ascending/descending; a small arrow
+  (▲ / ▼, unicode, not a dash) marks the active column. Sort state is held in module-level
+  `querySort` and the last query args are cached so a header click re-renders the same point with
+  the new sort. Default sort: Class ascending.
+- Collapsible blocks via native `<details class="gc-collapse">` + `<summary>` (accessible, minimal
+  JS): wrap the fitted-parameters readout (`#gdaParams`), the legend (`#classLegend`), and the
+  query readout (`#queryInfo`). The `<summary>` becomes the block label (replacing the standalone
+  "Fitted parameters" `<h3>`, the "Legend" demo-label, and a "Query result" label). The JS keeps
+  writing into the inner ids, which stay inside the details body. All open by default.
+
+CSS for these lives in `styles/generative_classification.css` (`.gc-query` transposed table,
+`.gc-sort-th`, `.gc-collapse` disclosure). No change to the other readouts.
+
 ## Out of scope (deferred per backlog)
 
 - Content edits, title shortening, in-sequence note reorg: content pass.
