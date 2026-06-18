@@ -8,7 +8,8 @@ here are not started; each becomes its own brainstorm -> spec -> plan when picke
 
 - Phase 4 (page migration): COMPLETE. All pages migrated: estimation (pilot), bayesian,
   regularization, pca, fourier, generative_classification, manifold, and distributions (the latter
-  redesigned as a standalone plots-led tool, not the article archetype). The archetype lives in
+  redesigned as a standalone plots-led tool, not the article archetype). The home/index is also
+  redesigned (rail-style numbered directory rows on the .ui dark archetype). The archetype lives in
   `styles/article-ui.css`,
   `styles/system.css`, `styles/tokens.css`, `js/section-outline.js`, `js/theme.js`. The demo
   control system (bands / column-flow / integrated tables / sliders / container-query reflow) is
