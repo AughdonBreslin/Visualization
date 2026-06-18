@@ -6,10 +6,10 @@ here are not started; each becomes its own brainstorm -> spec -> plan when picke
 
 ## In-progress / next
 
-- Phase 4 (page migration): migrate the remaining article pages onto the archetype. Done:
-  estimation (pilot), bayesian, regularization, pca, fourier, generative_classification, manifold.
-  Next: distributions (a standalone tool, not an article, so it needs its own tool/app layout
-  pass). The archetype lives in `styles/article-ui.css`,
+- Phase 4 (page migration): COMPLETE. All pages migrated: estimation (pilot), bayesian,
+  regularization, pca, fourier, generative_classification, manifold, and distributions (the latter
+  redesigned as a standalone plots-led tool, not the article archetype). The archetype lives in
+  `styles/article-ui.css`,
   `styles/system.css`, `styles/tokens.css`, `js/section-outline.js`, `js/theme.js`. The demo
   control system (bands / column-flow / integrated tables / sliders / container-query reflow) is
   in `styles/article-ui.css`.
