@@ -73,10 +73,6 @@
 .ui.fourier .fourier-info:hover { background: var(--accent); color: #fff; }
 .fourier-tip { position: fixed; max-width: 320px; background: var(--surface-strong); border: 1px solid rgba(255,255,255,.22); color: #e8e8ec; font: 400 12px/1.45 var(--font-sans); padding: 9px 11px; border-radius: 8px; pointer-events: none; opacity: 0; transition: opacity .1s; z-index: 1000; white-space: pre-line; box-shadow: 0 6px 24px rgba(0,0,0,.5); }
 
-/* --- Inline color legends used in the interpretation text (legends, not emphasis) --- */
-.ui.fourier .fourier-legend-red { color: #ff6f6f; font-weight: 600; }
-.ui.fourier .fourier-legend-blue { color: #6f9bff; font-weight: 600; }
-
 /* --- Canvas grid responsive --- */
 /* The three panels are a comparison set (original / spectrum / reconstruction), so they stay
    side by side across the article column and only stack when the demo is genuinely narrow. */
