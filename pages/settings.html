@@ -10,8 +10,11 @@
   <link rel="stylesheet" href="../styles/tokens.css">
   <link rel="stylesheet" href="../styles/system.css">
   <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/article-ui.css">
+  <link rel="stylesheet" href="../styles/section-outline.css">
   <link rel="stylesheet" href="../styles/settings.css">
   <script src="../js/theme.js"></script>
+  <script type="module" src="../js/section-outline.js"></script>
 </head>
 <body class="ui">
   <div class="container settings">
@@ -22,8 +25,9 @@
     </header>
     <hr class="rule">
 
-    <section class="setting">
-      <div class="setting-label">Accent color</div>
+    <main class="article-body">
+    <section class="setting panel">
+      <h2 class="setting-label">Accent color</h2>
       <p class="setting-help">Used for links, active states, highlights, and focus rings.</p>
       <div class="accent-row">
         <button class="swatch" data-accent="#6b7cff" style="--c:#6b7cff" title="Periwinkle"></button>
@@ -36,8 +40,8 @@
       </div>
     </section>
 
-    <section class="setting">
-      <div class="setting-label">Density</div>
+    <section class="setting panel">
+      <h2 class="setting-label">Density</h2>
       <p class="setting-help">How compact the type and spacing are.</p>
       <div class="tabs density-tabs">
         <button class="tab density-tab" data-density="compact">Compact</button>
@@ -52,14 +56,15 @@
       </div>
     </section>
 
-    <section class="setting">
-      <div class="setting-label">Link underlines</div>
+    <section class="setting panel">
+      <h2 class="setting-label">Link underlines</h2>
       <p class="setting-help">Underline links all the time, or only on hover. Hidden is the default.</p>
       <div class="tabs underline-tabs">
         <button class="tab underline-tab is-active" data-underline="0">Hidden</button>
         <button class="tab underline-tab" data-underline="1">Shown</button>
       </div>
     </section>
+    </main>
 
     <hr class="rule">
     <div class="settings-foot">

@@ -6,6 +6,8 @@
   var KEY_ACCENT = 'ui-accent';
   var KEY_DENSITY = 'ui-density';
   var KEY_LINKUL = 'ui-link-underline';
+  var KEY_TRIBUTE = 'ui-tribute';
+  var MONOCRAFT = "'Monocraft', ui-monospace, SFMono-Regular, monospace";
   var root = document.documentElement;
 
   function hexToRgb(hex) {
@@ -44,28 +46,47 @@
     if (enabled) root.style.setProperty('--link-ul', '1px');
     else root.style.removeProperty('--link-ul');
   }
+  // Tribute mode: convert the whole site to Monocraft by overriding both font tokens.
+  // data-font lets CSS make pixel-font-specific tweaks (e.g. drop negative tracking).
+  function applyTribute(on) {
+    var enabled = on === true || on === '1' || on === 'true';
+    if (enabled) {
+      root.style.setProperty('--font-sans', MONOCRAFT);
+      root.style.setProperty('--font-mono', MONOCRAFT);
+      root.setAttribute('data-font', 'monocraft');
+    } else {
+      root.style.removeProperty('--font-sans');
+      root.style.removeProperty('--font-mono');
+      root.removeAttribute('data-font');
+    }
+  }
   function get(key, def) { try { return localStorage.getItem(key) || def; } catch (e) { return def; } }
   function set(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
 
   function setAccent(hex) { applyAccent(hex); set(KEY_ACCENT, hex || DEFAULT_ACCENT); }
   function setDensity(d) { applyDensity(d); set(KEY_DENSITY, d || 'balanced'); }
   function setLinkUnderline(on) { applyLinkUnderline(on); set(KEY_LINKUL, on ? '1' : '0'); }
-  function reset() { setAccent(DEFAULT_ACCENT); setDensity('balanced'); setLinkUnderline(false); }
+  function setTribute(on) { applyTribute(on); set(KEY_TRIBUTE, on ? '1' : '0'); }
+  function reset() { setAccent(DEFAULT_ACCENT); setDensity('balanced'); setLinkUnderline(false); setTribute(false); }
 
   // boot: apply saved prefs immediately (before paint)
   applyAccent(get(KEY_ACCENT, DEFAULT_ACCENT));
   applyDensity(get(KEY_DENSITY, 'balanced'));
   applyLinkUnderline(get(KEY_LINKUL, '0'));
+  applyTribute(get(KEY_TRIBUTE, '0'));
 
   window.UITheme = {
     DEFAULT_ACCENT: DEFAULT_ACCENT,
     applyAccent: applyAccent, applyDensity: applyDensity, applyLinkUnderline: applyLinkUnderline,
-    setAccent: setAccent, setDensity: setDensity, setLinkUnderline: setLinkUnderline, reset: reset,
+    applyTribute: applyTribute,
+    setAccent: setAccent, setDensity: setDensity, setLinkUnderline: setLinkUnderline, setTribute: setTribute,
+    reset: reset,
     current: function () {
       return {
         accent: get(KEY_ACCENT, DEFAULT_ACCENT),
         density: get(KEY_DENSITY, 'balanced'),
-        linkUnderline: get(KEY_LINKUL, '0') === '1'
+        linkUnderline: get(KEY_LINKUL, '0') === '1',
+        tribute: get(KEY_TRIBUTE, '0') === '1'
       };
     }
   };
