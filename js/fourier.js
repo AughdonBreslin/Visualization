@@ -739,10 +739,10 @@
       }
       formulaBox.innerHTML =
         '<div class="formulas">' +
-          '<div class="formula"><div class="fourier-formula-label">Reconstruction <span class="fourier-info" data-term="recon">i</span></div>$$' + recon + '$$</div>' +
-          '<div class="formula"><div class="fourier-formula-label">Basis function <span class="fourier-info" data-term="basis">i</span></div>$$' + basisFn + '$$</div>' +
+          '<div class="formula"><div class="fourier-formula-label">Reconstruction<span class="fourier-info" data-term="recon">i</span></div>$$' + recon + '$$</div>' +
+          '<div class="formula"><div class="fourier-formula-label">Basis function<span class="fourier-info" data-term="basis">i</span></div>$$' + basisFn + '$$</div>' +
         '</div>' +
-        '<div class="formula fourier-formula-example"><div class="fourier-formula-label">Worked example (current image) <span class="fourier-info" data-term="worked">i</span></div>$$' + worked + '$$</div>';
+        '<div class="formula fourier-formula-example"><div class="fourier-formula-label">Worked example (current image)<span class="fourier-info" data-term="worked">i</span></div>$$' + worked + '$$</div>';
       typesetFormula();
     }
 
