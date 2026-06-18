@@ -255,12 +255,19 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  // Query-table sort state, persisted across re-queries so a header-click sort survives the next
+  // plot click. lastQueryArgs caches the most recent point/opts so a header click can re-render.
+  let querySort = { col: 'class', dir: 'asc' };
+  let lastQueryArgs = null;
+
   function updateQueryTable(point, opts = {}) {
     if (!queryInfo) return;
     if (!kdeModel || !kdeModel.classes || kdeModel.classes.length === 0) {
       queryInfo.textContent = 'No query yet';
       return;
     }
+
+    lastQueryArgs = { point, opts };
 
     const x = point[0];
     const y = point[1];
@@ -270,29 +277,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const classes = kdeModel.classes;
     const kde = kdeForPoint([x, y], classes, kdeModel.pdfs, kdeModel.logPdfs, kdeModel.priors, useLogSpace);
 
-    const headerCols = classes.map(c => `p(y=${c}|x)`).concat(classes.map(c => `p(x|y=${c})`));
-    const colCount = headerCols.length + 1; // +1 for row header
-
-    const kdeVals = [];
-    for (let i = 0; i < classes.length; i++) kdeVals.push(kde.classPosteriors[i].toFixed(3));
-    for (let i = 0; i < classes.length; i++) kdeVals.push((kde.classLikelihoods[i]).toExponential(2));
-
-    let msg = `<table class="data-table">`;
-    msg += `<tr><th colspan="${colCount}">${header}</th></tr>`;
-    msg += `<tr><th></th>${headerCols.map(h => `<th>${h}</th>`).join('')}</tr>`;
-    msg += `<tr><td class="query-row-label">KDE</td>${kdeVals.map(v => `<td>${v}</td>`).join('')}</tr>`;
-
     if (autoFitGDA && !gda.fitted) fitGDA();
-    if (gda.fitted) {
-      const gRes = gdaForPoint([x, y]);
-      const gdaVals = [];
-      for (let i = 0; i < gda.classes.length; i++) gdaVals.push(gRes.classPosteriors[i].toFixed(3));
-      for (let i = 0; i < gda.classes.length; i++) gdaVals.push((gRes.classLikelihoods[i]).toExponential(2));
-      msg += `<tr><td class="query-row-label">GDA</td>${gdaVals.map(v => `<td>${v}</td>`).join('')}</tr>`;
+    const haveGDA = gda.fitted;
+    const gRes = haveGDA ? gdaForPoint([x, y]) : null;
+
+    // One row object per class (the table is transposed: classes are rows, metrics are columns),
+    // so the readout grows downward and handles any number of classes.
+    const rows = classes.map((c, i) => ({
+      class: c,
+      kdePost: kde.classPosteriors[i],
+      kdeLike: kde.classLikelihoods[i],
+      gdaPost: haveGDA ? gRes.classPosteriors[i] : null,
+      gdaLike: haveGDA ? gRes.classLikelihoods[i] : null,
+    }));
+
+    const cols = [
+      { key: 'class', label: 'Class', fmt: v => `${v}` },
+      { key: 'kdePost', label: 'KDE p(y|x)', fmt: v => v.toFixed(3) },
+      { key: 'kdeLike', label: 'KDE p(x|y)', fmt: v => v.toExponential(2) },
+    ];
+    if (haveGDA) {
+      cols.push({ key: 'gdaPost', label: 'GDA p(y|x)', fmt: v => v.toFixed(3) });
+      cols.push({ key: 'gdaLike', label: 'GDA p(x|y)', fmt: v => v.toExponential(2) });
     }
 
+    // Sort the class rows by the active column (default Class ascending). A header click sets the
+    // column / toggles direction, then re-renders the same point via lastQueryArgs.
+    const sortKey = cols.some(c => c.key === querySort.col) ? querySort.col : 'class';
+    const sortMul = querySort.dir === 'desc' ? -1 : 1;
+    rows.sort((a, b) => (a[sortKey] === b[sortKey] ? 0 : (a[sortKey] < b[sortKey] ? -1 : 1)) * sortMul);
+
+    const arrow = key => key === querySort.col ? (querySort.dir === 'desc' ? ' ▼' : ' ▲') : '';
+    let msg = `<table class="data-table">`;
+    msg += `<tr><th colspan="${cols.length}" class="gc-query-caption">${header}</th></tr>`;
+    msg += `<tr>${cols.map(c => `<th class="gc-sort-th${c.key === querySort.col ? ' is-sorted' : ''}" data-col="${c.key}">${c.label}${arrow(c.key)}</th>`).join('')}</tr>`;
+    for (const r of rows) {
+      msg += `<tr>${cols.map(c => `<td${c.key === 'class' ? ' class="query-row-label"' : ''}>${c.fmt(r[c.key])}</td>`).join('')}</tr>`;
+    }
     msg += `</table>`;
     queryInfo.innerHTML = msg;
+
+    queryInfo.querySelectorAll('.gc-sort-th').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.getAttribute('data-col');
+        if (querySort.col === col) {
+          querySort.dir = querySort.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+          querySort.col = col;
+          querySort.dir = col === 'class' ? 'asc' : 'desc';
+        }
+        if (lastQueryArgs) updateQueryTable(lastQueryArgs.point, lastQueryArgs.opts);
+      });
+    });
   }
 
   let queryMarkerPoint = null;
@@ -557,20 +593,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const calcP = calcPriorsEl;
     if (calcP) calcP.innerHTML = `<h3>Priors</h3>` + classes.map(c => `P(y=${c})=${params[c].prior.toFixed(3)}`).join('\; ');
 
-    // typeset TeX blocks if MathJax is available
-    const typesetEls = [gdaParamsEl, calcP].filter(Boolean);
+    const lines = [`<h3>Gaussian Parameters</h3>`];
+    for (const c of classes) {
+      const p = params[c];
+      lines.push(`<p>Class ${c}: $\\mu = [${p.mu.map(v=>v.toFixed(3)).join(', ')}]$, $\\Sigma = \\begin{bmatrix} ${p.sigma[0][0].toFixed(3)} & ${p.sigma[0][1].toFixed(3)} \\\\ ${p.sigma[1][0].toFixed(3)} & ${p.sigma[1][1].toFixed(3)} \\end{bmatrix}$</p>`);
+    }
+    if (calcMuSigmaEl) calcMuSigmaEl.innerHTML = lines.join('');
+
+    // typeset TeX blocks if MathJax is available (after all three containers are populated)
+    const typesetEls = [gdaParamsEl, calcP, calcMuSigmaEl].filter(Boolean);
     if (typesetEls.length > 0 && window.MathJax && MathJax.typesetPromise) {
       MathJax.typesetPromise(typesetEls).catch(err => console.warn('MathJax typeset failed:', err));
     } else if (typesetEls.length > 0 && window.MathJax && MathJax.typeset) {
       try { MathJax.typeset(typesetEls); } catch (e) { console.warn('MathJax typeset failed:', e); }
     }
-
-    const lines = [`<h3>Gaussian Parameters</h3>`];
-    for (const c of classes) {
-      const p = params[c];
-      lines.push(`<p>Class ${c}: μ = [${p.mu.map(v=>v.toFixed(3)).join(', ')}]; Σ = [${p.sigma[0][0].toFixed(3)} ${p.sigma[0][1].toFixed(3)}; ${p.sigma[1][0].toFixed(3)} ${p.sigma[1][1].toFixed(3)}]</p>`);
-    }
-    if (calcMuSigmaEl) calcMuSigmaEl.innerHTML = lines.join('');
 
     render();
   }
