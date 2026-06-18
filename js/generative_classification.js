@@ -18,7 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const width = 520, height = 420, margin = { top: 10, right: 10, bottom: 20, left: 40 };
   const innerW = width - margin.left - margin.right; const innerH = height - margin.top - margin.bottom;
 
-  const svg = viz.append('svg').attr('width', width).attr('height', height);
+  // viewBox + CSS width:100% lets the plot scale to fill its column while keeping the 520x420
+  // internal coordinate space (d3.pointer maps clicks back through the transform, so queries stay
+  // accurate at any rendered size).
+  const svg = viz.append('svg')
+    .attr('width', width).attr('height', height)
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
   const fitGDAButton = document.getElementById('fitGDA');
@@ -264,6 +270,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!queryInfo) return;
     if (!kdeModel || !kdeModel.classes || kdeModel.classes.length === 0) {
       queryInfo.textContent = 'No query yet';
+      const coordsEl0 = document.getElementById('queryCoordsLabel');
+      if (coordsEl0) coordsEl0.textContent = '';
       return;
     }
 
@@ -271,8 +279,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const x = point[0];
     const y = point[1];
-    const header = opts.header ?? `Query (${x.toFixed(2)},${y.toFixed(2)})`;
     const autoFitGDA = !!opts.autoFitGDA;
+
+    // The queried coordinate is shown in the collapsible summary, not as an in-table caption row.
+    const coordsEl = document.getElementById('queryCoordsLabel');
+    if (coordsEl) coordsEl.textContent = `(${x.toFixed(2)}, ${y.toFixed(2)})`;
 
     const classes = kdeModel.classes;
     const kde = kdeForPoint([x, y], classes, kdeModel.pdfs, kdeModel.logPdfs, kdeModel.priors, useLogSpace);
@@ -309,7 +320,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const arrow = key => key === querySort.col ? (querySort.dir === 'desc' ? ' ▼' : ' ▲') : '';
     let msg = `<table class="data-table">`;
-    msg += `<tr><th colspan="${cols.length}" class="gc-query-caption">${header}</th></tr>`;
     msg += `<tr>${cols.map(c => `<th class="gc-sort-th${c.key === querySort.col ? ' is-sorted' : ''}" data-col="${c.key}">${c.label}${arrow(c.key)}</th>`).join('')}</tr>`;
     for (const r of rows) {
       msg += `<tr>${cols.map(c => `<td${c.key === 'class' ? ' class="query-row-label"' : ''}>${c.fmt(r[c.key])}</td>`).join('')}</tr>`;
