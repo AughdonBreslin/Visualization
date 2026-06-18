@@ -655,6 +655,25 @@ document.addEventListener('DOMContentLoaded', () => {
             detailElement.className = 'distribution-detail panel';
             detailElement.style.setProperty('--indicator-color', color);
 
+            // For a mixture, list the (normalized) components of the first mixture instance.
+            let mixtureHtml = '';
+            if (key === 'mixture') {
+                const mix = distributions.find(d => d.distKey === 'mixture');
+                const comps = mix && mix.params && mix.params.components ? mix.params.components : [];
+                if (comps.length) {
+                    const ws = mix.params.weights || [];
+                    const total = ws.reduce((a, b) => a + (b > 0 ? b : 0), 0) || 1;
+                    const items = comps.map((comp, i) => {
+                        const share = (Math.max(0, ws[i] || 0) / total).toFixed(2);
+                        const ci = distributionInfo[comp.distKey];
+                        const params = (comp.params || []).join(', ');
+                        const ccolor = colors[i % colors.length];
+                        return `<div class="mixture-detail-item"><span class="w">${share}</span><span class="color-indicator" style="background:${ccolor}"></span>${ci.title}${params !== '' ? ' (' + params + ')' : ''}</div>`;
+                    }).join('');
+                    mixtureHtml = `<div class="dv-seclbl" style="margin:4px 0 9px">Components</div><div class="mixture-detail-list">${items}</div>`;
+                }
+            }
+
             // Create content with MathJax formatting
             detailElement.innerHTML = `
             <h3>
@@ -676,6 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <strong>Common Use Cases in Deep Learning:</strong>
                 ${info.useCases.map(use => `<div class="use-case">${use}</div>`).join('')}
             </div>
+            ${mixtureHtml}
             `;
 
             detailsContainer.appendChild(detailElement);
