@@ -15,30 +15,30 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <link rel="stylesheet" href="../styles/base.css">
-  <link rel="stylesheet" href="../styles/article.css">
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../styles/system.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/article-ui.css">
   <link rel="stylesheet" href="../styles/estimation.css">
-  <link rel="stylesheet" href="../styles/responsive.css">
   <link rel="stylesheet" href="../styles/section-outline.css">
+  <script src="../js/theme.js"></script>
 
-  <script defer src="../js/formulas_layout.js"></script>
   <script defer src="../js/estimation_bootstrap.js"></script>
-  <script defer src="../js/collapsible.js"></script>
   <script defer src="../js/tabs.js"></script>
   <script defer src="../js/favicon.js"></script>
   <script type="module" src="../js/section-outline.js"></script>
 </head>
 
-<body>
-  <div class="container article estimation">
-    <header>
+<body class="ui estimation">
+  <div class="container">
+    <header class="page-head">
+      <div class="eyebrow">// Statistics</div>
       <h1>Estimation</h1>
-      <div class="subtitle">Point estimation, function estimation, bias/variance, standard error, MSE, consistency, and likelihood objectives</div>
-      <div class="home-link"><a href="../index.html">← Home</a></div>
+      <p class="lede">Point estimation, function estimation, bias/variance, standard error, MSE, consistency, and likelihood objectives.</p>
     </header>
 
     <main class="article-body">
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Overview</h2>
         <p>
           Estimation is about using data $\mathcal{D}$ to infer something unknown: a parameter $\theta$, a function $f$, or a prediction rule.
@@ -50,15 +50,15 @@
           In function estimation, the unknown object is typically infinite-dimensional (a whole curve/surface).
         </p>
         <div class="formulas">
-          <div class="formula">$$\textbf{Point:}\quad X_1,\dots,X_n\sim P_\theta\;\Rightarrow\;\hat\theta\approx\theta$$</div>
-          <div class="formula">$$\textbf{Function:}\quad Y = f(X)+\varepsilon\;\Rightarrow\;\hat f(x)\approx f(x)$$</div>
+          <div class="formula">$$\text{Point:}\quad X_1,\dots,X_n\sim P_\theta\;\Rightarrow\;\hat\theta\approx\theta$$</div>
+          <div class="formula">$$\text{Function:}\quad Y = f(X)+\varepsilon\;\Rightarrow\;\hat f(x)\approx f(x)$$</div>
         </div>
         <p>
           The estimator is a function of the data, and since the data is drawn from a random process, any function of the data is a random variable. Here $T$ and $A$ are the estimation procedures (e.g., formulas, algorithms) that we design to produce good estimates.
         </p>
         <div class="formulas">
-          <div class="formula">$$\textbf{Point estimation:}\quad \hat\theta = T(\mathcal{D})$$</div>
-          <div class="formula">$$\textbf{Function estimation:}\quad \hat f = A(\mathcal{D}),\; \hat f: \mathcal{X}\to\mathbb{R}$$</div>
+          <div class="formula">$$\text{Point estimation:}\quad \hat\theta = T(\mathcal{D})$$</div>
+          <div class="formula">$$\text{Function estimation:}\quad \hat f = A(\mathcal{D}),\; \hat f: \mathcal{X}\to\mathbb{R}$$</div>
         </div>
         <p>
           Examples:
@@ -66,14 +66,14 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Bias and Variance</h2>
         <p>
           Treat an estimator as a random variable (because it depends on random data). Two core quantities are:
         </p>
         <div class="formulas">
-          <div class="formula">$$\textbf{Bias:}\quad \mathrm{Bias}(\hat\theta) = \mathbb{E}[\hat\theta]-\theta$$</div>
-          <div class="formula">$$\textbf{Variance:}\quad \mathrm{Var}(\hat\theta) = \mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta])^2\big]$$</div>
+          <div class="formula">$$\text{Bias:}\quad \mathrm{Bias}(\hat\theta) = \mathbb{E}[\hat\theta]-\theta$$</div>
+          <div class="formula">$$\text{Variance:}\quad \mathrm{Var}(\hat\theta) = \mathbb{E}\big[(\hat\theta-\mathbb{E}[\hat\theta])^2\big]$$</div>
         </div>
         <p>
           An estimator is considered unbiased if $\mathrm{Bias}(\hat\theta)=0$, i.e., $\mathbb{E}[\hat\theta]=\theta$.
@@ -88,35 +88,35 @@
         </div>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Determining an unbiased estimator</h2>
         <p>
           Let $X_1,\dots,X_n$ be i.i.d. Bernoulli($p$), i.e., $\mathbb{P}(X_i=1)=p$ and $\mathbb{P}(X_i=0)=1-p$.
-          A natural estimator of $p$ is the sample mean
-          $$\hat p = \bar X = \frac{1}{n}\sum_{i=1}^n X_i.$$
+          A natural estimator of $p$ is the sample mean:
         </p>
+        <div class="formula">$$\hat p = \bar X = \frac{1}{n}\sum_{i=1}^n X_i$$</div>
         <p>
           First compute the expectation of a Bernoulli random variable:
-          $$\mathbb{E}[X_i] = 0\cdot\mathbb{P}(X_i=0) + 1\cdot\mathbb{P}(X_i=1) = p.$$
         </p>
+        <div class="formula">$$\mathbb{E}[X_i] = 0\cdot\mathbb{P}(X_i=0) + 1\cdot\mathbb{P}(X_i=1) = p$$</div>
         <p>
           Then apply linearity of expectation (independence is not required for this step):
-          $$\mathbb{E}[\hat p] = \mathbb{E}\!\left[\frac{1}{n}\sum_{i=1}^n X_i\right]
+        </p>
+        <div class="formula">$$\mathbb{E}[\hat p] = \mathbb{E}\!\left[\frac{1}{n}\sum_{i=1}^n X_i\right]
           = \frac{1}{n}\sum_{i=1}^n \mathbb{E}[X_i]
           = \frac{1}{n}\sum_{i=1}^n p
-          = p.$$
-        </p>
+          = p$$</div>
         <p>
           Therefore $\mathbb{E}[\hat p]=p$, so $\hat p$ is an unbiased estimator of $p$.
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Standard error</h2>
         <p>
           The standard error is the standard deviation of the estimator:
         </p>
-        <div class="formula">$$\textbf{Standard error:}\quad \mathrm{SE}(\hat\theta)=\sqrt{\mathrm{Var}(\hat\theta)}$$</div>
+        <div class="formula">$$\text{Standard error:}\quad \mathrm{SE}(\hat\theta)=\sqrt{\mathrm{Var}(\hat\theta)}$$</div>
         <p>
           In practice, we rarely know $\mathrm{Var}(\hat\theta)$ exactly, so we often estimate the standard error using the data we have sampled.
         </p>
@@ -139,7 +139,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible" id="bootstrapCI">
+      <section class="panel" id="bootstrapCI">
         <h2>Bootstrap confidence interval </h2>
         <p>
           The initial sample of data is just one of many possible samples we could have drawn from the data-generating process, and only gives us one realization of the estimator $\hat\theta$.
@@ -160,69 +160,85 @@
           Note: The basic bootstrap assumes observations are i.i.d. (or at least exchangeable).
           For dependent data (e.g., time series), we typically need variants such as the block bootstrap.
         </p>
-        <div class="viz-row">
-          <div class="viz-panel">
-            <div id="bootstrapPlot" class="viz"></div>
-            <div class="help-text">Note the standard error and confidence interval tend to tighten as $n$ grows.</div>
-            
-            <h3 class="h3-section">Results</h3>
-            <div id="bootstrapStats">-</div>
+        <div class="demo">
+          <div class="demo-figs">
+            <div class="demo-fig">
+              <div class="figcap">Fig. 1 &middot; bootstrap distribution of the statistic</div>
+              <div id="bootstrapPlot" class="viz"></div>
+              <div class="help-text">Note the standard error and confidence interval tend to tighten as $n$ grows.</div>
+            </div>
           </div>
 
-          <aside class="viz-controls">
-            <div class="tabs" role="tablist" aria-label="Bootstrap controls">
-              <button class="tab active" type="button" data-tab="sample">Sample</button>
-              <button class="tab" type="button" data-tab="population">Population</button>
-            </div>
+          <div class="demo-controls">
+            <div class="demo-inputs">
+              <div class="tabs" role="tablist" aria-label="Bootstrap controls">
+                <button class="tab active" type="button" data-tab="sample">Sample</button>
+                <button class="tab" type="button" data-tab="population">Population</button>
+              </div>
 
-            <div class="tab-panel" data-panel="sample" role="tabpanel">
-              <div class="control-grid">
-                <label for="bootStat">Statistic</label>
-                <select id="bootStat">
-                  <option value="mean" selected>Mean</option>
-                  <option value="median">Median</option>
-                </select>
+              <div class="tab-panel" data-panel="sample" role="tabpanel">
+                <div class="demo-band cols-2">
+                  <div class="demo-group">
+                    <label for="bootStat">Statistic</label>
+                    <select id="bootStat">
+                      <option value="mean" selected>Mean</option>
+                      <option value="median">Median</option>
+                    </select>
+                  </div>
+                  <div class="demo-group">
+                    <label for="bootN">Sample size (n)</label>
+                    <input id="bootN" type="number" min="5" max="500" step="1" value="40" />
+                  </div>
+                  <div class="demo-group">
+                    <label for="bootB">Bootstrap reps (B)</label>
+                    <input id="bootB" type="number" min="100" max="20000" step="100" value="2000" />
+                  </div>
+                  <div class="demo-group">
+                    <label for="bootLevel">Confidence level</label>
+                    <select id="bootLevel">
+                      <option value="0.90">90%</option>
+                      <option value="0.95" selected>95%</option>
+                      <option value="0.99">99%</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
 
-                <label for="bootN">Sample size (n)</label>
-                <input id="bootN" type="number" min="5" max="500" step="1" value="40" />
-
-                <label for="bootB">Bootstrap reps (B)</label>
-                <input id="bootB" type="number" min="100" max="20000" step="100" value="2000" />
-
-                <label for="bootLevel">Confidence level</label>
-                <select id="bootLevel">
-                  <option value="0.90">90%</option>
-                  <option value="0.95" selected>95%</option>
-                  <option value="0.99">99%</option>
-                </select>
+              <div class="tab-panel" data-panel="population" role="tabpanel" hidden>
+                <div class="demo-band cols-2">
+                  <div class="demo-group">
+                    <label for="bootMu">Population &mu;</label>
+                    <input id="bootMu" type="number" min="-10" max="10" step="0.1" value="0" />
+                  </div>
+                  <div class="demo-group">
+                    <label for="bootSigma">Population &sigma;</label>
+                    <input id="bootSigma" type="number" min="0.05" max="10" step="0.05" value="1" />
+                  </div>
+                  <div class="demo-group">
+                    <label for="bootSeed">Seed</label>
+                    <input id="bootSeed" type="number" step="1" value="7" />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="tab-panel" data-panel="population" role="tabpanel" hidden>
-              <div class="control-grid">
-                <label for="bootMu">Population μ</label>
-                <input id="bootMu" type="number" min="-10" max="10" step="0.1" value="0" />
-
-                <label for="bootSigma">Population σ</label>
-                <input id="bootSigma" type="number" min="0.05" max="10" step="0.05" value="1" />
-
-                <label for="bootSeed">Seed</label>
-                <input id="bootSeed" type="number" step="1" value="7" />
-              </div>
+            <div class="demo-results">
+              <div class="demo-label">Results</div>
+              <div id="bootstrapStats">-</div>
             </div>
-          </aside>
+          </div>
         </div>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Mean squared error (MSE) and minimizing it</h2>
         <p>
           A common way to evaluate an estimator is by its mean squared error.
           For a parameter estimator, the MSE decomposes into bias and variance.
         </p>
         <div class="formulas">
-          <div class="formula">$$\textbf{MSE:}\quad \mathrm{MSE}(\hat\theta)=\mathbb{E}\big[(\hat\theta-\theta)^2\big]$$</div>
-          <div class="formula">$$\textbf{Decomposition:}\quad \mathrm{MSE}(\hat\theta)=\mathrm{Bias}(\hat\theta)^2+\mathrm{Var}(\hat\theta)$$</div>
+          <div class="formula">$$\text{MSE:}\quad \mathrm{MSE}(\hat\theta)=\mathbb{E}\big[(\hat\theta-\theta)^2\big]$$</div>
+          <div class="formula">$$\text{Decomposition:}\quad \mathrm{MSE}(\hat\theta)=\mathrm{Bias}(\hat\theta)^2+\mathrm{Var}(\hat\theta)$$</div>
         </div>
         <p>
           To prove this, here's the derivation where we add and subtract $\mathbb{E}[\hat\theta]$ inside the initial definition, and simplify the expansion using the definition of variance and the fact that $\mathbb{E}[\hat\theta-\mathbb{E}[\hat\theta]]=0$ (the expected deviation from the mean is zero by definition):
@@ -246,7 +262,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Function estimation: bias-variance and prediction error</h2>
         <p>
           For regression, we often care about prediction error at an input $x$.
@@ -263,7 +279,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Consistency</h2>
         <p>
           An estimator is consistent if it converges to the truth as the sample size grows.
@@ -276,7 +292,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Maximum likelihood estimation (MLE)</h2>
         <p>
           If we assume a probabilistic model $p_\theta(x)$ for the data, the likelihood $L(\theta)$ of a dataset $\mathcal{D}=\{x_i\}_{i=1}^n$ is
@@ -293,7 +309,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Conditional log-likelihood (discriminative objective)</h2>
         <p>
           In supervised learning we often model $p_\theta(y\mid x)$ directly.
@@ -306,17 +322,17 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Conditional log-likelihood vs. mean squared error</h2>
         <p>
           Both are valid training objectives, but they encode different assumptions. MLE assumes a full generative model for the data, while conditional log-likelihood only models the conditional distribution of $Y$ given $X$.
         </p>
         <div class="formulas">
           <div class="formula">
-            $$\textbf{MSE regression:}\quad \min_{f\in\mathcal{F}}\;\frac{1}{n}\sum_{i=1}^n\big(f(x_i)-y_i\big)^2$$
+            $$\text{MSE regression:}\quad \min_{f\in\mathcal{F}}\;\frac{1}{n}\sum_{i=1}^n\big(f(x_i)-y_i\big)^2$$
           </div>
           <div class="formula">
-            $$\textbf{Conditional log-likelihood:}\quad \max_{\theta}\;\sum_{i=1}^n \log p_\theta(y_i\mid x_i)$$
+            $$\text{Conditional log-likelihood:}\quad \max_{\theta}\;\sum_{i=1}^n \log p_\theta(y_i\mid x_i)$$
           </div>
         </div>
         <p>
@@ -329,8 +345,8 @@
       </section>
     </main>
 
-    <footer class="footer">
-      <p class="footer-tag">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></p>
+    <footer class="site-footer">
+      <span class="credit">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></span>
     </footer>
   </div>
 </body>

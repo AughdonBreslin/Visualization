@@ -1,0 +1,111 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<h2>Walkthrough video player (Isomap)</h2>
+<p class="subtitle">The animated walkthrough as a player: frame, scrubber with chapter ticks, transport, step navigation, and transcript. Two layouts: stacked, and player + step-list side-by-side. New language throughout (no-frames; the video carries its own edge).</p>
+
+<style>
+.vp{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; font-family:'Inter',system-ui; --acc:#6b7cff; }
+.vp .slice{ padding:28px 36px 32px; }
+.vp .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+.vp .eyebrow{ font:600 11px/1 'JetBrains Mono'; letter-spacing:.2em; text-transform:uppercase; color:var(--acc); }
+.vp h1{ font:600 26px/1.1 'Inter'; letter-spacing:-.022em; color:#fafafa; margin:11px 0 18px; }
+
+.vp .video{ position:relative; aspect-ratio:16/9; background:radial-gradient(120% 120% at 50% 40%, #0f1016, #060608); border:1px solid rgba(255,255,255,.1); border-radius:10px; overflow:hidden; }
+.vp .video svg{ position:absolute; inset:0; width:100%; height:100%; }
+.vp .vtitle{ position:absolute; left:16px; top:14px; font:500 11px/1.3 'JetBrains Mono'; color:rgba(255,255,255,.5); }
+.vp .vtitle b{ color:rgba(255,255,255,.85); display:block; font:600 13px/1.4 'Inter'; letter-spacing:-.01em; margin-top:3px; }
+.vp .bigplay{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:58px; height:58px; border-radius:50%; background:rgba(8,8,12,.55); backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; }
+.vp .bigplay::after{ content:''; border-left:15px solid var(--acc); border-top:9px solid transparent; border-bottom:9px solid transparent; margin-left:4px; }
+
+.vp .scrub{ display:flex; align-items:center; gap:14px; margin-top:16px; }
+.vp .ico{ width:30px; height:30px; border-radius:50%; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.04); color:#d6d8df; display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; flex-shrink:0; }
+.vp .ico.play::after{ content:''; border-left:9px solid #e7e8ec; border-top:5.5px solid transparent; border-bottom:5.5px solid transparent; margin-left:2px; }
+.vp .track{ position:relative; flex:1; height:4px; background:rgba(255,255,255,.12); border-radius:3px; }
+.vp .track .fill{ position:absolute; left:0; top:0; bottom:0; width:34%; background:var(--acc); border-radius:3px; }
+.vp .track .tick{ position:absolute; top:-3px; width:2px; height:10px; background:rgba(255,255,255,.22); border-radius:1px; }
+.vp .track .head{ position:absolute; left:34%; top:50%; width:12px; height:12px; border-radius:50%; background:var(--acc); border:2px solid #0c0c0d; transform:translate(-50%,-50%); }
+.vp .time{ font:500 12px/1 'JetBrains Mono'; color:#9a9ca4; font-variant-numeric:tabular-nums; flex-shrink:0; }
+
+.vp .stepbar{ display:flex; align-items:center; justify-content:space-between; margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,.08); }
+.vp .stepnow .k{ font:600 10.5px/1 'JetBrains Mono'; letter-spacing:.16em; color:var(--acc); }
+.vp .stepnow .t{ font:600 16px/1.3 'Inter'; color:#ededf0; letter-spacing:-.01em; margin-top:5px; }
+.vp .nav{ display:flex; gap:10px; }
+.vp .nav button{ font:500 12.5px/1 'Inter'; color:#c4c6cd; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:9px 13px; cursor:pointer; }
+.vp .transcript{ margin-top:18px; font:400 14px/1.7 'Inter'; color:#8b8d96; max-width:64ch; }
+.vp .transcript .chip{ color:#c9cdfb; }
+
+/* step list (variant B) */
+.two .grid{ display:grid; grid-template-columns:1.55fr 1fr; gap:30px; align-items:start; }
+.vp .steplist{ }
+.vp .steplist .se{ display:flex; gap:12px; padding:10px 0 10px 14px; border-left:2px solid transparent; cursor:pointer; }
+.vp .steplist .se .n{ font:500 11px/1.4 'JetBrains Mono'; color:#5d5f68; flex-shrink:0; width:16px; }
+.vp .steplist .se .l{ font:500 13px/1.4 'Inter'; color:#74767f; }
+.vp .steplist .se.on{ border-left-color:var(--acc); }
+.vp .steplist .se.on .l{ color:#ededf0; }
+.vp .steplist .se.on .n{ color:var(--acc); }
+.vp .steplist .se.done .l{ color:#9a9ca4; }
+</style>
+
+<!-- reusable swiss-roll frame markup is inlined twice with distinct gradient ids -->
+
+<div class="vp"><div class="slice"><span class="tag">A · STACKED</span>
+  <div class="eyebrow">Manifold Learning</div>
+  <h1>Isomap, step by step</h1>
+  <div class="video">
+    <svg viewBox="0 0 384 216" preserveAspectRatio="xMidYMid slice">
+      <defs><linearGradient id="roll1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6b7cff"/><stop offset=".4" stop-color="#3fb9b1"/><stop offset=".7" stop-color="#9ccb5a"/><stop offset="1" stop-color="#e6a93f"/></linearGradient></defs>
+      <path d="M192 108 C 214 108 228 90 228 74 C 228 50 200 40 174 40 C 138 40 118 70 118 104 C 118 150 162 174 206 174 C 262 174 296 128 296 76 C 296 22 246 -6 190 -6" fill="none" stroke="url(#roll1)" stroke-width="11" stroke-linecap="round" opacity=".92"/>
+      <g opacity=".9"><circle cx="150" cy="58" r="3" fill="#6b7cff"/><circle cx="132" cy="96" r="3" fill="#49a7d6"/><circle cx="160" cy="160" r="3" fill="#7ec471"/><circle cx="238" cy="150" r="3" fill="#bcc24e"/><circle cx="274" cy="96" r="3" fill="#e0a23f"/><circle cx="214" cy="58" r="3" fill="#9a73e0"/></g>
+    </svg>
+    <div class="vtitle">CHAPTER 3<b>Build the neighborhood graph</b></div>
+    <div class="bigplay"></div>
+  </div>
+  <div class="scrub">
+    <span class="ico play"></span>
+    <div class="track"><div class="fill"></div><span class="tick" style="left:14%"></span><span class="tick" style="left:30%"></span><span class="tick" style="left:52%"></span><span class="tick" style="left:71%"></span><span class="tick" style="left:88%"></span><div class="head"></div></div>
+    <span class="time">01:12 / 03:40</span>
+  </div>
+  <div class="stepbar">
+    <div class="stepnow"><div class="k">STEP 3 / 7</div><div class="t">Build the neighborhood graph</div></div>
+    <div class="nav"><button>&#8249; Prev</button><button>Next &#8250;</button></div>
+  </div>
+  <div class="transcript">Connect each point to its <span class="chip">k</span> nearest neighbors. Geodesic distance is then approximated by the shortest path along this graph, which respects the manifold instead of cutting across the ambient space.</div>
+</div></div>
+
+<div class="vp two"><div class="slice"><span class="tag">B · PLAYER + STEP LIST</span>
+  <div class="eyebrow">Manifold Learning</div>
+  <h1>Isomap, step by step</h1>
+  <div class="grid">
+    <div>
+      <div class="video">
+        <svg viewBox="0 0 384 216" preserveAspectRatio="xMidYMid slice">
+          <defs><linearGradient id="roll2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6b7cff"/><stop offset=".4" stop-color="#3fb9b1"/><stop offset=".7" stop-color="#9ccb5a"/><stop offset="1" stop-color="#e6a93f"/></linearGradient></defs>
+          <path d="M192 108 C 214 108 228 90 228 74 C 228 50 200 40 174 40 C 138 40 118 70 118 104 C 118 150 162 174 206 174 C 262 174 296 128 296 76 C 296 22 246 -6 190 -6" fill="none" stroke="url(#roll2)" stroke-width="11" stroke-linecap="round" opacity=".92"/>
+        </svg>
+        <div class="vtitle">CHAPTER 3<b>Build the neighborhood graph</b></div>
+        <div class="bigplay"></div>
+      </div>
+      <div class="scrub">
+        <span class="ico play"></span>
+        <div class="track"><div class="fill"></div><span class="tick" style="left:14%"></span><span class="tick" style="left:30%"></span><span class="tick" style="left:52%"></span><span class="tick" style="left:71%"></span><span class="tick" style="left:88%"></span><div class="head"></div></div>
+        <span class="time">01:12 / 03:40</span>
+      </div>
+      <div class="transcript">Connect each point to its <span class="chip">k</span> nearest neighbors. Geodesic distance is then approximated by the shortest path along this graph, which respects the manifold instead of cutting across the ambient space.</div>
+    </div>
+    <div class="steplist">
+      <div class="se done"><span class="n">01</span><span class="l">Sample the swiss roll</span></div>
+      <div class="se done"><span class="n">02</span><span class="l">Choose k and a metric</span></div>
+      <div class="se on"><span class="n">03</span><span class="l">Build the neighborhood graph</span></div>
+      <div class="se"><span class="n">04</span><span class="l">Shortest-path geodesics</span></div>
+      <div class="se"><span class="n">05</span><span class="l">Double-center the distances</span></div>
+      <div class="se"><span class="n">06</span><span class="l">Eigendecompose</span></div>
+      <div class="se"><span class="n">07</span><span class="l">Read off the embedding</span></div>
+    </div>
+  </div>
+</div></div>
+
+<div class="options">
+  <div class="option" data-choice="stacked" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>Stacked</h3><p>Video, scrubber, step label + prev/next, transcript below. Simple, focused, reads top-to-bottom. Good on mobile.</p></div></div>
+  <div class="option" data-choice="steplist" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Player + step list</h3><p>Clickable chapter list beside the player (done / current / upcoming). Most "course/explainer"; jump anywhere. Wider.</p></div></div>
+</div>

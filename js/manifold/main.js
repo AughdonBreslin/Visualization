@@ -54,6 +54,8 @@ function init() {
   const rightPseudoHost = $('mfRightPseudo');
   const leftTitle = $('mfLeftTitle');
   const rightTitle = $('mfRightTitle');
+  const leftIfwTitle = $('mfLeftIfwTitle');
+  const rightIfwTitle = $('mfRightIfwTitle');
   const samplesControl = $('mfSamplesControl');
   const noiseControl = $('mfNoiseControl');
   const seedControl = $('mfSeedControl');
@@ -178,6 +180,10 @@ function init() {
       (next) => store.set({ leftAlgoParams: next }));
     renderParamHost(rightParamsHost, ALGORITHMS_BY_ID[store.state.rightAlgoId], () => store.state.rightAlgoParams,
       (next) => store.set({ rightAlgoParams: next }));
+    // When neither algorithm has parameters, drop the duplicated "No parameters" text entirely.
+    const leftEmpty = !!leftParamsHost.querySelector('.mf-noparams');
+    const rightEmpty = !!rightParamsHost.querySelector('.mf-noparams');
+    if (leftEmpty && rightEmpty) { leftParamsHost.innerHTML = ''; rightParamsHost.innerHTML = ''; }
   }
   rebindParamHosts();
 
@@ -276,6 +282,8 @@ function init() {
   store.subscribe((s) => {
     leftTitle.textContent = ALGORITHMS_BY_ID[s.leftAlgoId].label;
     rightTitle.textContent = ALGORITHMS_BY_ID[s.rightAlgoId].label;
+    if (leftIfwTitle) leftIfwTitle.textContent = ALGORITHMS_BY_ID[s.leftAlgoId].label;
+    if (rightIfwTitle) rightIfwTitle.textContent = ALGORITHMS_BY_ID[s.rightAlgoId].label;
     const left = s.cache.left, right = s.cache.right;
     if (!left || !right) {
       stepIndicator.render({

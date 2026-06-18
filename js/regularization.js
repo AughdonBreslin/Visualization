@@ -450,11 +450,6 @@
             lambda: root.getElementById("lambda"),
             lambdaValue: root.getElementById("lambdaValue"),
             selectedMethod: root.getElementById("selectedMethod"),
-            showOLS: root.getElementById("showOLS"),
-            showRidge: root.getElementById("showRidge"),
-            showLasso: root.getElementById("showLasso"),
-            showL2GD: root.getElementById("showL2GD"),
-            showWD: root.getElementById("showWD"),
             lr: root.getElementById("lr"),
             iters: root.getElementById("iters"),
             lassoIters: root.getElementById("lassoIters"),
@@ -482,6 +477,8 @@
             lr: Number(el.lr.value),
             iters: Number(el.iters.value),
             lassoIters: Number(el.lassoIters.value),
+            // Method visibility, toggled from the integrated Models table (was the Curves tab).
+            visible: { ols: true, ridge: true, lasso: true, l2gd: true, wd: true },
         };
 
         // --- D3 setup
@@ -650,12 +647,7 @@
         }
 
         function methodVisible(key) {
-            if (key === "ols") return el.showOLS.checked;
-            if (key === "ridge") return el.showRidge.checked;
-            if (key === "lasso") return el.showLasso.checked;
-            if (key === "l2gd") return el.showL2GD.checked;
-            if (key === "wd") return el.showWD.checked;
-            return false;
+            return state.visible[key] !== false;
         }
 
         function layout() {
@@ -1001,6 +993,9 @@
                 .attr("tabindex", 0)
                 .attr("role", "button")
                 .attr("aria-label", d => `Select ${d.label} at its lowest Test MSE λ`)
+                // Don't take focus on mouse click (which would scroll the row into view and edge
+                // the page); keyboard Tab focus still works for the keydown handler.
+                .on("mousedown", (event) => event.preventDefault())
                 .on("click", (_, d) => {
                     const log10lambda = (d.key === "ols") ? null : (d.best?.log10lambda ?? null);
                     setSelection({ methodKey: d.key, log10lambda });
@@ -1533,9 +1528,10 @@
             const thead = table.append("thead");
             thead.append("tr")
                 .selectAll("th")
-                .data(["Method", "Train MSE", "Test MSE", "$\\lVert w\\rVert_2$", "# of nonzero $w$"])
+                .data(["Method", "Train MSE", "Test MSE", "$\\lVert w\\rVert_2$", "nnz"])
                 .enter()
                 .append("th")
+                .attr("class", (_, i) => (i === 0 ? "m-head" : null))
                 .text(d => d);
 
             const tbody = table.append("tbody");
@@ -1543,10 +1539,18 @@
                 .data(rows)
                 .enter()
                 .append("tr")
-                .attr("class", d => (d.key === selected ? "selected" : null))
+                .attr("class", d => {
+                    const c = [];
+                    if (d.key === selected) c.push("selected");
+                    if (state.visible[d.key] === false) c.push("off");
+                    return c.join(" ") || null;
+                })
                 .attr("tabindex", 0)
                 .attr("role", "button")
                 .attr("aria-label", d => `Select ${d.label}`)
+                // Don't take focus on mouse click (avoids scroll-into-view edging the page); leave
+                // the checkbox alone so it still toggles, and keep keyboard Tab focus working.
+                .on("mousedown", (event) => { if (!event.target.classList.contains("m-check")) event.preventDefault(); })
                 .on("click", (_, d) => {
                     if (el.selectedMethod.value === d.key) return;
                     setSelection({ methodKey: d.key });
@@ -1558,7 +1562,18 @@
                     setSelection({ methodKey: d.key });
                 });
 
-            tr.append("td").text(d => d.label);
+            // Method cell: a checkbox (toggles the curve) + colour swatch + label.
+            const mwrap = tr.append("td").attr("class", "m-method").append("span").attr("class", "m-wrap");
+            mwrap.append("input")
+                .attr("type", "checkbox")
+                .attr("class", "m-check")
+                .attr("aria-label", d => `Show ${d.label}`)
+                .property("checked", d => state.visible[d.key] !== false)
+                .on("click", (event) => event.stopPropagation())
+                .on("change", function (_, d) { state.visible[d.key] = this.checked; rerender(); });
+            mwrap.append("span").attr("class", "m-sw").style("background-color", d => COLORS[d.key]);
+            mwrap.append("span").attr("class", "m-label").text(d => d.label);
+
             tr.append("td").text(d => fmt3(d.train));
             tr.append("td").text(d => fmt3(d.test));
             tr.append("td").text(d => fmt3(d.l2));
@@ -1868,11 +1883,6 @@
             el.lr,
             el.iters,
             el.lassoIters,
-            el.showOLS,
-            el.showRidge,
-            el.showLasso,
-            el.showL2GD,
-            el.showWD,
             el.selectedMethod,
         ];
 

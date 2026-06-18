@@ -17,36 +17,35 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <link rel="stylesheet" href="../styles/base.css">
-  <link rel="stylesheet" href="../styles/article.css">
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../styles/system.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/article-ui.css">
   <link rel="stylesheet" href="../styles/fourier.css">
-  <link rel="stylesheet" href="../styles/responsive.css">
   <link rel="stylesheet" href="../styles/section-outline.css">
+  <script src="../js/theme.js"></script>
 
-  <script defer src="../js/formulas_layout.js"></script>
+  <script defer src="../js/fourier-image-dropdown.js"></script>
   <script defer src="../js/fourier.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/PointerLockControls.js"></script>
   <script defer src="../js/fourier3d.js"></script>
-  <script defer src="../js/collapsible.js"></script>
+  <script defer src="../js/tabs.js"></script>
   <script defer src="../js/favicon.js"></script>
   <script type="module" src="../js/section-outline.js"></script>
 </head>
 
-<body>
-  <div class="container article fourier">
-    <header>
+<body class="ui fourier">
+  <div class="container">
+    <header class="page-head">
+      <div class="eyebrow">// Signals</div>
       <h1>Fourier Image Decomposition</h1>
-      <div class="subtitle">
-        Periodicity, smoothness assumptions, and why the DFT tiles your image into an infinite checkerboard
-      </div>
-      <div class="home-link"><a href="../index.html">← Home</a></div>
+      <p class="lede">Periodicity, smoothness assumptions, and why the DFT tiles an image into an infinite checkerboard.</p>
     </header>
-
     <main class="article-body">
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Assumption of Smoothness</h2>
         <p>
           Linear and polynomial regression both rest on an assumption that
@@ -78,7 +77,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Representing Periodicity</h2>
         <p>
           The simplest non-decaying periodic function on the real line is
@@ -87,9 +86,9 @@
           approximated by a sum of sines and cosines at integer-multiple
           frequencies. For a function $g(t)$ with period $T$,
         </p>
-        <div class="formula">
+        <div class="formulas"><div class="formula">
           $$g(t) \approx \sum_{k=0}^{K} a_k \cos(2\pi k t / T) + b_k \sin(2\pi k t / T)$$
-        </div>
+        </div></div>
         <p>
           and as $K$ grows the partial sum converges to $g$ at every point
           where $g$ is continuous. The sines and cosines at frequencies
@@ -102,9 +101,9 @@
           and phase of the wave end up encoded in the magnitude and argument
           of one complex coefficient. This gives:
         </p>
-        <div class="formula">
+        <div class="formulas"><div class="formula">
           $$g(t) \approx \sum_{k=0}^{K} c_k e^{i 2\pi k t / T}$$
-        </div>
+        </div></div>
         <p>
           For an $N \times N$ image, the natural frequencies (cycles per image) along each axis are the whole numbers
           up to $N/2$. This is because the highest frequency wave that can be represented on an image
@@ -115,24 +114,21 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>The Discrete Fourier Transform</h2>
         <p>
           The 2D Discrete Fourier Transform turns an $N \times N$ image
           $f[x, y]$, where $x$ and $y$ are pixel coordinates, into an $N \times N$ matrix of complex weights. $f[x, y]$ gives the individual pixel value at coordinates $x$ and $y$.
         </p>
-        <div class="formula">
+        <div class="formulas"><div class="formula">
           $$F[u, v] = \sum_{x=0}^{N-1} \sum_{y=0}^{N-1} f[x, y]\,e^{-i 2\pi(ux + vy)/N}$$
+        </div></div>
+        <div class="callout">
+          <div class="callout-label">Note</div>
+          <div class="callout-body">
+            The summations span $0$ to $N-1$ instead of $0$ to $N/2$. Indices $0$ to $N/2$ are those natural frequencies; indices $N/2$ to $N-1$ are their complex conjugates. For a real image, the conjugate half is redundant, carrying the same magnitude information as the positive half, but it is still required in the reconstruction sum so the imaginary parts cancel out and the rebuilt image comes out real-valued.
+          </div>
         </div>
-        <p class="note">
-          Note: The summations span $0$ to $N-1$ instead of $0$ to $N/2$. 
-          Indices $0$ to $N/2$ are those natural frequencies;
-          indices $N/2$ to $N-1$ are their complex conjugates. For a real image, the
-          conjugate half is redundant, carrying the same magnitude
-          information as the positive half, but it is still required in the
-          reconstruction sum so the imaginary parts cancel out and the rebuilt
-          image comes out real-valued.
-        </p>
         <p>
           Each $F[u, v]$ tells you how much of the wave
           $e^{i 2\pi(ux + vy)/N}$ is present, and its squared magnitude
@@ -144,9 +140,9 @@
           The inverse transform rebuilds
           the image by summing the waves back together:
         </p>
-        <div class="formula">
+        <div class="formulas"><div class="formula">
           $$f[x, y] = \frac{1}{N^2}\sum_{u=0}^{N-1} \sum_{v=0}^{N-1} F[u, v]\,e^{\,i 2\pi(ux + vy)/N}$$
-        </div>
+        </div></div>
         <p>
           This is a change of basis. The image still has $N^2$ degrees of
           freedom; we have just rewritten them as frequency coefficients
@@ -164,9 +160,9 @@
           expansion inherits that periodicity, effectively treating
           the image as one tile of an infinite wallpaper:
         </p>
-        <div class="formula">
+        <div class="formulas"><div class="formula">
           $$f_{\text{ext}}[x, y] = f\bigl[x \bmod N,\; y \bmod N\bigr]$$
-        </div>
+        </div></div>
         <p>
           If the image's edges happen to match (it fades to zero on every
           side, say), the wallpaper is seamless. If they do not, the tiling
@@ -179,7 +175,7 @@
         </p>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Other Image Reconstruction Techniques</h2>
         <p>
           Sine waves describe periodic structure, but most images are not
@@ -206,9 +202,9 @@
           Chebyshev polynomials $T_k(t)$ are also
           orthogonal on $[-1, 1]$, but under the weighted inner product:
         </p>
-        <div class="formula">
+        <div class="formulas"><div class="formula">
           $$\langle f,\, g \rangle_w = \int_{-1}^{1} \frac{f(t)\,g(t)}{\sqrt{1 - t^2}}\, dt$$
-        </div>
+        </div></div>
         <p>
           The weighting concentrates information near the endpoints, which
           gives Chebyshev a useful property called the minimax
@@ -246,233 +242,136 @@
         </p>
       </section>
 
-      <section class="panel fourier-demo-panel collapsible" data-open-mobile>
+      <section class="panel fourier-demo-panel" data-open-mobile>
         <h2>Interactive Demo</h2>
 
-        <div class="fourier-canvas-grid">
-          <section class="fourier-canvas-card">
-            <h3 class="h3-tight"><span id="fourierOrigLabel">Original Image</span></h3>
-            <canvas
-              id="fourierOrigCanvas"
-              width="256"
-              height="256"
-              class="fourier-canvas"
-              aria-label="Original image or periodic extension"
-            ></canvas>
-          </section>
+  <div class="demo">
+    <div class="fourier-demo-head"><span class="eyebrow">Demo 1</span><h3>Image decomposition</h3></div>
 
-          <section class="fourier-canvas-card">
-            <h3 class="h3-tight"><span id="fourierSpecLabel">Frequency Spectrum (log magnitude)</span></h3>
-            <canvas
-              id="fourierSpecCanvas"
-              width="256"
-              height="256"
-              class="fourier-canvas"
-              aria-label="Frequency magnitude spectrum"
-            ></canvas>
-          </section>
+    <div class="fourier-canvases">
+      <div class="fourier-canvas-card">
+        <div class="figcap"><span id="fourierOrigLabel">Original image</span></div>
+        <canvas id="fourierOrigCanvas" width="256" height="256" class="fourier-canvas" aria-label="Original image or periodic extension"></canvas>
+      </div>
+      <div class="fourier-canvas-card">
+        <div class="figcap"><span id="fourierSpecLabel">Frequency spectrum (log magnitude)</span></div>
+        <canvas id="fourierSpecCanvas" width="256" height="256" class="fourier-canvas" aria-label="Frequency magnitude spectrum"></canvas>
+      </div>
+      <div class="fourier-canvas-card">
+        <div class="figcap"><span id="fourierReconLabel">Reconstruction</span></div>
+        <canvas id="fourierReconCanvas" width="256" height="256" class="fourier-canvas" aria-label="Low-pass reconstructed image"></canvas>
+      </div>
+    </div>
 
-          <section class="fourier-canvas-card">
-            <h3 class="h3-tight"><span id="fourierReconLabel">Reconstruction</span></h3>
-            <canvas
-              id="fourierReconCanvas"
-              width="256"
-              height="256"
-              class="fourier-canvas"
-              aria-label="Low-pass reconstructed image"
-            ></canvas>
-          </section>
+    <div class="demo-controls fourier-controls">
+      <div class="demo-band fourier-band">
+        <div class="demo-group">
+          <label class="demo-label" for="fourierBasis">Basis</label>
+          <select id="fourierBasis">
+            <option value="fourier" selected>Fourier series</option>
+            <option value="poly">Legendre polynomials</option>
+            <option value="cheb">Chebyshev polynomials</option>
+            <option value="haar">Haar wavelets</option>
+          </select>
         </div>
 
-        <div class="fourier-controls-block">
-
-          <div class="fourier-control-section">
-            <h3 class="fourier-control-heading">Decomposition</h3>
-            <div class="fourier-control-grid">
-
-              <div class="fourier-control-item">
-                <label for="fourierBasis">Basis</label>
-                <select id="fourierBasis">
-                  <option value="fourier" selected>Fourier series</option>
-                  <option value="poly">Legendre polynomials</option>
-                  <option value="cheb">Chebyshev polynomials</option>
-                  <option value="haar">Haar wavelets</option>
-                </select>
-              </div>
-
-              <div class="fourier-control-item">
-                <label for="fourierPreset">Image</label>
-                <select id="fourierPreset">
-                  <option value="quadrant" selected>Quadrant</option>
-                  <option value="circle">Hard circle</option>
-                  <option value="gaussian">Gaussian blob</option>
-                  <option value="step">Step function</option>
-                  <option value="rect">Rectangle</option>
-                </select>
-                <label class="fourier-upload-btn">
-                  <span>Choose file…</span>
-                  <input id="fourierUpload" type="file" accept="image/*" class="fourier-visually-hidden" />
-                </label>
-              </div>
-
-              <div class="fourier-control-item">
-                <label id="fourierRadiusLabel" for="fourierRadius">Low-pass filter radius</label>
-                <div class="fourier-slider-row">
-                  <input
-                    id="fourierRadius"
-                    type="range"
-                    min="1"
-                    max="128"
-                    step="1"
-                    value="20"
-                  />
-                </div>
-                <output id="fourierRadiusValue" for="fourierRadius" class="fourier-radius-out">
-                  r = 20
-                </output>
-              </div>
-
-              <div class="fourier-control-item fourier-checkbox-item">
-                <label class="fourier-check-label">
-                  <input id="fourierTiling" type="checkbox"/>
-                  <span id="fourierTilingText">Show periodic extension (2×2 tile)</span>
-                </label>
-              </div>
-
-            </div>
-          </div>
-
-          <div class="fourier-control-section">
-            <h3 class="fourier-control-heading">3D View</h3>
-            <div class="fourier-control-grid fourier-3d-grid">
-
-              <div class="fourier-control-column">
-                <div class="fourier-control-item fourier-3d-source-group">
-                  <label class="fourier-upload-label">Source</label>
-                  <label>
-                    <input type="radio" name="fourier3dSource" value="recon" checked />
-                    Reconstruction
-                  </label>
-                  <label>
-                    <input type="radio" name="fourier3dSource" value="orig" />
-                    Original image
-                  </label>
-                </div>
-              </div>
-
-              <div class="fourier-control-column">
-                <div class="fourier-control-item fourier-3d-source-group fourier-3d-camera-item">
-                  <label class="fourier-upload-label">Camera</label>
-                  <label>
-                    <input type="radio" name="fourier3dCamera" value="orbit" checked />
-                    Orbit
-                  </label>
-                  <label>
-                    <input type="radio" name="fourier3dCamera" value="fly" />
-                    <span id="fourier3dFlyLabel">Fly</span>
-                  </label>
-                  <p
-                    id="fourier3dFlyHint"
-                    class="fourier-fly-hint"
-                    style="display:none"
-                  >
-                    Click the canvas to lock the cursor; click again or press ESC
-                    to release. WASD to move, Q/E for down/up, Shift to sprint.
-                  </p>
-                </div>
-              </div>
-
-              <div class="fourier-control-column">
-                <div class="fourier-control-item">
-                  <label for="fourier3dScale">Height scale</label>
-                  <div class="fourier-slider-row">
-                    <input
-                      id="fourier3dScale"
-                      type="range"
-                      min="10"
-                      max="200"
-                      step="5"
-                      value="60"
-                    />
-                  </div>
-                  <output id="fourier3dScaleOut" class="fourier-radius-out">60</output>
-                </div>
-
-                <div
-                  id="fourier3dTileExtentRow"
-                  class="fourier-control-item"
-                  style="display:none"
-                >
-                  <label for="fourier3dTileExtent">Tile extent</label>
-                  <div class="fourier-slider-row">
-                    <input
-                      id="fourier3dTileExtent"
-                      type="range"
-                      min="3"
-                      max="21"
-                      step="2"
-                      value="5"
-                      disabled
-                    />
-                  </div>
-                  <output id="fourier3dTileExtentOut" class="fourier-radius-out">
-                    5 × 5 = 25 tiles
-                  </output>
-                </div>
-
-              </div>
-
-              <div class="fourier-control-column">
-                <div class="fourier-control-item fourier-checkbox-item">
-                  <label class="fourier-check-label">
-                    <input id="fourier3dHideOOR" type="checkbox" />
-                    Hide overshoot regions
-                  </label>
-                </div>
-
-                <div class="fourier-control-item fourier-checkbox-item">
-                  <label class="fourier-check-label">
-                    <input id="fourier3dTile" type="checkbox" />
-                    Periodic tiling
-                  </label>
-                  <p
-                    id="fourier3dTileBasisNote"
-                    class="fourier-warning"
-                    style="display:none"
-                  >
-                    Basis isn't periodic - replicating tiles instead
-                  </p>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
+        <div class="demo-group fourier-image-group">
+          <span class="demo-label">Image</span>
+          <select id="fourierPreset" class="fourier-preset-native">
+            <option value="quadrant" selected>Quadrant</option>
+            <option value="circle">Hard circle</option>
+            <option value="gaussian">Gaussian blob</option>
+            <option value="step">Step function</option>
+            <option value="rect">Rectangle</option>
+          </select>
+          <input id="fourierUpload" type="file" accept="image/*" class="fourier-upload-input" hidden />
         </div>
 
-        <canvas
-          id="fourier3dCanvas"
-          class="fourier-3d-canvas"
-          aria-label="3D height-map surface of the current image"
-        ></canvas>
+        <div class="demo-group">
+          <div class="fourier-slabel">
+            <label class="demo-label" id="fourierRadiusLabel" for="fourierRadius">Low-pass filter radius</label>
+            <output id="fourierRadiusValue" for="fourierRadius" class="fourier-out">r = 20</output>
+          </div>
+          <input id="fourierRadius" type="range" min="1" max="128" step="1" value="20" class="fourier-slider" />
+        </div>
+
+        <div class="demo-group">
+          <span class="demo-label">Options</span>
+          <label class="fourier-check">
+            <input id="fourierTiling" type="checkbox" />
+            <span id="fourierTilingText">Show periodic extension (2x2 tile)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo">
+    <div class="fourier-demo-head"><span class="eyebrow">Demo 2</span><h3>3D height-map</h3></div>
+    <canvas id="fourier3dCanvas" class="fourier-3d-canvas" aria-label="3D height-map surface of the current image"></canvas>
+
+    <div class="demo-controls fourier-controls">
+      <div class="demo-band fourier-band">
+        <div class="demo-group">
+          <span class="demo-label">Source</span>
+          <div class="fourier-radios">
+            <label class="fourier-radio"><input type="radio" name="fourier3dSource" value="recon" checked />Reconstruction</label>
+            <label class="fourier-radio"><input type="radio" name="fourier3dSource" value="orig" />Original image</label>
+          </div>
+        </div>
+
+        <div class="demo-group">
+          <span class="demo-label">Camera</span>
+          <div class="fourier-radios">
+            <label class="fourier-radio"><input type="radio" name="fourier3dCamera" value="orbit" checked />Orbit</label>
+            <label class="fourier-radio"><input type="radio" name="fourier3dCamera" value="fly" /><span id="fourier3dFlyLabel">Fly</span></label>
+          </div>
+          <p id="fourier3dFlyHint" class="fourier-hint" style="display:none">Click the canvas to lock the cursor; click again or press ESC to release. WASD to move, Q/E for down/up, Shift to sprint.</p>
+        </div>
+
+        <div class="demo-group">
+          <div class="fourier-slabel">
+            <label class="demo-label" for="fourier3dScale">Height scale</label>
+            <output id="fourier3dScaleOut" class="fourier-out">60</output>
+          </div>
+          <input id="fourier3dScale" type="range" min="10" max="200" step="5" value="60" class="fourier-slider" />
+
+          <div id="fourier3dTileExtentRow" class="fourier-subitem" style="display:none">
+            <div class="fourier-slabel">
+              <label class="demo-label" for="fourier3dTileExtent">Tile extent</label>
+              <output id="fourier3dTileExtentOut" class="fourier-out">5 x 5 = 25 tiles</output>
+            </div>
+            <input id="fourier3dTileExtent" type="range" min="3" max="21" step="2" value="5" disabled class="fourier-slider" />
+          </div>
+        </div>
+
+        <div class="demo-group">
+          <span class="demo-label">Display</span>
+          <label class="fourier-check"><input id="fourier3dHideOOR" type="checkbox" />Hide overshoot regions</label>
+          <label class="fourier-check"><input id="fourier3dTile" type="checkbox" />Periodic tiling</label>
+          <p id="fourier3dTileBasisNote" class="fourier-warning" style="display:none">Basis isn't periodic, replicating tiles instead</p>
+        </div>
+      </div>
+    </div>
+  </div>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Reconstruction Formula</h2>
         <div id="fourierFormulaBox" class="fourier-formula-box" aria-live="polite"></div>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Interpreting the visualization</h2>
-        <div class="fourier-tabs" role="tablist">
-          <button type="button" class="fourier-tab is-active" data-tab="gibbs" role="tab" aria-selected="true">Gibbs ringing</button>
-          <button type="button" class="fourier-tab" data-tab="extrap" role="tab" aria-selected="false">Extrapolation</button>
-          <button type="button" class="fourier-tab" data-tab="overshoot" role="tab" aria-selected="false">Overshoot colors</button>
-          <button type="button" class="fourier-tab" data-tab="center" role="tab" aria-selected="false">Center panel</button>
-          <button type="button" class="fourier-tab" data-tab="poly" role="tab" aria-selected="false">Polynomial bases</button>
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab active" data-tab="gibbs">Gibbs ringing</button>
+          <button type="button" class="tab" data-tab="extrap">Extrapolation</button>
+          <button type="button" class="tab" data-tab="overshoot">Overshoot colors</button>
+          <button type="button" class="tab" data-tab="center">Center panel</button>
+          <button type="button" class="tab" data-tab="poly">Polynomial bases</button>
         </div>
 
-        <div class="fourier-tabpanel is-active" data-tab="gibbs" role="tabpanel">
+        <div class="tab-panel" data-panel="gibbs" role="tabpanel">
           <p>
             With the Fourier basis, the ringing in a low-pass reconstruction is
             called the Gibbs phenomenon. Near any jump discontinuity, a
@@ -514,7 +413,7 @@
           </p>
         </div>
 
-        <div class="fourier-tabpanel" data-tab="extrap" role="tabpanel">
+        <div class="tab-panel" data-panel="extrap" role="tabpanel" hidden>
           <p>
             The demo's "Show periodic extension" toggle, and its
             basis-dependent equivalents, reveal what happens outside the
@@ -544,7 +443,7 @@
           </p>
         </div>
 
-        <div class="fourier-tabpanel" data-tab="overshoot" role="tabpanel">
+        <div class="tab-panel" data-panel="overshoot" role="tabpanel" hidden>
           <p>
             Reconstructions, especially extrapolated ones, can produce pixel
             values outside the natural 0 to 255 grayscale range. The demo
@@ -575,7 +474,7 @@
           </p>
         </div>
 
-        <div class="fourier-tabpanel" data-tab="center" role="tabpanel">
+        <div class="tab-panel" data-panel="center" role="tabpanel" hidden>
           <p>
             The center panel of the demo changes per basis, but every variant
             answers the same question: where is this basis concentrating the
@@ -619,7 +518,7 @@
           </p>
         </div>
 
-        <div class="fourier-tabpanel" data-tab="poly" role="tabpanel">
+        <div class="tab-panel" data-panel="poly" role="tabpanel" hidden>
           <p>
             The Legendre and Chebyshev bases are built from one-dimensional
             polynomials, one family per axis. The 2D building block is a
@@ -657,7 +556,7 @@
         </div>
       </section>
 
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Summary</h2>
         <p>
           Every technique on this page rewrites the same image in a different
@@ -710,32 +609,10 @@
 
     </main>
 
-    <footer class="footer">
-      <p class="footer-tag">
-        Created by
-        <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a>
-      </p>
+    <footer class="site-footer">
+      <span class="credit">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></span>
     </footer>
   </div>
-  <script>
-    (function () {
-      var tabs = document.querySelectorAll('.fourier-tab');
-      var panels = document.querySelectorAll('.fourier-tabpanel');
-      tabs.forEach(function (tab) {
-        tab.addEventListener('click', function () {
-          var key = tab.getAttribute('data-tab');
-          tabs.forEach(function (t) {
-            var on = t === tab;
-            t.classList.toggle('is-active', on);
-            t.setAttribute('aria-selected', on ? 'true' : 'false');
-          });
-          panels.forEach(function (p) {
-            p.classList.toggle('is-active', p.getAttribute('data-tab') === key);
-          });
-        });
-      });
-    })();
-  </script>
 </body>
 
 </html>

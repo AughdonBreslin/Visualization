@@ -1,0 +1,224 @@
+/* styles/article-ui.css
+ * Support layer for migrated article pages (scoped under .ui). Loaded after components.css.
+ * Provides: back-to-home link, flat hairline-separated sections, display-math (.formula /
+ * .formulas via formulas_layout.js), the visualization row + control-grid restyle, and a
+ * .tab.active alias so the shared tabs.js (which toggles .active) lights up the new tab style.
+ */
+
+/* Back-to-home (quiet). */
+.ui .back-home {
+  display: inline-block;
+  font: 500 12px/1 var(--font-sans);
+  color: var(--text-muted);
+  text-decoration: none;
+  border: 0;
+  margin-bottom: 16px;
+}
+.ui .back-home:hover { color: var(--accent); }
+.ui .back-home::before { content: "\2190\00a0\00a0"; }
+
+/* Flat sections, separated by hairlines (no boxed panels). */
+.ui .article-body > section { scroll-margin-top: 16px; }
+/* Body text runs the full content width, out to the section spacer lines. */
+.ui .article-body > section > p,
+.ui .article-body > section > ul { max-width: none; }
+.ui .article-body > section + section {
+  border-top: 1px solid var(--hairline);
+  margin-top: 34px;
+  padding-top: 34px;
+}
+
+/* Display math: every .formula is a left-ruled block (accent wall). Display equations are not
+   numbered (nothing on a notes page cites them by number). In a .formulas row of several, only
+   the FIRST keeps the accent left wall; the rest are aligned but wall-less. */
+.ui .formulas { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 34px; margin: 16px 0; }
+.ui .formula {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 14px;
+  color: #e4e6ea;
+  border-left: 2px solid var(--accent);
+  padding: 8px 0 8px 18px;
+  margin: 12px 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.ui .formulas .formula { margin: 4px 0; }
+.ui .formulas .formula:not(:first-child) { border-left-color: transparent; padding-left: 0; }
+.ui .formula mjx-container { color: #e4e6ea; text-align: left !important; margin: 0 !important; }
+.ui p mjx-container[display] { text-align: left !important; margin-left: 0 !important; }
+/* Render math at the body text size. MathJax defaults to ~16px, a touch large next to the
+   14.5px prose; matching it keeps inline symbols and display equations in the text rhythm. */
+.ui .article-body mjx-container { font-size: var(--body-size); }
+.ui ul {
+  color: var(--text-body);
+  font: 400 var(--body-size)/var(--body-lh) var(--font-sans);
+  padding-left: 1.25em;
+  max-width: 62ch;
+  margin: 0 0 var(--sp-4);
+}
+.ui ul li { margin: 4px 0; }
+
+/* Embedded demo (Option A). The demo is a container so it reflows by its own width regardless of
+   the rail. Plots flow two-up; controls are a banded bar (config band over data band); the
+   results readout sits in a right-hand column that drops below the inputs when the demo narrows. */
+.ui .demo { container-type: inline-size; margin: 18px 0 var(--sp-6); }
+.ui .figcap {
+  font: 500 10.5px/1.3 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #62646c;
+  margin-bottom: 10px;
+}
+.ui .viz { border: 1px solid var(--figure-edge); border-radius: var(--radius-md); overflow: hidden; background: #060607; }
+.ui .help-text { font: 400 12px/1.5 var(--font-sans); color: var(--text-muted); margin-top: 8px; max-width: 60ch; }
+
+/* Plots two-up: one plot fills the row, two sit side by side, collapsing when narrow. */
+.ui .demo-figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px 24px; }
+.ui .demo-fig { margin: 0; min-width: 0; }
+.ui .demo-fig .figcap { margin-bottom: 9px; }
+.ui .demo-fig .help-text { margin-top: 9px; }
+
+/* Controls: banded input area (left) + results column (right). */
+.ui .demo-controls {
+  margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--hairline);
+  display: grid; grid-template-columns: 1fr 280px; gap: 44px; align-items: start;
+}
+.ui .demo-inputs { display: flex; flex-direction: column; gap: 30px; min-width: 0; }
+.ui .demo-band { display: grid; gap: 30px 34px; align-items: start; }
+.ui .demo-band.cols-2 { grid-template-columns: 1fr 1fr; }
+.ui .demo-band.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.ui .demo-stack { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.ui .demo-group { min-width: 0; }
+/* Column-flow variant: two columns that each stack their groups independently, so a short group
+   leaves no dead space above the next one (used where rows would not align cleanly anyway). */
+.ui .demo-inputs.demo-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 30px 34px; align-items: start; }
+.ui .demo-colstack { display: flex; flex-direction: column; gap: 30px; min-width: 0; }
+
+/* Demo labels + fields (the underline control language). */
+.ui .demo-label,
+.ui .demo-group > label {
+  display: block; font: 600 10px/1.2 var(--font-sans); letter-spacing: 0.14em; text-transform: uppercase;
+  color: #6c6e77; margin: 0 0 9px;
+}
+.ui .demo-item > .demo-label,
+.ui .demo-item > label { margin-bottom: 7px; }
+.ui .demo-group select,
+.ui .demo-group input[type="number"],
+.ui .demo-group input[type="text"] {
+  appearance: none; -webkit-appearance: none;
+  font: 500 13px/1.2 var(--font-sans); color: #dadbe0; background: transparent;
+  border: 0; border-bottom: 1px solid var(--hairline-strong); padding: 6px 2px; width: 100%;
+}
+.ui .demo-group select {
+  padding-right: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6' viewBox='0 0 9 6'%3E%3Cpath d='M1 1l3.5 3.5L8 1' fill='none' stroke='%237a7c84' stroke-width='1.3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 2px center;
+}
+.ui .demo-group textarea {
+  appearance: none; -webkit-appearance: none;
+  font: 500 13px/1.5 var(--font-sans); color: #dadbe0; background: transparent;
+  border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); padding: 8px 10px;
+  width: 100%; resize: vertical; min-height: 48px;
+}
+.ui .demo-hint { font: 400 11px/1.45 var(--font-sans); color: var(--text-muted); margin-top: 8px; max-width: 32ch; }
+.ui .demo-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 16px; }
+.ui .demo-item { min-width: 0; }
+.ui .demo-inline { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+.ui .demo-inline .btn { white-space: nowrap; }
+.ui .demo-results { min-width: 0; }
+.ui .demo-results .demo-label { margin-bottom: 11px; }
+
+/* Structured metric readout (label: value rows), boxed and mono tabular. Matches the bootstrap. */
+.ui .metrics {
+  width: fit-content; max-width: 100%;
+  background: var(--surface); border: 1px solid var(--surface-border); border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+  font: 500 13px/1.5 var(--font-mono); color: #cfd1d8; font-variant-numeric: tabular-nums;
+}
+.ui .metrics b { font-weight: 600; }
+
+.ui .tab-panel { margin-top: 16px; }
+
+/* Demo reflow (container queries on .demo): results drops below, then bands collapse to 1 col. */
+@container (max-width: 840px) { .ui .demo-controls { grid-template-columns: 1fr; gap: 26px; } }
+@container (max-width: 480px) {
+  .ui .demo-band.cols-2, .ui .demo-band.cols-3 { grid-template-columns: 1fr; }
+  .ui .demo-inputs.demo-columns { grid-template-columns: 1fr; }
+}
+
+/* Mono section number prefixing each section heading; matches the rail numbering. */
+.ui .article-body h2 .sec-n,
+.ui .article-body h3 .sec-n {
+  font: 500 13px/1 var(--font-mono);
+  color: var(--text-muted);
+  margin-right: 14px;
+}
+
+/* shared tabs.js toggles .active; alias it to the new active tab style. */
+.ui .tab.active { color: #ececf0; border-bottom-color: var(--accent); }
+
+/* On migrated article pages the rail + content read as one centered group (like the mock):
+   the content column is capped (was --container-wide / 1400px, which stretched nearly edge to
+   edge) and the global rail gutter then centers the rail + content as a balanced group.
+   section-outline.js glues the rail to the content's left edge. */
+body.ui { --outline-rail-w: 210px; }
+.ui.has-section-outline .container { max-width: 950px; }
+
+/* Outline rail: hide the overflow scrollbar. It only appeared because the rail, positioned
+   level with the first panel, can be taller than the remaining viewport near the top. */
+.ui .section-outline-panel { scrollbar-width: none; }
+.ui .section-outline-panel::-webkit-scrollbar { width: 0; height: 0; }
+
+/* Rail behavior on migrated (.ui) pages. The global section-outline.css shows the rail at
+   >=1100 and a top-left hamburger drawer at <=1099. Override so the rail appears only when there
+   is real room for it (>=1240); below that, for EVERY width (the thin desktop band and mobile),
+   the outline is a bottom-left hamburger drawer, so Home + the section outline stay reachable.
+   This re-declares the drawer for .ui because the global drawer is gated at <=1099. */
+@media (max-width: 1239px) {
+  body.ui.has-section-outline { padding-left: 0; }
+  .ui .section-outline-toggle {
+    display: grid;
+    position: fixed;
+    top: auto; bottom: 16px; left: 16px;
+    z-index: 1001;
+    width: 40px; height: 40px;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+  }
+  .ui .section-outline-bars,
+  .ui .section-outline-bars::before,
+  .ui .section-outline-bars::after {
+    content: ""; display: block; width: 18px; height: 2px; background: var(--text); position: relative;
+  }
+  .ui .section-outline-bars::before { position: absolute; top: -6px; }
+  .ui .section-outline-bars::after { position: absolute; top: 6px; }
+  .ui .section-outline-backdrop { position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, 0.5); display: block; }
+  .ui .section-outline-backdrop[hidden] { display: none; }
+  .ui .section-outline-panel {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 1002;
+    width: 78%; max-width: 320px; height: 100vh;
+    overflow-y: auto;
+    padding: 56px 16px 24px;
+    background: var(--bg);
+    border-right: 1px solid var(--hairline);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.5);
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+  }
+  .ui .section-outline.open .section-outline-panel { transform: translateX(0); }
+}
+
+@media (max-width: 720px) {
+  .ui .demo-figs { grid-template-columns: 1fr; }
+  .ui .demo-controls { gap: 24px; }
+  .ui .demo-inputs, .ui .demo-results { min-width: 0; width: 100%; margin-left: 0; }
+}

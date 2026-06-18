@@ -4,59 +4,110 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Home - Projects</title>
-  <link rel="stylesheet" href="styles/base.css">
+  <title>Aughdon Breslin - Interactive explainers</title>
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/system.css">
+  <link rel="stylesheet" href="styles/components.css">
   <link rel="stylesheet" href="styles/home.css">
-  <link rel="stylesheet" href="styles/responsive.css">
+  <script src="js/theme.js"></script>
   <script defer src="js/favicon.js"></script>
 </head>
 
-<body>
-  <div class="container home">
-    <header>
-      <h1>Projects Directory</h1>
-      <div class="subtitle">Browse projects and articles</div>
+<body class="ui home">
+  <div class="container">
+    <header class="page-head">
+      <div class="eyebrow">// Interactive explainers</div>
+      <h1>Aughdon Breslin</h1>
+      <p class="lede">Visual, interactive notes and tools on statistics, machine learning, and signals.</p>
     </header>
 
     <main>
       <ul class="project-list">
-        <li class="project-item">
-          <a href="pages/distributions.html">Distribution Visualizer</a>
-          <div class="project-desc">PDF/CDF visualizer for Normal, Uniform, Exponential, Laplace, Dirac, and Mixture distributions</div>
+        <li>
+          <a class="project-row" href="pages/distributions.html">
+            <span class="pr-n">01</span>
+            <span class="pr-main">
+              <span class="pr-title">Distribution Visualizer</span>
+              <span class="pr-desc">PDF/CDF visualizer for Normal, Uniform, Exponential, Laplace, Dirac, and Mixture distributions.</span>
+            </span>
+            <span class="pr-cat">Statistics</span>
+          </a>
         </li>
-        <li class="project-item">
-          <a href="pages/generative_classification.html">Unsupervised Supervised Learning</a>
-          <div class="project-desc">Step through demo to show how to solve a supervised classification problem using unsupervised density estimation</div>
+        <li>
+          <a class="project-row" href="pages/generative_classification.html">
+            <span class="pr-n">02</span>
+            <span class="pr-main">
+              <span class="pr-title">Unsupervised Supervised Learning</span>
+              <span class="pr-desc">Step through a demo to show how to solve a supervised classification problem using unsupervised density estimation.</span>
+            </span>
+            <span class="pr-cat">Machine learning</span>
+          </a>
         </li>
-        <li class="project-item">
-          <a href="pages/regularization.html">Linear Regression Regularization</a>
-          <div class="project-desc">Interactive comparison of several linear regression regularization methods and their results</div>
+        <li>
+          <a class="project-row" href="pages/regularization.html">
+            <span class="pr-n">03</span>
+            <span class="pr-main">
+              <span class="pr-title">Linear Regression Regularization</span>
+              <span class="pr-desc">Interactive comparison of several linear regression regularization methods and their results.</span>
+            </span>
+            <span class="pr-cat">Machine learning</span>
+          </a>
         </li>
-        <li class="project-item">
-          <a href="pages/estimation.html">Estimation: Bias, Variance, MSE, MLE</a>
-          <div class="project-desc">Notes on point/function estimation, standard error, minimizing MSE, consistency, and likelihood objectives</div>
+        <li>
+          <a class="project-row" href="pages/estimation.html">
+            <span class="pr-n">04</span>
+            <span class="pr-main">
+              <span class="pr-title">Estimation: Bias, Variance, MSE, MLE</span>
+              <span class="pr-desc">Notes on point/function estimation, standard error, minimizing MSE, consistency, and likelihood objectives.</span>
+            </span>
+            <span class="pr-cat">Statistics</span>
+          </a>
         </li>
-        <li class="project-item">
-          <a href="pages/bayesian.html">Bayesian Inference</a>
-          <div class="project-desc">Priors, posteriors, conjugacy, MAP, posterior predictive, and approximate inference (MCMC/VI)</div>
+        <li>
+          <a class="project-row" href="pages/bayesian.html">
+            <span class="pr-n">05</span>
+            <span class="pr-main">
+              <span class="pr-title">Bayesian Inference</span>
+              <span class="pr-desc">Priors, posteriors, conjugacy, MAP, posterior predictive, and approximate inference (MCMC/VI).</span>
+            </span>
+            <span class="pr-cat">Statistics</span>
+          </a>
         </li>
-        <li class="project-item">
-          <a href="pages/pca.html">Principal Component Analysis</a>
-          <div class="project-desc">Interactive walkthrough of PCA via SVD, principal directions, covariance eigendecomposition, and reconstruction</div>
+        <li>
+          <a class="project-row" href="pages/pca.html">
+            <span class="pr-n">06</span>
+            <span class="pr-main">
+              <span class="pr-title">Principal Component Analysis</span>
+              <span class="pr-desc">Interactive walkthrough of PCA via SVD, principal directions, covariance eigendecomposition, and reconstruction.</span>
+            </span>
+            <span class="pr-cat">Machine learning</span>
+          </a>
         </li>
-        <li class="project-item">
-          <a href="pages/fourier.html">Fourier Image Decomposition</a>
-          <div class="project-desc">DFT periodicity assumption, low-pass filtering, Gibbs phenomenon, and why non-periodic images produce checkerboard artifacts</div>
+        <li>
+          <a class="project-row" href="pages/fourier.html">
+            <span class="pr-n">07</span>
+            <span class="pr-main">
+              <span class="pr-title">Fourier Image Decomposition</span>
+              <span class="pr-desc">DFT periodicity assumption, low-pass filtering, the Gibbs phenomenon, and why non-periodic images produce checkerboard artifacts.</span>
+            </span>
+            <span class="pr-cat">Signals</span>
+          </a>
         </li>
-        <li class="project-item">
-          <a href="pages/manifold.html">Manifold Learning</a>
-          <div class="project-desc">An animated Isomap walkthrough plus a step-by-step side-by-side comparison of manifold learning algorithms on synthetic datasets or your own CSV</div>
+        <li>
+          <a class="project-row" href="pages/manifold.html">
+            <span class="pr-n">08</span>
+            <span class="pr-main">
+              <span class="pr-title">Manifold Learning</span>
+              <span class="pr-desc">An animated Isomap walkthrough plus a step-by-step side-by-side comparison of manifold learning algorithms on synthetic datasets or your own CSV.</span>
+            </span>
+            <span class="pr-cat">Machine learning</span>
+          </a>
         </li>
       </ul>
     </main>
 
-    <footer class="footer">
-        <p class="footer-tag">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></p>
+    <footer class="site-footer">
+      <span class="credit">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></span>
     </footer>
   </div>
 </body>

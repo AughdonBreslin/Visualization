@@ -1,0 +1,92 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<h2>Typeface pairings (Editorial, no frames)</h2>
+<p class="subtitle">Type is the only variable; palette/layout are fixed. Each shows the eyebrow, display title, a section heading, body, and a numeric readout (numerals matter on this site). Pick the voice; we then tune sizes/weights/spacing as their own step.</p>
+
+<style>
+.tf{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; overflow:hidden; margin-bottom:16px; position:relative; }
+.tf .slice{ padding:30px 36px 34px; }
+.tf .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.38); }
+.tf .eyebrow{ letter-spacing:.2em; text-transform:uppercase; color:#6b7cff; font-size:11px; font-weight:600; }
+.tf h1{ color:#fafafa; margin:11px 0 9px; }
+.tf .rule{ height:1px; background:rgba(255,255,255,.08); margin:18px 0; }
+.tf h3{ color:#ededf0; margin-bottom:8px; }
+.tf p{ color:#86888f; max-width:60ch; margin:0; }
+.tf .chip{ color:#c9cdfb; }
+.tf .readline{ margin-top:16px; display:flex; align-items:center; gap:14px; }
+.tf .lbl{ font:600 10px/1 'Inter'; letter-spacing:.13em; text-transform:uppercase; color:#6c6e77; }
+.tf .nums{ color:#cfd1d8; font-variant-numeric:tabular-nums; }
+.tf .nums b{ color:#6b7cff; }
+
+/* 1 - INTER */
+.t1 .eyebrow{ font-family:'Inter'; }
+.t1 h1{ font:600 32px/1.1 'Inter'; letter-spacing:-.025em; }
+.t1 h3{ font:600 18px/1.2 'Inter'; letter-spacing:-.012em; }
+.t1 p{ font:400 14.5px/1.7 'Inter'; }
+.t1 .nums{ font:500 13px/1 'JetBrains Mono'; }
+
+/* 2 - SPACE GROTESK */
+.t2 .eyebrow{ font-family:'Space Mono'; letter-spacing:.16em; }
+.t2 h1{ font:600 32px/1.08 'Space Grotesk'; letter-spacing:-.02em; }
+.t2 h3{ font:600 18px/1.2 'Space Grotesk'; }
+.t2 p{ font:400 14.5px/1.7 'Inter'; }
+.t2 .nums{ font:400 13px/1 'Space Mono'; }
+
+/* 3 - NEWSREADER (serif display) */
+.t3 .eyebrow{ font-family:'JetBrains Mono'; letter-spacing:.18em; }
+.t3 h1{ font:500 36px/1.06 'Newsreader'; letter-spacing:0; }
+.t3 h3{ font:600 21px/1.2 'Newsreader'; }
+.t3 p{ font:400 14.5px/1.72 'Inter'; }
+.t3 .nums{ font:500 13px/1 'JetBrains Mono'; }
+
+/* 4 - IBM PLEX */
+.t4 .eyebrow{ font-family:'IBM Plex Mono'; letter-spacing:.16em; }
+.t4 h1{ font:600 30px/1.12 'IBM Plex Sans'; letter-spacing:-.01em; }
+.t4 h3{ font:600 17px/1.25 'IBM Plex Sans'; }
+.t4 p{ font:400 14px/1.7 'IBM Plex Sans'; }
+.t4 .nums{ font:500 13px/1 'IBM Plex Mono'; }
+</style>
+
+<div class="tf t1"><div class="slice"><span class="tag">1 · INTER + JETBRAINS MONO</span>
+  <div class="eyebrow">Visualization</div>
+  <h1>Principal Component Analysis</h1>
+  <div class="rule"></div>
+  <h3>Covariance and change of basis</h3>
+  <p>PCA finds the orthogonal directions that capture the most <span class="chip">variance</span>. The top components give the best low-rank reconstruction.</p>
+  <div class="readline"><span class="lbl">Variance</span><span class="nums">explained <b>92.4%</b> &nbsp; rank 2 &nbsp; sv 4.18</span></div>
+</div></div>
+
+<div class="tf t2"><div class="slice"><span class="tag">2 · SPACE GROTESK + SPACE MONO</span>
+  <div class="eyebrow">Visualization</div>
+  <h1>Principal Component Analysis</h1>
+  <div class="rule"></div>
+  <h3>Covariance and change of basis</h3>
+  <p>PCA finds the orthogonal directions that capture the most <span class="chip">variance</span>. The top components give the best low-rank reconstruction.</p>
+  <div class="readline"><span class="lbl">Variance</span><span class="nums">explained <b>92.4%</b> &nbsp; rank 2 &nbsp; sv 4.18</span></div>
+</div></div>
+
+<div class="tf t3"><div class="slice"><span class="tag">3 · NEWSREADER SERIF + INTER</span>
+  <div class="eyebrow">Visualization</div>
+  <h1>Principal Component Analysis</h1>
+  <div class="rule"></div>
+  <h3>Covariance and change of basis</h3>
+  <p>PCA finds the orthogonal directions that capture the most <span class="chip">variance</span>. The top components give the best low-rank reconstruction.</p>
+  <div class="readline"><span class="lbl">Variance</span><span class="nums">explained <b>92.4%</b> &nbsp; rank 2 &nbsp; sv 4.18</span></div>
+</div></div>
+
+<div class="tf t4"><div class="slice"><span class="tag">4 · IBM PLEX SANS + MONO</span>
+  <div class="eyebrow">Visualization</div>
+  <h1>Principal Component Analysis</h1>
+  <div class="rule"></div>
+  <h3>Covariance and change of basis</h3>
+  <p>PCA finds the orthogonal directions that capture the most <span class="chip">variance</span>. The top components give the best low-rank reconstruction.</p>
+  <div class="readline"><span class="lbl">Variance</span><span class="nums">explained <b>92.4%</b> &nbsp; rank 2 &nbsp; sv 4.18</span></div>
+</div></div>
+
+<div class="options">
+  <div class="option" data-choice="inter" onclick="toggleSelect(this)"><div class="letter">1</div><div class="content"><h3>Inter + JetBrains Mono</h3><p>Neutral, modern, ubiquitous. Safe and highly legible; least "opinionated". Great numerals.</p></div></div>
+  <div class="option" data-choice="grotesk" onclick="toggleSelect(this)"><div class="letter">2</div><div class="content"><h3>Space Grotesk + Space Mono</h3><p>Distinctive geometric grotesk with character; technical-but-stylish. More personality than Inter.</p></div></div>
+  <div class="option" data-choice="serif" onclick="toggleSelect(this)"><div class="letter">3</div><div class="content"><h3>Newsreader serif + Inter</h3><p>Serif display headlines over a clean sans body. Most "editorial/luxury", closest to the 23street feel. Striking on dark.</p></div></div>
+  <div class="option" data-choice="plex" onclick="toggleSelect(this)"><div class="letter">4</div><div class="content"><h3>IBM Plex Sans + Mono</h3><p>Engineered, data-oriented superfamily; cohesive sans/mono. Reads as precise and scientific.</p></div></div>
+</div>

@@ -1,0 +1,131 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<h2>Stacked player: revealing the other steps</h2>
+<p class="subtitle">Four ways to see/jump to other steps from near the step label, each shown in its opened state. The player + scrubber are the same above each; only the step-navigation affordance changes.</p>
+
+<style>
+.sn{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; font-family:'Inter',system-ui; --acc:#6b7cff; }
+.sn .slice{ padding:24px 32px 28px; }
+.sn .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+/* mini player context */
+.sn .scrub{ display:flex; align-items:center; gap:12px; }
+.sn .ico{ width:26px; height:26px; border-radius:50%; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.04); flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.sn .ico::after{ content:''; border-left:8px solid #e7e8ec; border-top:5px solid transparent; border-bottom:5px solid transparent; margin-left:2px; }
+.sn .track{ position:relative; flex:1; height:4px; background:rgba(255,255,255,.12); border-radius:3px; }
+.sn .track .fill{ position:absolute; left:0; top:0; bottom:0; width:34%; background:var(--acc); border-radius:3px; }
+.sn .track .head{ position:absolute; left:34%; top:50%; width:11px; height:11px; border-radius:50%; background:var(--acc); border:2px solid #0c0c0d; transform:translate(-50%,-50%); }
+.sn .time{ font:500 11.5px/1 'JetBrains Mono'; color:#9a9ca4; font-variant-numeric:tabular-nums; }
+.sn .hr{ height:1px; background:rgba(255,255,255,.08); margin:18px 0; }
+.sn .k{ font:600 10px/1 'JetBrains Mono'; letter-spacing:.16em; color:var(--acc); }
+.sn .t{ font:600 16px/1.3 'Inter'; color:#ededf0; letter-spacing:-.01em; }
+.sn .transcript{ margin-top:14px; font:400 13.5px/1.65 'Inter'; color:#8b8d96; max-width:60ch; }
+.sn .cv{ pointer-events:none; }
+/* shared list item */
+.se{ display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:7px; cursor:pointer; }
+.se .n{ font:500 11px/1 'JetBrains Mono'; color:#5d5f68; width:16px; flex-shrink:0; }
+.se .l{ font:500 13px/1.3 'Inter'; color:#74767f; }
+.se.on{ background:rgba(107,124,255,.1); } .se.on .l{ color:#ededf0; } .se.on .n{ color:var(--acc); }
+.se.done .l{ color:#9a9ca4; } .se.done .n{ color:#7e8089; }
+.se:hover{ background:rgba(255,255,255,.04); }
+
+/* 1 - dropdown */
+.menu{ position:relative; display:inline-block; }
+.trigger{ display:inline-flex; align-items:center; gap:9px; cursor:pointer; }
+.trigger .chev{ color:#7a7c84; font-size:11px; }
+.dropdown{ position:absolute; top:calc(100% + 8px); left:0; width:320px; background:#141418; border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:6px; box-shadow:0 16px 40px -16px rgba(0,0,0,.8); z-index:5; }
+
+/* 2 - inline expander */
+.exp-list{ margin-top:14px; border-top:1px solid rgba(255,255,255,.08); padding-top:8px; }
+
+/* 3 - chips rail */
+.chips{ display:flex; gap:7px; align-items:center; margin-top:14px; flex-wrap:wrap; }
+.chip{ position:relative; width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font:500 12px/1 'JetBrains Mono'; cursor:pointer; }
+.chip.done{ background:rgba(255,255,255,.06); color:#9a9ca4; }
+.chip.now{ background:rgba(107,124,255,.16); border:1px solid color-mix(in srgb,var(--acc) 40%,transparent); color:#dfe3ff; }
+.chip.next{ border:1px solid rgba(255,255,255,.12); color:#6c6e77; }
+.chip .pop{ position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); white-space:nowrap; background:#141418; border:1px solid rgba(255,255,255,.1); color:#d6d8df; font:500 11.5px/1 'Inter'; padding:6px 9px; border-radius:6px; box-shadow:0 8px 20px -8px rgba(0,0,0,.7); }
+.chip .pop::after{ content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:5px solid transparent; border-top-color:#141418; }
+
+/* 4 - prev/next with peek */
+.peekrow{ display:flex; align-items:center; gap:14px; }
+.peek{ font:500 12.5px/1.3 'Inter'; color:#6c6e77; max-width:150px; }
+.peek .pk{ font:600 9.5px/1 'JetBrains Mono'; letter-spacing:.12em; color:#5d5f68; display:block; margin-bottom:5px; }
+.navbtn{ font:500 12.5px/1 'Inter'; color:#c4c6cd; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:9px 13px; cursor:pointer; white-space:nowrap; }
+</style>
+
+<!-- 1 DROPDOWN -->
+<div class="sn"><div class="slice"><span class="tag">1 · DROPDOWN FROM STEP</span>
+  <div class="scrub"><span class="ico"></span><div class="track"><div class="fill"></div><div class="head"></div></div><span class="time">01:12 / 03:40</span></div>
+  <div class="hr"></div>
+  <div class="menu">
+    <div class="k">STEP 3 / 7</div>
+    <div class="trigger"><span class="t">Build the neighborhood graph</span><span class="chev">&#9662;</span></div>
+    <div class="dropdown">
+      <div class="se done"><span class="n">01</span><span class="l">Sample the swiss roll</span></div>
+      <div class="se done"><span class="n">02</span><span class="l">Choose k and a metric</span></div>
+      <div class="se on"><span class="n">03</span><span class="l">Build the neighborhood graph</span></div>
+      <div class="se"><span class="n">04</span><span class="l">Shortest-path geodesics</span></div>
+      <div class="se"><span class="n">05</span><span class="l">Double-center the distances</span></div>
+      <div class="se"><span class="n">06</span><span class="l">Eigendecompose</span></div>
+      <div class="se"><span class="n">07</span><span class="l">Read off the embedding</span></div>
+    </div>
+  </div>
+  <div class="transcript" style="margin-top:130px">Click the step title to drop down the full chapter list and jump anywhere. Compact when closed; nothing else moves.</div>
+</div></div>
+
+<!-- 2 INLINE EXPANDER -->
+<div class="sn"><div class="slice"><span class="tag">2 · INLINE EXPANDER</span>
+  <div class="scrub"><span class="ico"></span><div class="track"><div class="fill"></div><div class="head"></div></div><span class="time">01:12 / 03:40</span></div>
+  <div class="hr"></div>
+  <div class="k">STEP 3 / 7</div>
+  <div class="trigger"><span class="t">Build the neighborhood graph</span><span class="chev" style="color:#7a7c84;font-size:11px">&#9652; collapse</span></div>
+  <div class="exp-list">
+    <div class="se done"><span class="n">01</span><span class="l">Sample the swiss roll</span></div>
+    <div class="se done"><span class="n">02</span><span class="l">Choose k and a metric</span></div>
+    <div class="se on"><span class="n">03</span><span class="l">Build the neighborhood graph</span></div>
+    <div class="se"><span class="n">04</span><span class="l">Shortest-path geodesics</span></div>
+    <div class="se"><span class="n">05</span><span class="l">Double-center the distances</span></div>
+    <div class="se"><span class="n">06</span><span class="l">Eigendecompose</span></div>
+    <div class="se"><span class="n">07</span><span class="l">Read off the embedding</span></div>
+  </div>
+  <div class="transcript">Clicking the step expands the list inline (content below shifts down). Everything stays in one column; good on mobile.</div>
+</div></div>
+
+<!-- 3 CHIPS RAIL -->
+<div class="sn"><div class="slice"><span class="tag">3 · CHAPTER CHIPS RAIL</span>
+  <div class="scrub"><span class="ico"></span><div class="track"><div class="fill"></div><div class="head"></div></div><span class="time">01:12 / 03:40</span></div>
+  <div class="hr"></div>
+  <div class="k">STEP 3 / 7</div>
+  <div class="t">Build the neighborhood graph</div>
+  <div class="chips">
+    <span class="chip done">1</span><span class="chip done">2</span>
+    <span class="chip now">3</span>
+    <span class="chip next">4</span>
+    <span class="chip next">5<span class="pop">Double-center the distances</span></span>
+    <span class="chip next">6</span><span class="chip next">7</span>
+  </div>
+  <div class="transcript">Always-visible numbered chips (done / current / upcoming). Hover a chip to peek its title; click to jump. Scannable at a glance, no click needed to see structure.</div>
+</div></div>
+
+<!-- 4 PREV/NEXT WITH PEEK -->
+<div class="sn"><div class="slice"><span class="tag">4 · PREV / NEXT WITH PEEK</span>
+  <div class="scrub"><span class="ico"></span><div class="track"><div class="fill"></div><div class="head"></div></div><span class="time">01:12 / 03:40</span></div>
+  <div class="hr"></div>
+  <div class="k">STEP 3 / 7</div>
+  <div class="t" style="margin-bottom:14px">Build the neighborhood graph</div>
+  <div class="peekrow">
+    <span class="peek"><span class="pk">&#8249; PREV</span>Choose k and a metric</span>
+    <button class="navbtn">&#8249;</button>
+    <button class="navbtn">&#8250;</button>
+    <span class="peek" style="text-align:right"><span class="pk">NEXT &#8250;</span>Shortest-path geodesics</span>
+  </div>
+  <div class="transcript">No list at all: prev/next buttons show the adjacent step titles so you always see what's on either side. Simplest; but you can't jump several steps at once.</div>
+</div></div>
+
+<div class="options">
+  <div class="option" data-choice="dropdown" onclick="toggleSelect(this)"><div class="letter">1</div><div class="content"><h3>Dropdown from step</h3><p>Click the title, a menu drops down with all steps. Compact when closed, full jump access. Overlay floats over content.</p></div></div>
+  <div class="option" data-choice="expander" onclick="toggleSelect(this)"><div class="letter">2</div><div class="content"><h3>Inline expander</h3><p>Click expands the list in place; content shifts down. Single column, no overlay. Most mobile-friendly.</p></div></div>
+  <div class="option" data-choice="chips" onclick="toggleSelect(this)"><div class="letter">3</div><div class="content"><h3>Chapter chips rail</h3><p>Always-visible numbered chips with hover-peek titles. Structure visible without any click; one tap to jump.</p></div></div>
+  <div class="option" data-choice="peek" onclick="toggleSelect(this)"><div class="letter">4</div><div class="content"><h3>Prev/next with peek</h3><p>Shows adjacent step titles only. Simplest and calmest, but no multi-step jumping.</p></div></div>
+</div>

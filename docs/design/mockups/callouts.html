@@ -1,0 +1,50 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<h2>Callouts / alerts</h2>
+<p class="subtitle">One shared component (replaces the two duplicated warning styles). Three treatments, each showing a Note (periwinkle) and a Warning (amber). Error would reuse the same with a red token.</p>
+
+<style>
+.co{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; font-family:'Inter',system-ui; --acc:#6b7cff; --warn:#e0b341; --warntext:#f0c460; }
+.co .slice{ padding:26px 32px 30px; display:flex; flex-direction:column; gap:16px; }
+.co .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+.co .lbl{ font:600 10.5px/1 'Inter'; letter-spacing:.12em; text-transform:uppercase; }
+.co .bd{ font:400 13.5px/1.6 'Inter'; color:#9a9ca4; max-width:62ch; margin-top:6px; }
+.co .bd b{ color:#cfd1d8; font-weight:500; }
+
+/* A: left rule + faint tint */
+.A .call{ border-left:3px solid var(--c); background:var(--cbg); border-radius:0 8px 8px 0; padding:13px 16px; }
+.A .note{ --c:var(--acc); --cbg:rgba(107,124,255,.08); } .A .note .lbl{ color:#9fb0ff; }
+.A .warn{ --c:var(--warn); --cbg:rgba(224,179,65,.08); } .A .warn .lbl{ color:var(--warntext); }
+
+/* B: filled box */
+.B .call{ border:1px solid var(--c); background:var(--cbg); border-radius:9px; padding:13px 16px; }
+.B .note{ --c:rgba(107,124,255,.35); --cbg:rgba(107,124,255,.10); } .B .note .lbl{ color:#9fb0ff; }
+.B .warn{ --c:rgba(224,179,65,.35); --cbg:rgba(224,179,65,.10); } .B .warn .lbl{ color:var(--warntext); }
+
+/* C: minimal left rule, no fill */
+.C .call{ border-left:2px solid var(--c); padding:2px 0 2px 16px; }
+.C .note{ --c:var(--acc); } .C .note .lbl{ color:#9fb0ff; }
+.C .warn{ --c:var(--warn); } .C .warn .lbl{ color:var(--warntext); }
+</style>
+
+<div class="co A"><div class="slice"><span class="tag">A · LEFT RULE + FAINT TINT</span>
+  <div class="call note"><span class="lbl">Note</span><div class="bd">The DFT assumes the image <b>tiles periodically</b>; the seam between tiles is what injects energy along the frequency axes.</div></div>
+  <div class="call warn"><span class="lbl">Warning</span><div class="bd">Non-periodic images produce <b>checkerboard artifacts</b> under aggressive low-pass filtering.</div></div>
+</div></div>
+
+<div class="co B"><div class="slice"><span class="tag">B · FILLED BOX</span>
+  <div class="call note"><span class="lbl">Note</span><div class="bd">The DFT assumes the image <b>tiles periodically</b>; the seam between tiles is what injects energy along the frequency axes.</div></div>
+  <div class="call warn"><span class="lbl">Warning</span><div class="bd">Non-periodic images produce <b>checkerboard artifacts</b> under aggressive low-pass filtering.</div></div>
+</div></div>
+
+<div class="co C"><div class="slice"><span class="tag">C · MINIMAL RULE, NO FILL</span>
+  <div class="call note"><span class="lbl">Note</span><div class="bd">The DFT assumes the image <b>tiles periodically</b>; the seam between tiles is what injects energy along the frequency axes.</div></div>
+  <div class="call warn"><span class="lbl">Warning</span><div class="bd">Non-periodic images produce <b>checkerboard artifacts</b> under aggressive low-pass filtering.</div></div>
+</div></div>
+
+<div class="options">
+  <div class="option" data-choice="tint" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>Left rule + faint tint</h3><p>Accent/amber left rule with a very faint matching fill. Stands out clearly but stays restrained. Closest to today's warning, refined.</p></div></div>
+  <div class="option" data-choice="filled" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Filled box</h3><p>Full tinted box with a colored border. Most prominent; reads as a distinct block. Slightly against the no-frames grain.</p></div></div>
+  <div class="option" data-choice="minimal" onclick="toggleSelect(this)"><div class="letter">C</div><div class="content"><h3>Minimal rule, no fill</h3><p>Just a colored left rule + label, no background. Most editorial, matches the no-frames math treatment. Subtlest.</p></div></div>
+</div>

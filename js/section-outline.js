@@ -92,15 +92,52 @@ function buildNav(entries) {
   const list = document.createElement('ul');
   list.className = 'section-outline-list';
   const linkById = new Map();
-  for (const entry of entries) {
+  // On redesign (.ui) pages, prefix each item with a mono index number.
+  const numbered = document.body.classList.contains('ui');
+  entries.forEach((entry, i) => {
     const li = document.createElement('li');
     const a = document.createElement('a');
     a.href = `#${entry.id}`;
-    a.textContent = entry.label;
+    if (numbered) {
+      const num = document.createElement('span');
+      num.className = 'rail-n';
+      num.textContent = String(i + 1).padStart(2, '0');
+      a.appendChild(num);
+      a.appendChild(document.createTextNode(entry.label));
+    } else {
+      a.textContent = entry.label;
+    }
+    if (numbered) {
+      const heading = entry.panel.querySelector(':scope > h2, :scope > h3');
+      if (heading && !heading.querySelector('.sec-n')) {
+        const sn = document.createElement('span');
+        sn.className = 'sec-n';
+        sn.setAttribute('aria-hidden', 'true');
+        sn.textContent = String(i + 1).padStart(2, '0');
+        heading.insertBefore(sn, heading.firstChild);
+      }
+    }
     a.dataset.target = entry.id;
     li.appendChild(a);
     list.appendChild(li);
     linkById.set(entry.id, a);
+  });
+  // On redesign (.ui) pages, the Home link lives at the top of the rail (position 0) with a
+  // back-arrow instead of a number, so the mobile drawer exposes it cleanly too.
+  if (numbered) {
+    const homeLi = document.createElement('li');
+    homeLi.className = 'rail-home-item';
+    const homeA = document.createElement('a');
+    homeA.className = 'rail-home';
+    homeA.href = '../index.html';
+    const arrow = document.createElement('span');
+    arrow.className = 'rail-arrow';
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '←';
+    homeA.appendChild(arrow);
+    homeA.appendChild(document.createTextNode('Home'));
+    homeLi.appendChild(homeA);
+    list.insertBefore(homeLi, list.firstChild);
   }
   panel.appendChild(list);
 
@@ -175,18 +212,35 @@ function wireScrollspy(entries, linkById) {
 // Desktop only: start the rail level with the top of the first panel (below the
 // page header) and let it ride up with the page until it sticks near the top.
 function positionDesktopRail(rail, firstPanel) {
-  const DESKTOP = window.matchMedia('(min-width: 1100px)');
   const MIN_TOP = 24;
+  const ui = document.body.classList.contains('ui');
+  // .ui (migrated) pages only show the rail at >=1240px (article-ui.css hides it below that);
+  // un-migrated pages keep the global >=1100px rail. Keep this matchMedia in sync with the CSS.
+  const DESKTOP = window.matchMedia(`(min-width: ${ui ? 1240 : 1100}px)`);
+  const container = document.querySelector('.container');
+  const gap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--outline-rail-gap'), 10) || 16;
   const update = () => {
     if (!DESKTOP.matches) {
       rail.style.top = '';
       rail.style.maxHeight = '';
+      rail.style.left = '';
       return;
     }
     const firstTop = firstPanel.getBoundingClientRect().top + window.scrollY;
-    const top = Math.max(MIN_TOP, firstTop - window.scrollY);
+    // The Home item sits at the top of the rail (.ui pages). Offset by its height so the FIRST
+    // SECTION entry (e.g. Overview) lines up with the first section header, not the Home link.
+    let homeOffset = 0;
+    const homeItem = rail.querySelector('.rail-home-item');
+    if (homeItem) homeOffset = homeItem.getBoundingClientRect().height + (parseFloat(getComputedStyle(homeItem).marginBottom) || 0);
+    const top = Math.max(MIN_TOP, firstTop - window.scrollY - homeOffset);
     rail.style.top = `${top}px`;
     rail.style.maxHeight = `calc(100vh - ${top}px)`;
+    // On redesign (.ui) pages, glue the rail to the left edge of the centered content so
+    // the rail + content read as one centered group instead of pinning to the viewport edge.
+    if (ui && container) {
+      const left = Math.max(12, Math.round(container.getBoundingClientRect().left - rail.offsetWidth - gap));
+      rail.style.left = `${left}px`;
+    }
   };
   update();
   window.addEventListener('scroll', update, { passive: true });
