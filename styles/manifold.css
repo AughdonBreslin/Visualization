@@ -1,10 +1,19 @@
 /* manifold.css */
-.ui.manifold .mf-controls-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin-top: 8px; }
-.ui.manifold .mf-control { display: flex; flex-direction: column; gap: 4px; min-width: 140px; }
-.ui.manifold .mf-control input, .ui.manifold .mf-control select { min-width: 140px; background: var(--surface-strong); color: #fff; border: 1px solid var(--hairline-strong); border-radius: 6px; padding: 3px 7px; }
-.ui.manifold .mf-control input:focus, .ui.manifold .mf-control select:focus { outline: none; border-color: var(--accent); }
+/* flat dataset controls (underline fields + small uppercase labels) */
+.ui.manifold .mf-controls-row { display: flex; flex-wrap: wrap; gap: 26px; align-items: flex-end; margin-top: 0; }
+.ui.manifold .mf-control { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.ui.manifold .mf-control label { font: 600 9.5px/1.2 var(--font-sans); letter-spacing: .13em; text-transform: uppercase; color: #6c6e77; }
+.ui.manifold .mf-control input, .ui.manifold .mf-control select { background: none; color: #e7e8ec; border: 0; border-bottom: 1px solid var(--hairline-strong); border-radius: 0; padding: 5px 2px; font: 500 13px/1.2 var(--font-sans); min-width: 110px; }
+.ui.manifold .mf-control select { appearance: none; padding-right: 20px; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 6'%3E%3Cpath d='M1 1l3.5 3.5L8 1' fill='none' stroke='%237a7c84' stroke-width='1.3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 2px center; background-size: 9px; }
+.ui.manifold .mf-control input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+.ui.manifold .mf-control input[type=number]::-webkit-outer-spin-button,
+.ui.manifold .mf-control input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.ui.manifold .mf-control input:focus, .ui.manifold .mf-control select:focus { outline: none; border-bottom-color: var(--accent); }
 .ui.manifold .mf-control-action { align-self: flex-end; }
-.ui.manifold .mf-csv-name { font-size: 0.9rem; color: var(--text-muted); margin-top: 6px; min-height: 1.2em; }
+.ui.manifold .mf-control-action button { background: none; border: 1px solid var(--hairline-strong); border-radius: 7px; color: #dadbe0; font: 500 12px/1 var(--font-sans); padding: 8px 13px; cursor: pointer; }
+.ui.manifold .mf-control-action button:hover { border-color: var(--accent); color: #fff; }
+.ui.manifold .mf-csv-name { font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; min-height: 1.2em; }
+.ui.manifold .mf-first-eyebrow { margin-top: 0; }
 .ui.manifold .mf-algos-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
 .ui.manifold .mf-algo-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 10px 12px; }
 .ui.manifold .mf-algo-header { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
