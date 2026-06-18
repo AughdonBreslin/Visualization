@@ -383,7 +383,9 @@
    painted in the page background so it is effectively invisible; hovering reveals it faintly.
    Once toggled on ("RIP Ari") it stays accent-colored regardless of hover. */
 .ui .site-footer .footer-tribute { font-family: 'Monocraft', ui-monospace, monospace; font-size: 10px; line-height: 1; letter-spacing: 0.04em; color: var(--bg); background: none; border: 0; padding: 2px; cursor: pointer; transition: color 0.15s ease; }
-.ui .site-footer .footer-tribute:hover { color: #3a3b42; }
+/* Reveal on hover only on devices that truly hover, so a tap on touch never makes it
+   visible. On phones it stays background-colored (invisible) but remains tappable. */
+@media (hover: hover) { .ui .site-footer .footer-tribute:hover { color: #3a3b42; } }
 .ui .site-footer .footer-tribute[aria-pressed="true"] { color: var(--accent-link); }
 .ui .site-footer .credit { font: 400 12px/1 var(--font-sans); color: var(--text-muted); }
 .ui .site-footer .credit a { color: inherit; border-bottom: 0; }
