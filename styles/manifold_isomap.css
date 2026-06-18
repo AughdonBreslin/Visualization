@@ -148,47 +148,24 @@
   color: #fff; cursor: pointer;
 }
 
-/* Native fullscreen: the wrapper fills the screen and becomes a vertical
-   scroller. The video is one full screen; swiping down snaps to the transcript
-   below it, which is the only other thing shown in fullscreen. */
+/* Native fullscreen: just the clip, filling the screen. The transcript, steps,
+   dataset note, and the swipe-down hint are hidden, and the wrapper does not
+   scroll, so fullscreen shows only the video with no side scrollbar or
+   over-scroll. */
 .ui.manifold .mfi-fs-wrap:fullscreen,
 .ui.manifold .mfi-fs-wrap:-webkit-full-screen {
-  width: 100vw; height: 100vh; gap: 0; background: #000;
-  overflow-x: hidden; overflow-y: auto;
-  scroll-snap-type: y proximity; -webkit-overflow-scrolling: touch;
+  width: 100vw; height: 100vh; gap: 0; background: #000; overflow: hidden;
 }
 .ui.manifold .mfi-fs-wrap:fullscreen .mfi-stage {
-  flex: none; width: 100vw; height: 100vh;
-  border: none; border-radius: 0; scroll-snap-align: start;
+  flex: none; width: 100vw; height: 100vh; border: none; border-radius: 0;
 }
 .ui.manifold .mfi-fs-wrap:fullscreen .mfi-video {
   width: 100%; height: 100%; aspect-ratio: auto; object-fit: contain;
 }
-/* In fullscreen only the transcript accompanies the video; steps and the
-   dataset note are hidden so the swipe-down screen is just the explanation. */
 .ui.manifold .mfi-fs-wrap:fullscreen .mfi-steps,
-.ui.manifold .mfi-fs-wrap:fullscreen .mfi-datasetnote { display: none; }
-.ui.manifold .mfi-fs-wrap:fullscreen .mfi-transcript {
-  flex: none; min-height: 100vh; margin: 0; border-radius: 0;
-  padding: 5vh max(24px, 6vw); background: #0c0c0c;
-  scroll-snap-align: start; overflow-y: auto;
-}
-
-/* Swipe-down affordance, shown over the video only in fullscreen and faded
-   once the viewer has scrolled toward the transcript. */
+.ui.manifold .mfi-fs-wrap:fullscreen .mfi-datasetnote,
+.ui.manifold .mfi-fs-wrap:fullscreen .mfi-transcript,
 .ui.manifold .mfi-fs-hint { display: none; }
-.ui.manifold .mfi-fs-wrap:fullscreen .mfi-fs-hint {
-  display: block; position: absolute; left: 50%; bottom: 58px;
-  transform: translateX(-50%); pointer-events: none;
-  color: rgba(255, 255, 255, 0.88); font-size: 0.8rem; white-space: nowrap;
-  padding: 4px 12px; border-radius: 12px; background: rgba(0, 0, 0, 0.45);
-  transition: opacity 0.3s ease; animation: mfiHintBob 1.7s ease-in-out infinite;
-}
-.ui.manifold .mfi-fs-wrap:fullscreen.is-scrolled .mfi-fs-hint { opacity: 0; }
-@keyframes mfiHintBob {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(4px); }
-}
 
 .ui.manifold .mfi-steps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0; }
 .ui.manifold .mfi-steps li {
