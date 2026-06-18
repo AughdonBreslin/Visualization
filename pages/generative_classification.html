@@ -202,7 +202,6 @@
                 <h2>Posterior computation</h2>
                 <p>Walking through the calculations for both KDE and GDA to compute the posterior probabilities $p(y|x^*)$ at a query point $x^*$.</p>
                 <div class="gc-actions">
-                    <button id="example1" type="button" class="btn">Example (75, 89.5)</button>
                     <div class="gc-compute">
                         <span class="gc-compute-text">Compute for x* = (</span>
                         <input id="example2x1" type="number" step="0.1" value="83" aria-label="x1 coordinate" class="gc-inline-num" />
@@ -213,11 +212,9 @@
                     </div>
                 </div>
                 <p class="examples-hint">Or click anywhere on the plot above to query a point.</p>
-                <div id="calcQueryPoint" class="metrics gc-calc">No point computed yet.</div>
-                <div id="calcPriors" class="metrics gc-calc">Priors: -</div>
-                <div id="calcMuSigma0" class="metrics gc-calc">Class 0: &mu;0 = - ; &Sigma;0 = -</div>
-                <div id="calcPointKDE" class="metrics gc-calc">No point computed yet.</div>
-                <div id="calcPointGDA" class="metrics gc-calc">No point computed yet.</div>
+                <div id="calcQueryPoint" class="gc-qcaption">No point computed yet.</div>
+                <div id="calcPointKDE" class="gc-method-wrap">No point computed yet.</div>
+                <div id="calcPointGDA" class="gc-method-wrap">No point computed yet.</div>
             </section>
 
             <section id="difference-panel" class="panel">
