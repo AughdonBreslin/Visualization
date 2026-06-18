@@ -1,4 +1,15 @@
 /* styles/tokens.css - redesign design tokens (custom properties only; inert until used). */
+
+/* Monocraft (OFL, IdreesInc) - vendored for the hidden "tribute" font mode. See
+   assets/fonts/OFL.txt. Only renders where applied (the footer tag, and the whole
+   site when tribute mode is on via theme.js). */
+@font-face {
+  font-family: 'Monocraft';
+  src: url('../assets/fonts/Monocraft.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 :root {
   /* fonts (substitutable; single source of truth) */
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -68,3 +79,7 @@ html[data-density="generous"] {
   --body-size: 15.5px; --body-lh: 1.75;
   --lede-size: 16px; --lede-lh: 1.6;
 }
+
+/* Tribute (Monocraft) mode: a pixel font reads better without the tightened heading
+   tracking the sans scale uses. theme.js sets data-font when the mode is on. */
+html[data-font="monocraft"] { --h1-track: 0; --h2-track: 0; }
