@@ -4,16 +4,18 @@
  * legend, the click-to-query readout, and the posterior-walkthrough readouts. */
 
 /* --- Zone 1: CSV dataset input --- */
+.ui.generative-classification .gc-ds-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 9px; }
+.ui.generative-classification .gc-ds-head .demo-label { margin-bottom: 0; }
 .ui.generative-classification .gc-csv { width: 100%; min-height: 150px; resize: vertical; background: #060607; border: 1px solid var(--hairline); border-radius: var(--radius-md); color: #cfd1d8; font: 500 12px/1.55 var(--font-mono); padding: 11px 13px; }
-.ui.generative-classification .gc-load-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
 .ui.generative-classification .gc-warning { margin-top: 14px; }
 
-/* --- Zone 2: fitted parameters readout --- */
-.ui.generative-classification .gc-params { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 26px; }
-.ui.generative-classification .gc-params .gda-class { min-width: 0; }
-.ui.generative-classification .gc-params .gda-class-title { font: 600 10px/1.2 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: #6c6e77; margin-bottom: 8px; }
-.ui.generative-classification .gc-params .gda-class > div { margin: 4px 0; color: #cfd1d8; font-size: 13px; }
-@container (max-width: 560px) { .ui.generative-classification .gc-params { grid-template-columns: 1fr; } }
+/* --- Zone 2: fitted parameters readout (table: one row per class) --- */
+.ui.generative-classification .gc-params { overflow-x: auto; }
+.ui.generative-classification .gc-params-table { border-collapse: collapse; width: 100%; font: 500 13px/1.5 var(--font-sans); }
+.ui.generative-classification .gc-params-table th { text-align: left; font: 600 10px/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: #6c6e77; padding: 0 18px 9px 0; border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+.ui.generative-classification .gc-params-table td { padding: 9px 18px 9px 0; border-bottom: 1px solid var(--hairline); color: #cfd1d8; vertical-align: middle; white-space: nowrap; }
+.ui.generative-classification .gc-params-table tr:last-child td { border-bottom: 0; }
+.ui.generative-classification .gc-params-table .gda-class-cell { color: var(--text-body); font-family: var(--font-mono); }
 
 /* --- Zone 3: viz demo grid --- */
 .ui.generative-classification .gc-viz-grid { display: grid; grid-template-columns: 1fr 270px; gap: 26px; align-items: start; }
