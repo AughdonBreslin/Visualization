@@ -32,7 +32,10 @@
 .ui.fourier .fourier-subitem { margin-top: 16px; }
 
 /* --- Checkboxes and radios --- */
-.ui.fourier .fourier-check { display: flex; align-items: center; gap: 10px; font: 500 13px/1.35 var(--font-sans); color: #cfd1d8; cursor: pointer; }
+/* .fourier-check is a <label> directly inside .demo-group, so it would otherwise pick up the
+   uppercase, wide-tracked treatment that article-ui.css gives demo-group labels. Reset that so
+   the checkbox text reads as a normal sentence-case option. */
+.ui.fourier .fourier-check { display: flex; align-items: center; gap: 10px; font: 500 13px/1.35 var(--font-sans); letter-spacing: normal; text-transform: none; color: #cfd1d8; cursor: pointer; }
 .ui.fourier .fourier-check + .fourier-check { margin-top: 8px; }
 .ui.fourier .fourier-check input { accent-color: var(--accent); width: 15px; height: 15px; flex: none; cursor: pointer; }
 .ui.fourier .fourier-radios { display: flex; flex-direction: column; gap: 8px; }
