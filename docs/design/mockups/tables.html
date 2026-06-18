@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock: tables</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body{ background:#0c0c0d; color:#8b8d96; font-family:'Inter',system-ui; margin:0; padding:28px 40px 60px; --acc:#6b7cff; }
+  h2.scr{ font:600 22px/1.2 'Inter'; color:#fff; margin:0 0 6px; }
+  .subtitle{ color:#8b8d96; font:400 14px/1.6 'Inter'; margin:0 0 22px; max-width:84ch; }
+  .options{ display:flex; flex-direction:column; gap:10px; margin-top:18px; max-width:780px; }
+  .option{ display:flex; gap:14px; background:#141416; border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:14px 16px; cursor:pointer; }
+  .option:hover{ border-color:rgba(107,124,255,.5); } .option.sel{ border-color:#6b7cff; background:rgba(107,124,255,.08); }
+  .option .letter{ width:26px; height:26px; border-radius:7px; background:rgba(255,255,255,.08); color:#cfd1d8; display:flex; align-items:center; justify-content:center; font:600 13px 'Inter'; flex-shrink:0; }
+  .option.sel .letter{ background:#6b7cff; color:#fff; }
+  .option .content h3{ font:600 14px 'Inter'; color:#ededf0; margin:0 0 3px; } .option .content p{ font:400 13px/1.5 'Inter'; color:#9a9ca4; margin:0; }
+
+  .tb{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; }
+  .tb .slice{ padding:26px 32px 30px; }
+  .tb .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+  table{ border-collapse:collapse; width:100%; max-width:620px; }
+  th{ font:600 10px/1 'JetBrains Mono'; letter-spacing:.1em; text-transform:uppercase; color:#6c6e77; text-align:right; padding:0 0 11px; font-weight:600; }
+  th:first-child{ text-align:left; }
+  td{ font:400 13px/1 'Inter'; color:#b6b8c0; padding:11px 0; text-align:right; }
+  td:first-child{ text-align:left; color:#dadbe0; font-weight:500; }
+  td.num{ font-family:'JetBrains Mono'; font-weight:500; font-variant-numeric:tabular-nums; }
+  td + td, th + th{ padding-left:26px; }
+  .best td{ color:#cfd1d8; } .best .hl{ color:var(--acc); }
+
+  /* A: row hairlines */
+  .A th{ border-bottom:1px solid rgba(255,255,255,.22); }
+  .A td{ border-bottom:1px solid rgba(255,255,255,.07); }
+  .A tr:last-child td{ border-bottom:0; }
+  /* B: header underline only */
+  .B th{ border-bottom:1px solid rgba(255,255,255,.18); }
+  .B td{ padding:9px 0; }
+  /* C: zebra + header rule */
+  .C th{ border-bottom:1px solid rgba(255,255,255,.18); }
+  .C tbody tr:nth-child(odd){ background:rgba(255,255,255,.022); }
+  .C td{ padding:10px 10px; } .C td:first-child{ padding-left:10px; } .C th{ padding-left:10px; padding-right:10px; }
+  .C td + td, .C th + th{ padding-left:10px; }
+</style></head>
+<body>
+<script>function toggleSelect(el){el.parentElement.querySelectorAll('.option').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');}</script>
+
+<h2 class="scr">Data tables</h2>
+<p class="subtitle">A real stats table (regularization). Mono uppercase headers, tabular numerals, numbers right-aligned, the best Test MSE in periwinkle. Three border treatments.</p>
+
+<div class="tb A"><div class="slice"><span class="tag">A · ROW HAIRLINES</span>
+<table><thead><tr><th>Model</th><th>&lambda;</th><th>Train MSE</th><th>Test MSE</th><th>Bias&sup2;</th><th>Var</th></tr></thead>
+<tbody>
+<tr><td>OLS</td><td class="num">0.00</td><td class="num">0.182</td><td class="num">0.471</td><td class="num">0.061</td><td class="num">0.410</td></tr>
+<tr class="best"><td>Ridge</td><td class="num">0.30</td><td class="num">0.241</td><td class="num hl">0.388</td><td class="num">0.142</td><td class="num">0.246</td></tr>
+<tr><td>Lasso</td><td class="num">0.12</td><td class="num">0.263</td><td class="num">0.402</td><td class="num">0.171</td><td class="num">0.231</td></tr>
+<tr><td>Elastic Net</td><td class="num">0.20</td><td class="num">0.255</td><td class="num">0.395</td><td class="num">0.158</td><td class="num">0.237</td></tr>
+</tbody></table>
+</div></div>
+
+<div class="tb B"><div class="slice"><span class="tag">B · HEADER UNDERLINE ONLY</span>
+<table><thead><tr><th>Model</th><th>&lambda;</th><th>Train MSE</th><th>Test MSE</th><th>Bias&sup2;</th><th>Var</th></tr></thead>
+<tbody>
+<tr><td>OLS</td><td class="num">0.00</td><td class="num">0.182</td><td class="num">0.471</td><td class="num">0.061</td><td class="num">0.410</td></tr>
+<tr class="best"><td>Ridge</td><td class="num">0.30</td><td class="num">0.241</td><td class="num hl">0.388</td><td class="num">0.142</td><td class="num">0.246</td></tr>
+<tr><td>Lasso</td><td class="num">0.12</td><td class="num">0.263</td><td class="num">0.402</td><td class="num">0.171</td><td class="num">0.231</td></tr>
+<tr><td>Elastic Net</td><td class="num">0.20</td><td class="num">0.255</td><td class="num">0.395</td><td class="num">0.158</td><td class="num">0.237</td></tr>
+</tbody></table>
+</div></div>
+
+<div class="tb C"><div class="slice"><span class="tag">C · ZEBRA + HEADER RULE</span>
+<table><thead><tr><th>Model</th><th>&lambda;</th><th>Train MSE</th><th>Test MSE</th><th>Bias&sup2;</th><th>Var</th></tr></thead>
+<tbody>
+<tr><td>OLS</td><td class="num">0.00</td><td class="num">0.182</td><td class="num">0.471</td><td class="num">0.061</td><td class="num">0.410</td></tr>
+<tr class="best"><td>Ridge</td><td class="num">0.30</td><td class="num">0.241</td><td class="num hl">0.388</td><td class="num">0.142</td><td class="num">0.246</td></tr>
+<tr><td>Lasso</td><td class="num">0.12</td><td class="num">0.263</td><td class="num">0.402</td><td class="num">0.171</td><td class="num">0.231</td></tr>
+<tr><td>Elastic Net</td><td class="num">0.20</td><td class="num">0.255</td><td class="num">0.395</td><td class="num">0.158</td><td class="num">0.237</td></tr>
+</tbody></table>
+</div></div>
+
+<div class="options">
+  <div class="option" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>Row hairlines</h3><p>Header rule + faint line under each row. Easiest to track across wide rows. Most structured.</p></div></div>
+  <div class="option" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Header underline only</h3><p>One rule under the header, rows separated by space alone. Lightest and most editorial; can be harder to scan on wide tables.</p></div></div>
+  <div class="option" onclick="toggleSelect(this)"><div class="letter">C</div><div class="content"><h3>Zebra + header rule</h3><p>Alternating row tint. Densest, easiest row-tracking for big tables; least minimal.</p></div></div>
+</div>
+</body></html>

@@ -1,0 +1,131 @@
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+
+<h2>Foundation direction</h2>
+<p class="subtitle">Same page slice, three dark-minimal treatments. Look at typography, panel/surface, borders, contrast, and accent. Pick the closest starting point (we then refine every element). Hover/click a card to select.</p>
+
+<style>
+/* scoped to .vc so nothing leaks into the frame */
+.vc { --paper:#0b0b0d; border-radius:14px; overflow:hidden; margin-bottom:18px; border:1px solid rgba(255,255,255,0.07); }
+.vc .tag { position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono',monospace; letter-spacing:.12em; color:rgba(255,255,255,.45); }
+.vc .slice { position:relative; padding:34px 38px 38px; background:var(--paper); }
+.vc .ctrls { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:22px; }
+.vc .sel { display:inline-flex; align-items:center; gap:10px; }
+.vc .num { font-variant-numeric:tabular-nums; }
+.vc-pick { display:flex; gap:8px; align-items:center; font:500 13px/1 'Inter',system-ui; color:#9aa0aa; padding:0 4px 6px; }
+.vc-pick b { color:#e8e8ec; font-weight:600; }
+
+/* ============ A · EDITORIAL ============ */
+.dirA{ --paper:#0c0c0d; font-family:'Inter',system-ui; }
+.dirA .eyebrow{ font:600 11px/1 'Inter'; letter-spacing:.22em; text-transform:uppercase; color:#6b7cff; }
+.dirA h1{ font:600 34px/1.08 'Inter'; letter-spacing:-.025em; color:#fafafa; margin:14px 0 10px; }
+.dirA .lede{ font:400 15px/1.65 'Inter'; color:#8b8d96; max-width:46ch; }
+.dirA .rule{ height:1px; background:rgba(255,255,255,.08); margin:26px 0; }
+.dirA h3{ font:600 19px/1.2 'Inter'; letter-spacing:-.015em; color:#ededf0; margin-bottom:10px; }
+.dirA p{ font:400 14.5px/1.7 'Inter'; color:#86888f; max-width:54ch; }
+.dirA .chip{ color:#c9cdfb; }
+.dirA .lbl{ font:600 11px/1 'Inter'; letter-spacing:.14em; text-transform:uppercase; color:#6c6e77; }
+.dirA select,.dirA .btn{ font:500 13px/1 'Inter'; background:transparent; color:#dadbe0; border:0; border-bottom:1px solid rgba(255,255,255,.22); padding:6px 2px; }
+.dirA .btn{ border:0; border-bottom:1px solid #6b7cff; color:#aeb8ff; cursor:pointer; }
+.dirA .read{ font:500 13px/1 'JetBrains Mono'; color:#cfd1d8; }
+.dirA .read b{ color:#6b7cff; }
+
+/* ============ B · LAYERED PANELS ============ */
+.dirB{ --paper:#0e0f12; font-family:'Inter',system-ui; }
+.dirB .eyebrow{ font:600 11px/1 'Inter'; letter-spacing:.16em; text-transform:uppercase; color:#5f7bf0; }
+.dirB h1{ font:700 30px/1.12 'Inter'; letter-spacing:-.02em; color:#f3f4f7; margin:12px 0 8px; }
+.dirB .lede{ font:400 14.5px/1.6 'Inter'; color:#9b9faa; max-width:48ch; }
+.dirB .card{ margin-top:22px; background:#16171c; border:1px solid rgba(255,255,255,.07); border-radius:12px; padding:20px 22px; box-shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 8px 24px -12px rgba(0,0,0,.7); }
+.dirB h3{ font:600 17px/1.2 'Inter'; color:#eef0f4; margin-bottom:9px; }
+.dirB p{ font:400 14px/1.65 'Inter'; color:#a6aab4; max-width:54ch; }
+.dirB .chip{ color:#9fb2ff; background:rgba(79,124,255,.12); padding:1px 6px; border-radius:5px; }
+.dirB .lbl{ font:600 12px/1 'Inter'; color:#9b9faa; }
+.dirB select{ font:500 13px/1 'Inter'; background:#0e0f12; color:#e6e8ee; border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:8px 12px; }
+.dirB .btn{ font:600 13px/1 'Inter'; background:#4f7cff; color:#fff; border:0; border-radius:8px; padding:9px 16px; cursor:pointer; }
+.dirB .read{ font:500 13px/1 'Inter'; color:#c9cdd6; margin-left:auto; }
+.dirB .read b{ color:#82a0ff; }
+
+/* ============ C · TECHNICAL / MONO ============ */
+.dirC{ --paper:#0a0a0b; font-family:'Inter',system-ui; }
+.dirC .eyebrow{ font:600 11px/1 'JetBrains Mono'; letter-spacing:.2em; text-transform:uppercase; color:#67d8b6; }
+.dirC h1{ font:700 31px/1.1 'Inter'; letter-spacing:-.02em; color:#f4f5f6; margin:13px 0 9px; }
+.dirC .lede{ font:400 14px/1.6 'Inter'; color:#8b9097; max-width:48ch; }
+.dirC .card{ margin-top:22px; background:#0d0d0f; border:1px solid rgba(255,255,255,.1); border-radius:7px; padding:20px 22px; }
+.dirC h3{ font:600 16px/1.2 'Inter'; color:#e9ebed; margin-bottom:9px; }
+.dirC p{ font:400 13.5px/1.65 'Inter'; color:#9095a0; max-width:54ch; }
+.dirC .chip{ font-family:'JetBrains Mono'; font-size:.92em; color:#67d8b6; }
+.dirC .lbl{ font:600 11px/1 'JetBrains Mono'; letter-spacing:.12em; text-transform:uppercase; color:#6b7079; }
+.dirC select{ font:500 13px/1 'JetBrains Mono'; background:#0a0a0b; color:#dfe2e6; border:1px solid rgba(255,255,255,.14); border-radius:5px; padding:7px 11px; }
+.dirC .btn{ font:600 12px/1 'JetBrains Mono'; letter-spacing:.04em; background:transparent; color:#67d8b6; border:1px solid rgba(103,216,182,.5); border-radius:5px; padding:8px 14px; cursor:pointer; text-transform:uppercase; }
+.dirC .read{ font:500 13px/1 'JetBrains Mono'; color:#cdd0d6; margin-left:auto; }
+.dirC .read b{ color:#67d8b6; }
+</style>
+
+<div class="vc dirA">
+  <div class="slice">
+    <span class="tag">A · EDITORIAL</span>
+    <div class="eyebrow">Visualization</div>
+    <h1>Principal Component Analysis</h1>
+    <div class="lede">Interactive walkthrough of PCA via SVD, principal directions, and reconstruction.</div>
+    <div class="rule"></div>
+    <h3>Covariance and change of basis</h3>
+    <p>PCA finds the orthogonal directions that capture the most variance. Projecting onto the top components yields the best low-rank <span class="chip">reconstruction</span> of the data.</p>
+    <div class="ctrls">
+      <span class="sel"><span class="lbl">Components</span> <select><option>2</option></select></span>
+      <button class="btn">Recompute</button>
+      <span class="read">variance&nbsp;<b class="num">92.4%</b></span>
+    </div>
+  </div>
+</div>
+
+<div class="vc dirB">
+  <div class="slice">
+    <span class="tag">B · LAYERED PANELS</span>
+    <div class="eyebrow">Visualization</div>
+    <h1>Principal Component Analysis</h1>
+    <div class="lede">Interactive walkthrough of PCA via SVD, principal directions, and reconstruction.</div>
+    <div class="card">
+      <h3>Covariance and change of basis</h3>
+      <p>PCA finds the orthogonal directions that capture the most variance. Projecting onto the top components yields the best low-rank <span class="chip">reconstruction</span> of the data.</p>
+      <div class="ctrls">
+        <span class="sel"><span class="lbl">Components</span> <select><option>2</option></select></span>
+        <button class="btn">Recompute</button>
+        <span class="read">variance <b class="num">92.4%</b></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="vc dirC">
+  <div class="slice">
+    <span class="tag">C · TECHNICAL</span>
+    <div class="eyebrow">// visualization</div>
+    <h1>Principal Component Analysis</h1>
+    <div class="lede">Interactive walkthrough of PCA via SVD, principal directions, and reconstruction.</div>
+    <div class="card">
+      <h3>Covariance and change of basis</h3>
+      <p>PCA finds the orthogonal directions that capture the most variance. Projecting onto the top components yields the best low-rank <span class="chip">reconstruction</span> of the data.</p>
+      <div class="ctrls">
+        <span class="sel"><span class="lbl">components</span> <select><option>2</option></select></span>
+        <button class="btn">Recompute</button>
+        <span class="read">variance <b class="num">92.4%</b></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="A" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content"><h3>Editorial</h3><p>No boxes. Hairline rules, generous whitespace, large tight headline, muted body. Calmest and most "publication". Accent: indigo, used sparingly.</p></div>
+  </div>
+  <div class="option" data-choice="B" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content"><h3>Layered panels</h3><p>Content sits in elevated surfaces with soft shadow + 1px border, rounded. Most "product/app", clearest containers. Accent: solid blue button + active states.</p></div>
+  </div>
+  <div class="option" data-choice="C" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content"><h3>Technical / mono</h3><p>Hairline-bordered panels, sharp small radius, monospace eyebrows/labels/readouts, tabular numerics. Most "instrument/scientific". Accent: desaturated mint.</p></div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:18px;font-size:13px">Note: these differ on direction, not final values. Whatever you pick, we then iterate typeface, scale, panel, border, contrast and accent each as their own step.</p>

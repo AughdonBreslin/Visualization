@@ -1,0 +1,92 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<h2>Paired-visualization layout</h2>
+<p class="subtitle">Two synchronized figures + shared controls (the manifold Left/Right pattern). Same figures, three control placements. Minimal controls per the locked language; figures carry their own edges.</p>
+
+<style>
+.pv{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; font-family:'Inter',system-ui; --acc:#6b7cff; }
+.pv .slice{ padding:24px 32px 28px; }
+.pv .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+.pv .eyebrow{ font:600 10.5px/1 'JetBrains Mono'; letter-spacing:.2em; text-transform:uppercase; color:var(--acc); }
+.pv h3{ font:600 18px/1.2 'Inter'; letter-spacing:-.014em; color:#ededf0; margin:9px 0 18px; }
+.pv .figs{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.pv .fig{ }
+.pv .fig .frame{ aspect-ratio:4/3; background:radial-gradient(120% 120% at 50% 45%,#0e0f15,#070709); border:1px solid rgba(255,255,255,.1); border-radius:9px; overflow:hidden; position:relative; }
+.pv .fig svg{ position:absolute; inset:0; width:100%; height:100%; }
+.pv .fig .cap{ font:500 10.5px/1.3 'JetBrains Mono'; color:#7a7c84; margin-top:8px; }
+.pv .fig .cap b{ color:#bdc0c8; font-weight:600; }
+/* minimal controls */
+.ctrls{ display:flex; gap:26px; flex-wrap:wrap; align-items:flex-end; }
+.cell{ display:flex; flex-direction:column; gap:7px; }
+.lbl{ font:600 9.5px/1 'Inter'; letter-spacing:.14em; text-transform:uppercase; color:#6c6e77; }
+.pv select{ font:500 13px/1 'Inter'; color:#dadbe0; background:none; border:0; border-bottom:1px solid rgba(255,255,255,.22); padding:5px 1px; }
+.rng{ position:relative; width:120px; height:2px; background:rgba(255,255,255,.16); border-radius:2px; margin-bottom:8px; }
+.rng::after{ content:''; position:absolute; left:45%; top:50%; width:11px; height:11px; border-radius:50%; background:var(--acc); transform:translate(-50%,-50%); }
+.read{ font:500 12px/1 'JetBrains Mono'; color:#cfd1d8; } .read b{ color:var(--acc); }
+.barTop{ padding-bottom:18px; margin-bottom:18px; border-bottom:1px solid rgba(255,255,255,.08); }
+.barBot{ padding-top:18px; margin-top:18px; border-top:1px solid rgba(255,255,255,.08); }
+.side{ display:grid; grid-template-columns:176px 1fr; gap:28px; align-items:start; }
+.side .ctrls{ flex-direction:column; align-items:stretch; gap:18px; }
+.side .rng{ width:100%; }
+</style>
+
+<!-- shared figure svgs (ids unique per variant) -->
+
+<div class="pv"><div class="slice"><span class="tag">A · CONTROLS ON TOP</span>
+  <div class="eyebrow">Manifold Learning</div>
+  <h3>Visualization</h3>
+  <div class="ctrls barTop">
+    <div class="cell"><span class="lbl">Dataset</span><select><option>Swiss roll</option></select></div>
+    <div class="cell"><span class="lbl">Left</span><select><option>Original (3D)</option></select></div>
+    <div class="cell"><span class="lbl">Right</span><select><option>Isomap</option></select></div>
+    <div class="cell"><span class="lbl">Neighbors k</span><div class="rng"></div><span class="read">k = <b>10</b></span></div>
+  </div>
+  <div class="figs">
+    <div class="fig"><div class="frame"><svg viewBox="0 0 240 180"><defs><linearGradient id="r1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6b7cff"/><stop offset=".4" stop-color="#3fb9b1"/><stop offset=".7" stop-color="#9ccb5a"/><stop offset="1" stop-color="#e6a93f"/></linearGradient></defs><path d="M120 92 C 138 92 148 78 148 66 C 148 48 126 40 106 40 C 78 40 62 64 62 90 C 62 124 96 142 130 142 C 172 142 198 106 198 66 C 198 26 160 6 120 6" fill="none" stroke="url(#r1)" stroke-width="9" stroke-linecap="round" opacity=".9"/></svg></div><div class="cap"><b>Original</b> swiss roll, 3D</div></div>
+    <div class="fig"><div class="frame"><svg viewBox="0 0 240 180"><g><rect x="30" y="56" width="180" height="68" rx="4" fill="none" stroke="rgba(255,255,255,.08)"/>
+      <circle cx="46" cy="74" r="3.4" fill="#6b7cff"/><circle cx="46" cy="92" r="3.4" fill="#6b7cff"/><circle cx="46" cy="110" r="3.4" fill="#6b7cff"/>
+      <circle cx="86" cy="74" r="3.4" fill="#3fb9b1"/><circle cx="86" cy="92" r="3.4" fill="#3fb9b1"/><circle cx="86" cy="110" r="3.4" fill="#3fb9b1"/>
+      <circle cx="126" cy="74" r="3.4" fill="#7ec471"/><circle cx="126" cy="92" r="3.4" fill="#7ec471"/><circle cx="126" cy="110" r="3.4" fill="#7ec471"/>
+      <circle cx="166" cy="74" r="3.4" fill="#bcc24e"/><circle cx="166" cy="92" r="3.4" fill="#bcc24e"/><circle cx="166" cy="110" r="3.4" fill="#bcc24e"/>
+      <circle cx="196" cy="74" r="3.4" fill="#e6a93f"/><circle cx="196" cy="92" r="3.4" fill="#e6a93f"/><circle cx="196" cy="110" r="3.4" fill="#e6a93f"/></g></svg></div><div class="cap"><b>Isomap</b> 2D embedding</div></div>
+  </div>
+</div></div>
+
+<div class="pv"><div class="slice"><span class="tag">B · CONTROLS SIDEBAR</span>
+  <div class="eyebrow">Manifold Learning</div>
+  <h3>Visualization</h3>
+  <div class="side">
+    <div class="ctrls">
+      <div class="cell"><span class="lbl">Dataset</span><select><option>Swiss roll</option></select></div>
+      <div class="cell"><span class="lbl">Left</span><select><option>Original (3D)</option></select></div>
+      <div class="cell"><span class="lbl">Right</span><select><option>Isomap</option></select></div>
+      <div class="cell"><span class="lbl">Neighbors k</span><div class="rng"></div><span class="read">k = <b>10</b></span></div>
+    </div>
+    <div class="figs">
+      <div class="fig"><div class="frame"><svg viewBox="0 0 240 180"><defs><linearGradient id="r2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6b7cff"/><stop offset=".4" stop-color="#3fb9b1"/><stop offset=".7" stop-color="#9ccb5a"/><stop offset="1" stop-color="#e6a93f"/></linearGradient></defs><path d="M120 92 C 138 92 148 78 148 66 C 148 48 126 40 106 40 C 78 40 62 64 62 90 C 62 124 96 142 130 142 C 172 142 198 106 198 66 C 198 26 160 6 120 6" fill="none" stroke="url(#r2)" stroke-width="9" stroke-linecap="round" opacity=".9"/></svg></div><div class="cap"><b>Original</b> swiss roll, 3D</div></div>
+      <div class="fig"><div class="frame"><svg viewBox="0 0 240 180"><rect x="30" y="56" width="180" height="68" rx="4" fill="none" stroke="rgba(255,255,255,.08)"/><circle cx="46" cy="74" r="3.4" fill="#6b7cff"/><circle cx="46" cy="92" r="3.4" fill="#6b7cff"/><circle cx="46" cy="110" r="3.4" fill="#6b7cff"/><circle cx="86" cy="74" r="3.4" fill="#3fb9b1"/><circle cx="86" cy="92" r="3.4" fill="#3fb9b1"/><circle cx="86" cy="110" r="3.4" fill="#3fb9b1"/><circle cx="126" cy="74" r="3.4" fill="#7ec471"/><circle cx="126" cy="92" r="3.4" fill="#7ec471"/><circle cx="126" cy="110" r="3.4" fill="#7ec471"/><circle cx="166" cy="74" r="3.4" fill="#bcc24e"/><circle cx="166" cy="92" r="3.4" fill="#bcc24e"/><circle cx="166" cy="110" r="3.4" fill="#bcc24e"/><circle cx="196" cy="74" r="3.4" fill="#e6a93f"/><circle cx="196" cy="92" r="3.4" fill="#e6a93f"/><circle cx="196" cy="110" r="3.4" fill="#e6a93f"/></svg></div><div class="cap"><b>Isomap</b> 2D embedding</div></div>
+    </div>
+  </div>
+</div></div>
+
+<div class="pv"><div class="slice"><span class="tag">C · CONTROLS BELOW</span>
+  <div class="eyebrow">Manifold Learning</div>
+  <h3>Visualization</h3>
+  <div class="figs">
+    <div class="fig"><div class="frame"><svg viewBox="0 0 240 180"><defs><linearGradient id="r3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6b7cff"/><stop offset=".4" stop-color="#3fb9b1"/><stop offset=".7" stop-color="#9ccb5a"/><stop offset="1" stop-color="#e6a93f"/></linearGradient></defs><path d="M120 92 C 138 92 148 78 148 66 C 148 48 126 40 106 40 C 78 40 62 64 62 90 C 62 124 96 142 130 142 C 172 142 198 106 198 66 C 198 26 160 6 120 6" fill="none" stroke="url(#r3)" stroke-width="9" stroke-linecap="round" opacity=".9"/></svg></div><div class="cap"><b>Original</b> swiss roll, 3D</div></div>
+    <div class="fig"><div class="frame"><svg viewBox="0 0 240 180"><rect x="30" y="56" width="180" height="68" rx="4" fill="none" stroke="rgba(255,255,255,.08)"/><circle cx="46" cy="74" r="3.4" fill="#6b7cff"/><circle cx="46" cy="92" r="3.4" fill="#6b7cff"/><circle cx="46" cy="110" r="3.4" fill="#6b7cff"/><circle cx="86" cy="74" r="3.4" fill="#3fb9b1"/><circle cx="86" cy="92" r="3.4" fill="#3fb9b1"/><circle cx="86" cy="110" r="3.4" fill="#3fb9b1"/><circle cx="126" cy="74" r="3.4" fill="#7ec471"/><circle cx="126" cy="92" r="3.4" fill="#7ec471"/><circle cx="126" cy="110" r="3.4" fill="#7ec471"/><circle cx="166" cy="74" r="3.4" fill="#bcc24e"/><circle cx="166" cy="92" r="3.4" fill="#bcc24e"/><circle cx="166" cy="110" r="3.4" fill="#bcc24e"/><circle cx="196" cy="74" r="3.4" fill="#e6a93f"/><circle cx="196" cy="92" r="3.4" fill="#e6a93f"/><circle cx="196" cy="110" r="3.4" fill="#e6a93f"/></svg></div><div class="cap"><b>Isomap</b> 2D embedding</div></div>
+  </div>
+  <div class="ctrls barBot">
+    <div class="cell"><span class="lbl">Dataset</span><select><option>Swiss roll</option></select></div>
+    <div class="cell"><span class="lbl">Left</span><select><option>Original (3D)</option></select></div>
+    <div class="cell"><span class="lbl">Right</span><select><option>Isomap</option></select></div>
+    <div class="cell"><span class="lbl">Neighbors k</span><div class="rng"></div><span class="read">k = <b>10</b></span></div>
+  </div>
+</div></div>
+
+<div class="options">
+  <div class="option" data-choice="top" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>Controls on top</h3><p>Set parameters, then read the figures below. Conventional, figures stay large and equal. Most familiar.</p></div></div>
+  <div class="option" data-choice="sidebar" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Controls sidebar</h3><p>Controls fixed at the left while figures fill the rest. Good when fiddling a lot; figures get a bit narrower.</p></div></div>
+  <div class="option" data-choice="below" onclick="toggleSelect(this)"><div class="letter">C</div><div class="content"><h3>Controls below</h3><p>Figures first (the point), controls underneath. Most editorial; figures lead. Controls are a short scroll away.</p></div></div>
+</div>

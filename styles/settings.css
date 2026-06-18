@@ -1,0 +1,19 @@
+/* styles/settings.css - settings page layout (under .ui .settings). */
+.ui .settings { max-width: 680px; }
+.ui .settings .setting { margin-bottom: 34px; }
+.ui .settings .setting-label { font: 600 13px/1.3 var(--font-sans); color: #ededf0; margin: 0 0 4px; }
+.ui .settings .setting-help { font: 400 13px/1.5 var(--font-sans); color: #74767f; margin: 0 0 16px; max-width: 56ch; }
+
+.ui .settings .accent-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.ui .settings .swatch { width: 30px; height: 30px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: var(--c); }
+.ui .settings .swatch.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--c); }
+.ui .settings .custom-accent { display: inline-flex; align-items: center; gap: 10px; margin-left: 8px; padding-left: 18px; border-left: 1px solid var(--hairline); }
+.ui .settings .custom-label { font: 600 9.5px/1 var(--font-sans); letter-spacing: 0.14em; text-transform: uppercase; color: #6c6e77; }
+.ui .settings .hex-field { display: inline-flex; align-items: center; gap: 8px; }
+.ui .settings .hex-well { width: 22px; height: 22px; border-radius: var(--radius-sm); background: var(--accent); border: 1px solid rgba(255,255,255,0.16); }
+.ui .settings .hex-field input { width: 84px; font: 500 13px/1 var(--font-mono); color: #dadbe0; background: transparent; border: 0; border-bottom: 1px solid var(--hairline-strong); padding: 6px 2px; }
+
+.ui .settings .setting-preview { margin-top: 14px; border: 1px solid var(--hairline); border-radius: var(--radius-lg); padding: 20px 22px; background: #0a0a0b; }
+.ui .settings .setting-preview h2 { margin-top: 6px; }
+.ui .settings .settings-foot { display: flex; justify-content: space-between; align-items: center; }
+.ui .settings .settings-note { font: 400 12px/1.5 var(--font-sans); color: var(--text-muted); }

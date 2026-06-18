@@ -1,0 +1,139 @@
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<h2>Fourier page in the Editorial direction (no-frames)</h2>
+<p class="subtitle">A figure-dense page: three canvases + heavy controls + math, with no panel boxes. Note that image/canvas figures carry their own edge, so "no frames" can still feel structured. Tell me if this holds up, or if the demo region wants a quiet frame after all.</p>
+
+<style>
+.fz{ font-family:'Inter',system-ui; background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:14px; overflow:hidden; }
+.fz .slice{ padding:34px 40px 40px; }
+.fz .eyebrow{ font:600 11px/1 'Inter'; letter-spacing:.22em; text-transform:uppercase; color:#6b7cff; }
+.fz h1{ font:600 31px/1.1 'Inter'; letter-spacing:-.025em; color:#fafafa; margin:12px 0 9px; }
+.fz .lede{ font:400 14.5px/1.65 'Inter'; color:#8b8d96; max-width:58ch; }
+.fz .rule{ height:1px; background:rgba(255,255,255,.08); margin:26px 0; }
+.fz h3{ font:600 18px/1.2 'Inter'; letter-spacing:-.015em; color:#ededf0; margin-bottom:10px; }
+.fz p{ font:400 14px/1.7 'Inter'; color:#86888f; max-width:60ch; margin:0; }
+.fz .chip{ color:#c9cdfb; }
+.fz .secmark{ font:600 10.5px/1 'JetBrains Mono'; letter-spacing:.18em; text-transform:uppercase; color:#62646c; margin-bottom:16px; }
+
+/* canvas trio */
+.fz .canvases{ display:flex; gap:20px; flex-wrap:wrap; }
+.fz .cv{ }
+.fz .cv .frame{ width:158px; height:158px; border:1px solid rgba(255,255,255,.1); border-radius:8px; overflow:hidden; background:#050506; display:block; }
+.fz .cv .cap{ font:500 10.5px/1.3 'JetBrains Mono'; letter-spacing:.04em; color:#7a7c84; margin-top:9px; }
+.fz .cv .cap b{ color:#b9bcc4; font-weight:600; }
+
+/* controls */
+.fz .controls{ margin-top:28px; display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:24px 34px; max-width:760px; }
+.fz .lbl{ font:600 10.5px/1 'Inter'; letter-spacing:.13em; text-transform:uppercase; color:#6c6e77; display:block; margin-bottom:10px; }
+.fz .row{ display:flex; align-items:center; gap:14px; }
+.fz select{ font:500 13px/1 'Inter'; background:transparent; color:#dadbe0; border:0; border-bottom:1px solid rgba(255,255,255,.22); padding:6px 2px; }
+.fz .upl{ font:500 13px/1 'Inter'; color:#aeb8ff; border:0; border-bottom:1px solid #6b7cff; background:transparent; padding:6px 2px; cursor:pointer; }
+.fz .tabs{ display:inline-flex; gap:20px; }
+.fz .tab{ font:500 13px/1 'Inter'; color:#74767f; padding-bottom:7px; border-bottom:1.5px solid transparent; cursor:pointer; }
+.fz .tab.on{ color:#ececf0; border-bottom-color:#6b7cff; }
+.fz .rng{ position:relative; width:150px; height:2px; background:rgba(255,255,255,.16); border-radius:2px; }
+.fz .rng::after{ content:''; position:absolute; left:38%; top:50%; width:11px; height:11px; border-radius:50%; background:#6b7cff; transform:translate(-50%,-50%); }
+.fz .read{ font:500 12.5px/1 'JetBrains Mono'; color:#cfd1d8; }
+.fz .read b{ color:#6b7cff; }
+.fz .tog{ display:inline-flex; align-items:center; gap:9px; font:500 13px/1 'Inter'; color:#b7b9c1; cursor:pointer; }
+.fz .sw{ width:30px; height:17px; border-radius:9px; background:rgba(255,255,255,.12); position:relative; }
+.fz .sw.on{ background:rgba(107,124,255,.55); }
+.fz .sw::after{ content:''; position:absolute; top:2px; left:2px; width:13px; height:13px; border-radius:50%; background:#e9e9ee; transition:.15s; }
+.fz .sw.on::after{ left:15px; }
+
+/* math */
+.fz .formula{ font:400 17px/1.5 'JetBrains Mono'; color:#d6d8df; text-align:center; padding:14px 0; letter-spacing:.01em; }
+.fz .formula i{ color:#9aa0ff; font-style:normal; }
+</style>
+
+<div class="fz">
+  <div class="slice">
+    <div class="eyebrow">Image Decomposition</div>
+    <h1>Fourier Image Decomposition</h1>
+    <div class="lede">The DFT's periodicity assumption, low-pass filtering, the Gibbs phenomenon, and why non-periodic images produce checkerboard artifacts.</div>
+
+    <div class="rule"></div>
+    <h3>The periodicity assumption</h3>
+    <p>The discrete Fourier transform treats an image as one tile of an infinitely repeating plane. Sharp seams between tiles inject energy along the frequency <span class="chip">axes</span>, which is why a low-pass reconstruction rings near hard edges.</p>
+
+    <div class="rule"></div>
+    <div class="secmark">Interactive demo</div>
+    <div class="canvases">
+      <div class="cv">
+        <span class="frame">
+          <svg width="158" height="158" viewBox="0 0 158 158">
+            <rect x="0" y="0" width="79" height="79" fill="#d7d7db"/>
+            <rect x="79" y="0" width="79" height="79" fill="#161619"/>
+            <rect x="0" y="79" width="79" height="79" fill="#161619"/>
+            <rect x="79" y="79" width="79" height="79" fill="#d7d7db"/>
+          </svg>
+        </span>
+        <div class="cap"><b>Original</b> &nbsp;128x128</div>
+      </div>
+      <div class="cv">
+        <span class="frame">
+          <svg width="158" height="158" viewBox="0 0 158 158">
+            <defs><radialGradient id="g" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#cfd6ff" stop-opacity=".95"/><stop offset="22%" stop-color="#5a63b0" stop-opacity=".5"/><stop offset="60%" stop-color="#0b0b1a" stop-opacity="0"/></radialGradient></defs>
+            <rect width="158" height="158" fill="#050507"/>
+            <rect x="0" y="77" width="158" height="4" fill="#aab0ff" opacity=".5"/>
+            <rect x="77" y="0" width="4" height="158" fill="#aab0ff" opacity=".5"/>
+            <circle cx="79" cy="79" r="74" fill="url(#g)"/>
+            <g fill="#cdd2ff" opacity=".6"><circle cx="79" cy="40" r="2"/><circle cx="79" cy="118" r="2"/><circle cx="40" cy="79" r="2"/><circle cx="118" cy="79" r="2"/><circle cx="79" cy="20" r="1.4"/><circle cx="79" cy="138" r="1.4"/></g>
+          </svg>
+        </span>
+        <div class="cap"><b>Frequency spectrum</b> &nbsp;log mag</div>
+      </div>
+      <div class="cv">
+        <span class="frame">
+          <svg width="158" height="158" viewBox="0 0 158 158">
+            <defs><filter id="b"><feGaussianBlur stdDeviation="7"/></filter></defs>
+            <rect width="158" height="158" fill="#0b0b0c"/>
+            <g filter="url(#b)">
+              <rect x="0" y="0" width="79" height="79" fill="#d7d7db"/>
+              <rect x="79" y="0" width="79" height="79" fill="#161619"/>
+              <rect x="0" y="79" width="79" height="79" fill="#161619"/>
+              <rect x="79" y="79" width="79" height="79" fill="#d7d7db"/>
+            </g>
+          </svg>
+        </span>
+        <div class="cap"><b>Reconstruction</b> &nbsp;r = 24</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div>
+        <span class="lbl">Image</span>
+        <div class="row"><select><option>Quadrant</option></select><button class="upl">Choose file</button></div>
+      </div>
+      <div>
+        <span class="lbl">Decomposition basis</span>
+        <div class="tabs"><span class="tab on">Fourier</span><span class="tab">Haar</span><span class="tab">DCT</span></div>
+      </div>
+      <div>
+        <span class="lbl">Low-pass radius</span>
+        <div class="row"><div class="rng"></div><span class="read">r = <b>24</b></span></div>
+      </div>
+      <div>
+        <span class="lbl">Options</span>
+        <div class="row" style="gap:22px"><span class="tog"><span class="sw on"></span>Tiling</span><span class="tog"><span class="sw"></span>3D spectrum</span></div>
+      </div>
+    </div>
+
+    <div class="rule"></div>
+    <h3>Reconstruction formula</h3>
+    <p>Summing the retained low-frequency terms gives the band-limited reconstruction:</p>
+    <div class="formula">f&#770;(x,y) = &#8721;<sub>|k|&#8804;r</sub> <i>F</i>(k) &middot; e<sup>2&#960;i(k&middot;x)/N</sup></div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="holds" onclick="toggleSelect(this)">
+    <div class="letter">A</div><div class="content"><h3>No-frames holds up</h3><p>The canvases' own edges give enough structure; keep the demo unboxed. Proceed with pure Editorial.</p></div>
+  </div>
+  <div class="option" data-choice="frame-demo" onclick="toggleSelect(this)">
+    <div class="letter">B</div><div class="content"><h3>Frame the demo region only</h3><p>Reading stays unboxed, but wrap the whole interactive demo (canvases + controls) in one quiet hairline frame to set it apart.</p></div>
+  </div>
+  <div class="option" data-choice="other-page" onclick="toggleSelect(this)">
+    <div class="letter">C</div><div class="content"><h3>Show me the genclass page too</h3><p>Render "Unsupervised Supervised Learning" in this language before I decide on framing.</p></div>
+  </div>
+</div>

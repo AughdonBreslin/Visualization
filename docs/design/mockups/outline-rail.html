@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock: outline rail</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body{ background:#0c0c0d; color:#8b8d96; font-family:'Inter',system-ui; margin:0; padding:28px 40px 60px; --acc:#6b7cff; }
+  h2.scr{ font:600 22px/1.2 'Inter'; color:#fff; margin:0 0 6px; }
+  .subtitle{ color:#8b8d96; font:400 14px/1.6 'Inter'; margin:0 0 22px; max-width:84ch; }
+  .options{ display:flex; flex-direction:column; gap:10px; margin-top:18px; max-width:780px; }
+  .option{ display:flex; gap:14px; background:#141416; border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:14px 16px; cursor:pointer; }
+  .option:hover{ border-color:rgba(107,124,255,.5); } .option.sel{ border-color:#6b7cff; background:rgba(107,124,255,.08); }
+  .option .letter{ width:26px; height:26px; border-radius:7px; background:rgba(255,255,255,.08); color:#cfd1d8; display:flex; align-items:center; justify-content:center; font:600 13px 'Inter'; flex-shrink:0; }
+  .option.sel .letter{ background:#6b7cff; color:#fff; }
+  .option .content h3{ font:600 14px 'Inter'; color:#ededf0; margin:0 0 3px; } .option .content p{ font:400 13px/1.5 'Inter'; color:#9a9ca4; margin:0; }
+
+  .demo{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; }
+  .demo .tag{ position:absolute; top:12px; right:14px; font:600 10.5px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+  .demo .grid{ display:grid; grid-template-columns:168px 1fr; gap:36px; padding:30px 34px 34px; }
+
+  /* rail */
+  .rail{ list-style:none; margin:0; padding:0; position:sticky; top:0; }
+  .rail a{ display:flex; gap:10px; align-items:baseline; text-decoration:none; padding:6px 10px; border-left:2px solid transparent; color:#74767f; font:500 13px/1.3 'Inter'; border-radius:0 5px 5px 0; }
+  .rail a:hover{ color:#cfd1d8; background:rgba(255,255,255,.03); }
+  .rail a.on{ color:#fafafa; border-left-color:var(--acc); background:rgba(107,124,255,.08); font-weight:600; }
+  .rail .n{ font:500 10.5px/1.3 'JetBrains Mono'; color:#4d4f57; }
+  .rail a.on .n{ color:var(--acc); }
+  .plain .n{ display:none; }
+
+  /* page slice */
+  .body .eyebrow{ font:600 11px/1 'Inter'; letter-spacing:.2em; text-transform:uppercase; color:var(--acc); display:block; margin-bottom:12px; }
+  .body h1{ font:600 30px/1.1 'Inter'; letter-spacing:-.025em; color:#fafafa; margin:0 0 10px; }
+  .body .lede{ font:400 15px/1.6 'Inter'; color:#8b8d96; max-width:52ch; margin:0 0 24px; }
+  .body .rule{ height:1px; background:rgba(255,255,255,.08); border:0; margin:22px 0; }
+  .body h2{ font:600 19px/1.25 'Inter'; letter-spacing:-.014em; color:#ededf0; margin:0 0 9px; }
+  .body p{ font:400 14.5px/1.7 'Inter'; color:#8b8d96; max-width:58ch; margin:0; }
+</style></head>
+<body>
+<script>function toggleSelect(el){el.parentElement.querySelectorAll('.option').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');}</script>
+
+<h2 class="scr">Section-outline rail (re-skin)</h2>
+<p class="subtitle">The existing left rail re-skinned to the new tokens (periwinkle active state, Inter, hairlines). Same behavior (sticky, jumps to a panel, hamburger drawer on mobile). Two label styles. Active item = "Covariance".</p>
+
+<div class="demo"><span class="tag">A · PLAIN LABELS</span>
+  <div class="grid">
+    <ul class="rail plain">
+      <li><a><span class="n">01</span>Overview</a></li>
+      <li><a><span class="n">02</span>PCA and SVD</a></li>
+      <li><a class="on"><span class="n">03</span>Covariance</a></li>
+      <li><a><span class="n">04</span>Visual step through</a></li>
+      <li><a><span class="n">05</span>Reconstruction</a></li>
+      <li><a><span class="n">06</span>Conclusion</a></li>
+    </ul>
+    <div class="body">
+      <span class="eyebrow">Visualization</span>
+      <h1>Principal Component Analysis</h1>
+      <p class="lede">Interactive walkthrough of PCA via SVD, principal directions, and reconstruction.</p>
+      <hr class="rule">
+      <h2>Covariance and change of basis</h2>
+      <p>PCA finds the orthogonal directions that capture the most variance. The rail tracks your scroll and highlights the section in view; clicking jumps to it.</p>
+    </div>
+  </div>
+</div>
+
+<div class="demo"><span class="tag">B · MONO-NUMBERED</span>
+  <div class="grid">
+    <ul class="rail">
+      <li><a><span class="n">01</span>Overview</a></li>
+      <li><a><span class="n">02</span>PCA and SVD</a></li>
+      <li><a class="on"><span class="n">03</span>Covariance</a></li>
+      <li><a><span class="n">04</span>Visual step through</a></li>
+      <li><a><span class="n">05</span>Reconstruction</a></li>
+      <li><a><span class="n">06</span>Conclusion</a></li>
+    </ul>
+    <div class="body">
+      <span class="eyebrow">Visualization</span>
+      <h1>Principal Component Analysis</h1>
+      <p class="lede">Interactive walkthrough of PCA via SVD, principal directions, and reconstruction.</p>
+      <hr class="rule">
+      <h2>Covariance and change of basis</h2>
+      <p>PCA finds the orthogonal directions that capture the most variance. The numbers echo the home index and the walkthrough steps, tying the system together.</p>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>Plain labels</h3><p>Just section names with the accent active state. Cleanest; lets long section titles breathe.</p></div></div>
+  <div class="option" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Mono-numbered</h3><p>Section numbers in mono, echoing the home index and walkthrough steps. More systematic; slightly busier with long titles.</p></div></div>
+</div>
+</body></html>

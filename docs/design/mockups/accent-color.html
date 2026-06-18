@@ -1,0 +1,93 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<h2>Accent color (single, restrained)</h2>
+<p class="subtitle">One accent, shown everywhere it appears: eyebrow, inline link, active tab, action button, slider handle, numeric highlight, and focus ring. Background and type are locked. Per dark-UI guidance the accent stays a single, slightly desaturated hue.</p>
+
+<style>
+.ac{ background:#0c0c0d; border:1px solid rgba(255,255,255,.07); border-radius:13px; margin-bottom:16px; position:relative; font-family:'Inter',system-ui; }
+.ac .slice{ padding:26px 34px 30px; }
+.ac .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; color:rgba(255,255,255,.4); }
+.ac .eyebrow{ font:600 11px/1 'Inter'; letter-spacing:.2em; text-transform:uppercase; color:var(--acc); }
+.ac h1{ font:600 26px/1.1 'Inter'; letter-spacing:-.022em; color:#fafafa; margin:10px 0 10px; }
+.ac p{ font:400 14px/1.65 'Inter'; color:#8b8d96; max-width:60ch; margin:0 0 18px; }
+.ac p a{ color:var(--acc); text-decoration:none; border-bottom:1px solid color-mix(in srgb, var(--acc) 45%, transparent); }
+.ac p .chip{ color:var(--acc); background:color-mix(in srgb, var(--acc) 14%, transparent); padding:1px 6px; border-radius:5px; }
+.ac .bar{ display:flex; align-items:center; gap:26px; flex-wrap:wrap; }
+.ac .tabs{ display:inline-flex; gap:18px; }
+.ac .tab{ font:500 13px/1 'Inter'; color:#74767f; padding-bottom:7px; border-bottom:1.5px solid transparent; }
+.ac .tab.on{ color:#ececf0; border-bottom-color:var(--acc); }
+.ac .btn{ font:500 13px/1 'Inter'; color:var(--acc); background:transparent; border:0; border-bottom:1px solid var(--acc); padding:6px 2px; cursor:pointer; }
+.ac .rng{ position:relative; width:120px; height:2px; background:rgba(255,255,255,.16); border-radius:2px; }
+.ac .rng::after{ content:''; position:absolute; left:55%; top:50%; width:11px; height:11px; border-radius:50%; background:var(--acc); transform:translate(-50%,-50%); }
+.ac .read{ font:500 12.5px/1 'JetBrains Mono'; color:#cfd1d8; }
+.ac .read b{ color:var(--acc); }
+.ac .foc{ font:500 12.5px/1 'JetBrains Mono'; color:#dadbe0; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:7px; padding:8px 11px; outline:2px solid color-mix(in srgb, var(--acc) 60%, transparent); outline-offset:2px; }
+.ac .sw{ width:26px; height:26px; border-radius:6px; background:var(--acc); display:inline-block; vertical-align:middle; }
+.ac .hex{ font:500 12px/1 'JetBrains Mono'; color:#9a9ca4; vertical-align:middle; margin-left:8px; }
+
+.p1{ --acc:#6b7cff; } .p2{ --acc:#4aa3ff; } .p3{ --acc:#8a9bd6; } .p4{ --acc:#d9a441; }
+</style>
+
+<div class="ac p1"><div class="slice"><span class="tag">1 · PERIWINKLE</span>
+  <div class="eyebrow">Visualization</div>
+  <h1>Principal Component Analysis</h1>
+  <p>The top components give the best low-rank <span class="chip">reconstruction</span>; see <a href="#">the SVD step</a> for the derivation.</p>
+  <div class="bar">
+    <div class="tabs"><span class="tab on">Fourier</span><span class="tab">Haar</span><span class="tab">DCT</span></div>
+    <button class="btn">Recompute</button>
+    <div class="rng"></div>
+    <span class="read">variance <b>92.4%</b></span>
+    <span class="foc">focus ring</span>
+    <span><span class="sw"></span><span class="hex">#6b7cff</span></span>
+  </div>
+</div></div>
+
+<div class="ac p2"><div class="slice"><span class="tag">2 · AZURE</span>
+  <div class="eyebrow">Visualization</div>
+  <h1>Principal Component Analysis</h1>
+  <p>The top components give the best low-rank <span class="chip">reconstruction</span>; see <a href="#">the SVD step</a> for the derivation.</p>
+  <div class="bar">
+    <div class="tabs"><span class="tab on">Fourier</span><span class="tab">Haar</span><span class="tab">DCT</span></div>
+    <button class="btn">Recompute</button>
+    <div class="rng"></div>
+    <span class="read">variance <b>92.4%</b></span>
+    <span class="foc">focus ring</span>
+    <span><span class="sw"></span><span class="hex">#4aa3ff</span></span>
+  </div>
+</div></div>
+
+<div class="ac p3"><div class="slice"><span class="tag">3 · MUTED STEEL</span>
+  <div class="eyebrow">Visualization</div>
+  <h1>Principal Component Analysis</h1>
+  <p>The top components give the best low-rank <span class="chip">reconstruction</span>; see <a href="#">the SVD step</a> for the derivation.</p>
+  <div class="bar">
+    <div class="tabs"><span class="tab on">Fourier</span><span class="tab">Haar</span><span class="tab">DCT</span></div>
+    <button class="btn">Recompute</button>
+    <div class="rng"></div>
+    <span class="read">variance <b>92.4%</b></span>
+    <span class="foc">focus ring</span>
+    <span><span class="sw"></span><span class="hex">#8a9bd6</span></span>
+  </div>
+</div></div>
+
+<div class="ac p4"><div class="slice"><span class="tag">4 · WARM GOLD</span>
+  <div class="eyebrow">Visualization</div>
+  <h1>Principal Component Analysis</h1>
+  <p>The top components give the best low-rank <span class="chip">reconstruction</span>; see <a href="#">the SVD step</a> for the derivation.</p>
+  <div class="bar">
+    <div class="tabs"><span class="tab on">Fourier</span><span class="tab">Haar</span><span class="tab">DCT</span></div>
+    <button class="btn">Recompute</button>
+    <div class="rng"></div>
+    <span class="read">variance <b>92.4%</b></span>
+    <span class="foc">focus ring</span>
+    <span><span class="sw"></span><span class="hex">#d9a441</span></span>
+  </div>
+</div></div>
+
+<div class="options">
+  <div class="option" data-choice="periwinkle" onclick="toggleSelect(this)"><div class="letter">1</div><div class="content"><h3>Periwinkle</h3><p>Soft indigo-blue. Modern and friendly, a touch desaturated. The placeholder you've been seeing.</p></div></div>
+  <div class="option" data-choice="azure" onclick="toggleSelect(this)"><div class="letter">2</div><div class="content"><h3>Azure</h3><p>Brighter, more saturated blue (close to today's site). Highest visibility/energy; least subtle.</p></div></div>
+  <div class="option" data-choice="steel" onclick="toggleSelect(this)"><div class="letter">3</div><div class="content"><h3>Muted steel</h3><p>Most restrained, low-saturation. Very minimal; accent barely "colors", reads almost monochrome.</p></div></div>
+  <div class="option" data-choice="gold" onclick="toggleSelect(this)"><div class="letter">4</div><div class="content"><h3>Warm gold</h3><p>Editorial warm accent against true-neutral grays. Premium/distinctive; the only non-blue here.</p></div></div>
+</div>

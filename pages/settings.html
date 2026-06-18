@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settings</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../styles/system.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/settings.css">
+  <script src="../js/theme.js"></script>
+</head>
+<body class="ui">
+  <div class="container settings">
+    <header class="page-head">
+      <div class="eyebrow">Preferences</div>
+      <h1>Settings</h1>
+      <p class="lede">Personalize the look. Changes apply instantly and are saved on this device.</p>
+    </header>
+    <hr class="rule">
+
+    <section class="setting">
+      <div class="setting-label">Accent color</div>
+      <p class="setting-help">Used for links, active states, highlights, and focus rings.</p>
+      <div class="accent-row">
+        <button class="swatch" data-accent="#6b7cff" style="--c:#6b7cff" title="Periwinkle"></button>
+        <button class="swatch" data-accent="#4aa3ff" style="--c:#4aa3ff" title="Azure"></button>
+        <button class="swatch" data-accent="#5ec99a" style="--c:#5ec99a" title="Mint"></button>
+        <button class="swatch" data-accent="#d9a441" style="--c:#d9a441" title="Gold"></button>
+        <button class="swatch" data-accent="#8a9bd6" style="--c:#8a9bd6" title="Steel"></button>
+        <span class="custom-accent"><span class="custom-label">Custom</span>
+          <span class="hex-field"><span class="hex-well"></span><input id="accent-hex" value="#6b7cff" spellcheck="false"></span></span>
+      </div>
+    </section>
+
+    <section class="setting">
+      <div class="setting-label">Density</div>
+      <p class="setting-help">How compact the type and spacing are.</p>
+      <div class="tabs density-tabs">
+        <button class="tab density-tab" data-density="compact">Compact</button>
+        <button class="tab density-tab is-active" data-density="balanced">Balanced</button>
+        <button class="tab density-tab" data-density="generous">Generous</button>
+      </div>
+      <div class="setting-preview">
+        <div class="eyebrow">Visualization</div>
+        <h2>Principal Component Analysis</h2>
+        <p>The top components give the best low-rank <a href="#">reconstruction</a> of the data.</p>
+        <button class="btn" type="button">Recompute</button>
+      </div>
+    </section>
+
+    <section class="setting">
+      <div class="setting-label">Link underlines</div>
+      <p class="setting-help">Underline links all the time, or only on hover. Hidden is the default.</p>
+      <div class="tabs underline-tabs">
+        <button class="tab underline-tab is-active" data-underline="0">Hidden</button>
+        <button class="tab underline-tab" data-underline="1">Shown</button>
+      </div>
+    </section>
+
+    <hr class="rule">
+    <div class="settings-foot">
+      <span class="settings-note">Saved automatically on this device.</span>
+      <button class="btn secondary" id="reset" type="button">Reset to defaults</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var T = window.UITheme;
+      var hex = document.getElementById('accent-hex');
+      var swatches = Array.prototype.slice.call(document.querySelectorAll('.swatch'));
+      var dtabs = Array.prototype.slice.call(document.querySelectorAll('.density-tab'));
+      var utabs = Array.prototype.slice.call(document.querySelectorAll('.underline-tab'));
+      var well = document.querySelector('.hex-well');
+
+      function markSwatch(accent) {
+        swatches.forEach(function (s) { s.classList.toggle('on', s.dataset.accent.toLowerCase() === String(accent).toLowerCase()); });
+        if (well) well.style.background = accent;
+        if (hex && document.activeElement !== hex) hex.value = accent;
+      }
+      function markDensity(d) { dtabs.forEach(function (t) { t.classList.toggle('is-active', t.dataset.density === d); }); }
+      function markUnderline(on) { utabs.forEach(function (t) { t.classList.toggle('is-active', (t.dataset.underline === '1') === on); }); }
+
+      swatches.forEach(function (s) {
+        s.addEventListener('click', function () { T.setAccent(s.dataset.accent); markSwatch(s.dataset.accent); });
+      });
+      hex.addEventListener('change', function () {
+        var v = hex.value.trim(); if (v[0] !== '#') v = '#' + v;
+        T.setAccent(v); markSwatch(v);
+      });
+      dtabs.forEach(function (t) {
+        t.addEventListener('click', function () { T.setDensity(t.dataset.density); markDensity(t.dataset.density); });
+      });
+      utabs.forEach(function (t) {
+        t.addEventListener('click', function () { var on = t.dataset.underline === '1'; T.setLinkUnderline(on); markUnderline(on); });
+      });
+      document.getElementById('reset').addEventListener('click', function () {
+        T.reset(); markSwatch(T.DEFAULT_ACCENT); markDensity('balanced'); markUnderline(false);
+      });
+
+      // reflect current saved state in the UI
+      var cur = T.current();
+      markSwatch(cur.accent); markDensity(cur.density); markUnderline(cur.linkUnderline);
+    })();
+  </script>
+</body>
+</html>

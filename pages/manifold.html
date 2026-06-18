@@ -6,12 +6,14 @@
   <title>Manifold Learning: Step-by-Step Comparison</title>
   <link rel="preconnect" href="https://d3js.org">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="../styles/base.css">
-  <link rel="stylesheet" href="../styles/article.css">
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../styles/system.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/article-ui.css">
   <link rel="stylesheet" href="../styles/manifold.css">
   <link rel="stylesheet" href="../styles/manifold_isomap.css">
-  <link rel="stylesheet" href="../styles/responsive.css">
   <link rel="stylesheet" href="../styles/section-outline.css">
+  <script src="../js/theme.js"></script>
   <script defer src="https://d3js.org/d3.v7.min.js"></script>
   <script>
     window.MathJax = {
@@ -26,18 +28,17 @@
   <script type="module" src="../js/manifold/main.js"></script>
   <script type="module" src="../js/manifold_isomap.js"></script>
   <script defer src="../js/favicon.js"></script>
-  <script defer src="../js/collapsible.js"></script>
   <script type="module" src="../js/section-outline.js"></script>
 </head>
-<body>
-  <div class="container article manifold">
-    <header>
+<body class="ui manifold">
+  <div class="container">
+    <header class="page-head">
+      <div class="eyebrow">// Machine learning</div>
       <h1>Manifold Learning</h1>
-      <div class="subtitle">Step-by-step comparison of two algorithms on a shared dataset</div>
-      <div class="home-link"><a href="../index.html">← Home</a></div>
+      <p class="lede">Step-by-step comparison of two algorithms on a shared dataset.</p>
     </header>
     <main class="article-body">
-      <section class="panel mf-isomap collapsible">
+      <section class="panel mf-isomap">
         <h2>Algorithm walkthrough</h2>
         <p class="mfi-intro">A guided, animated walk through a manifold-learning algorithm on a
           chosen dataset. Pick an algorithm and a dataset; the same algorithms run on your own
@@ -91,8 +92,8 @@
           </div>
         </div>
       </section>
-      <section class="panel collapsible">
-        <h2>Dataset</h2>
+      <section class="panel" id="mfAlgoStepPanel">
+        <h2>Algorithm comparison</h2>
         <div class="mf-controls-row">
           <div class="mf-control">
             <label for="mfDataset">Dataset</label>
@@ -118,54 +119,53 @@
         <div id="mfDatasetParams" class="mf-algo-params"></div>
         <input id="mfCsvInput" type="file" accept=".csv,text/csv" style="display:none" />
         <div id="mfCsvLabel" class="mf-csv-name"></div>
-      </section>
-      <section class="panel sp-frame collapsible" id="mfAlgoStepPanel">
-        <h2>Algorithms</h2>
-        <div class="sp-panels">
-          <div class="mf-algo-card sp-panel">
-            <div class="sp-panel-header">
-              <select id="mfAlgoLeft" class="mf-algo-select"></select>
-            </div>
+
+        <div class="mf-pickrow">
+          <div class="mf-pick">
+            <span class="mf-pick-eyebrow">Algorithm A</span>
+            <select id="mfAlgoLeft" class="mf-algo-select"></select>
             <div id="mfAlgoLeftParams" class="mf-algo-params"></div>
-            <div class="sp-bar" data-side="a"></div>
-            <div class="sp-detail" data-side="a"></div>
           </div>
-          <div class="mf-algo-card sp-panel">
-            <div class="sp-panel-header">
-              <select id="mfAlgoRight" class="mf-algo-select"></select>
-            </div>
+          <div class="mf-pick">
+            <span class="mf-pick-eyebrow">Algorithm B</span>
+            <select id="mfAlgoRight" class="mf-algo-select"></select>
             <div id="mfAlgoRightParams" class="mf-algo-params"></div>
-            <div class="sp-bar" data-side="b"></div>
-            <div class="sp-detail" data-side="b"></div>
           </div>
         </div>
+        <div class="mf-rule"></div>
+        <div class="mf-tracks"></div>
         <div class="sp-nav">
           <button class="step-prev" type="button">&#9664;&#xFE0E; Prev</button>
           <div class="step-desc"></div>
           <button class="step-next" type="button">Next &#9654;&#xFE0E;</button>
         </div>
-      </section>
-      <section class="panel collapsible" data-open-mobile>
-        <h2>Visualization</h2>
+        <div class="mf-rule"></div>
+        <div class="mf-section-eyebrow mf-first-eyebrow">Visualization</div>
         <div class="mf-viz-row">
-          <div class="mf-viz-card">
-            <h3 class="h3-tight">Left: <span id="mfLeftTitle">A</span></h3>
+          <div class="mf-viz-col">
+            <div class="mf-col-head"><span id="mfLeftTitle">A</span></div>
             <div id="mfLeftViz" class="mf-viz-host"></div>
           </div>
-          <div class="mf-viz-card">
-            <h3 class="h3-tight">Right: <span id="mfRightTitle">B</span></h3>
+          <div class="mf-viz-col">
+            <div class="mf-col-head"><span id="mfRightTitle">B</span></div>
             <div id="mfRightViz" class="mf-viz-host"></div>
           </div>
         </div>
       </section>
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Step notes</h2>
         <div class="mf-ifw-row">
-          <div class="mf-ifw-card" id="mfLeftIfw"></div>
-          <div class="mf-ifw-card" id="mfRightIfw"></div>
+          <div class="mf-ifw-col">
+            <div class="mf-col-head"><span id="mfLeftIfwTitle">A</span></div>
+            <div class="mf-ifw-card" id="mfLeftIfw"></div>
+          </div>
+          <div class="mf-ifw-col">
+            <div class="mf-col-head"><span id="mfRightIfwTitle">B</span></div>
+            <div class="mf-ifw-card" id="mfRightIfw"></div>
+          </div>
         </div>
       </section>
-      <section class="panel collapsible">
+      <section class="panel">
         <h2>Full pseudocode</h2>
         <div class="mf-pseudo-row">
           <div class="mf-pseudo-card" id="mfLeftPseudo"></div>
@@ -173,9 +173,7 @@
         </div>
       </section>
     </main>
-    <footer class="footer">
-      <p class="footer-tag">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></p>
-    </footer>
+    <footer class="site-footer"><span class="credit">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></span></footer>
   </div>
 </body>
 </html>

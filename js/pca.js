@@ -1460,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showVectors,
     }));
 
-    matrixFactorsEl.textContent = `X =\n${formatMatrix(decomposition.X, 8)}\n\nΣ =\n${formatMatrix(decomposition.Sigma, 8)}}`;
+    matrixFactorsEl.textContent = `X =\n${formatMatrix(decomposition.X, 8)}\n\nΣ =\n${formatMatrix(decomposition.Sigma, 8)}`;
     matrixCovEl.textContent = `V =\n${formatMatrix(decomposition.V, 8)}\n\nΛ =\n${formatMatrix(decomposition.Lambda, 8)}\n\nV^T =\n${formatMatrix(decomposition.VT, 8)}\n\nC =\n${formatMatrix(decomposition.covariance, 8)}`;
   }
 

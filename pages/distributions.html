@@ -7,68 +7,74 @@
   <title>Distribution Visualizer</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script>
-    // MathJax (kept in HTML for clarity/consistency across pages)
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' }
     };
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <link rel="stylesheet" href="../styles/base.css">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../styles/system.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/article-ui.css">
   <link rel="stylesheet" href="../styles/visualizer.css">
-  <link rel="stylesheet" href="../styles/responsive.css">
   <link rel="stylesheet" href="../styles/section-outline.css">
+  <script src="../js/theme.js"></script>
   <script defer src="../js/distributions.js"></script>
-  <script defer src="../js/collapsible.js"></script>
   <script defer src="../js/favicon.js"></script>
   <script type="module" src="../js/section-outline.js"></script>
 </head>
 
-<body>
-  <div class="container visualizer">
-    <header>
+<body class="ui distributions">
+  <div class="container">
+    <header class="page-head">
+      <div class="eyebrow">// Statistics</div>
       <h1>Distribution Visualizer</h1>
-      <div class="subtitle">Supports Normal, Uniform, Exponential, Laplace, Dirac, and Mixtures!</div>
-      <div class="home-link"><a href="../index.html">← Home</a></div>
+      <p class="lede">Build and compare probability distributions: Normal, Uniform, Exponential, Laplace, Dirac, and mixtures.</p>
     </header>
 
-    <div class="controls panel collapsible" data-open-mobile>
-      <h3>Controls</h3>
-      <div class="global-range">
-        <div class="row">
-          <label for="xMin">X Min</label>
-          <input id="xMin" type="number" step="0.1" value="-5">
+    <main class="article-body">
+      <section class="panel">
+        <h2>Visualization</h2>
+        <div class="dv-plots">
+          <div class="dv-plot">
+            <div class="dv-plot-title">Probability density (PDF)</div>
+            <div id="pdf" class="dv-plot-host"></div>
+          </div>
+          <div class="dv-plot">
+            <div class="dv-plot-title">Cumulative (CDF)</div>
+            <div id="cdf" class="dv-plot-host"></div>
+          </div>
         </div>
-        <div class="row">
-          <label for="xMax">X Max</label>
-          <input id="xMax" type="number" step="0.1" value="5">
+      </section>
+
+      <section class="panel">
+        <h2>Distributions</h2>
+        <div class="dv-toolbar">
+          <div class="dv-field">
+            <span class="dv-flabel">X range</span>
+            <div class="dv-xrange">
+              <input id="xMin" type="number" step="0.1" value="-5" class="dv-num" aria-label="X minimum" />
+              <span class="dv-to">to</span>
+              <input id="xMax" type="number" step="0.1" value="5" class="dv-num" aria-label="X maximum" />
+            </div>
+          </div>
+          <div class="dv-toolbar-actions">
+            <button id="addDist" type="button" class="btn btn-acc">+ Add distribution</button>
+            <button id="resetAll" type="button" class="btn">Clear all</button>
+          </div>
         </div>
-        <div>
-          <button id="addDist">Add Distribution</button>
-          <button id="resetAll">Clear All</button>
-        </div>
-      </div>
+        <div class="forms" id="forms"></div>
+      </section>
 
-      <div class="forms" id="forms"></div>
-    </div>
+      <section class="panel">
+        <h2>Active distributions</h2>
+        <div id="distributions-details"></div>
+      </section>
+    </main>
 
-    <div class="graphs">
-      <div class="graph-card panel collapsible" data-open-mobile id="pdfCard">
-        <h3 class="graph-title">Probability Density Function (PDF)</h3>
-        <div id="pdf"></div>
-      </div>
-      <div class="graph-card panel collapsible" data-open-mobile id="cdfCard">
-        <h3 class="graph-title">Cumulative Distribution Function (CDF)</h3>
-        <div id="cdf"></div>
-      </div>
-    </div>
-
-    <div class="distributions-info panel collapsible">
-      <h2>Active Distributions</h2>
-      <div id="distributions-details"></div>
-    </div>
-    <footer class="footer">
-        <p class="footer-tag">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></p>
+    <footer class="site-footer">
+      <span class="credit">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></span>
     </footer>
   </div>
 </body>

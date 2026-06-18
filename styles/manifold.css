@@ -1,109 +1,153 @@
 /* manifold.css */
-.manifold .mf-controls-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin-top: 8px; }
-.manifold .mf-control { display: flex; flex-direction: column; gap: 4px; min-width: 140px; }
-.manifold .mf-control input, .manifold .mf-control select { min-width: 140px; }
-.manifold .mf-control-action { align-self: flex-end; }
-.manifold .mf-csv-name { font-size: 0.9rem; opacity: 0.7; margin-top: 6px; min-height: 1.2em; }
-.manifold .mf-algos-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
-.manifold .mf-algo-card { background: var(--surface-inset); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 10px 12px; }
-.manifold .mf-algo-header { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
-.manifold .mf-algo-header select { flex: 1; min-width: 0; }
-.manifold .mf-algo-side { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: 0 0 24px; border-radius: 50%; font-weight: 700; background: rgba(255,255,255,0.12); font-size: 0.9rem; }
-.manifold .mf-algo-side-a, .manifold .mf-algo-side-b { background: rgba(255,255,255,0.18); color: rgba(255,255,255,0.85); }
-.manifold .mf-algo-params { font-size: 0.9rem; }
-.manifold .mf-param-grid { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; }
-.manifold .mf-param-label { display: inline-flex; align-items: center; gap: 6px; }
-.manifold .mf-param-name { color: rgba(255,255,255,0.85); }
-.manifold .mf-param-info { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.45); color: rgba(255,255,255,0.6); font-size: 10px; line-height: 1; font-style: italic; cursor: help; flex: 0 0 auto; }
-.manifold .mf-param-info:hover { border-color: #ff9f43; color: #ff9f43; }
-.manifold .mf-param-control input, .manifold .mf-param-control select { background: rgba(0,0,0,0.3); color: #fff; border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; padding: 3px 7px; font-size: 0.88rem; }
-.manifold .mf-param-control input { width: 6em; }
-.manifold .mf-param-control input[type=number] { -moz-appearance: textfield; appearance: textfield; }
-.manifold .mf-param-control input[type=number]::-webkit-outer-spin-button,
-.manifold .mf-param-control input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.manifold .mf-param-control input:focus, .manifold .mf-param-control select:focus { outline: none; border-color: rgba(255,255,255,0.5); }
-.manifold .mf-noparams { opacity: 0.6; font-style: italic; }
+/* flat dataset controls (underline fields + small uppercase labels) */
+.ui.manifold .mf-controls-row { display: flex; flex-wrap: wrap; gap: 26px; align-items: flex-end; margin-top: 0; }
+.ui.manifold .mf-control { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.ui.manifold .mf-control label { font: 600 9.5px/1.2 var(--font-sans); letter-spacing: .13em; text-transform: uppercase; color: #6c6e77; }
+.ui.manifold .mf-control input, .ui.manifold .mf-control select { background: none; color: #e7e8ec; border: 0; border-bottom: 1px solid var(--hairline-strong); border-radius: 0; padding: 5px 2px; font: 500 13px/1.2 var(--font-sans); min-width: 110px; }
+.ui.manifold .mf-control select { appearance: none; padding-right: 20px; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 6'%3E%3Cpath d='M1 1l3.5 3.5L8 1' fill='none' stroke='%237a7c84' stroke-width='1.3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 2px center; background-size: 9px; }
+.ui.manifold .mf-control input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+.ui.manifold .mf-control input[type=number]::-webkit-outer-spin-button,
+.ui.manifold .mf-control input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.ui.manifold .mf-control input:focus, .ui.manifold .mf-control select:focus { outline: none; border-bottom-color: var(--accent); }
+.ui.manifold .mf-control-action { align-self: flex-end; }
+.ui.manifold .mf-control-action button { background: none; border: 1px solid var(--hairline-strong); border-radius: 7px; color: #dadbe0; font: 500 12px/1 var(--font-sans); padding: 8px 13px; cursor: pointer; }
+.ui.manifold .mf-control-action button:hover { border-color: var(--accent); color: #fff; }
+.ui.manifold .mf-csv-name { font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; min-height: 1.2em; }
+.ui.manifold .mf-first-eyebrow { margin-top: 0; }
+.ui.manifold .mf-algos-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+.ui.manifold .mf-algo-card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 10px 12px; }
+.ui.manifold .mf-algo-header { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+.ui.manifold .mf-algo-header select { flex: 1; min-width: 0; }
+.ui.manifold .mf-algo-side { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: 0 0 24px; border-radius: 50%; font-weight: 700; background: var(--surface-strong); font-size: 0.9rem; }
+.ui.manifold .mf-algo-side-a, .ui.manifold .mf-algo-side-b { background: var(--accent-muted); color: var(--text-body); }
+.ui.manifold .mf-algo-params { font-size: 0.9rem; }
+.ui.manifold .mf-param-grid { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; }
+.ui.manifold .mf-param-label { display: inline-flex; align-items: center; gap: 6px; }
+.ui.manifold .mf-param-name { color: var(--text-body); }
+/* Info chip: identical to the other migrated pages (soft periwinkle fill, accent on hover). */
+.ui.manifold .mf-param-info { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: var(--accent-muted); color: var(--accent-link); font: 600 9px/1 var(--font-sans); cursor: help; flex: 0 0 auto; }
+.ui.manifold .mf-param-info:hover { background: var(--accent); color: #fff; }
+.ui.manifold .mf-param-control input, .ui.manifold .mf-param-control select { background: rgba(0,0,0,0.3); color: #fff; border: 1px solid var(--hairline-strong); border-radius: 6px; padding: 3px 7px; font-size: 0.88rem; }
+.ui.manifold .mf-param-control input { width: 6em; }
+.ui.manifold .mf-param-control input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+.ui.manifold .mf-param-control input[type=number]::-webkit-outer-spin-button,
+.ui.manifold .mf-param-control input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.ui.manifold .mf-param-control input:focus, .ui.manifold .mf-param-control select:focus { outline: none; border-color: var(--accent); }
+.ui.manifold .mf-noparams { color: var(--text-muted); font-style: italic; }
 .mf-tooltip { position: fixed; max-width: 280px; background: #0a0c10; border: 1px solid rgba(255,255,255,0.3); color: #e8e8ec; font-size: 0.8rem; line-height: 1.4; padding: 9px 11px; border-radius: 8px; pointer-events: none; opacity: 0; transition: opacity 0.1s; z-index: 1000; box-shadow: 0 6px 24px rgba(0,0,0,0.5); }
 .mf-tooltip-title { display: block; font-weight: 600; margin-bottom: 3px; }
 .mf-tooltip-range { color: rgba(255,255,255,0.55); margin-top: 5px; }
-.manifold .mf-viz-row, .manifold .mf-ifw-row, .manifold .mf-pseudo-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.manifold .mf-viz-card, .manifold .mf-ifw-card, .manifold .mf-pseudo-card { background: var(--surface-inset); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 10px 12px; min-width: 0; }
-.manifold .mf-viz-host { position: relative; width: 100%; aspect-ratio: 4 / 3; background: rgba(0,0,0,0.25); border-radius: var(--radius-sm); overflow: hidden; user-select: none; -webkit-user-select: none; }
+.ui.manifold .mf-viz-row, .ui.manifold .mf-ifw-row, .ui.manifold .mf-pseudo-row { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+/* flat: the comparison columns are not bordered cards (the viz host carries its own border) */
+.ui.manifold .mf-viz-col, .ui.manifold .mf-ifw-col, .ui.manifold .mf-ifw-card, .ui.manifold .mf-pseudo-card { min-width: 0; }
+.ui.manifold .mf-viz-host { position: relative; width: 100%; aspect-ratio: 4 / 3; background: #060607; border: 1px solid var(--hairline); border-radius: var(--radius-sm); overflow: hidden; user-select: none; -webkit-user-select: none; }
 @media (max-width: 820px) {
-  .manifold .mf-algos-row, .manifold .mf-viz-row, .manifold .mf-ifw-row, .manifold .mf-pseudo-row { grid-template-columns: 1fr; }
+  .ui.manifold .mf-algos-row, .ui.manifold .mf-viz-row, .ui.manifold .mf-ifw-row, .ui.manifold .mf-pseudo-row { grid-template-columns: 1fr; }
 }
-.manifold .viz3d { position: absolute; inset: 0; }
-.manifold .viz3d-thumb { position: absolute; right: 8px; bottom: 8px; width: 32%; max-width: 160px; aspect-ratio: 4 / 3; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25); border-radius: var(--radius-sm); overflow: hidden; }
-.manifold .viz2d { position: absolute; inset: 0; }
-.manifold .ifw { display: flex; flex-direction: column; gap: 8px; }
-.manifold .ifw-tabs { display: flex; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 4px; }
-.manifold .ifw-tab { padding: 6px 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer; font-size: 0.9rem; }
-.manifold .ifw-tab.is-active { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.3); }
-.manifold .ifw-tab.is-disabled, .manifold .ifw-tab[disabled] { opacity: 0.35; cursor: not-allowed; }
-.manifold .ifw-content { min-height: 80px; font-size: 0.95rem; line-height: 1.45; }
-.manifold .ifw-content pre { background: rgba(0,0,0,0.35); padding: 8px; border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.85rem; }
-.manifold .ifw-empty { opacity: 0.55; font-style: italic; }
-.manifold .pseudocode { display: flex; flex-direction: column; gap: 6px; }
-.manifold .pseudocode-title { font-weight: 700; font-size: 0.95rem; opacity: 0.85; }
-.manifold .pc-section { border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); overflow: hidden; }
-.manifold .pc-section.is-current { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.03); }
-.manifold .pc-section-header { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: rgba(0,0,0,0.25); cursor: pointer; font-size: 0.92rem; }
-.manifold .pc-section.is-current .pc-section-header { background: rgba(255,255,255,0.08); }
-.manifold .pc-chevron { width: 1ch; text-align: center; opacity: 0.7; }
-.manifold .pc-section-title { font-weight: 600; flex: 1; }
-.manifold .pc-section-steps { font-size: 0.8rem; opacity: 0.6; }
-.manifold .pc-section-body { margin: 0; padding: 8px 12px; background: rgba(0,0,0,0.35); font-size: 0.9rem; line-height: 1.5; }
-.manifold .pc-line { padding: 3px 0; color: rgba(255,255,255,0.88); }
-.manifold .pc-line + .pc-line { border-top: 1px solid rgba(255,255,255,0.05); }
-.manifold .viz-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.55); color: rgba(255,255,255,0.85); font-size: 0.95rem; pointer-events: none; z-index: 10; }
-.manifold .sp-frame { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 14px; }
-.manifold .sp-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.manifold .sp-panel { background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 12px; }
-.manifold .sp-panel-header { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; color: rgba(255,255,255,0.95); }
-.manifold .sp-bar { display: flex; align-items: center; padding: 6px 6px 22px; }
-.manifold .sp-cell { position: relative; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-.manifold .sp-cell:hover .sp-dot { transform: scale(1.18); }
-.manifold .sp-cell.na { cursor: default; }
-.manifold .sp-cell.na:hover .sp-dot { transform: none; }
-.manifold .sp-dot { width: 11px; height: 11px; border-radius: 50%; transition: transform 120ms; box-sizing: border-box; }
-.manifold .sp-dot.filled { background: rgba(255,255,255,0.92); }
-.manifold .sp-dot.hollow { border: 1.5px solid rgba(255,255,255,0.7); background: transparent; }
-.manifold .sp-dot.na { background: rgba(255,255,255,0.22); width: 8px; height: 8px; }
-.manifold .sp-num { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; font-size: 0.72rem; opacity: 0.55; line-height: 1; }
-.manifold .sp-num.na { opacity: 0.3; }
-.manifold .sp-edge { flex: 1; min-width: 18px; height: 18px; display: flex; align-items: center; cursor: zoom-in; padding: 0 2px; }
-.manifold .sp-frame.is-expanded .sp-edge { cursor: zoom-out; }
-.manifold .sp-edge::before { content: ''; flex: 1; height: 2px; background: rgba(255,255,255,0.18); transition: background 120ms; border-radius: 1px; }
-.manifold .sp-edge:hover::before { background: rgba(255,255,255,0.5); }
-.manifold .sp-detail { display: none; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 4px; padding-top: 8px; }
-.manifold .sp-frame.is-expanded .sp-detail { display: block; }
-.manifold .sp-step { display: flex; align-items: center; gap: 10px; padding: 6px 6px; border-radius: 6px; font-size: 0.93rem; cursor: pointer; transition: background 120ms; }
-.manifold .sp-step:hover { background: rgba(255,255,255,0.06); }
-.manifold .sp-step .sp-step-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; box-sizing: border-box; }
-.manifold .sp-step.past .sp-step-dot, .manifold .sp-step.current .sp-step-dot { background: rgba(255,255,255,0.92); }
-.manifold .sp-step.future .sp-step-dot { border: 1.5px solid rgba(255,255,255,0.7); background: transparent; }
-.manifold .sp-step.na .sp-step-dot { background: rgba(255,255,255,0.22); width: 7px; height: 7px; }
-.manifold .sp-step.future { opacity: 0.75; }
-.manifold .sp-step.na { opacity: 0.4; cursor: default; font-style: italic; }
-.manifold .sp-step.na:hover { background: transparent; }
-.manifold .sp-step.current { font-weight: 600; background: rgba(255,255,255,0.06); }
-.manifold .sp-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); }
-.manifold .sp-nav button { padding: 6px 12px; font-size: 0.95rem; }
-.manifold .step-desc { flex: 1; text-align: center; opacity: 0.9; font-size: 0.95rem; }
-.manifold .ifw-worked-section { margin: 10px 0; }
-.manifold .ifw-worked-label { font-size: 0.78rem; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-.manifold .ifw-worked-body { background: rgba(0,0,0,0.4); border-left: 2px solid rgba(255,255,255,0.25); padding: 8px 12px; border-radius: 0 4px 4px 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; }
-.manifold .ifw-worked-body.math { font-family: inherit; font-size: 0.95rem; padding-top: 6px; padding-bottom: 6px; }
-.manifold .viz-centering { position: absolute; inset: 0; }
-.manifold .viz-knn { position: absolute; inset: 0; }
-.manifold .knn-node:hover { stroke: rgba(255,255,255,0.95); stroke-width: 1.5; }
-.manifold .viz-matrix-strip { position: absolute; inset: 0; background: rgba(0,0,0,0.25); }
-.manifold .viz-spectral { position: absolute; inset: 0; }
-.manifold .viz-weighted-knn { position: absolute; inset: 0; }
+.ui.manifold .viz3d { position: absolute; inset: 0; }
+.ui.manifold .viz3d-thumb { position: absolute; right: 8px; bottom: 8px; width: 32%; max-width: 160px; aspect-ratio: 4 / 3; background: #060607; border: 1px solid var(--hairline); border-radius: var(--radius-sm); overflow: hidden; }
+.ui.manifold .viz2d { position: absolute; inset: 0; }
+.ui.manifold .ifw { display: flex; flex-direction: column; gap: 10px; }
+/* flat: eyebrow underline tabs, no pill bubbles */
+.ui.manifold .ifw-tabs { display: flex; gap: 18px; border-bottom: 1px solid var(--hairline); padding-bottom: 0; }
+.ui.manifold .ifw-tab { padding: 7px 1px; margin-bottom: -1px; background: none; border: 0; border-bottom: 1.5px solid transparent; border-radius: 0; cursor: pointer; font: 600 10px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.ui.manifold .ifw-tab.is-active { background: none; color: var(--accent-link); border-bottom-color: var(--accent); }
+.ui.manifold .ifw-tab.is-disabled, .ui.manifold .ifw-tab[disabled] { opacity: 0.35; cursor: not-allowed; }
+.ui.manifold .ifw-content { min-height: 80px; font-size: 0.92rem; line-height: 1.55; color: #aeb0b8; }
+.ui.manifold .ifw-content pre { background: #060607; border: 1px solid var(--hairline); padding: 8px; border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.85rem; }
+.ui.manifold .ifw-empty { color: var(--text-muted); font-style: italic; }
+/* flat pseudocode: the title doubles as the column header; sections are hairline-separated rows,
+   the current one marked by an accent left bar; bodies are mono code wells */
+.ui.manifold .pseudocode { display: flex; flex-direction: column; gap: 0; }
+.ui.manifold .pseudocode-title { font: 600 13px/1 var(--font-sans); color: #dadbe0; margin-bottom: 12px; }
+.ui.manifold .pc-section { border: 0; border-top: 1px solid var(--hairline); border-radius: 0; overflow: visible; }
+.ui.manifold .pc-section:first-of-type { border-top: 0; }
+.ui.manifold .pc-section.is-current { background: none; box-shadow: inset 2px 0 0 var(--accent); }
+.ui.manifold .pc-section-header { display: flex; align-items: center; gap: 8px; padding: 8px 0; background: none; cursor: pointer; font: 600 12px/1.3 var(--font-sans); color: #cfd1d8; }
+.ui.manifold .pc-section.is-current .pc-section-header { background: none; padding-left: 10px; color: #fff; }
+.ui.manifold .pc-chevron { width: 1ch; text-align: center; color: var(--text-muted); }
+.ui.manifold .pc-section-title { font-weight: 600; flex: 1; }
+.ui.manifold .pc-section-steps { font-size: 0.78rem; color: var(--text-muted); }
+.ui.manifold .pc-section-body { margin: 0 0 9px; padding: 9px 12px; background: #060607; border-radius: 5px; font: 500 12px/1.7 var(--font-mono); }
+.ui.manifold .pc-section.is-current .pc-section-body { margin-left: 10px; }
+.ui.manifold .pc-line { padding: 2px 0; color: #c2c4cc; }
+.ui.manifold .pc-line + .pc-line { border-top: 0; }
+.ui.manifold .viz-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--surface-strong); color: var(--text-body); font-size: 0.95rem; pointer-events: none; z-index: 10; }
+.ui.manifold .sp-frame { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 14px; }
+.ui.manifold .sp-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ui.manifold .sp-panel { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius-md); padding: 10px 12px; }
+.ui.manifold .sp-panel-header { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; color: var(--text-body); }
+.ui.manifold .sp-bar { display: flex; align-items: center; padding: 6px 6px 22px; }
+.ui.manifold .sp-cell { position: relative; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.ui.manifold .sp-cell:hover .sp-dot { transform: scale(1.18); }
+.ui.manifold .sp-cell.na { cursor: default; }
+.ui.manifold .sp-cell.na:hover .sp-dot { transform: none; }
+.ui.manifold .sp-dot { width: 11px; height: 11px; border-radius: 50%; transition: transform 120ms; box-sizing: border-box; }
+.ui.manifold .sp-dot.filled { background: #e7e8ec; }
+.ui.manifold .sp-dot.hollow { border: 1.5px solid var(--hairline-strong); background: transparent; }
+.ui.manifold .sp-dot.na { background: rgba(255,255,255,0.22); width: 8px; height: 8px; }
+.ui.manifold .sp-num { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; font-size: 0.72rem; opacity: 0.55; line-height: 1; }
+.ui.manifold .sp-num.na { opacity: 0.3; }
+.ui.manifold .sp-edge { flex: 1; min-width: 18px; height: 18px; display: flex; align-items: center; cursor: zoom-in; padding: 0 2px; }
+.ui.manifold .sp-frame.is-expanded .sp-edge { cursor: zoom-out; }
+.ui.manifold .sp-edge::before { content: ''; flex: 1; height: 2px; background: var(--hairline-strong); transition: background 120ms; border-radius: 1px; }
+.ui.manifold .sp-edge:hover::before { background: var(--accent); }
+.ui.manifold .sp-detail { display: none; border-top: 1px solid var(--hairline); margin-top: 4px; padding-top: 8px; }
+.ui.manifold .sp-frame.is-expanded .sp-detail { display: block; }
+.ui.manifold .sp-step { display: flex; align-items: center; gap: 10px; padding: 6px 6px; border-radius: 6px; font-size: 0.93rem; cursor: pointer; transition: background 120ms; }
+.ui.manifold .sp-step:hover { background: var(--surface-strong); }
+.ui.manifold .sp-step .sp-step-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; box-sizing: border-box; }
+.ui.manifold .sp-step.past .sp-step-dot, .ui.manifold .sp-step.current .sp-step-dot { background: #e7e8ec; }
+.ui.manifold .sp-step.future .sp-step-dot { border: 1.5px solid var(--hairline-strong); background: transparent; }
+.ui.manifold .sp-step.na .sp-step-dot { background: rgba(255,255,255,0.22); width: 7px; height: 7px; }
+.ui.manifold .sp-step.future { opacity: 0.75; }
+.ui.manifold .sp-step.na { opacity: 0.4; cursor: default; font-style: italic; }
+.ui.manifold .sp-step.na:hover { background: transparent; }
+.ui.manifold .sp-step.current { font-weight: 600; background: var(--accent-muted); }
+.ui.manifold .sp-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; }
+.ui.manifold .sp-nav button { padding: 5px 2px; font: 500 12px/1 var(--font-sans); color: var(--accent-link); background: none; border: 0; cursor: pointer; }
+.ui.manifold .sp-nav button:disabled { color: var(--text-muted); cursor: default; }
+.ui.manifold .step-desc { flex: 1; text-align: center; color: #bcbec6; font: 500 12.5px/1.4 var(--font-sans); }
+.ui.manifold .ifw-worked-section { margin: 10px 0; }
+.ui.manifold .ifw-worked-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.ui.manifold .ifw-worked-body { background: #060607; border-left: 2px solid var(--accent); padding: 8px 12px; border-radius: 0 4px 4px 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; }
+.ui.manifold .ifw-worked-body.math { font-family: inherit; font-size: 0.95rem; padding-top: 6px; padding-bottom: 6px; }
+.ui.manifold .viz-centering { position: absolute; inset: 0; }
+.ui.manifold .viz-knn { position: absolute; inset: 0; }
+.ui.manifold .knn-node:hover { stroke: rgba(255,255,255,0.95); stroke-width: 1.5; }
+.ui.manifold .viz-matrix-strip { position: absolute; inset: 0; background: #060607; }
+.ui.manifold .viz-spectral { position: absolute; inset: 0; }
+.ui.manifold .viz-weighted-knn { position: absolute; inset: 0; }
 
-/* Stack the sandbox's side-by-side panels on small screens. Placed at the end
-   of the file so it overrides the `.sp-panels` grid defined above (a media
-   query carries no extra specificity, so source order decides). */
+/* ===== flat comparison redesign: pickers, aligned dual-track stepper, column headers ===== */
+.ui.manifold .mf-rule { height: 1px; background: var(--hairline); border: 0; margin: 24px 0; }
+.ui.manifold .mf-pickrow { display: flex; gap: 48px; flex-wrap: wrap; margin: 24px 0 0; }
+.ui.manifold .mf-pick { display: flex; flex-direction: column; gap: 8px; }
+.ui.manifold .mf-pick-eyebrow { font: 600 10px/1 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: #6c6e77; }
+.ui.manifold .mf-algo-select { appearance: none; font: 600 14px/1.2 var(--font-sans); color: #e7e8ec; background: none; border: 0; border-bottom: 1px solid var(--hairline-strong); padding: 5px 22px 6px 0; cursor: pointer; align-self: flex-start;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 6'%3E%3Cpath d='M1 1l3.5 3.5L8 1' fill='none' stroke='%237a7c84' stroke-width='1.3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 2px center; background-size: 9px; }
+.ui.manifold .mf-pick .mf-algo-params { margin-top: 2px; }
+
+/* aligned dual-track stepper (built by step_indicator.js into .mf-tracks) */
+.ui.manifold .mf-tracks { display: grid; grid-template-columns: 66px repeat(7, 1fr); align-items: center; }
+.ui.manifold .mf-tg-stage { font: 500 9.5px/1.25 var(--font-sans); color: var(--text-muted); text-align: center; padding: 0 4px 11px; }
+.ui.manifold .mf-tg-stage.cur { color: #cfd1d8; font-weight: 600; }
+.ui.manifold .mf-tg-name { font: 600 10px/1.1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: #8a8c95; }
+.ui.manifold .mf-tg-cell { position: relative; height: 22px; display: flex; align-items: center; justify-content: center; }
+.ui.manifold .mf-tg-cell.clickable { cursor: pointer; }
+.ui.manifold .mf-tg-cell::before { content: ""; position: absolute; right: 50%; left: -50%; top: 50%; height: 1.5px; background: var(--hairline-strong); transform: translateY(-50%); }
+.ui.manifold .mf-tg-cell.first::before { display: none; }
+.ui.manifold .mf-tg-cell.na-edge::before { background: repeating-linear-gradient(90deg, var(--hairline-strong) 0 3px, transparent 3px 6px); }
+.ui.manifold .mf-tg-dot { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--hairline-strong); background: var(--bg); position: relative; z-index: 1; box-sizing: border-box; transition: transform 120ms; }
+.ui.manifold .mf-tg-cell.clickable:hover .mf-tg-dot { transform: scale(1.18); }
+.ui.manifold .mf-tg-dot.done { background: #e7e8ec; border-color: #e7e8ec; }
+.ui.manifold .mf-tg-dot.cur { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-muted); }
+.ui.manifold .mf-tg-dot.na { width: 5px; height: 5px; border: 0; background: rgba(255,255,255,0.2); }
+
+.ui.manifold .mf-section-eyebrow { font: 600 10px/1 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: #6c6e77; margin: 28px 0 13px; }
+.ui.manifold .mf-col-head { font: 600 13px/1 var(--font-sans); color: #dadbe0; margin-bottom: 11px; }
+
+/* Stack the comparison columns on small screens. */
 @media (max-width: 820px) {
-  .manifold .sp-panels { grid-template-columns: 1fr; }
+  .ui.manifold .mf-tracks { overflow-x: auto; }
 }

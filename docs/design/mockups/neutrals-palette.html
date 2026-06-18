@@ -1,0 +1,92 @@
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<h2>Neutrals and contrast</h2>
+<p class="subtitle">Background depth, surface tint, and the three text tiers (title / body / muted), in three temperaments. Type and accent are fixed; only the neutrals change. Hexes are annotated. We tune contrast strength after you pick a temperature.</p>
+
+<style>
+.np{ border-radius:13px; margin-bottom:16px; position:relative; font-family:'Inter',system-ui; overflow:hidden; border:1px solid rgba(255,255,255,.07); }
+.np .slice{ padding:30px 36px 34px; }
+.np .tag{ position:absolute; top:12px; right:14px; font:600 11px/1 'JetBrains Mono'; letter-spacing:.1em; opacity:.5; }
+.np .eyebrow{ font:600 11px/1 'Inter'; letter-spacing:.2em; text-transform:uppercase; color:#6b7cff; }
+.np h1{ font:600 33px/1.1 'Inter'; letter-spacing:-.025em; margin:11px 0 12px; }
+.np p{ font:400 14.5px/1.7 'Inter'; max-width:60ch; margin:0 0 8px; }
+.np .muted{ font:400 12.5px/1.5 'Inter'; }
+.np .rule{ height:1px; margin:20px 0; }
+.np .inset{ display:inline-flex; align-items:center; gap:14px; border-radius:8px; padding:12px 16px; margin-top:4px; font:500 12.5px/1 'JetBrains Mono'; }
+.np .inset b{ color:#6b7cff; }
+.np .swatches{ display:flex; gap:0; margin-top:20px; border-radius:7px; overflow:hidden; width:fit-content; border:1px solid rgba(255,255,255,.08); }
+.np .sw{ width:74px; height:38px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:3px; font:500 8.5px/1 'JetBrains Mono'; }
+
+/* A - NEUTRAL GRAPHITE */
+.A{ background:#0c0c0d; }
+.A .slice h1{ color:#fafafa; } .A p{ color:#8b8d96; } .A .muted{ color:#5d5f68; }
+.A .rule{ background:rgba(255,255,255,.08); }
+.A .inset{ background:rgba(255,255,255,.04); color:#c4c6cd; border:1px solid rgba(255,255,255,.06); }
+.A .tag{ color:#fff; }
+
+/* B - COOL SLATE */
+.B{ background:#0b0c0e; }
+.B .slice h1{ color:#f4f6fa; } .B p{ color:#8a909d; } .B .muted{ color:#565c67; }
+.B .rule{ background:rgba(150,170,200,.12); }
+.B .inset{ background:rgba(140,160,200,.06); color:#c2c8d2; border:1px solid rgba(150,170,200,.1); }
+.B .tag{ color:#dfe6f0; }
+
+/* C - WARM CARBON */
+.C{ background:#0d0c0b; }
+.C .slice h1{ color:#f8f6f2; } .C p{ color:#938d85; } .C .muted{ color:#615b53; }
+.C .rule{ background:rgba(255,240,220,.09); }
+.C .inset{ background:rgba(255,240,220,.05); color:#cbc6bd; border:1px solid rgba(255,240,220,.08); }
+.C .tag{ color:#f3ece1; }
+</style>
+
+<div class="np A"><div class="slice"><span class="tag">A · NEUTRAL GRAPHITE</span>
+  <div class="eyebrow">Visualization</div>
+  <h1>Principal Component Analysis</h1>
+  <p>PCA finds the orthogonal directions that capture the most variance, projecting the data onto a smaller basis. This is the body tier: clearly readable, but a step down from the title.</p>
+  <div class="muted">Muted tier - captions, secondary notes, axis labels. Recedes without disappearing.</div>
+  <div class="rule"></div>
+  <div class="inset">variance <b>92.4%</b> &nbsp;·&nbsp; raised surface (code / readout)</div>
+  <div class="swatches">
+    <div class="sw" style="background:#0c0c0d;color:#888">#0c0c0d</div>
+    <div class="sw" style="background:#fafafa;color:#333">#fafafa</div>
+    <div class="sw" style="background:#8b8d96;color:#111">#8b8d96</div>
+    <div class="sw" style="background:#5d5f68;color:#fff">#5d5f68</div>
+  </div>
+</div></div>
+
+<div class="np B"><div class="slice"><span class="tag">B · COOL SLATE</span>
+  <div class="eyebrow">Visualization</div>
+  <h1>Principal Component Analysis</h1>
+  <p>PCA finds the orthogonal directions that capture the most variance, projecting the data onto a smaller basis. This is the body tier: clearly readable, but a step down from the title.</p>
+  <div class="muted">Muted tier - captions, secondary notes, axis labels. Recedes without disappearing.</div>
+  <div class="rule"></div>
+  <div class="inset">variance <b>92.4%</b> &nbsp;·&nbsp; raised surface (code / readout)</div>
+  <div class="swatches">
+    <div class="sw" style="background:#0b0c0e;color:#889">#0b0c0e</div>
+    <div class="sw" style="background:#f4f6fa;color:#333">#f4f6fa</div>
+    <div class="sw" style="background:#8a909d;color:#111">#8a909d</div>
+    <div class="sw" style="background:#565c67;color:#fff">#565c67</div>
+  </div>
+</div></div>
+
+<div class="np C"><div class="slice"><span class="tag">C · WARM CARBON</span>
+  <div class="eyebrow">Visualization</div>
+  <h1>Principal Component Analysis</h1>
+  <p>PCA finds the orthogonal directions that capture the most variance, projecting the data onto a smaller basis. This is the body tier: clearly readable, but a step down from the title.</p>
+  <div class="muted">Muted tier - captions, secondary notes, axis labels. Recedes without disappearing.</div>
+  <div class="rule"></div>
+  <div class="inset">variance <b>92.4%</b> &nbsp;·&nbsp; raised surface (code / readout)</div>
+  <div class="swatches">
+    <div class="sw" style="background:#0d0c0b;color:#998">#0d0c0b</div>
+    <div class="sw" style="background:#f8f6f2;color:#333">#f8f6f2</div>
+    <div class="sw" style="background:#938d85;color:#111">#938d85</div>
+    <div class="sw" style="background:#615b53;color:#fff">#615b53</div>
+  </div>
+</div></div>
+
+<div class="options">
+  <div class="option" data-choice="graphite" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>Neutral graphite</h3><p>True grays, no temperature. Cleanest and most timeless; lets the accent be the only color. Closest to today.</p></div></div>
+  <div class="option" data-choice="slate" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Cool slate</h3><p>Faint blue cast in neutrals. Reads modern/technical and "screen-native". Pairs naturally with a blue accent.</p></div></div>
+  <div class="option" data-choice="carbon" onclick="toggleSelect(this)"><div class="letter">C</div><div class="content"><h3>Warm carbon</h3><p>Faint warm cast. Softer, more editorial/premium (the 23street feel). Pairs better with a warm or neutral accent.</p></div></div>
+</div>

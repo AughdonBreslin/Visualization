@@ -18,7 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const width = 520, height = 420, margin = { top: 10, right: 10, bottom: 20, left: 40 };
   const innerW = width - margin.left - margin.right; const innerH = height - margin.top - margin.bottom;
 
-  const svg = viz.append('svg').attr('width', width).attr('height', height);
+  // viewBox + CSS width:100% lets the plot scale to fill its column while keeping the 520x420
+  // internal coordinate space (d3.pointer maps clicks back through the transform, so queries stay
+  // accurate at any rendered size).
+  const svg = viz.append('svg')
+    .attr('width', width).attr('height', height)
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
   const fitGDAButton = document.getElementById('fitGDA');
@@ -255,44 +261,84 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  // Query-table sort state, persisted across re-queries so a header-click sort survives the next
+  // plot click. lastQueryArgs caches the most recent point/opts so a header click can re-render.
+  let querySort = { col: 'class', dir: 'asc' };
+  let lastQueryArgs = null;
+
   function updateQueryTable(point, opts = {}) {
     if (!queryInfo) return;
     if (!kdeModel || !kdeModel.classes || kdeModel.classes.length === 0) {
       queryInfo.textContent = 'No query yet';
+      const coordsEl0 = document.getElementById('queryCoordsLabel');
+      if (coordsEl0) coordsEl0.textContent = '';
       return;
     }
 
+    lastQueryArgs = { point, opts };
+
     const x = point[0];
     const y = point[1];
-    const header = opts.header ?? `Query (${x.toFixed(2)},${y.toFixed(2)})`;
     const autoFitGDA = !!opts.autoFitGDA;
+
+    // The queried coordinate is shown in the collapsible summary, not as an in-table caption row.
+    const coordsEl = document.getElementById('queryCoordsLabel');
+    if (coordsEl) coordsEl.textContent = `(${x.toFixed(2)}, ${y.toFixed(2)})`;
 
     const classes = kdeModel.classes;
     const kde = kdeForPoint([x, y], classes, kdeModel.pdfs, kdeModel.logPdfs, kdeModel.priors, useLogSpace);
 
-    const headerCols = classes.map(c => `p(y=${c}|x)`).concat(classes.map(c => `p(x|y=${c})`));
-    const colCount = headerCols.length + 1; // +1 for row header
-
-    const kdeVals = [];
-    for (let i = 0; i < classes.length; i++) kdeVals.push(kde.classPosteriors[i].toFixed(3));
-    for (let i = 0; i < classes.length; i++) kdeVals.push((kde.classLikelihoods[i]).toExponential(2));
-
-    let msg = `<table class="data-table">`;
-    msg += `<tr><th colspan="${colCount}">${header}</th></tr>`;
-    msg += `<tr><th></th>${headerCols.map(h => `<th>${h}</th>`).join('')}</tr>`;
-    msg += `<tr><td class="query-row-label">KDE</td>${kdeVals.map(v => `<td>${v}</td>`).join('')}</tr>`;
-
     if (autoFitGDA && !gda.fitted) fitGDA();
-    if (gda.fitted) {
-      const gRes = gdaForPoint([x, y]);
-      const gdaVals = [];
-      for (let i = 0; i < gda.classes.length; i++) gdaVals.push(gRes.classPosteriors[i].toFixed(3));
-      for (let i = 0; i < gda.classes.length; i++) gdaVals.push((gRes.classLikelihoods[i]).toExponential(2));
-      msg += `<tr><td class="query-row-label">GDA</td>${gdaVals.map(v => `<td>${v}</td>`).join('')}</tr>`;
+    const haveGDA = gda.fitted;
+    const gRes = haveGDA ? gdaForPoint([x, y]) : null;
+
+    // One row object per class (the table is transposed: classes are rows, metrics are columns),
+    // so the readout grows downward and handles any number of classes.
+    const rows = classes.map((c, i) => ({
+      class: c,
+      kdePost: kde.classPosteriors[i],
+      kdeLike: kde.classLikelihoods[i],
+      gdaPost: haveGDA ? gRes.classPosteriors[i] : null,
+      gdaLike: haveGDA ? gRes.classLikelihoods[i] : null,
+    }));
+
+    const cols = [
+      { key: 'class', label: 'Class', fmt: v => `${v}` },
+      { key: 'kdePost', label: 'KDE p(y|x)', fmt: v => v.toFixed(3) },
+      { key: 'kdeLike', label: 'KDE p(x|y)', fmt: v => v.toExponential(2) },
+    ];
+    if (haveGDA) {
+      cols.push({ key: 'gdaPost', label: 'GDA p(y|x)', fmt: v => v.toFixed(3) });
+      cols.push({ key: 'gdaLike', label: 'GDA p(x|y)', fmt: v => v.toExponential(2) });
     }
 
+    // Sort the class rows by the active column (default Class ascending). A header click sets the
+    // column / toggles direction, then re-renders the same point via lastQueryArgs.
+    const sortKey = cols.some(c => c.key === querySort.col) ? querySort.col : 'class';
+    const sortMul = querySort.dir === 'desc' ? -1 : 1;
+    rows.sort((a, b) => (a[sortKey] === b[sortKey] ? 0 : (a[sortKey] < b[sortKey] ? -1 : 1)) * sortMul);
+
+    const arrow = key => key === querySort.col ? (querySort.dir === 'desc' ? ' ▼' : ' ▲') : '';
+    let msg = `<table class="data-table">`;
+    msg += `<tr>${cols.map(c => `<th class="gc-sort-th${c.key === querySort.col ? ' is-sorted' : ''}" data-col="${c.key}">${c.label}${arrow(c.key)}</th>`).join('')}</tr>`;
+    for (const r of rows) {
+      msg += `<tr>${cols.map(c => `<td${c.key === 'class' ? ' class="query-row-label"' : ''}>${c.fmt(r[c.key])}</td>`).join('')}</tr>`;
+    }
     msg += `</table>`;
     queryInfo.innerHTML = msg;
+
+    queryInfo.querySelectorAll('.gc-sort-th').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.getAttribute('data-col');
+        if (querySort.col === col) {
+          querySort.dir = querySort.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+          querySort.col = col;
+          querySort.dir = col === 'class' ? 'asc' : 'desc';
+        }
+        if (lastQueryArgs) updateQueryTable(lastQueryArgs.point, lastQueryArgs.opts);
+      });
+    });
   }
 
   let queryMarkerPoint = null;
@@ -545,32 +591,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     gda.classes = classes; gda.params = params; gda.fitted = true;
 
-    // render GDA params into the #gdaParams container per class (prior, μ, Σ)
+    // render GDA params into the #gdaParams container as a table (one row per class), so it scales
+    // with the number of classes: Class | Prior | mean μ | covariance Σ.
     if (gdaParamsEl) {
-      const blocks = classes.map(c => {
+      const rowsHtml = classes.map(c => {
         const p = params[c];
-        return `<div class="gda-class"><div class="gda-class-title">Class ${c}</div><div>P(y=${c}) = ${p.prior.toFixed(3)}</div><div>$$\\mu = [${p.mu.map(v=>v.toFixed(3)).join(', ')}]$$</div><div>$$\\Sigma = \\begin{bmatrix}${p.sigma[0][0].toFixed(3)} & ${p.sigma[0][1].toFixed(3)} \\\\ ${p.sigma[1][0].toFixed(3)} & ${p.sigma[1][1].toFixed(3)}\\end{bmatrix}$$</div></div>`;
+        const muTex = `$\\mu = [${p.mu.map(v=>v.toFixed(3)).join(',\\ ')}]$`;
+        const sigTex = `$\\Sigma = \\begin{bmatrix}${p.sigma[0][0].toFixed(3)} & ${p.sigma[0][1].toFixed(3)} \\\\ ${p.sigma[1][0].toFixed(3)} & ${p.sigma[1][1].toFixed(3)}\\end{bmatrix}$`;
+        return `<tr><td class="gda-class-cell">${c}</td><td>${p.prior.toFixed(3)}</td><td>${muTex}</td><td>${sigTex}</td></tr>`;
       }).join('');
-      gdaParamsEl.innerHTML = blocks;
+      gdaParamsEl.innerHTML = `<table class="gc-params-table"><thead><tr><th>Class</th><th>Prior p(y)</th><th>Mean</th><th>Covariance</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
     }
 
     const calcP = calcPriorsEl;
     if (calcP) calcP.innerHTML = `<h3>Priors</h3>` + classes.map(c => `P(y=${c})=${params[c].prior.toFixed(3)}`).join('\; ');
 
-    // typeset TeX blocks if MathJax is available
-    const typesetEls = [gdaParamsEl, calcP].filter(Boolean);
+    const lines = [`<h3>Gaussian Parameters</h3>`];
+    for (const c of classes) {
+      const p = params[c];
+      lines.push(`<p>Class ${c}: $\\mu = [${p.mu.map(v=>v.toFixed(3)).join(', ')}]$, $\\Sigma = \\begin{bmatrix} ${p.sigma[0][0].toFixed(3)} & ${p.sigma[0][1].toFixed(3)} \\\\ ${p.sigma[1][0].toFixed(3)} & ${p.sigma[1][1].toFixed(3)} \\end{bmatrix}$</p>`);
+    }
+    if (calcMuSigmaEl) calcMuSigmaEl.innerHTML = lines.join('');
+
+    // typeset TeX blocks if MathJax is available (after all three containers are populated)
+    const typesetEls = [gdaParamsEl, calcP, calcMuSigmaEl].filter(Boolean);
     if (typesetEls.length > 0 && window.MathJax && MathJax.typesetPromise) {
       MathJax.typesetPromise(typesetEls).catch(err => console.warn('MathJax typeset failed:', err));
     } else if (typesetEls.length > 0 && window.MathJax && MathJax.typeset) {
       try { MathJax.typeset(typesetEls); } catch (e) { console.warn('MathJax typeset failed:', e); }
     }
-
-    const lines = [`<h3>Gaussian Parameters</h3>`];
-    for (const c of classes) {
-      const p = params[c];
-      lines.push(`<p>Class ${c}: μ = [${p.mu.map(v=>v.toFixed(3)).join(', ')}]; Σ = [${p.sigma[0][0].toFixed(3)} ${p.sigma[0][1].toFixed(3)}; ${p.sigma[1][0].toFixed(3)} ${p.sigma[1][1].toFixed(3)}]</p>`);
-    }
-    if (calcMuSigmaEl) calcMuSigmaEl.innerHTML = lines.join('');
 
     render();
   }
@@ -883,31 +932,53 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const renderLines = (lines) => lines.map(l=>{
-      if (l.startsWith('KDE:') || l.startsWith('GDA:')) {
-        return `<h3 class="calc-step-header">${l}</h3>`;
+    // At-a-glance values for the collapsible summaries: the posterior vector per method, and the
+    // class-conditional likelihood per class block (so a collapsed block still shows its result).
+    const fmtVec = (arr) => `[${arr.map(v => v.toFixed(3)).join(',\\ ')}]`;
+    const kdeResultTex = `$p(y\\mid x^*) = ${fmtVec(kdePosts)}$`;
+    const gdaResultTex = `$p(y\\mid x^*) = ${fmtVec(g.classPosteriors)}$`;
+    const kdeClassResults = classes.map((c, i) => `$p(x^*\\mid y=${c}) = ${ks[i].toExponential(2)}$`);
+    const gdaClassResults = classes.map((c, i) => `$p(x^*\\mid y=${c}) = ${g.classLikelihoods[i].toExponential(2)}$`);
+
+    // Render a method (KDE / GDA) walkthrough as a collapsible section. Lines that begin "Class k"
+    // (the per-class blocks in Step 1) become their own collapsibles, open by default closed; the
+    // rest renders as step headers and content lines.
+    const renderMethod = (lines, label, resultTex, classResults) => {
+      let body = '';
+      let classOpen = false;
+      let stepOpen = false;
+      let classIdx = 0;
+      const closeClass = () => { if (classOpen) { body += '</div></details>'; classOpen = false; } };
+      const closeStep = () => { closeClass(); if (stepOpen) { body += '</div></details>'; stepOpen = false; } };
+      for (const l of lines) {
+        if (l === `${label}:`) continue;
+        if (l === '') { closeClass(); continue; }
+        if (l.startsWith('Step')) {
+          closeStep();
+          body += `<details class="gc-calc-step-d" open><summary class="gc-calc-step">${l}</summary><div class="gc-calc-step-body">`;
+          stepOpen = true;
+          continue;
+        }
+        if (l.startsWith('Class ')) {
+          closeClass();
+          const res = (classResults && classResults[classIdx]) ? `<span class="gc-calc-c-result">${classResults[classIdx]}</span>` : '';
+          classIdx++;
+          body += `<details class="gc-calc-class"><summary><span class="gc-calc-c-name">${l}</span>${res}</summary><div class="gc-calc-c-body">`;
+          classOpen = true;
+          continue;
+        }
+        const cls = l.startsWith('Plug') ? 'gc-calc-end' : 'gc-calc-line';
+        body += `<div class="${cls}">${l}</div>`;
       }
-      if (l.startsWith('Step')) {
-        return `<h4 class="calc-step-subheader">${l}</h4>`;
-      }
-      if (l.startsWith('Class ')) {
-        return `<h5 class="calc-step-subheader">${l}</h5>`;
-      }
-      if (l.startsWith('Plug')) {
-        return `<div class="calc-step-end">${l}</div>`;
-      }
-      return `<div class="calc-step-content">${l}</div>`;
-    }).join('');
+      closeStep();
+      return `<details class="gc-method" open><summary><span class="gc-method-name">${label}</span><span class="gc-method-result">${resultTex}</span></summary><div class="gc-method-body">${body}</div></details>`;
+    };
 
     if (calcQueryPointEl) {
-      calcQueryPointEl.innerHTML = renderLines(queryLines);
+      calcQueryPointEl.innerHTML = `x* = (${x[0].toFixed(2)}, ${x[1].toFixed(2)})<span class="dim">  &middot;  bandwidth h = ${bw}  &middot;  ${classes.length} classes${useLogSpace ? '  &middot;  log-space' : ''}</span>`;
     }
-
-    if (calcPointKDEEl) calcPointKDEEl.innerHTML = renderLines(sKDE);
-    if (calcPointGDAEl) calcPointGDAEl.innerHTML = renderLines(sGDA);
-    if (!calcPointKDEEl && !calcPointGDAEl && calcPointLegacyEl) {
-      calcPointLegacyEl.innerHTML = renderLines(queryLines.concat([''], sKDE, [''], sGDA));
-    }
+    if (calcPointKDEEl) calcPointKDEEl.innerHTML = renderMethod(sKDE, 'KDE', kdeResultTex, kdeClassResults);
+    if (calcPointGDAEl) calcPointGDAEl.innerHTML = renderMethod(sGDA, 'GDA', gdaResultTex, gdaClassResults);
 
     const typesetTargets = [calcQueryPointEl, calcPointKDEEl, calcPointGDAEl, calcPointLegacyEl].filter(Boolean);
     if (typesetTargets.length > 0 && window.MathJax && MathJax.typesetPromise) {
