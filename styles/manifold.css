@@ -120,7 +120,8 @@
 .ui.manifold .viz-weighted-knn { position: absolute; inset: 0; }
 
 /* ===== flat comparison redesign: pickers, aligned dual-track stepper, column headers ===== */
-.ui.manifold .mf-pickrow { display: flex; gap: 48px; flex-wrap: wrap; margin: 24px 0; }
+.ui.manifold .mf-rule { height: 1px; background: var(--hairline); border: 0; margin: 24px 0; }
+.ui.manifold .mf-pickrow { display: flex; gap: 48px; flex-wrap: wrap; margin: 24px 0 0; }
 .ui.manifold .mf-pick { display: flex; flex-direction: column; gap: 8px; }
 .ui.manifold .mf-pick-eyebrow { font: 600 10px/1 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: #6c6e77; }
 .ui.manifold .mf-algo-select { appearance: none; font: 600 14px/1.2 var(--font-sans); color: #e7e8ec; background: none; border: 0; border-bottom: 1px solid var(--hairline-strong); padding: 5px 22px 6px 0; cursor: pointer; align-self: flex-start;

@@ -180,6 +180,10 @@ function init() {
       (next) => store.set({ leftAlgoParams: next }));
     renderParamHost(rightParamsHost, ALGORITHMS_BY_ID[store.state.rightAlgoId], () => store.state.rightAlgoParams,
       (next) => store.set({ rightAlgoParams: next }));
+    // When neither algorithm has parameters, drop the duplicated "No parameters" text entirely.
+    const leftEmpty = !!leftParamsHost.querySelector('.mf-noparams');
+    const rightEmpty = !!rightParamsHost.querySelector('.mf-noparams');
+    if (leftEmpty && rightEmpty) { leftParamsHost.innerHTML = ''; rightParamsHost.innerHTML = ''; }
   }
   rebindParamHosts();
 
