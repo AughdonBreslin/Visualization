@@ -16,10 +16,13 @@
   <link rel="stylesheet" href="../styles/tokens.css">
   <link rel="stylesheet" href="../styles/system.css">
   <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/article-ui.css">
   <link rel="stylesheet" href="../styles/visualizer.css">
+  <link rel="stylesheet" href="../styles/section-outline.css">
   <script src="../js/theme.js"></script>
   <script defer src="../js/distributions.js"></script>
   <script defer src="../js/favicon.js"></script>
+  <script type="module" src="../js/section-outline.js"></script>
 </head>
 
 <body class="ui distributions">
@@ -30,41 +33,42 @@
       <p class="lede">Build and compare probability distributions: Normal, Uniform, Exponential, Laplace, Dirac, and mixtures.</p>
     </header>
 
-    <main class="dv">
-      <div class="dv-plots">
-        <div class="dv-plot">
-          <div class="dv-plot-title">Probability density (PDF)</div>
-          <div id="pdf" class="dv-plot-host"></div>
-        </div>
-        <div class="dv-plot">
-          <div class="dv-plot-title">Cumulative (CDF)</div>
-          <div id="cdf" class="dv-plot-host"></div>
-        </div>
-      </div>
-
-      <hr class="dv-rule" />
-
-      <div class="dv-toolbar">
-        <div class="dv-field">
-          <span class="dv-flabel">X range</span>
-          <div class="dv-xrange">
-            <input id="xMin" type="number" step="0.1" value="-5" class="dv-num" aria-label="X minimum" />
-            <span class="dv-to">to</span>
-            <input id="xMax" type="number" step="0.1" value="5" class="dv-num" aria-label="X maximum" />
+    <main class="article-body">
+      <section class="panel">
+        <h2>Visualization</h2>
+        <div class="dv-plots">
+          <div class="dv-plot">
+            <div class="dv-plot-title">Probability density (PDF)</div>
+            <div id="pdf" class="dv-plot-host"></div>
+          </div>
+          <div class="dv-plot">
+            <div class="dv-plot-title">Cumulative (CDF)</div>
+            <div id="cdf" class="dv-plot-host"></div>
           </div>
         </div>
-        <div class="dv-toolbar-actions">
-          <button id="addDist" type="button" class="btn btn-acc">+ Add distribution</button>
-          <button id="resetAll" type="button" class="btn">Clear all</button>
+      </section>
+
+      <section class="panel">
+        <h2>Distributions</h2>
+        <div class="dv-toolbar">
+          <div class="dv-field">
+            <span class="dv-flabel">X range</span>
+            <div class="dv-xrange">
+              <input id="xMin" type="number" step="0.1" value="-5" class="dv-num" aria-label="X minimum" />
+              <span class="dv-to">to</span>
+              <input id="xMax" type="number" step="0.1" value="5" class="dv-num" aria-label="X maximum" />
+            </div>
+          </div>
+          <div class="dv-toolbar-actions">
+            <button id="addDist" type="button" class="btn btn-acc">+ Add distribution</button>
+            <button id="resetAll" type="button" class="btn">Clear all</button>
+          </div>
         </div>
-      </div>
+        <div class="forms" id="forms"></div>
+      </section>
 
-      <div class="forms" id="forms"></div>
-
-      <hr class="dv-rule" />
-
-      <section class="dv-details-wrap">
-        <div class="dv-seclbl">Active distributions</div>
+      <section class="panel">
+        <h2>Active distributions</h2>
         <div id="distributions-details"></div>
       </section>
     </main>

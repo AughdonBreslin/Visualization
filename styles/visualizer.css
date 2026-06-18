@@ -1,10 +1,9 @@
 /* visualizer.css - Distribution Visualizer tool, migrated to the dark flat (.ui) aesthetic.
  * A plots-led tool layout (plots -> controls -> details), not the article archetype. */
 
-.ui.distributions .container { max-width: 1080px; }
+/* container width + rail positioning come from article-ui.css (.ui.has-section-outline), matching
+   the other pages. */
 .ui.distributions .page-head { margin-bottom: var(--sp-5); }
-.ui.distributions .dv-rule { height: 1px; background: var(--hairline); border: 0; margin: 26px 0; }
-.ui.distributions .dv-details-wrap { margin-top: 0; }
 
 /* ---------- Plots ---------- */
 .ui.distributions .dv-plots { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
