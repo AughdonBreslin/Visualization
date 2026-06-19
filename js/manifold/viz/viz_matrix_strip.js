@@ -196,45 +196,80 @@ function renderPane(svg, pane, x, y, w, h) {
   }
 }
 
-export function mountMatrixStrip(container, state, { width = 480, height = 280 } = {}) {
+export function mountMatrixStrip(container, state) {
   const d3 = window.d3;
   const wrap = d3.select(container).append('div').attr('class', 'viz-matrix-strip');
-  const svg = wrap.append('svg')
-    .attr('viewBox', `0 0 ${width} ${height}`)
-    .attr('preserveAspectRatio', 'xMidYMid meet')
-    .style('width', '100%').style('height', '100%');
 
-  const panes = state.panes || [];
-  const opLabels = state.paneOpLabels || [];
-  const paneCount = Math.max(1, panes.length);
-  const gapW = 36;
-  const sideMargin = 10;
-  const paneW = (width - 2 * sideMargin - gapW * (paneCount - 1)) / paneCount;
-  const paneH = height - 70;
-  const paneY = 30;
+  function draw() {
+    wrap.selectAll('*').remove();
 
-  panes.forEach((pane, i) => {
-    const x = sideMargin + i * (paneW + gapW);
-    renderPane(svg, pane, x, paneY, paneW, paneH);
-  });
+    // Render at the host's real pixel size with a 1:1 viewBox (no scaling). The panes use
+    // <foreignObject> canvases for the matrix heatmaps and orbitable thumbnails, and mobile
+    // WebKit does NOT apply an SVG viewBox/preserveAspectRatio scale to foreignObject content,
+    // so a scaled-down viewBox made those canvases overflow their boxes on phones. Matching the
+    // viewBox to the host size keeps the scale at 1, so the foreignObjects render correctly on
+    // every browser, and the matrices fill the box instead of being letterboxed.
+    const rect = container.getBoundingClientRect();
+    const width = Math.max(1, Math.round(rect.width)) || 480;
+    const height = Math.max(1, Math.round(rect.height)) || 280;
 
-  for (let k = 0; k < panes.length - 1; k++) {
-    const paneRightEdge = sideMargin + (k + 1) * paneW + k * gapW;
-    const arrowMid = paneRightEdge + gapW / 2;
-    const ay = paneY + paneH / 2;
-    svg.append('line').attr('x1', arrowMid - 7).attr('y1', ay).attr('x2', arrowMid + 7).attr('y2', ay)
-      .attr('stroke', 'rgba(255,255,255,0.7)').attr('stroke-width', 1.4)
-      .attr('marker-end', 'url(#strip-arrow)');
-    svg.append('text').attr('x', arrowMid).attr('y', paneY + paneH + 14).attr('text-anchor', 'middle')
-      .attr('fill', 'rgba(255,255,255,0.65)').attr('font-size', '10').text(opLabels[k] || '');
+    const svg = wrap.append('svg')
+      .attr('viewBox', `0 0 ${width} ${height}`)
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+      .style('width', '100%').style('height', '100%');
+
+    const panes = state.panes || [];
+    const opLabels = state.paneOpLabels || [];
+    const paneCount = Math.max(1, panes.length);
+    const gapW = Math.min(36, width * 0.075);
+    const sideMargin = 10;
+    const paneW = (width - 2 * sideMargin - gapW * (paneCount - 1)) / paneCount;
+    const paneH = height - 70;
+    const paneY = 30;
+
+    panes.forEach((pane, i) => {
+      const x = sideMargin + i * (paneW + gapW);
+      renderPane(svg, pane, x, paneY, paneW, paneH);
+    });
+
+    for (let k = 0; k < panes.length - 1; k++) {
+      const paneRightEdge = sideMargin + (k + 1) * paneW + k * gapW;
+      const arrowMid = paneRightEdge + gapW / 2;
+      const ay = paneY + paneH / 2;
+      svg.append('line').attr('x1', arrowMid - 7).attr('y1', ay).attr('x2', arrowMid + 7).attr('y2', ay)
+        .attr('stroke', 'rgba(255,255,255,0.7)').attr('stroke-width', 1.4)
+        .attr('marker-end', 'url(#strip-arrow)');
+      svg.append('text').attr('x', arrowMid).attr('y', paneY + paneH + 14).attr('text-anchor', 'middle')
+        .attr('fill', 'rgba(255,255,255,0.65)').attr('font-size', '10').text(opLabels[k] || '');
+    }
+
+    const defs = svg.append('defs');
+    defs.append('marker').attr('id', 'strip-arrow').attr('viewBox', '0 0 10 10').attr('refX', 9)
+      .attr('refY', 5).attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto-start-reverse')
+      .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z').attr('fill', 'rgba(255,255,255,0.7)');
   }
 
-  const defs = svg.append('defs');
-  defs.append('marker').attr('id', 'strip-arrow').attr('viewBox', '0 0 10 10').attr('refX', 9)
-    .attr('refY', 5).attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto-start-reverse')
-    .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z').attr('fill', 'rgba(255,255,255,0.7)');
+  draw();
+
+  // Re-render at the new size when the host box changes (orientation change, column reflow).
+  let ro = null;
+  if (typeof ResizeObserver !== 'undefined') {
+    let raf = 0;
+    let lastW = Math.round(container.getBoundingClientRect().width);
+    let lastH = Math.round(container.getBoundingClientRect().height);
+    ro = new ResizeObserver(() => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const r = container.getBoundingClientRect();
+        const w = Math.round(r.width), h = Math.round(r.height);
+        if (w !== lastW || h !== lastH) { lastW = w; lastH = h; draw(); }
+      });
+    });
+    ro.observe(container);
+  }
 
   return {
-    unmount() { wrap.remove(); }
+    unmount() { if (ro) ro.disconnect(); wrap.remove(); }
   };
 }

@@ -4,12 +4,18 @@ Specific bugs, mobile issues, perf, and enhancements gathered after the dark UI 
 Roll these into the deferred phases in `redesign-backlog.md` (robustness / mobile) as picked up.
 
 ## Functional bugs (desktop)
-- [ ] **Regularization:** on load, the ridge coefficients chart is not rendered properly (likely
-  needs a redraw / resize after layout settles).
-- [ ] **Bayesian:** the variational inference lines are not all represented in the legend.
-- [ ] **PCA:** the "Covariance operator" title is blocked / overlapped by the principal components
-  graph.
-- [ ] **Manifold:** the pairwise affinity displays do not fit inside their boxes.
+- [x] **Regularization:** on load, the ridge coefficients chart is not rendered properly (likely
+  needs a redraw / resize after layout settles). Fixed: ResizeObserver re-renders when the
+  section-outline rail shrinks the column after init.
+- [x] **Bayesian:** the variational inference lines are not all represented in the legend. Fixed:
+  the horizontal legend now wraps to multiple rows instead of running off the right edge.
+- [x] **PCA:** the "Covariance operator" title is blocked / overlapped by the principal components
+  graph (occurs on mobile, where the figures stack). Fixed: definite .pca-viz height so the plot
+  matches its grid row instead of overflowing onto the next caption.
+- [x] **Manifold:** the pairwise affinity displays do not fit inside their boxes (overflowed on
+  mobile). Fixed: the matrix strip renders at the host's real pixel size (viewBox = host, scale 1)
+  so the foreignObject canvases no longer depend on SVG viewBox scaling that mobile WebKit ignores;
+  re-renders on resize.
 
 ## Mobile
 - [ ] Zooming in and out should be clean (pinch-zoom behavior across pages).
@@ -33,3 +39,4 @@ Roll these into the deferred phases in `redesign-backlog.md` (robustness / mobil
 - [ ] **Distributions:** add the ability to hide individual components within a mixture model
   (per-component visibility toggle).
 - [ ] Generally add collapsibility to more components / sections across pages.
+- [ ] **Fourier:** make the worked examples better.
