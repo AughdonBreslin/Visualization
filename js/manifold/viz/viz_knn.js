@@ -81,7 +81,7 @@ export function mountKnn(container, state, { width = 480, height = 360 } = {}) {
   }
   const edgePath = gEdges.append('path').attr('class', 'knn-edge-path')
     .attr('d', edgePathD()).attr('fill', 'none')
-    .attr('stroke', 'rgba(255,255,255,0.18)').attr('stroke-width', 0.7)
+    .attr('stroke', 'rgba(255,255,255,0.32)').attr('stroke-width', 0.8)
     .attr('opacity', 0);
   // Separate path for the edges incident to a hovered node (built on demand).
   const highlightPath = gEdges.append('path').attr('class', 'knn-edge-highlight')
