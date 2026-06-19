@@ -89,7 +89,9 @@ function mountPcaSpectral(svg, state, width, height) {
     }
     return arr;
   });
-  let highlightedK = null;
+  // Start with the first eigenvalue/eigenvector combo selected (otherwise PCA opens with the
+  // cloud uncolored and no component highlighted).
+  let highlightedK = 0;
 
   function redraw() {
     gCloud.html('');
@@ -145,7 +147,7 @@ function mountPcaSpectral(svg, state, width, height) {
   const maxH = 52;
   const baseFill = (i) => i < 2 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.5)';
   const bars = [];
-  let pinnedK = null;
+  let pinnedK = 0;
   function paint() {
     bars.forEach((b, j) => b
       .attr('fill', (j === highlightedK || j === pinnedK) ? colors[j] : baseFill(j))
@@ -173,6 +175,7 @@ function mountPcaSpectral(svg, state, width, height) {
     hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave)
       .on('pointerdown', (event) => { event.stopPropagation(); onClick(); });
   }
+  paint();
 }
 
 function mountIsomapSpectral(svg, state, width, height) {
@@ -187,7 +190,7 @@ function mountIsomapSpectral(svg, state, width, height) {
 
   const gCloud = svg.append('g');
   const N = points.length / 3;
-  let highlightedK = null;
+  let highlightedK = 0;
 
   function activeVec() {
     if (highlightedK !== null && allVecs[highlightedK]) return allVecs[highlightedK];
@@ -225,7 +228,7 @@ function mountIsomapSpectral(svg, state, width, height) {
   const maxH = 52;
   const baseFill = (i) => i < 2 ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.5)';
   const bars = [];
-  let pinnedK = null;
+  let pinnedK = 0;
   function paint() {
     bars.forEach((b, j) => b
       .attr('fill', (j === highlightedK || j === pinnedK) ? '#ff9f43' : baseFill(j))
@@ -254,6 +257,7 @@ function mountIsomapSpectral(svg, state, width, height) {
     hitBar.on('mouseenter', onEnter).on('mouseleave', onLeave)
       .on('pointerdown', (event) => { event.stopPropagation(); onClick(); });
   }
+  paint();
 }
 
 export function mountSpectral(container, state, { width = 480, height = 360 } = {}) {
