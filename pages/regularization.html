@@ -186,7 +186,9 @@
                 <h2>Learning rate and regularization boundaries</h2>
                 <p>Both L2 penalty and weight decay depend on $\lambda$ or $\eta$ being within certain bounds for the gradient descent to converge properly.</p>
                 <ul>
-                    <li>L2 minimizes $J(w) = \mathrm{MSE}(w) + \lambda \|w\|_2^2$. Its gradient is $\nabla J(w) = \nabla \mathrm{MSE}(w) + 2\lambda w$. When updating $w_{t+1} = w_t - \eta \nabla J(w_t) = w_t - \eta (\nabla \mathrm{MSE}(w_t) + 2\lambda w_t)$, if $\lambda$ or $\eta$ is too large, the term dominates the update and the training behaves more like $w_{t+1} \approx w_t - 2\eta \lambda w_t$ or $w_{t+1} \approx (1 - 2\eta \lambda) w_t$.</li>
+                    <li>L2 minimizes $J(w) = \mathrm{MSE}(w) + \lambda \|w\|_2^2$. Its gradient is $\nabla J(w) = \nabla \mathrm{MSE}(w) + 2\lambda w$. When updating
+                        <span class="formula">$$w_{t+1} = w_t - \eta \nabla J(w_t) = w_t - \eta (\nabla \mathrm{MSE}(w_t) + 2\lambda w_t),$$</span>
+                        if $\lambda$ or $\eta$ is too large, the term dominates the update and the training behaves more like $w_{t+1} \approx w_t - 2\eta \lambda w_t$ or $w_{t+1} \approx (1 - 2\eta \lambda) w_t$.</li>
                     <ul>
                         <li>If $2\eta \lambda > 1$, the sign flips on each step.</li>
                         <li>If $1 < 2\eta \lambda < 2$, it will still converge, but will oscillate back and forth while doing so, causing slower convergence and potential instability in loss.</li>
