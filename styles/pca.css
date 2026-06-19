@@ -3,7 +3,12 @@
  * the PCA control patterns (sliders with readouts, the display checkboxes, the matrix readouts). */
 
 /* --- Plotly 3D plot containers --- */
-.ui.pca .pca-viz { position: relative; min-height: 400px; overflow: hidden; }
+/* Definite height: the plot fills it exactly so the grid row holding the figure matches the
+   rendered plot. .pca-viz IS the .js-plotly-plot element, so its height must come from here and
+   NOT from the height:100% group below (that would resolve against the auto grid row and collapse
+   circularly). With only a min-height before, Plotly autosized the plot ~35px taller than the row
+   and the excess overflowed onto the next figure's caption when the figures stack on mobile. */
+.ui.pca .pca-viz { position: relative; height: 400px; overflow: hidden; }
 /* Hand touch gestures to Plotly's 3D controls (one-finger rotate, two-finger pinch-zoom) instead
    of letting the browser scroll or page-zoom over the plot on mobile. */
 .ui.pca .pca-viz,
@@ -12,10 +17,12 @@
 .ui.pca .js-plotly-plot,
 .ui.pca .plot-container,
 .ui.pca .svg-container { width: 100%; }
-.ui.pca .js-plotly-plot,
+/* Inner Plotly/d3 elements fill the fixed-height .pca-viz. Deliberately excludes .js-plotly-plot
+   (which is .pca-viz itself, sized above) to avoid the circular height:100% collapse. */
 .ui.pca .plot-container,
 .ui.pca .svg-container,
-.ui.pca .main-svg { height: 100%; }
+.ui.pca .main-svg,
+.ui.pca .pca-svg-root { height: 100%; }
 .ui.pca .point-label { pointer-events: none; }
 /* Annotations are re-rendered as HTML chips in .pca-plotly-annotation-overlay; keep the original
    SVG annotation text hidden so the two do not double up (the JS opacity toggle alone is undone
