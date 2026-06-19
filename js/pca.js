@@ -608,7 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
       arrowwidth: 1,
       ax,
       ay,
-      bgcolor: 'rgba(19, 21, 26, 0.84)',
+      bgcolor: 'rgba(0,0,0,0)',
       bordercolor: 'rgba(0,0,0,0)',
       borderpad: 1,
       font: {
