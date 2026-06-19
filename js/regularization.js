@@ -1941,6 +1941,27 @@
 
         window.addEventListener("resize", () => rerender());
 
+        // The charts are first laid out during init(), which runs before the section-outline
+        // rail reserves its left gutter and shrinks the content column. A window resize never
+        // fires for that, so without this the SVGs keep their stale (pre-rail) width and the
+        // coefficient bars clip out of the narrowed box. Re-render when the container width
+        // actually changes (also covers container/zoom changes that skip window resize).
+        // Guarded on a real width change and debounced to a frame to avoid feedback loops.
+        if (typeof ResizeObserver !== "undefined" && el.coefViz) {
+            let lastW = el.coefViz.clientWidth;
+            let scheduled = false;
+            const ro = new ResizeObserver(() => {
+                if (scheduled) return;
+                scheduled = true;
+                requestAnimationFrame(() => {
+                    scheduled = false;
+                    const w = el.coefViz.clientWidth;
+                    if (w && w !== lastW) { lastW = w; rerender(); }
+                });
+            });
+            ro.observe(el.coefViz);
+        }
+
         // initial
         updateLambda();
         regenData();

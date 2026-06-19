@@ -382,11 +382,18 @@ document.addEventListener('DOMContentLoaded', () => {
         .attr('d', line);
     }
 
-    // Simple legend
+    // Legend: lay entries out horizontally, wrapping to a new row when the next entry
+    // would exceed the plot width. Without wrapping, plots with many series (e.g. the VI
+    // trajectory: prior, posterior, q start, q step .., q finish) push the trailing
+    // entries off the right edge of the chart.
     const legend = svg.append('g').attr('transform', `translate(${margin.left + 6},${margin.top + 6})`);
+    const legendMaxW = innerW;
     let lx = 0;
+    let ly = 0;
     series.forEach((s) => {
-      const entry = legend.append('g').attr('transform', `translate(${lx},0)`);
+      const entryW = 14 + (s.name.length * 7.2) + 18;
+      if (lx > 0 && lx + entryW > legendMaxW) { lx = 0; ly += 18; }
+      const entry = legend.append('g').attr('transform', `translate(${lx},${ly})`);
       entry
         .append('rect')
         .attr('x', 0)
@@ -403,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .attr('fill', 'rgba(255,255,255,0.82)')
         .attr('font-size', 12)
         .text(s.name);
-      lx += 14 + (s.name.length * 7.2) + 18;
+      lx += entryW;
     });
   }
 
