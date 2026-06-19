@@ -564,7 +564,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getPlotSize(container, minHeight = 300) {
     const rect = container.getBoundingClientRect();
-    return { width: Math.max(320, rect.width), height: minHeight };
+    // Follow the container's definite height (.pca-viz is height:400) so the 2D SVG plot fills
+    // its box exactly and is not clipped; fall back to minHeight if the box has no height yet.
+    return { width: Math.max(320, rect.width), height: Math.round(rect.height) || minHeight };
   }
 
   function computePCA(points) {
