@@ -29,8 +29,11 @@ Roll these into the deferred phases in `redesign-backlog.md` (robustness / mobil
   HTML-chip overlay (it desynced on iOS) and render labels as native Plotly annotations that track.
 - [x] **Fourier:** the five interpretation tabs start to bleed off the right side; wrap or make the
   tab row scrollable. Fixed: the tab row scrolls horizontally when it overflows.
-- [ ] **Manifold:** the neighborhood graph takes far too long to appear and makes the page choppy
-  (the affinity-display fit was fixed separately).
+- [x] **Manifold:** the neighborhood graph takes far too long to appear and makes the page choppy
+  (the affinity-display fit was fixed separately). Fixed the rendering: draw the (several-thousand)
+  edges as a single SVG path instead of one <line> each, and replace the per-edge staggered reveal
+  (delay = i*4ms, which kept fading in for ~23s) with one short fade. Orbit ~3x faster; reveal now
+  bounded by compute, not animation. Residual compute time tracked under Performance below.
 - [x] Hairlines can be a bit hard to see on mobile; consider strengthening hairline contrast (or
   width) at small screen sizes. Fixed: --hairline 0.08 -> 0.14 and --hairline-strong 0.22 -> 0.30
   at <=640px.
@@ -39,8 +42,11 @@ Roll these into the deferred phases in `redesign-backlog.md` (robustness / mobil
 - [ ] On mobile the page can get frame-y when expensive computations (e.g., a render) run while not
   currently visible. Defer / pause offscreen work (e.g., IntersectionObserver so a demo only
   computes/animates when in view).
-- [ ] **Manifold:** speed up the neighborhood graph step (slow to appear, choppy); overlaps with
-  the manifold mobile item above.
+- [ ] **Manifold:** the rendering/choppiness was fixed (see Mobile above). Remaining: the worker
+  runs the whole algorithm synchronously (`algo.run()` in worker.js) before posting any step, so
+  the kNN graph waits for the full embedding (O(N^3) geodesics + MDS for ~1000 points, ~3.5s).
+  Make the computation incremental per step (post the kNN graph as soon as it is computed, before
+  the expensive geodesic/spectral steps) so early steps appear sooner.
 
 ## Features / enhancements
 - [ ] **Distributions:** add the ability to hide individual components within a mixture model
