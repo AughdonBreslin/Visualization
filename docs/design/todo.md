@@ -18,15 +18,22 @@ Roll these into the deferred phases in `redesign-backlog.md` (robustness / mobil
   re-renders on resize.
 
 ## Mobile
-- [ ] Zooming in and out should be clean (pinch-zoom behavior across pages).
-- [ ] Math must not bleed off the side of the page; make math blocks internally scrollable
-  (horizontal scroll) rather than overflowing the viewport.
-- [ ] **PCA:** the point labels are fixed on screen instead of being positionally attached to a
-  location in the chart (they should track the chart space, not the viewport).
-- [ ] **Fourier:** the five interpretation tabs start to bleed off the right side; wrap or make the
-  tab row scrollable.
-- [ ] **Manifold:** the neighborhood graph takes far too long to appear and makes the page choppy;
-  the pairwise affinity displays also do not fit in their boxes.
+- [x] Zooming in and out should be clean (pinch-zoom behavior across pages). Fixed: eliminated the
+  horizontal overflow (Fourier tabs, regularization math) that made pages jump sideways; all pages
+  now report 0 horizontal scroll at 390px and zoom is enabled everywhere.
+- [x] Math must not bleed off the side of the page; make math blocks internally scrollable
+  (horizontal scroll) rather than overflowing the viewport. Fixed: display math already scrolls in
+  .formula; the one bleeding long inline equation (regularization) was reflowed as a display block.
+- [x] **PCA:** the point labels are fixed on screen instead of being positionally attached to a
+  location in the chart (they should track the chart space, not the viewport). Fixed: dropped the
+  HTML-chip overlay (it desynced on iOS) and render labels as native Plotly annotations that track.
+- [x] **Fourier:** the five interpretation tabs start to bleed off the right side; wrap or make the
+  tab row scrollable. Fixed: the tab row scrolls horizontally when it overflows.
+- [ ] **Manifold:** the neighborhood graph takes far too long to appear and makes the page choppy
+  (the affinity-display fit was fixed separately).
+- [x] Hairlines can be a bit hard to see on mobile; consider strengthening hairline contrast (or
+  width) at small screen sizes. Fixed: --hairline 0.08 -> 0.14 and --hairline-strong 0.22 -> 0.30
+  at <=640px.
 
 ## Performance
 - [ ] On mobile the page can get frame-y when expensive computations (e.g., a render) run while not
