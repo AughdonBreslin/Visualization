@@ -52,16 +52,16 @@ function mountOrbitablePane(svg, pane, x, y, w, h) {
   paneG.append('text').attr('x', w / 2).attr('y', -6).attr('text-anchor', 'middle')
     .attr('fill', 'rgba(255,255,255,0.55)').attr('font-size', '10').text(pane.label || '');
 
-  const fo = paneG.append('foreignObject').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h);
+  // Offscreen canvas shown via an SVG <image>; iOS Safari does not render a <canvas> inside a
+  // <foreignObject> in a viewBox SVG. The image is refreshed from the canvas on each orbit frame.
   const canvas = document.createElement('canvas');
   const dpr = window.devicePixelRatio || 1;
   canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
-  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
-  canvas.style.cursor = 'grab';
-  canvas.style.touchAction = 'none';
-  fo.node().appendChild(canvas);
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
+  const image = paneG.append('image').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
+    .attr('preserveAspectRatio', 'none').style('cursor', 'grab').style('touch-action', 'none');
+  const showCanvas = () => { const u = canvas.toDataURL(); image.attr('href', u).attr('xlink:href', u); };
 
   const points = pane.kind === 'cloud_thumb' ? pane.data : pane.data.points;
   const { ax, ay, az, r } = paneBounds(points);
@@ -107,16 +107,18 @@ function mountOrbitablePane(svg, pane, x, y, w, h) {
         ctx.fill();
       }
     }
+    showCanvas();
   }
   redraw();
 
+  const imgNode = image.node();
   let dragging = false, lastX = 0, lastY = 0;
-  canvas.addEventListener('pointerdown', (event) => {
+  imgNode.addEventListener('pointerdown', (event) => {
     dragging = true; lastX = event.clientX; lastY = event.clientY;
-    canvas.style.cursor = 'grabbing';
-    try { canvas.setPointerCapture(event.pointerId); } catch (e) {}
+    image.style('cursor', 'grabbing');
+    try { imgNode.setPointerCapture(event.pointerId); } catch (e) {}
   });
-  canvas.addEventListener('pointermove', (event) => {
+  imgNode.addEventListener('pointermove', (event) => {
     if (!dragging) return;
     const dx = (event.clientX - lastX) * 0.01;
     const dy = (event.clientY - lastY) * 0.01;
@@ -125,12 +127,12 @@ function mountOrbitablePane(svg, pane, x, y, w, h) {
     redraw();
   });
   function endDrag(event) {
-    dragging = false; canvas.style.cursor = 'grab';
-    try { canvas.releasePointerCapture(event.pointerId); } catch (e) {}
+    dragging = false; image.style('cursor', 'grab');
+    try { imgNode.releasePointerCapture(event.pointerId); } catch (e) {}
   }
-  canvas.addEventListener('pointerup', endDrag);
-  canvas.addEventListener('pointercancel', endDrag);
-  canvas.addEventListener('pointerleave', endDrag);
+  imgNode.addEventListener('pointerup', endDrag);
+  imgNode.addEventListener('pointercancel', endDrag);
+  imgNode.addEventListener('pointerleave', endDrag);
 }
 
 function mountStaticPane(svg, pane, x, y, w, h) {
@@ -161,14 +163,11 @@ function mountStaticPane(svg, pane, x, y, w, h) {
     const ox = (w - total) / 2;
     const oy = (h - total) / 2;
 
-    const fo = g.append('foreignObject').attr('x', ox).attr('y', oy).attr('width', total).attr('height', total);
+    // Draw to an offscreen canvas and show it as an SVG <image>. iOS Safari does not render a
+    // <canvas> placed inside a <foreignObject> of a viewBox SVG (only the first such pane showed
+    // up), but an <image> with a data URL renders everywhere.
     const canvas = document.createElement('canvas');
     canvas.width = N; canvas.height = N;
-    canvas.style.width = total + 'px';
-    canvas.style.height = total + 'px';
-    canvas.style.imageRendering = 'pixelated';
-    canvas.style.display = 'block';
-    fo.node().appendChild(canvas);
     const ctx = canvas.getContext('2d');
     const img = ctx.createImageData(N, N);
     const buf = img.data;
@@ -178,6 +177,10 @@ function mountStaticPane(svg, pane, x, y, w, h) {
       buf[k] = rgb[0]; buf[k + 1] = rgb[1]; buf[k + 2] = rgb[2]; buf[k + 3] = 255;
     }
     ctx.putImageData(img, 0, 0);
+    const url = canvas.toDataURL();
+    g.append('image').attr('x', ox).attr('y', oy).attr('width', total).attr('height', total)
+      .attr('href', url).attr('xlink:href', url)
+      .attr('preserveAspectRatio', 'none').style('image-rendering', 'pixelated');
 
     if (highlightRow !== undefined && highlightRow < N) {
       const cellSize = total / N;
@@ -203,12 +206,9 @@ export function mountMatrixStrip(container, state) {
   function draw() {
     wrap.selectAll('*').remove();
 
-    // Render at the host's real pixel size with a 1:1 viewBox (no scaling). The panes use
-    // <foreignObject> canvases for the matrix heatmaps and orbitable thumbnails, and mobile
-    // WebKit does NOT apply an SVG viewBox/preserveAspectRatio scale to foreignObject content,
-    // so a scaled-down viewBox made those canvases overflow their boxes on phones. Matching the
-    // viewBox to the host size keeps the scale at 1, so the foreignObjects render correctly on
-    // every browser, and the matrices fill the box instead of being letterboxed.
+    // Render at the host's real pixel size with a 1:1 viewBox (no scaling), so the matrices fill
+    // the box instead of being letterboxed. Pane canvases are shown via SVG <image> (see the
+    // pane mounts) rather than <foreignObject>, which iOS Safari fails to render past the first.
     const rect = container.getBoundingClientRect();
     const width = Math.max(1, Math.round(rect.width)) || 480;
     const height = Math.max(1, Math.round(rect.height)) || 280;
