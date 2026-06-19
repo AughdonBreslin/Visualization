@@ -65,15 +65,34 @@ export function mountKnn(container, state, { width = 480, height = 360 } = {}) {
   if (t) for (let i = 0; i < t.length; i++) { if (t[i] < tMin) tMin = t[i]; if (t[i] > tMax) tMax = t[i]; }
   const colorOf = (i) => t ? rainbow(t[i], tMin, tMax) : '#7ec8ff';
 
+  // All edges share one stroke, so draw them as a single <path> rather than one <line> per
+  // edge. A dense kNN graph can have several thousand edges; the per-element approach was slow
+  // to build and re-setting every line's endpoints each orbit frame dropped the frame rate on
+  // phones. One path means one attribute write per frame.
   const gEdges = svg.append('g').attr('class', 'knn-edges');
-  const edgeEls = edges.map(([a, b]) => {
-    return gEdges.append('line')
-      .attr('x1', proj[a].sx).attr('y1', proj[a].sy)
-      .attr('x2', proj[b].sx).attr('y2', proj[b].sy)
-      .attr('data-from', a).attr('data-to', b)
-      .attr('stroke', 'rgba(255,255,255,0.18)').attr('stroke-width', 0.7)
-      .attr('opacity', 0);
-  });
+  function edgePathD(list) {
+    const e = list || edges;
+    let d = '';
+    for (let k = 0; k < e.length; k++) {
+      const a = proj[e[k][0]], c = proj[e[k][1]];
+      d += 'M' + a.sx.toFixed(1) + ' ' + a.sy.toFixed(1) + 'L' + c.sx.toFixed(1) + ' ' + c.sy.toFixed(1);
+    }
+    return d;
+  }
+  const edgePath = gEdges.append('path').attr('class', 'knn-edge-path')
+    .attr('d', edgePathD()).attr('fill', 'none')
+    .attr('stroke', 'rgba(255,255,255,0.18)').attr('stroke-width', 0.7)
+    .attr('opacity', 0);
+  // Separate path for the edges incident to a hovered node (built on demand).
+  const highlightPath = gEdges.append('path').attr('class', 'knn-edge-highlight')
+    .attr('fill', 'none').attr('stroke', 'rgba(255,255,255,0.95)').attr('stroke-width', 1.6)
+    .attr('opacity', 0);
+
+  function incidentEdges(i) {
+    const out = [];
+    for (let k = 0; k < edges.length; k++) { if (edges[k][0] === i || edges[k][1] === i) out.push(edges[k]); }
+    return out;
+  }
 
   const gPoints = svg.append('g');
   const nodeEls = proj.map(p => gPoints.append('circle')
@@ -83,36 +102,30 @@ export function mountKnn(container, state, { width = 480, height = 360 } = {}) {
     .attr('data-i', p.i)
     .style('cursor', 'pointer'));
 
+  let hoverNode = -1;
   function rerender() {
     proj = project(R, recentered, scale, cx, cy);
-    edgeEls.forEach((e, idx) => {
-      const a = edges[idx][0], b = edges[idx][1];
-      e.attr('x1', proj[a].sx).attr('y1', proj[a].sy)
-       .attr('x2', proj[b].sx).attr('y2', proj[b].sy);
-    });
+    edgePath.attr('d', edgePathD());
+    if (hoverNode >= 0) highlightPath.attr('d', edgePathD(incidentEdges(hoverNode)));
     nodeEls.forEach((node, i) => {
       node.attr('cx', proj[i].sx).attr('cy', proj[i].sy);
     });
   }
 
-  edgeEls.forEach((e, i) => {
-    e.transition().delay(60 + i * 4).duration(280).attr('opacity', 1);
-  });
+  // One short fade-in for the whole edge layer, regardless of edge count. The old per-edge
+  // stagger (delay = i * 4ms) meant a several-thousand-edge graph kept fading in for ~20s.
+  edgePath.transition().delay(60).duration(420).attr('opacity', 1);
 
   nodeEls.forEach((node, i) => {
     node.on('mouseenter', () => {
-      edgeEls.forEach(e => {
-        const from = +e.attr('data-from');
-        const to = +e.attr('data-to');
-        const hit = from === i || to === i;
-        e.attr('stroke', hit ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.05)')
-         .attr('stroke-width', hit ? 1.6 : 0.6);
-      });
+      hoverNode = i;
+      edgePath.attr('opacity', 0.06);
+      highlightPath.attr('d', edgePathD(incidentEdges(i))).attr('opacity', 1);
     });
     node.on('mouseleave', () => {
-      edgeEls.forEach(e => {
-        e.attr('stroke', 'rgba(255,255,255,0.18)').attr('stroke-width', 0.7);
-      });
+      hoverNode = -1;
+      edgePath.attr('opacity', 1);
+      highlightPath.attr('opacity', 0);
     });
   });
 
