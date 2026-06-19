@@ -80,6 +80,15 @@ html[data-density="generous"] {
   --lede-size: 16px; --lede-lh: 1.6;
 }
 
+/* On phones the 0.08 hairlines are hard to make out (smaller screen, glare). Strengthen the
+   hairline tokens at phone widths so section rules, table borders, and figure edges stay legible. */
+@media (max-width: 640px) {
+  :root {
+    --hairline: rgba(255, 255, 255, 0.14);
+    --hairline-strong: rgba(255, 255, 255, 0.30);
+  }
+}
+
 /* Tribute (Monocraft) mode: a pixel font reads better without the tightened heading
    tracking the sans scale uses. theme.js sets data-font when the mode is on. */
 html[data-font="monocraft"] { --h1-track: 0; --h2-track: 0; }

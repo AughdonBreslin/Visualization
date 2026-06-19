@@ -229,8 +229,13 @@
 .ui .field select:hover, .ui .field input:hover { border-bottom-color: rgba(255, 255, 255, 0.4); }
 
 /* Tabs (one shared pattern; active = .is-active). */
-.ui .tabs { display: inline-flex; gap: 18px; }
+/* Scroll the tab row when it is wider than its container (e.g. Fourier's five interpretation
+   tabs on a phone) instead of letting it bleed off the side. Inert when the tabs already fit. */
+.ui .tabs { display: flex; gap: 18px; max-width: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.ui .tabs::-webkit-scrollbar { display: none; }
 .ui .tab {
+  flex: 0 0 auto;
+  white-space: nowrap;
   font: 500 13px/1 var(--font-sans);
   color: #74767f;
   background: none;

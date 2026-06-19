@@ -24,10 +24,6 @@
 .ui.pca .main-svg,
 .ui.pca .pca-svg-root { height: 100%; }
 .ui.pca .point-label { pointer-events: none; }
-/* Annotations are re-rendered as HTML chips in .pca-plotly-annotation-overlay; keep the original
-   SVG annotation text hidden so the two do not double up (the JS opacity toggle alone is undone
-   whenever Plotly redraws the labels). */
-.ui.pca .pca-viz svg text.annotation-text { opacity: 0 !important; }
 
 /* --- Control block: a full-width tabbed panel (override the demo-controls grid) --- */
 .ui.pca .demo-controls.pca-controls { display: block; }
