@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glossary sketch sandbox</title>
+  <link rel="stylesheet" href="../../../styles/tokens.css">
+  <link rel="stylesheet" href="../../../styles/glossary.css">
+  <style>
+    body { background: var(--bg); color: var(--text-body); font-family: var(--font-sans); margin: 0; padding: 32px 40px 80px; }
+    h1 { color: var(--text); font: 600 22px/1.2 var(--font-sans); margin: 0 0 6px; }
+    .intro { color: var(--text-muted); font: 400 13px/1.6 var(--font-sans); margin: 0 0 32px; max-width: 74ch; }
+    .term-block { border-top: 1px solid var(--hairline); padding: 24px 0; }
+    .term-block h2 { color: var(--text); font: 600 16px/1.2 var(--font-sans); margin: 0 0 4px; }
+    .term-block .gloss { color: var(--text-muted); font: 400 12.5px/1.5 var(--font-sans); margin: 0 0 18px; max-width: 64ch; }
+    .cands { display: flex; flex-wrap: wrap; gap: 26px; }
+    .cand { width: 232px; }
+    .cand .cand-label { font: 600 10px/1.2 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  </style>
+</head>
+
+<body>
+  <h1>Glossary sketch sandbox &middot; swiss-roll cleaned</h1>
+  <p class="intro">Ported: spectral-energy (B), underfitting (A), variational-inference (B), weight-decay (A).
+    Swiss roll redrawn with a clean spiral and points on the curve.</p>
+
+  <section class="term-block" id="swiss-roll">
+    <h2>Swiss roll</h2>
+    <p class="gloss">A 2D sheet rolled into a spiral; clean Archimedean spiral, points aligned to it.</p>
+    <div class="cands">
+      <div class="cand">
+        <div class="cand-label">A &middot; uniform points</div>
+        <div class="term-visual"><figure>
+          <svg viewBox="0 0 200 130" role="img" aria-label="A smooth spiral with evenly shaded points along it">
+            <path class="ghost" fill="none" d="M104.0 66.0 C104.2 66.3, 104.8 67.3, 104.9 68.1 C105.0 68.9, 105.0 69.9, 104.6 70.8 C104.3 71.7, 103.7 72.7, 102.9 73.4 C102.1 74.2, 100.9 74.9, 99.7 75.3 C98.5 75.6, 97.0 75.8, 95.6 75.6 C94.2 75.4, 92.6 74.9, 91.2 74.1 C89.9 73.2, 88.5 71.9, 87.5 70.4 C86.6 69.0, 85.8 67.1, 85.5 65.2 C85.2 63.2, 85.2 61.0, 85.8 59.0 C86.3 56.9, 87.3 54.7, 88.8 53.0 C90.2 51.2, 92.1 49.5, 94.3 48.4 C96.5 47.3, 99.1 46.4, 101.7 46.2 C104.3 46.1, 107.3 46.4, 109.9 47.3 C112.5 48.2, 115.3 49.8, 117.4 51.8 C119.6 53.8, 121.6 56.5, 122.9 59.3 C124.1 62.2, 124.9 65.6, 124.9 68.9 C125.0 72.2, 124.3 75.9, 123.0 79.1 C121.6 82.2, 119.5 85.5, 116.9 88.0 C114.3 90.5, 110.9 92.8, 107.3 94.1 C103.8 95.5, 99.5 96.2, 95.6 96.1" />
+            <g class="keyf"><circle cx="105" cy="71" r="2.4" /><circle cx="96" cy="76" r="2.4" /><circle cx="85" cy="65" r="2.4" /><circle cx="94" cy="48" r="2.4" /><circle cx="110" cy="47" r="2.4" /><circle cx="125" cy="69" r="2.4" /><circle cx="117" cy="88" r="2.4" /><circle cx="96" cy="96" r="2.4" /></g>
+          </svg>
+          <figcaption>A sheet coiled into a spiral.</figcaption>
+        </figure></div>
+      </div>
+      <div class="cand">
+        <div class="cand-label">B &middot; shaded along the roll</div>
+        <div class="term-visual"><figure>
+          <svg viewBox="0 0 200 130" role="img" aria-label="A smooth spiral with points shaded from inner to outer along the roll">
+            <path class="ghost" fill="none" d="M104.0 66.0 C104.2 66.3, 104.8 67.3, 104.9 68.1 C105.0 68.9, 105.0 69.9, 104.6 70.8 C104.3 71.7, 103.7 72.7, 102.9 73.4 C102.1 74.2, 100.9 74.9, 99.7 75.3 C98.5 75.6, 97.0 75.8, 95.6 75.6 C94.2 75.4, 92.6 74.9, 91.2 74.1 C89.9 73.2, 88.5 71.9, 87.5 70.4 C86.6 69.0, 85.8 67.1, 85.5 65.2 C85.2 63.2, 85.2 61.0, 85.8 59.0 C86.3 56.9, 87.3 54.7, 88.8 53.0 C90.2 51.2, 92.1 49.5, 94.3 48.4 C96.5 47.3, 99.1 46.4, 101.7 46.2 C104.3 46.1, 107.3 46.4, 109.9 47.3 C112.5 48.2, 115.3 49.8, 117.4 51.8 C119.6 53.8, 121.6 56.5, 122.9 59.3 C124.1 62.2, 124.9 65.6, 124.9 68.9 C125.0 72.2, 124.3 75.9, 123.0 79.1 C121.6 82.2, 119.5 85.5, 116.9 88.0 C114.3 90.5, 110.9 92.8, 107.3 94.1 C103.8 95.5, 99.5 96.2, 95.6 96.1" />
+            <circle class="keyf" cx="105" cy="71" r="2.6" /><circle class="keyf" cx="96" cy="76" r="2.6" /><circle class="keyfs" cx="85" cy="65" r="2.6" /><circle class="keyfs" cx="94" cy="48" r="2.6" /><circle class="keyfs" cx="110" cy="47" r="2.6" /><circle class="ghostf" cx="125" cy="69" r="2.6" /><circle class="ghostf" cx="117" cy="88" r="2.6" /><circle class="ghostf" cx="96" cy="96" r="2.6" />
+          </svg>
+          <figcaption>Color tracks position along the unrolled sheet.</figcaption>
+        </figure></div>
+      </div>
+    </div>
+  </section>
+
+</body>
+
+</html>
