@@ -6,14 +6,14 @@
 /* --- Zone 1: CSV dataset input --- */
 .ui.generative-classification .gc-ds-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 9px; }
 .ui.generative-classification .gc-ds-head .demo-label { margin-bottom: 0; }
-.ui.generative-classification .gc-csv { width: 100%; min-height: 150px; resize: vertical; background: #060607; border: 1px solid var(--hairline); border-radius: var(--radius-md); color: #cfd1d8; font: 500 12px/1.55 var(--font-mono); padding: 11px 13px; }
+.ui.generative-classification .gc-csv { width: 100%; min-height: 150px; resize: vertical; background: #060607; border: 1px solid var(--hairline); border-radius: var(--radius-md); color: var(--text-2); font: 500 12px/1.55 var(--font-mono); padding: 11px 13px; }
 .ui.generative-classification .gc-warning { margin-top: 14px; }
 
 /* --- Zone 2: fitted parameters readout (table: one row per class) --- */
 .ui.generative-classification .gc-params { overflow-x: auto; }
 .ui.generative-classification .gc-params-table { border-collapse: collapse; width: 100%; font: 500 13px/1.5 var(--font-sans); }
-.ui.generative-classification .gc-params-table th { text-align: left; font: 600 10px/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: #6c6e77; padding: 0 18px 9px 0; border-bottom: 1px solid var(--hairline); white-space: nowrap; }
-.ui.generative-classification .gc-params-table td { padding: 9px 18px 9px 0; border-bottom: 1px solid var(--hairline); color: #cfd1d8; vertical-align: middle; white-space: nowrap; }
+.ui.generative-classification .gc-params-table th { text-align: left; font: 600 10px/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); padding: 0 18px 9px 0; border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+.ui.generative-classification .gc-params-table td { padding: 9px 18px 9px 0; border-bottom: 1px solid var(--hairline); color: var(--text-2); vertical-align: middle; white-space: nowrap; }
 .ui.generative-classification .gc-params-table tr:last-child td { border-bottom: 0; }
 .ui.generative-classification .gc-params-table .gda-class-cell { color: var(--text-body); font-family: var(--font-mono); }
 
@@ -24,14 +24,14 @@
 .ui.generative-classification #viz svg { width: 100%; height: auto; display: block; }
 .ui.generative-classification .gc-viz-controls { min-width: 0; }
 .ui.generative-classification .gc-ctrl-group + .gc-ctrl-group { margin-top: 20px; }
-.ui.generative-classification .gc-opt { display: flex; align-items: center; gap: 9px; font: 500 12.5px/1.35 var(--font-sans); color: #cfd1d8; cursor: pointer; }
+.ui.generative-classification .gc-opt { display: flex; align-items: center; gap: 9px; font: 500 12.5px/1.35 var(--font-sans); color: var(--text-2); cursor: pointer; }
 .ui.generative-classification .gc-opt + .gc-opt { margin-top: 9px; }
 .ui.generative-classification .gc-opt input { accent-color: var(--accent); width: 14px; height: 14px; flex: none; }
-.ui.generative-classification .gc-num { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--hairline-strong); color: #dadbe0; font: 500 13px/1 var(--font-sans); padding: 5px 2px; }
+.ui.generative-classification .gc-num { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--hairline-strong); color: var(--text-2); font: 500 13px/1 var(--font-sans); padding: 5px 2px; }
 
 /* legend (JS builds .legend-item > .legend-swatch[--swatch-color] + .legend-label) */
 .ui.generative-classification .class-legend { display: flex; flex-direction: column; gap: 7px; font: 400 12px/1.3 var(--font-sans); color: var(--text-muted); }
-.ui.generative-classification .legend-item { display: flex; align-items: center; gap: 9px; color: #cfd1d8; }
+.ui.generative-classification .legend-item { display: flex; align-items: center; gap: 9px; color: var(--text-2); }
 .ui.generative-classification .legend-swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; background: var(--swatch-color, #888); }
 
 /* click-to-query readout. The JS builds a transposed table (one row per class): a sortable header
@@ -47,19 +47,19 @@
 .ui.generative-classification .gc-query .query-row-label { text-align: left; color: var(--text-body); font-family: var(--font-sans); }
 .ui.generative-classification .gc-query th:first-child, .ui.generative-classification .gc-query td:first-child { text-align: left; padding-left: 0; }
 .ui.generative-classification .gc-query .gc-sort-th { cursor: pointer; color: var(--text-body); font-family: var(--font-sans); font-weight: 600; font-size: 11px; user-select: none; }
-.ui.generative-classification .gc-query .gc-sort-th:hover { color: #cfd1d8; }
+.ui.generative-classification .gc-query .gc-sort-th:hover { color: var(--text-2); }
 .ui.generative-classification .gc-query .gc-sort-th.is-sorted { color: var(--accent-link); }
-.ui.generative-classification .gc-summary-coords { text-transform: none; letter-spacing: .02em; font-weight: 500; color: #8a8c95; margin-left: 7px; }
+.ui.generative-classification .gc-summary-coords { text-transform: none; letter-spacing: .02em; font-weight: 500; color: var(--text-body); margin-left: 7px; }
 
 /* collapsible disclosure (native <details>) for the query table, legend, and fitted params */
 .ui.generative-classification .gc-collapse { margin: 20px 0 0; }
 /* the legend disclosure sits inside the controls column and is already spaced by its group */
 .ui.generative-classification .gc-ctrl-group .gc-collapse { margin-top: 0; }
-.ui.generative-classification .gc-collapse > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font: 600 10px/1.2 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: #6c6e77; padding: 3px 0; }
+.ui.generative-classification .gc-collapse > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font: 600 10px/1.2 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); padding: 3px 0; }
 .ui.generative-classification .gc-collapse > summary::-webkit-details-marker { display: none; }
 .ui.generative-classification .gc-collapse > summary::before { content: ""; width: 0; height: 0; border-left: 5px solid currentColor; border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform 120ms ease; flex: none; }
 .ui.generative-classification .gc-collapse[open] > summary::before { transform: rotate(90deg); }
-.ui.generative-classification .gc-collapse > summary:hover { color: #aeb4c2; }
+.ui.generative-classification .gc-collapse > summary:hover { color: var(--text-2); }
 .ui.generative-classification .gc-collapse-body { margin-top: 12px; }
 
 /* subsidiary "Interpreting the results" step text */
@@ -71,10 +71,10 @@
 .ui.generative-classification .gc-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 6px 0 8px; }
 .ui.generative-classification .gc-compute { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .ui.generative-classification .gc-compute-text { font: 500 13px/1 var(--font-sans); color: var(--text-body); }
-.ui.generative-classification .gc-inline-num { width: 56px; background: none; border: 0; border-bottom: 1px solid var(--hairline-strong); color: #dadbe0; font: 500 13px/1 var(--font-mono); padding: 4px 2px; text-align: center; }
+.ui.generative-classification .gc-inline-num { width: 56px; background: none; border: 0; border-bottom: 1px solid var(--hairline-strong); color: var(--text-2); font: 500 13px/1 var(--font-mono); padding: 4px 2px; text-align: center; }
 .ui.generative-classification .examples-hint { font: 400 12px/1.5 var(--font-sans); color: var(--text-muted); margin: 4px 0 14px; }
 /* compact query caption (no bubble) */
-.ui.generative-classification .gc-qcaption { font: 500 13px/1.5 var(--font-mono); color: #cfd1d8; margin: 16px 0 4px; }
+.ui.generative-classification .gc-qcaption { font: 500 13px/1.5 var(--font-mono); color: var(--text-2); margin: 16px 0 4px; }
 .ui.generative-classification .gc-qcaption .dim { color: var(--text-muted); }
 
 /* method-level disclosure (KDE / GDA) */
@@ -89,13 +89,13 @@
 
 /* step-level disclosure within a method */
 .ui.generative-classification .gc-calc-step-d { margin-top: 14px; }
-.ui.generative-classification .gc-calc-step-d > summary.gc-calc-step { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 9px; padding: 4px 0; font: 600 11px/1.3 var(--font-mono); letter-spacing: .05em; text-transform: uppercase; color: #9a9ca6; }
+.ui.generative-classification .gc-calc-step-d > summary.gc-calc-step { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 9px; padding: 4px 0; font: 600 11px/1.3 var(--font-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--text-body); }
 .ui.generative-classification .gc-calc-step-d > summary::-webkit-details-marker { display: none; }
 .ui.generative-classification .gc-calc-step-d > summary::before { content: ""; width: 0; height: 0; border-left: 5px solid #6c6e77; border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform 120ms ease; flex: none; }
 .ui.generative-classification .gc-calc-step-d[open] > summary::before { transform: rotate(90deg); }
 .ui.generative-classification .gc-calc-step-body { padding: 6px 0 2px 16px; }
-.ui.generative-classification .gc-calc-line { font: 400 13px/1.7 var(--font-sans); color: #bcbec6; margin: 4px 0; }
-.ui.generative-classification .gc-calc-end { font: 400 13px/1.7 var(--font-sans); color: #d4d6dd; margin: 6px 0; }
+.ui.generative-classification .gc-calc-line { font: 400 13px/1.7 var(--font-sans); color: var(--text-2); margin: 4px 0; }
+.ui.generative-classification .gc-calc-end { font: 400 13px/1.7 var(--font-sans); color: var(--text-2); margin: 6px 0; }
 
 /* per-class disclosure within Step 1 */
 .ui.generative-classification .gc-calc-class { border-left: 2px solid var(--hairline); margin: 8px 0; padding-left: 14px; }
@@ -103,6 +103,6 @@
 .ui.generative-classification .gc-calc-class > summary::-webkit-details-marker { display: none; }
 .ui.generative-classification .gc-calc-class > summary::before { content: ""; width: 0; height: 0; border-left: 5px solid #6c6e77; border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform 120ms ease; align-self: center; flex: none; }
 .ui.generative-classification .gc-calc-class[open] > summary::before { transform: rotate(90deg); }
-.ui.generative-classification .gc-calc-c-name { font: 600 12px/1 var(--font-sans); color: #cfd1d8; }
-.ui.generative-classification .gc-calc-c-result { font: 500 12px/1 var(--font-mono); color: #9a9ca6; margin-left: auto; }
+.ui.generative-classification .gc-calc-c-name { font: 600 12px/1 var(--font-sans); color: var(--text-2); }
+.ui.generative-classification .gc-calc-c-result { font: 500 12px/1 var(--font-mono); color: var(--text-body); margin-left: auto; }
 .ui.generative-classification .gc-calc-c-body { padding: 4px 0 8px; }

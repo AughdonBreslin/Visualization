@@ -7,6 +7,13 @@
   var KEY_DENSITY = 'ui-density';
   var KEY_LINKUL = 'ui-link-underline';
   var KEY_TRIBUTE = 'ui-tribute';
+  var KEY_BRIGHTNESS = 'ui-brightness';
+  // Text brightness: level 0 = the base token colors, higher lifts the dim grays toward white.
+  // Default is raised above 0 so body/muted text reads more easily on dimmer displays.
+  var DEFAULT_BRIGHTNESS = 50;
+  var TEXT_2_BASE = [207, 209, 216];    // #cfd1d8, matches tokens.css --text-2
+  var TEXT_BODY_BASE = [139, 141, 150]; // #8b8d96, matches tokens.css --text-body
+  var TEXT_MUTED_BASE = [93, 95, 104];  // #5d5f68, matches tokens.css --text-muted
   var MONOCRAFT = "'Monocraft', ui-monospace, SFMono-Regular, monospace";
   var root = document.documentElement;
 
@@ -24,6 +31,7 @@
   function applyAccent(hex) {
     if (!hex || !isHex(hex) || hex.toLowerCase() === DEFAULT_ACCENT) {
       root.style.removeProperty('--accent');
+      root.style.removeProperty('--accent-rgb');
       root.style.removeProperty('--accent-muted');
       root.style.removeProperty('--accent-link');
       root.style.removeProperty('--focus-ring');
@@ -32,10 +40,14 @@
     if (hex[0] !== '#') hex = '#' + hex;
     var c = hexToRgb(hex);
     var lk = lighten(c, 0.28);
+    var rgb = c[0] + ', ' + c[1] + ', ' + c[2];
     root.style.setProperty('--accent', hex);
-    root.style.setProperty('--accent-muted', 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0.14)');
-    root.style.setProperty('--accent-link', 'rgb(' + lk[0] + ',' + lk[1] + ',' + lk[2] + ')');
-    root.style.setProperty('--focus-ring', '2px solid rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0.6)');
+    // The triplet drives every rgba(var(--accent-rgb), a) rule (link underlines/hover, inline
+    // code, toggle, focus ring), so a custom accent recolors them too.
+    root.style.setProperty('--accent-rgb', rgb);
+    root.style.setProperty('--accent-muted', 'rgba(' + rgb + ', 0.14)');
+    root.style.setProperty('--accent-link', 'rgb(' + lk[0] + ', ' + lk[1] + ', ' + lk[2] + ')');
+    root.style.setProperty('--focus-ring', '2px solid rgba(' + rgb + ', 0.6)');
   }
   function applyDensity(d) {
     if (!d || d === 'balanced') root.removeAttribute('data-density');
@@ -60,6 +72,21 @@
       root.removeAttribute('data-font');
     }
   }
+  function clampLevel(v) { v = parseInt(v, 10); if (isNaN(v)) return DEFAULT_BRIGHTNESS; return Math.max(0, Math.min(100, v)); }
+  function rgbStr(c) { return 'rgb(' + c[0] + ', ' + c[1] + ', ' + c[2] + ')'; }
+  function applyBrightness(level) {
+    level = clampLevel(level);
+    if (level === 0) {
+      root.style.removeProperty('--text-2');
+      root.style.removeProperty('--text-body');
+      root.style.removeProperty('--text-muted');
+      return;
+    }
+    var t = (level / 100) * 0.45;
+    root.style.setProperty('--text-2', rgbStr(lighten(TEXT_2_BASE, t)));
+    root.style.setProperty('--text-body', rgbStr(lighten(TEXT_BODY_BASE, t)));
+    root.style.setProperty('--text-muted', rgbStr(lighten(TEXT_MUTED_BASE, t)));
+  }
   function get(key, def) { try { return localStorage.getItem(key) || def; } catch (e) { return def; } }
   function set(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
 
@@ -67,26 +94,31 @@
   function setDensity(d) { applyDensity(d); set(KEY_DENSITY, d || 'balanced'); }
   function setLinkUnderline(on) { applyLinkUnderline(on); set(KEY_LINKUL, on ? '1' : '0'); }
   function setTribute(on) { applyTribute(on); set(KEY_TRIBUTE, on ? '1' : '0'); }
-  function reset() { setAccent(DEFAULT_ACCENT); setDensity('balanced'); setLinkUnderline(false); setTribute(false); }
+  function setBrightness(level) { level = clampLevel(level); applyBrightness(level); set(KEY_BRIGHTNESS, String(level)); }
+  function reset() { setAccent(DEFAULT_ACCENT); setDensity('balanced'); setLinkUnderline(false); setTribute(false); setBrightness(DEFAULT_BRIGHTNESS); }
 
   // boot: apply saved prefs immediately (before paint)
   applyAccent(get(KEY_ACCENT, DEFAULT_ACCENT));
   applyDensity(get(KEY_DENSITY, 'balanced'));
   applyLinkUnderline(get(KEY_LINKUL, '0'));
   applyTribute(get(KEY_TRIBUTE, '0'));
+  applyBrightness(get(KEY_BRIGHTNESS, String(DEFAULT_BRIGHTNESS)));
 
   window.UITheme = {
     DEFAULT_ACCENT: DEFAULT_ACCENT,
+    DEFAULT_BRIGHTNESS: DEFAULT_BRIGHTNESS,
     applyAccent: applyAccent, applyDensity: applyDensity, applyLinkUnderline: applyLinkUnderline,
-    applyTribute: applyTribute,
+    applyTribute: applyTribute, applyBrightness: applyBrightness,
     setAccent: setAccent, setDensity: setDensity, setLinkUnderline: setLinkUnderline, setTribute: setTribute,
+    setBrightness: setBrightness,
     reset: reset,
     current: function () {
       return {
         accent: get(KEY_ACCENT, DEFAULT_ACCENT),
         density: get(KEY_DENSITY, 'balanced'),
         linkUnderline: get(KEY_LINKUL, '0') === '1',
-        tribute: get(KEY_TRIBUTE, '0') === '1'
+        tribute: get(KEY_TRIBUTE, '0') === '1',
+        brightness: clampLevel(get(KEY_BRIGHTNESS, String(DEFAULT_BRIGHTNESS)))
       };
     }
   };

@@ -14,7 +14,7 @@
 }
 .ui .callout .callout-body {
   font: 400 13.5px/1.6 var(--font-sans);
-  color: #9a9ca4;
+  color: var(--text-body);
   max-width: 60ch;
   margin-top: 6px;
 }
@@ -29,7 +29,7 @@
   max-width: 100%;
   margin: 0 0 var(--sp-5);
   font: 500 12.5px/1.85 var(--font-mono);
-  color: #b6b8c0;
+  color: var(--text-2);
   background: #060607;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
@@ -45,7 +45,7 @@
   border-radius: 0;
   font-size: inherit;
 }
-.ui .codeblock .ln { display: inline-block; width: 20px; color: #4d4f57; user-select: none; }
+.ui .codeblock .ln { display: inline-block; width: 20px; color: var(--text-muted); user-select: none; }
 .ui .codeblock .kw,
 .ui .codeblock .fn,
 .ui .codeblock .cm { color: inherit; font-style: normal; }
@@ -56,7 +56,7 @@
   font: 600 10px/1 var(--font-mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #6c6e77;
+  color: var(--text-muted);
   text-align: right;
   padding: 0 0 11px;
   border-bottom: 1px solid var(--hairline-strong);
@@ -64,16 +64,16 @@
 .ui .data-table th:first-child { text-align: left; }
 .ui .data-table td {
   font: 400 13px/1 var(--font-sans);
-  color: #b6b8c0;
+  color: var(--text-2);
   text-align: right;
   padding: 11px 0;
   border-bottom: 1px solid var(--hairline);
 }
-.ui .data-table td:first-child { text-align: left; color: #dadbe0; font-weight: 500; }
+.ui .data-table td:first-child { text-align: left; color: var(--text-2); font-weight: 500; }
 .ui .data-table td.num { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
 .ui .data-table th + th, .ui .data-table td + td { padding-left: 26px; }
 .ui .data-table tr:last-child td { border-bottom: 0; }
-.ui .data-table .best td { color: #cfd1d8; }
+.ui .data-table .best td { color: var(--text-2); }
 .ui .data-table .best .hl { color: var(--accent); }
 
 /* Tooltip (card default; .pill for a single value). JS positions it. */
@@ -88,7 +88,7 @@
 }
 .ui .tooltip .tt-title { font: 600 11px/1 var(--font-sans); color: #ededf0; margin-bottom: 7px; }
 .ui .tooltip .tt-row { display: flex; justify-content: space-between; gap: 18px; font: 500 11.5px/1.5 var(--font-mono); }
-.ui .tooltip .tt-row span { color: #7a7c84; }
+.ui .tooltip .tt-row span { color: var(--text-muted); }
 .ui .tooltip .tt-value { color: var(--accent); font-weight: 500; }
 .ui .tooltip.pill {
   padding: 6px 9px;
@@ -97,7 +97,7 @@
   border-radius: var(--radius-sm);
   box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.8);
   font: 500 11.5px/1 var(--font-mono);
-  color: #cfd1d8;
+  color: var(--text-2);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -132,7 +132,7 @@
   border-radius: 9px;
   padding: 14px 18px;
   font: 500 13px/1.6 var(--font-mono);
-  color: #d2d4db;
+  color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
 .ui .worked .mat { border-left: 1.5px solid rgba(255, 255, 255, 0.25); border-right: 1.5px solid rgba(255, 255, 255, 0.25); padding: 2px 12px; }
@@ -148,10 +148,10 @@
 .ui .figcap {
   font: 500 10.5px/1.3 var(--font-mono);
   letter-spacing: 0.04em;
-  color: #7a7c84;
+  color: var(--text-muted);
   margin-top: 8px;
 }
-.ui .figcap b { color: #bdc0c8; font-weight: 600; }
+.ui .figcap b { color: var(--text-2); font-weight: 600; }
 
 /* ===== Controls (minimal / underline) ===== */
 
@@ -165,9 +165,9 @@
   padding: 6px 1px;
   cursor: pointer;
 }
-.ui .btn.secondary { color: #a9abb3; border-bottom-color: var(--hairline-strong); }
+.ui .btn.secondary { color: var(--text-2); border-bottom-color: var(--hairline-strong); }
 .ui .btn:hover { color: #aeb8ff; }
-.ui .btn.secondary:hover { color: #cfd1d8; }
+.ui .btn.secondary:hover { color: var(--text-2); }
 
 /* Upload: a <label> wrapping a visually-hidden file input (iOS-safe). */
 .ui .btn-upload {
@@ -202,7 +202,7 @@
   font: 600 10.5px/1 var(--font-sans);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #6c6e77;
+  color: var(--text-muted);
 }
 
 /* Select + text/number input (underline). */
@@ -212,7 +212,7 @@
   appearance: none;
   -webkit-appearance: none;
   font: 500 13px/1.2 var(--font-sans);
-  color: #dadbe0;
+  color: var(--text-2);
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--hairline-strong);
@@ -237,14 +237,14 @@
   flex: 0 0 auto;
   white-space: nowrap;
   font: 500 13px/1 var(--font-sans);
-  color: #74767f;
+  color: var(--text-muted);
   background: none;
   border: 0;
   padding: 0 0 7px;
   border-bottom: 1.5px solid transparent;
   cursor: pointer;
 }
-.ui .tab:hover { color: #cfd1d8; }
+.ui .tab:hover { color: var(--text-2); }
 .ui .tab.is-active { color: #ececf0; border-bottom-color: var(--accent); }
 /* Tabs are the single "pick one of N" control (used for both view switches and
    compact toggles); there is no separate segmented control. */
@@ -286,7 +286,7 @@
   background: #e9e9ee;
   transition: left var(--dur-hover) var(--ease-out);
 }
-.ui .toggle:checked { background: rgba(107, 124, 255, 0.55); }
+.ui .toggle:checked { background: rgba(var(--accent-rgb), 0.55); }
 .ui .toggle:checked::after { left: 15px; }
 
 /* Checkbox. */
@@ -305,7 +305,7 @@
   background: var(--accent);
   border-radius: 1px;
 }
-.ui .control-row { display: inline-flex; align-items: center; gap: 9px; font: 500 13px/1 var(--font-sans); color: #b7b9c1; }
+.ui .control-row { display: inline-flex; align-items: center; gap: 9px; font: 500 13px/1 var(--font-sans); color: var(--text-2); }
 
 /* ===== Control-management patterns (chosen per page; tabbed is the default for dense sets) ===== */
 
@@ -313,7 +313,7 @@
 .ui .control-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 24px 30px; }
 .ui .control-group { display: flex; flex-direction: column; gap: 11px; }
 .ui .control-group > .group-label {
-  font: 600 9.5px/1 var(--font-sans); letter-spacing: 0.14em; text-transform: uppercase; color: #6c6e77;
+  font: 600 9.5px/1 var(--font-sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted);
   padding-bottom: 8px; border-bottom: 1px solid var(--surface-border);
 }
 
@@ -372,8 +372,8 @@
 .ui .home-index .index-row:last-child { border-bottom: 1px solid var(--hairline); }
 .ui .home-index .index-num { font: 500 12px/1.3 var(--font-mono); color: var(--text-muted); flex-shrink: 0; width: 22px; }
 .ui .home-index .index-body { flex: 1; min-width: 0; }
-.ui .home-index .index-title { font: 600 16px/1.3 var(--font-sans); letter-spacing: -0.01em; color: #d6d8df; }
-.ui .home-index .index-desc { font: 400 13px/1.5 var(--font-sans); color: #74767f; margin-top: 3px; max-width: 62ch; }
+.ui .home-index .index-title { font: 600 16px/1.3 var(--font-sans); letter-spacing: -0.01em; color: var(--text-2); }
+.ui .home-index .index-desc { font: 400 13px/1.5 var(--font-sans); color: var(--text-muted); margin-top: 3px; max-width: 62ch; }
 .ui .home-index .index-arrow { font: 500 14px/1 var(--font-mono); color: var(--text-muted); flex-shrink: 0; align-self: center; transition: transform var(--dur-hover) var(--ease-out), color var(--dur-hover); }
 .ui .home-index .index-row:hover .index-title { color: var(--text); }
 .ui .home-index .index-row:hover .index-num,
@@ -383,7 +383,11 @@
 /* Footer */
 .ui .site-footer { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--hairline); display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
 .ui .site-footer .footer-row { display: flex; align-items: center; gap: 22px; }
-.ui .site-footer .footer-settings { display: inline-flex; align-items: center; color: var(--text-muted); }
+.ui .site-footer .footer-utils { display: inline-flex; align-items: center; gap: 12px; }
+.ui .site-footer .footer-settings,
+.ui .site-footer .footer-glossary { display: inline-flex; align-items: center; color: var(--text-muted); border-bottom: 0; transition: color var(--dur-hover, 140ms) ease; }
+.ui .site-footer .footer-settings:hover,
+.ui .site-footer .footer-glossary:hover { color: var(--text); }
 /* Hidden "tribute" tag: always rendered in Monocraft. In the resting "tribute" state it is
    painted in the page background so it is effectively invisible; hovering reveals it faintly.
    Once toggled on ("RIP Ari") it stays accent-colored regardless of hover. */
@@ -395,7 +399,7 @@
 .ui .site-footer .credit { font: 400 12px/1 var(--font-sans); color: var(--text-muted); }
 .ui .site-footer .credit a { color: inherit; border-bottom: 0; }
 .ui .site-footer .credit a:hover { color: var(--text); text-decoration: underline; }
-.ui .site-footer .meta { font: 500 11px/1 var(--font-mono); letter-spacing: 0.08em; color: #4d4f57; }
+.ui .site-footer .meta { font: 500 11px/1 var(--font-mono); letter-spacing: 0.08em; color: var(--text-muted); }
 
 /* Paired-visualization layout: two figures side by side, controls below. */
 .ui .viz-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
@@ -426,25 +430,25 @@
 .ui .player .scrub-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 34%; background: var(--accent); border-radius: 3px; }
 .ui .player .scrub-tick { position: absolute; top: -3px; width: 2px; height: 10px; background: rgba(255, 255, 255, 0.22); border-radius: 1px; }
 .ui .player .scrub-head { position: absolute; left: 34%; top: 50%; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); transform: translate(-50%, -50%); }
-.ui .player .scrub-time { font: 500 12px/1 var(--font-mono); color: #9a9ca4; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.ui .player .scrub-time { font: 500 12px/1 var(--font-mono); color: var(--text-body); font-variant-numeric: tabular-nums; flex-shrink: 0; }
 
 .ui .player .step-bar { display: flex; align-items: flex-start; justify-content: space-between; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--hairline); }
 .ui .player .step-k { font: 600 10.5px/1 var(--font-mono); letter-spacing: 0.16em; color: var(--accent); }
 .ui .player .step-trigger { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; margin-top: 5px; }
 .ui .player .step-title { font: 600 16px/1.3 var(--font-sans); color: #ededf0; letter-spacing: -0.01em; }
-.ui .player .step-chev { color: #7a7c84; font-size: 11px; }
+.ui .player .step-chev { color: var(--text-muted); font-size: 11px; }
 .ui .player .step-menu-wrap { position: relative; }
 .ui .player .step-menu { position: absolute; top: calc(100% + 8px); left: 0; width: 320px; background: var(--surface-strong); border: 1px solid var(--surface-strong-border); border-radius: var(--radius-lg); padding: 6px; box-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.8); z-index: 5; }
 .ui .player .step-item { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: var(--radius-sm); cursor: pointer; }
 .ui .player .step-item .step-n { font: 500 11px/1 var(--font-mono); color: var(--text-muted); width: 16px; flex-shrink: 0; }
-.ui .player .step-item .step-l { font: 500 13px/1.3 var(--font-sans); color: #74767f; }
+.ui .player .step-item .step-l { font: 500 13px/1.3 var(--font-sans); color: var(--text-muted); }
 .ui .player .step-item:hover { background: rgba(255, 255, 255, 0.04); }
 .ui .player .step-item.current { background: var(--accent-muted); color: #ededf0; }
 .ui .player .step-item.current .step-l { color: #ededf0; }
 .ui .player .step-item.current .step-n { color: var(--accent); }
-.ui .player .step-item.done .step-l { color: #9a9ca4; }
+.ui .player .step-item.done .step-l { color: var(--text-body); }
 .ui .player .step-nav { display: flex; gap: 10px; }
-.ui .player .step-nav .btn { font: 500 12.5px/1 var(--font-sans); color: #c4c6cd; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 9px 13px; cursor: pointer; }
+.ui .player .step-nav .btn { font: 500 12.5px/1 var(--font-sans); color: var(--text-2); background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 9px 13px; cursor: pointer; }
 .ui .player .transcript { margin-top: 18px; font: 400 14px/1.7 var(--font-sans); color: var(--text-body); max-width: 64ch; }
 
 /* Section-outline rail re-skin (mono-numbered). Overrides section-outline.css only under
@@ -457,15 +461,15 @@
   border: 0;
   border-left: 2px solid transparent;
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  color: #74767f;
+  color: var(--text-muted);
   font: 500 13px/1.3 var(--font-sans);
   text-decoration: none;
 }
-.ui .section-outline-list a .rail-n { font: 500 10.5px/1.3 var(--font-mono); color: #4d4f57; }
-.ui .section-outline-list a:hover { color: #cfd1d8; background: rgba(255, 255, 255, 0.03); }
+.ui .section-outline-list a .rail-n { font: 500 10.5px/1.3 var(--font-mono); color: var(--text-muted); }
+.ui .section-outline-list a:hover { color: var(--text-2); background: rgba(255, 255, 255, 0.03); }
 .ui .section-outline-list a.active { color: var(--text); border-left-color: var(--accent); background: var(--accent-muted); font-weight: 600; }
 .ui .section-outline-list a.active .rail-n { color: var(--accent); }
 /* Home link at the top of the rail: a back-arrow stands in for the mono number. */
 .ui .section-outline-list .rail-home-item { margin-bottom: 12px; }
-.ui .section-outline-list .rail-home .rail-arrow { font: 500 13px/1.3 var(--font-mono); color: #74767f; }
+.ui .section-outline-list .rail-home .rail-arrow { font: 500 13px/1.3 var(--font-mono); color: var(--text-muted); }
 .ui .section-outline-list .rail-home:hover .rail-arrow { color: var(--accent); }
