@@ -166,7 +166,7 @@
   cursor: pointer;
 }
 .ui .btn.secondary { color: var(--text-2); border-bottom-color: var(--hairline-strong); }
-.ui .btn:hover { color: #aeb8ff; }
+.ui .btn:hover { color: var(--accent-link); }
 .ui .btn.secondary:hover { color: var(--text-2); }
 
 /* Upload: a <label> wrapping a visually-hidden file input (iOS-safe). */
