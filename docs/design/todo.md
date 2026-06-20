@@ -53,3 +53,5 @@ Roll these into the deferred phases in `redesign-backlog.md` (robustness / mobil
   (per-component visibility toggle).
 - [ ] Generally add collapsibility to more components / sections across pages.
 - [ ] **Fourier:** make the worked examples better.
+- [ ] **Manifold (Isomap player):** add a +10s / -10s skip control. In fullscreen, trigger via
+  left/right arrow keys and via double-tap on the far-left (-10s) / far-right (+10s) of the video.
