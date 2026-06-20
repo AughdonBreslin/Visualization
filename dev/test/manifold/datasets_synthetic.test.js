@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { SWISS_ROLL, S_CURVE, DATASETS, DATASETS_BY_ID } from '../../js/manifold/datasets.js';
+import { SWISS_ROLL, S_CURVE, DATASETS, DATASETS_BY_ID } from '../../../js/manifold/datasets.js';
 
 test('Swiss roll yields N points with length 3N flat array', () => {
   const out = SWISS_ROLL.generate({ samples: 50, noise: 0, seed: 1 });

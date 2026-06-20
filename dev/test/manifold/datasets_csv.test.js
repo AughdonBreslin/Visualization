@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseCSV } from '../../js/manifold/datasets.js';
+import { parseCSV } from '../../../js/manifold/datasets.js';
 
 test('parseCSV handles numeric headerless rows', () => {
   const rows = parseCSV('1,2,3\n4,5,6\n7,8,9\n');

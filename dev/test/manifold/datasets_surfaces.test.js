@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   TWIN_PEAKS, SADDLE, CYLINDER, SEVERED_SPHERE, HILBERT, FULL_SPHERE,
-} from '../../js/manifold/datasets/synthetic_surfaces.js';
+} from '../../../js/manifold/datasets/synthetic_surfaces.js';
 
 const SURFACES = [TWIN_PEAKS, SADDLE, CYLINDER, SEVERED_SPHERE, HILBERT, FULL_SPHERE];
 

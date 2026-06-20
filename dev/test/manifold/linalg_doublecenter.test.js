@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { doubleCenterSquared } from '../../js/manifold/linalg.js';
+import { doubleCenterSquared } from '../../../js/manifold/linalg.js';
 
 test('Double-centered Gram matrix has zero row/column sums', () => {
   const D = new Float64Array([
