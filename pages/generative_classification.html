@@ -37,13 +37,13 @@
             <section class="panel">
                 <h2>Overview</h2>
                 <p>
-                    This demo seeks to illustrate how a supervised learning problem such as learning $p(y|x)$ can be solved by learning the joint distribution $p(x, y)$ using unsupervised density estimation, and then applying Bayes' rule to infer the posterior. We will implement two methods for estimating class-conditional densities $p(x|y)$: Kernel Density Estimation (KDE) and Gaussian Discriminant Analysis (GDA). The demo aims to provide intuition for generative modeling approaches to classification, and how they differ from direct discriminative methods.
+                    This demo seeks to illustrate how a supervised learning problem such as learning $p(y|x)$ can be solved by learning the <a class="def" href="glossary.html#joint-distribution">joint distribution</a> $p(x, y)$ using unsupervised <a class="def" href="glossary.html#density-estimation">density estimation</a>, and then applying <a class="def" href="glossary.html#bayes-rule">Bayes' rule</a> to infer the <a class="def" href="glossary.html#posterior">posterior</a>. We will implement two methods for estimating <a class="def" href="glossary.html#class-conditional-density">class-conditional densities</a> $p(x|y)$: <a class="def" href="glossary.html#kernel-density-estimation">Kernel Density Estimation</a> (KDE) and <a class="def" href="glossary.html#gaussian-discriminant-analysis">Gaussian Discriminant Analysis</a> (GDA). The demo aims to provide intuition for <a class="def" href="glossary.html#generative-model">generative modeling</a> approaches to classification, and how they differ from direct <a class="def" href="glossary.html#discriminative-model">discriminative</a> methods.
                 </p>
                 <p>
                     In a supervised classification, the goal is to learn the mapping from features $x$ to labels $y$, i.e. the posterior distribution $p(y|x)$ or an equivalent decision rule for classification. This is a conditional probability of how likely each class label $y$ is given the observed features $x$. By definition, $p(y|x) = \frac{p(x,y)}{p(x)}$, so if we can estimate the joint distribution $p(x,y)$ we can compute the posterior likelihood of each class $y$ given the observed $x$ using Bayes' rule.
                 </p>
                 <p>
-                    The joint distribution $p(x,y)$ can be decomposed as $p(x,y) = p(y) p(x|y)$, where $p(y)$ is the class prior, formed by the relative frequencies of each class in the training data, and $p(x|y)$ is the class-conditional, learned using unsupervised density estimation within each class. Once the data is split by class label $y$, we can apply any unsupervised density estimation method to learn $p(x|y)$ for each class separately. In this demo we implement two aforementioned methods: KDE, a non-parametric density estimator that places kernels at each data point and averages them; and GDA, a parametric generative model that fits a Gaussian distribution to each class. The means and covariances estimated by GDA are estimated exactly as in a purely unsupervised Gaussian model, but applied separately to each class subset of the data.
+                    The joint distribution $p(x,y)$ can be decomposed as $p(x,y) = p(y) p(x|y)$, where $p(y)$ is the <a class="def" href="glossary.html#class-prior">class prior</a>, formed by the relative frequencies of each class in the training data, and $p(x|y)$ is the class-conditional, learned using unsupervised density estimation within each class. Once the data is split by class label $y$, we can apply any unsupervised density estimation method to learn $p(x|y)$ for each class separately. In this demo we implement two aforementioned methods: KDE, a non-parametric density estimator that places kernels at each data point and averages them; and GDA, a parametric generative model that fits a Gaussian distribution to each class. The means and covariances estimated by GDA are estimated exactly as in a purely unsupervised Gaussian model, but applied separately to each class subset of the data.
                 </p>
             </section>
 
@@ -109,7 +109,7 @@
                 <p>To learn $p(y)$, we compute the priors. A prior is the probability of a class before observing any data. This is computed as the fraction of samples belonging to each class, or:</p>
                 <div class="formulas"><div class="formula">$$p(y=k) = \frac{\text{num samples with y=k}}{\text{total samples}}$$</div></div>
                 <p>To learn $p(x|y)$, we have two approaches.</p>
-                <p>1. KDE: For a class $k$, given samples {$x_i, ...$} where $y_i = k$, we estimate the class-conditional density $p(x|y=k)$ using Kernel Density Estimation (KDE). KDE places a Gaussian kernel at each sample point and averages them to form a smooth density estimate. The bandwidth parameter $h$ sets the standard deviation of each Gaussian, controlling how fast each point's influence decays with distance. In other words, the bandwidth sets the smoothness of the estimate. The constant $d$ is the dimensionality of the input space. This estimator looks like:</p>
+                <p>1. KDE: For a class $k$, given samples {$x_i, ...$} where $y_i = k$, we estimate the class-conditional density $p(x|y=k)$ using Kernel Density Estimation (KDE). KDE places a Gaussian <a class="def" href="glossary.html#kernel">kernel</a> at each sample point and averages them to form a smooth density estimate. The <a class="def" href="glossary.html#bandwidth">bandwidth</a> parameter $h$ sets the standard deviation of each Gaussian, controlling how fast each point's influence decays with distance. In other words, the bandwidth sets the smoothness of the estimate. The constant $d$ is the dimensionality of the input space. This estimator looks like:</p>
                 <div class="formulas">
                     <div class="formula">$$\hat{p}(x|y=k) = \frac{1}{n_kh^d}\sum_{i:\,y_i=k} K(x; x_i, h)$$</div>
                     <div class="formula">$$K(x; x_i, h) = \frac{1}{(2\pi)^{\frac{d}{2}}}
@@ -117,7 +117,7 @@
                 </div>
                 <p>Combining these two, we get a uniform mixture of Gaussians where each mean is centered at each data point and each have covariance $h^2I$. Note: KDE is non-parametric as it grows with the number of samples. This approach makes no assumption that the class forms a single cluster.</p>
                 <div class="formulas"><div class="formula">$$\hat{p}(x|y=k) = \frac{1}{n_k}\sum_{i:\,y_i=k}^{n_k} \mathcal{N}(x; x_i, h^2I)$$</div></div>
-                <p>2. GDA: For a class $k$, we fit a single multivariate Gaussian distribution to the samples {$x_i, ...$} where $y_i = k$. This involves estimating the mean vector $μ_k$ and covariance matrix $Σ_k$ for each class $k$ using maximum likelihood estimation:</p>
+                <p>2. GDA: For a class $k$, we fit a single multivariate <a class="def" href="glossary.html#gaussian-distribution">Gaussian distribution</a> to the samples {$x_i, ...$} where $y_i = k$. This involves estimating the mean vector $μ_k$ and <a class="def" href="glossary.html#covariance-matrix">covariance matrix</a> $Σ_k$ for each class $k$ using <a class="def" href="glossary.html#mle">maximum likelihood estimation</a>:</p>
                 <div class="formulas">
                     <div class="formula">$$\mu_k = \frac{1}{N_k}\sum_{i:\,y_i=k} x_i$$</div>
                     <div class="formula">$$\Sigma_k = \frac{1}{N_k}\sum_{i:\,y_i=k} (x_i - \mu_k)(x_i - \mu_k)^T$$</div>
@@ -220,8 +220,8 @@
             <section id="difference-panel" class="panel">
                 <h2>Generative versus Discriminative Models</h2>
                 <p>
-                    The generative approach learns the data-generating story, typically the joint distribution $p(x,y)$, then classifies by applying Bayes' rule.
-                    This differs from the discriminative approach, which directly learns the decision boundary $f(x)\to y$ or posterior $p(y\mid x)$.
+                    The <a class="def" href="glossary.html#generative-model">generative approach</a> learns the data-generating story, typically the joint distribution $p(x,y)$, then classifies by applying Bayes' rule.
+                    This differs from the <a class="def" href="glossary.html#discriminative-model">discriminative approach</a>, which directly learns the <a class="def" href="glossary.html#decision-boundary">decision boundary</a> $f(x)\to y$ or posterior $p(y\mid x)$.
                     Other examples of generative approaches than seen here include naive Bayes, linear discriminant analysis (LDA), variational autoencoders (VAEs), and diffusion models.
                     Examples for discriminative approaches include logistic regression, support vector machines (SVMs), and standard neural-network classifiers.
                 </p>

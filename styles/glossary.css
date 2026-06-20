@@ -1,0 +1,100 @@
+/* styles/glossary.css - glossary page: A-Z jump bar and term entries.
+   Page shell, type, and color come from tokens/system/components/article-ui. This file owns
+   only the glossary-specific structures. */
+
+/* Term entry: heading spans full width; prose left, visual column right.
+   Stacks to one column on narrow widths. */
+.term {
+  display: grid;
+  grid-template-columns: 1fr 232px;
+  gap: var(--sp-3) var(--sp-8);
+  padding: var(--sp-8) 0;
+  border-top: 1px solid var(--hairline);
+  scroll-margin-top: var(--sp-6);
+}
+.term:first-of-type { border-top: 0; padding-top: 0; }
+
+.term h2 {
+  grid-column: 1 / -1;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+}
+.term h2 .abbr {
+  font: 500 12px/1 var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.term-body { grid-column: 1; min-width: 0; }
+.term-body > :first-child { margin-top: 0; }
+.term-body p { margin: 0 0 var(--sp-3); max-width: 62ch; }
+.term-body p:last-child { margin-bottom: 0; }
+
+.see-also {
+  font: 400 13px/1.6 var(--font-sans);
+  color: var(--text-muted);
+}
+.see-also .label {
+  font: 500 11px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-right: var(--sp-1);
+}
+.see-also + .see-also { margin-top: var(--sp-2); }
+
+/* Visual column: stacked small figures. */
+.term-visual {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.term-visual figure { margin: 0; }
+.term-visual svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--figure-edge);
+  border-radius: var(--radius-md);
+}
+.term-visual figcaption {
+  margin-top: var(--sp-2);
+  font: 400 11px/1.4 var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+
+/* Shared SVG sketch vocabulary (inline SVGs use these classes). */
+.term-visual svg { color: var(--text-body); }
+.term-visual svg .ax     { stroke: var(--text-muted); stroke-width: 1; fill: none; }
+.term-visual svg .ghost  { stroke: var(--hairline-strong); stroke-width: 1; fill: none; }
+.term-visual svg .ghostf { fill: var(--hairline-strong); }
+.term-visual svg .key    { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.term-visual svg .keyf   { fill: var(--accent); }
+.term-visual svg .keyfs  { fill: var(--accent-muted); stroke: var(--accent); stroke-width: 1; }
+.term-visual svg .dash   { stroke: var(--text-muted); stroke-width: 1; fill: none; stroke-dasharray: 3 3; }
+.term-visual svg text    { fill: var(--text-muted); font: 9px var(--font-mono); }
+
+/* Placeholder figure for entries whose sketch is not drawn yet. */
+.sketch-todo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 11;
+  border: 1px dashed var(--hairline-strong);
+  border-radius: var(--radius-md);
+  font: 400 11px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+@media (max-width: 720px) {
+  .term { grid-template-columns: 1fr; gap: var(--sp-4); }
+  .term-body, .term-visual { grid-column: 1; }
+  .term-visual { max-width: 280px; }
+}

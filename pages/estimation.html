@@ -41,13 +41,13 @@
       <section class="panel">
         <h2>Overview</h2>
         <p>
-          Estimation is about using data $\mathcal{D}$ to infer something unknown: a parameter $\theta$, a function $f$, or a prediction rule.
+          Estimation is about using data $\mathcal{D}$ to infer something unknown: a <a class="def" href="glossary.html#parameter">parameter</a> $\theta$, a function $f$, or a prediction rule.
           Many of the most common ideas in statistics and machine learning can be expressed using a single lens:
-          choose an estimator that performs well under a loss (like MSE) or under a probabilistic model (like likelihood).
+          choose an <a class="def" href="glossary.html#estimator">estimator</a> that performs well under a loss (like <a class="def" href="glossary.html#mse">MSE</a>) or under a probabilistic model (like <a class="def" href="glossary.html#likelihood">likelihood</a>).
         </p>
         <p>
-          In point estimation, the unknown object is finite-dimensional (a scalar or vector $\theta\in\mathbb{R}^p$).
-          In function estimation, the unknown object is typically infinite-dimensional (a whole curve/surface).
+          In <a class="def" href="glossary.html#point-estimation">point estimation</a>, the unknown object is finite-dimensional (a scalar or vector $\theta\in\mathbb{R}^p$).
+          In <a class="def" href="glossary.html#function-estimation">function estimation</a>, the unknown object is typically infinite-dimensional (a whole curve/surface).
         </p>
         <div class="formulas">
           <div class="formula">$$\text{Point:}\quad X_1,\dots,X_n\sim P_\theta\;\Rightarrow\;\hat\theta\approx\theta$$</div>
@@ -69,7 +69,7 @@
       <section class="panel">
         <h2>Bias and Variance</h2>
         <p>
-          Treat an estimator as a random variable (because it depends on random data). Two core quantities are:
+          Treat an <a class="def" href="glossary.html#estimator">estimator</a> as a random variable (because it depends on random data). Two core quantities are:
         </p>
         <div class="formulas">
           <div class="formula">$$\text{Bias:}\quad \mathrm{Bias}(\hat\theta) = \mathbb{E}[\hat\theta]-\theta$$</div>
@@ -77,10 +77,10 @@
         </div>
         <p>
           An estimator is considered unbiased if $\mathrm{Bias}(\hat\theta)=0$, i.e., $\mathbb{E}[\hat\theta]=\theta$.
-          Unbiasedness is a nice property, but it is not the only thing we care about; we also want low variance.
+          Unbiasedness is a nice property, but it is not the only thing we care about; we also want low <a class="def" href="glossary.html#variance">variance</a>.
         </p>
         <p>
-          For function estimation, we can define bias and variance at each input $x$:
+          For <a class="def" href="glossary.html#function-estimation">function estimation</a>, we can define <a class="def" href="glossary.html#bias">bias</a> and variance at each input $x$:
         </p>
         <div class="formulas">
          <div class="formula">$$\mathrm{Bias}(\hat f(x)) = \mathbb{E}[\hat f(x)]-f(x)$$</div>
@@ -92,7 +92,7 @@
         <h2>Determining an unbiased estimator</h2>
         <p>
           Let $X_1,\dots,X_n$ be i.i.d. Bernoulli($p$), i.e., $\mathbb{P}(X_i=1)=p$ and $\mathbb{P}(X_i=0)=1-p$.
-          A natural estimator of $p$ is the sample mean:
+          A natural <a class="def" href="glossary.html#estimator">estimator</a> of $p$ is the sample mean:
         </p>
         <div class="formula">$$\hat p = \bar X = \frac{1}{n}\sum_{i=1}^n X_i$$</div>
         <p>
@@ -107,14 +107,14 @@
           = \frac{1}{n}\sum_{i=1}^n p
           = p$$</div>
         <p>
-          Therefore $\mathbb{E}[\hat p]=p$, so $\hat p$ is an unbiased estimator of $p$.
+          Therefore $\mathbb{E}[\hat p]=p$, so $\hat p$ is an <a class="def" href="glossary.html#unbiased-estimator">unbiased estimator</a> of $p$.
         </p>
       </section>
 
       <section class="panel">
         <h2>Standard error</h2>
         <p>
-          The standard error is the standard deviation of the estimator:
+          The <a class="def" href="glossary.html#standard-error">standard error</a> is the standard deviation of the <a class="def" href="glossary.html#estimator">estimator</a>:
         </p>
         <div class="formula">$$\text{Standard error:}\quad \mathrm{SE}(\hat\theta)=\sqrt{\mathrm{Var}(\hat\theta)}$$</div>
         <p>
@@ -135,15 +135,15 @@
         <p>
           The standard error quantifies the sampling variability of the estimator, meaning how much the estimate can vary across repeated samplings of the data.
           From the Central Limit theorem, the collection of sample estimates will converge to be approximately Normal for large $n$.
-          The standard error, then, can be used to compute the probability that the true parameter lies within a confidence interval centered around the estimate.
+          The standard error, then, can be used to compute the probability that the true <a class="def" href="glossary.html#parameter">parameter</a> lies within a <a class="def" href="glossary.html#confidence-interval">confidence interval</a> centered around the estimate.
         </p>
       </section>
 
       <section class="panel" id="bootstrapCI">
         <h2>Bootstrap confidence interval </h2>
         <p>
-          The initial sample of data is just one of many possible samples we could have drawn from the data-generating process, and only gives us one realization of the estimator $\hat\theta$.
-          The bootstrap is one way to get a better understanding of the uncertainty of our estimate by redrawing many collections of samples from our observed dataset (with replacement) and computing $\hat\theta^*$ for each resample.
+          The initial sample of data is just one of many possible samples we could have drawn from the data-generating process, and only gives us one realization of the <a class="def" href="glossary.html#estimator">estimator</a> $\hat\theta$.
+          The <a class="def" href="glossary.html#bootstrap">bootstrap</a> is one way to get a better understanding of the uncertainty of our estimate by redrawing many collections of samples from our observed dataset (with replacement) and computing $\hat\theta^*$ for each resample.
           <ul>
 
             <li>If $\theta = \mu$, then on each resample, $\hat\theta^*=\hat\mu^*=\frac{1}{n}\sum_{i=1}^n X_i^*$</li>
@@ -151,9 +151,9 @@
         </p>
 
         <p>
-          This allows us to empirically approximate the sampling distribution of $\hat\theta$ and estimate its standard error and confidence intervals.
+          This allows us to empirically approximate the <a class="def" href="glossary.html#sampling-distribution">sampling distribution</a> of $\hat\theta$ and estimate its <a class="def" href="glossary.html#standard-error">standard error</a> and <a class="def" href="glossary.html#confidence-interval">confidence intervals</a>.
           This is especially useful when an analytical standard error is unavailable, inconvenient, or relies on assumptions we do not want to make.
-          Under repeated sampling from the data-generating process, the constructed interval contains the true parameter $\theta$ with approximately probability $1-\alpha$.
+          Under repeated sampling from the data-generating process, the constructed interval contains the true <a class="def" href="glossary.html#parameter">parameter</a> $\theta$ with approximately probability $1-\alpha$.
           It is not, in general, a statement that the parameter $\theta$ itself is random or that there is a $1-\alpha$ probability it lies in this particular realized interval.
         </p>
         <p>
@@ -233,8 +233,8 @@
       <section class="panel">
         <h2>Mean squared error (MSE) and minimizing it</h2>
         <p>
-          A common way to evaluate an estimator is by its mean squared error.
-          For a parameter estimator, the MSE decomposes into bias and variance.
+          A common way to evaluate an <a class="def" href="glossary.html#estimator">estimator</a> is by its <a class="def" href="glossary.html#mse">mean squared error</a>.
+          For a <a class="def" href="glossary.html#parameter">parameter</a> estimator, the MSE decomposes into <a class="def" href="glossary.html#bias">bias</a> and <a class="def" href="glossary.html#variance">variance</a>.
         </p>
         <div class="formulas">
           <div class="formula">$$\text{MSE:}\quad \mathrm{MSE}(\hat\theta)=\mathbb{E}\big[(\hat\theta-\theta)^2\big]$$</div>
@@ -275,15 +275,15 @@
           +\underbrace{\mathrm{Var}(\varepsilon\mid X=x)}_{\text{irreducible noise}}$$
         </div>
         <p>
-          The irreducible noise term cannot be improved by changing the estimator; it is the part of $Y$ that is unpredictable from $X$. Only bias and variance are under our control. 
+          The <a class="def" href="glossary.html#irreducible-noise">irreducible noise</a> term cannot be improved by changing the <a class="def" href="glossary.html#estimator">estimator</a>; it is the part of $Y$ that is unpredictable from $X$. Only <a class="def" href="glossary.html#bias">bias</a> and <a class="def" href="glossary.html#variance">variance</a> are under our control. 
         </p>
       </section>
 
       <section class="panel">
         <h2>Consistency</h2>
         <p>
-          An estimator is consistent if it converges to the truth as the sample size grows.
-          The most common notion is convergence in probability.
+          An <a class="def" href="glossary.html#estimator">estimator</a> is <a class="def" href="glossary.html#consistency">consistent</a> if it converges to the truth as the sample size grows.
+          The most common notion is <a class="def" href="glossary.html#convergence-in-probability">convergence in probability</a>.
         </p>
         <div class="formula">$$\hat\theta_n\xrightarrow{p}\theta\quad\text{as }n\to\infty$$</div>
         <p>
@@ -295,17 +295,17 @@
       <section class="panel">
         <h2>Maximum likelihood estimation (MLE)</h2>
         <p>
-          If we assume a probabilistic model $p_\theta(x)$ for the data, the likelihood $L(\theta)$ of a dataset $\mathcal{D}=\{x_i\}_{i=1}^n$ is
+          If we assume a probabilistic model $p_\theta(x)$ for the data, the <a class="def" href="glossary.html#likelihood">likelihood</a> $L(\theta)$ of a dataset $\mathcal{D}=\{x_i\}_{i=1}^n$ is
           $L(\theta)=\prod_{i=1}^n p_\theta(x_i)$. This is the probability of observing the data we did.
-          The MLE chooses the parameter that maximizes this.
+          The <a class="def" href="glossary.html#mle">MLE</a> chooses the <a class="def" href="glossary.html#parameter">parameter</a> that maximizes this.
         </p>
         <div class="formulas">
           <div class="formula">$$\hat\theta_{\text{MLE}}=\arg\max_{\theta}\;\prod_{i=1}^n p_\theta(x_i)$$</div>
           <div class="formula">$$\hat\theta_{\text{MLE}}=\arg\max_{\theta}\;\sum_{i=1}^n \log p_\theta(x_i)$$</div>
         </div>
         <p>
-          The second form is the log-likelihood; it is numerically stable and turns products into sums.
-          Under regularity conditions (like differentiability and identifiability), MLEs are consistent and asymptotically normal.
+          The second form is the <a class="def" href="glossary.html#log-likelihood">log-likelihood</a>; it is numerically stable and turns products into sums.
+          Under regularity conditions (like differentiability and identifiability), MLEs are <a class="def" href="glossary.html#consistency">consistent</a> and asymptotically normal.
         </p>
       </section>
 
@@ -313,19 +313,19 @@
         <h2>Conditional log-likelihood (discriminative objective)</h2>
         <p>
           In supervised learning we often model $p_\theta(y\mid x)$ directly.
-          The conditional log-likelihood objective is:
+          The <a class="def" href="glossary.html#conditional-log-likelihood">conditional log-likelihood</a> objective is:
         </p>
         <div class="formula">$$\hat\theta = \arg\max_{\theta}\;\sum_{i=1}^n \log p_\theta(y_i\mid x_i)$$</div>
         <p>
           For multiclass classification with a softmax model, maximizing conditional log-likelihood is equivalent to
-          minimizing cross-entropy (negative conditional log-likelihood).
+          minimizing <a class="def" href="glossary.html#cross-entropy">cross-entropy</a> (negative conditional log-likelihood).
         </p>
       </section>
 
       <section class="panel">
         <h2>Conditional log-likelihood vs. mean squared error</h2>
         <p>
-          Both are valid training objectives, but they encode different assumptions. MLE assumes a full generative model for the data, while conditional log-likelihood only models the conditional distribution of $Y$ given $X$.
+          Both are valid training objectives, but they encode different assumptions. <a class="def" href="glossary.html#mle">MLE</a> assumes a full generative model for the data, while <a class="def" href="glossary.html#conditional-log-likelihood">conditional log-likelihood</a> only models the conditional distribution of $Y$ given $X$.
         </p>
         <div class="formulas">
           <div class="formula">
@@ -337,7 +337,7 @@
         </div>
         <p>
           A useful bridge: if we assume a Gaussian noise model $Y\mid X=x \sim \mathcal{N}(f(x),\sigma^2)$ with constant $\sigma^2$,
-          then minimizing MSE is (up to constants) equivalent to maximizing the conditional log-likelihood.
+          then minimizing <a class="def" href="glossary.html#mse">MSE</a> is (up to constants) equivalent to maximizing the conditional log-likelihood.
         </p>
         <div class="formula">
           $$\log p(y\mid x) = -\tfrac{1}{2\sigma^2}(y-f(x))^2 + \text{const}\;\Rightarrow\;\min (y-f(x))^2\;\Leftrightarrow\;\max \log p(y\mid x)$$

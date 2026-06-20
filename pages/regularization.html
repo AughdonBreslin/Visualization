@@ -41,7 +41,7 @@
             <section class="panel">
                 <h2>Overview</h2>
                 <p>
-                    This demonstration compares how different regularization schemes affect linear regression fits when the model can overfit (e.g., high-degree polynomial features). You can regenerate synthetic data, change feature degree, and sweep $\lambda$ to see how the fitted function, coefficient magnitudes, and train/test error change.
+                    This demonstration compares how different <a class="def" href="glossary.html#regularization">regularization</a> schemes affect <a class="def" href="glossary.html#linear-regression">linear regression</a> fits when the model can <a class="def" href="glossary.html#overfitting">overfit</a> (e.g., high-degree polynomial features). You can regenerate synthetic data, change feature degree, and sweep $\lambda$ to see how the fitted function, coefficient magnitudes, and train/test error change.
                 </p>
                 <div class="fn-table-wrap">
                     <table class="fn-table">
@@ -134,10 +134,10 @@
             <section class="panel">
                 <h2>Bias-variance tradeoff</h2>
                 <p>
-                    Looking at the mean squared error (MSE) swept across a range of $\lambda$ values for each method, we see how regularization impacts the ability for models to generalize to unseen data. For high-capacity models, minimizing regularization yields very low training MSEs, but fails to produce that same accuracy on unseen test data, overfitting to observed samples and noise.
+                    Looking at the <a class="def" href="glossary.html#mse">mean squared error</a> (MSE) swept across a range of $\lambda$ values for each method, we see how <a class="def" href="glossary.html#regularization">regularization</a> impacts the ability for models to <a class="def" href="glossary.html#generalization">generalize</a> to unseen data. For high-capacity models, minimizing regularization yields very low training MSEs, but fails to produce that same accuracy on unseen test data, <a class="def" href="glossary.html#overfitting">overfitting</a> to observed samples and noise.
                 </p>
                 <p>
-                    As regularization increases, training MSE typically rises, but test MSE can improve as the model learns to capture more general patterns rather than noise. When regularization becomes too strong, the model is too inhibited to fit the training data well, and both train and test MSE rise due to underfitting.
+                    As regularization increases, training MSE typically rises, but test MSE can improve as the model learns to capture more general patterns rather than noise. When regularization becomes too strong, the model is too inhibited to fit the training data well, and both train and test MSE rise due to <a class="def" href="glossary.html#underfitting">underfitting</a>.
                 </p>
 
                 <div class="demo">
@@ -166,7 +166,7 @@
                 <div class="callout">
                     <div class="callout-label">Note</div>
                     <div class="callout-body">
-                        Bias-variance decomposition shows the test MSE decomposed as the sum of bias$^2$, variance, and noise. Refer to <a href="estimation.html">Estimation</a> for more on MSE.
+                        <a class="def" href="glossary.html#bias-variance-decomposition">Bias-variance decomposition</a> shows the test MSE decomposed as the sum of bias$^2$, variance, and noise. Refer to <a href="estimation.html">Estimation</a> for more on MSE.
                     </div>
                 </div>
             </section>
@@ -174,17 +174,17 @@
             <section class="panel">
                 <h2>Observations</h2>
                 <ul>
-                    <li>As degree increases, OLS tends to overfit (wiggly curve, large coefficients, worse test error).</li>
-                    <li>Ridge typically shrinks coefficients smoothly, reducing variance and improving test error for a wide range of $\lambda$.</li>
-                    <li>Lasso can drive some coefficients to exactly 0, acting like a form of feature selection.</li>
-                    <li>The GD methods blow up if the regularization ($\lambda$) or the learning rate ($\eta$) is set too high.</li>
+                    <li>As degree increases, <a class="def" href="glossary.html#ordinary-least-squares">OLS</a> tends to <a class="def" href="glossary.html#overfitting">overfit</a> (wiggly curve, large coefficients, worse test error).</li>
+                    <li><a class="def" href="glossary.html#ridge">Ridge</a> typically <a class="def" href="glossary.html#shrinkage">shrinks</a> coefficients smoothly, reducing <a class="def" href="glossary.html#variance">variance</a> and improving test error for a wide range of $\lambda$.</li>
+                    <li><a class="def" href="glossary.html#lasso">Lasso</a> can drive some coefficients to exactly 0, acting like a form of <a class="def" href="glossary.html#feature-selection">feature selection</a>.</li>
+                    <li>The <a class="def" href="glossary.html#gradient-descent">GD</a> methods blow up if the regularization ($\lambda$) or the <a class="def" href="glossary.html#learning-rate">learning rate</a> ($\eta$) is set too high.</li>
                     <li>For the sine function on high-degree polynomials, the models generally prefer odd-degree terms, mimicking its infinite series expansion.</li>
                 </ul>
             </section>
 
             <section class="panel">
                 <h2>Learning rate and regularization boundaries</h2>
-                <p>Both L2 penalty and weight decay depend on $\lambda$ or $\eta$ being within certain bounds for the gradient descent to converge properly.</p>
+                <p>Both L2 penalty and <a class="def" href="glossary.html#weight-decay">weight decay</a> depend on $\lambda$ or $\eta$ being within certain bounds for the <a class="def" href="glossary.html#gradient-descent">gradient descent</a> to converge properly.</p>
                 <ul>
                     <li>L2 minimizes $J(w) = \mathrm{MSE}(w) + \lambda \|w\|_2^2$. Its gradient is $\nabla J(w) = \nabla \mathrm{MSE}(w) + 2\lambda w$. When updating
                         <span class="formula">$$w_{t+1} = w_t - \eta \nabla J(w_t) = w_t - \eta (\nabla \mathrm{MSE}(w_t) + 2\lambda w_t),$$</span>

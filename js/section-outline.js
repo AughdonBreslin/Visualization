@@ -68,6 +68,21 @@ function collectPanels(root) {
   return entries;
 }
 
+// Glossary variant: entries are the .term blocks (one per term), in document (alphabetical) order.
+function collectTerms(root) {
+  const terms = Array.from(root.querySelectorAll('.term')).filter((t) => t.id);
+  const entries = [];
+  for (const term of terms) {
+    const heading = term.querySelector(':scope > h2');
+    if (!heading) continue;
+    const label = normalizeLabel(heading.textContent);
+    if (!label) continue;
+    term.style.scrollMarginTop = 'var(--outline-scroll-offset, 16px)';
+    entries.push({ id: term.id, label, panel: term });
+  }
+  return entries;
+}
+
 function buildNav(entries) {
   const nav = document.createElement('nav');
   nav.className = 'section-outline';
@@ -92,22 +107,32 @@ function buildNav(entries) {
   const list = document.createElement('ul');
   list.className = 'section-outline-list';
   const linkById = new Map();
-  // On redesign (.ui) pages, prefix each item with a mono index number.
+  // On redesign (.ui) pages, prefix each item with a mono index. The glossary uses the entry's
+  // first letter (shown once per letter group) in place of a running number.
   const numbered = document.body.classList.contains('ui');
+  const lettered = document.body.classList.contains('glossary');
+  let lastLetter = null;
   entries.forEach((entry, i) => {
     const li = document.createElement('li');
     const a = document.createElement('a');
     a.href = `#${entry.id}`;
     if (numbered) {
-      const num = document.createElement('span');
-      num.className = 'rail-n';
-      num.textContent = String(i + 1).padStart(2, '0');
-      a.appendChild(num);
+      const tag = document.createElement('span');
+      tag.className = 'rail-n';
+      if (lettered) {
+        const letter = (entry.label[0] || '').toUpperCase();
+        tag.textContent = letter === lastLetter ? '' : letter;
+        lastLetter = letter;
+      } else {
+        tag.textContent = String(i + 1).padStart(2, '0');
+      }
+      a.appendChild(tag);
       a.appendChild(document.createTextNode(entry.label));
     } else {
       a.textContent = entry.label;
     }
-    if (numbered) {
+    // Mono number prefixing the section heading itself (numbered pages only; not the glossary).
+    if (numbered && !lettered) {
       const heading = entry.panel.querySelector(':scope > h2, :scope > h3');
       if (heading && !heading.querySelector('.sec-n')) {
         const sn = document.createElement('span');
@@ -249,7 +274,8 @@ function positionDesktopRail(rail, firstPanel) {
 }
 
 function initSectionOutline() {
-  const entries = collectPanels(document);
+  const lettered = document.body.classList.contains('glossary');
+  const entries = lettered ? collectTerms(document) : collectPanels(document);
   if (entries.length < 2) return; // not worth an outline
   const ui = buildNav(entries);
   document.body.appendChild(ui.nav);
