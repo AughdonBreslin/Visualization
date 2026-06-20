@@ -64,7 +64,7 @@
         <p>
           For most real datasets that bound is beneficial. The underlying
           behavior bends gradually and a low-order curve captures it. This however
-          breaks down for anything intrinsically periodic. An idealized
+          breaks down for anything intrinsically <a class="def" href="glossary.html#periodicity">periodic</a>. An idealized
           checkerboard alternates light and dark squares in every direction
           without end; sampling it along any line produces a sequence of
           values that flip sign infinitely often. No polynomial of finite
@@ -73,7 +73,7 @@
         <p>
           To represent periodic structure faithfully we need a basis whose
           elements are themselves periodic, and so we can shift the view from
-          polynomial regression to Fourier analysis.
+          polynomial regression to <a class="def" href="glossary.html#discrete-fourier-transform">Fourier analysis</a>.
         </p>
       </section>
 
@@ -81,7 +81,7 @@
         <h2>Representing Periodicity</h2>
         <p>
           The simplest non-decaying periodic function on the real line is
-          $\sin(2\pi f t)$, where $f$ is frequency and
+          $\sin(2\pi f t)$, where $f$ is <a class="def" href="glossary.html#frequency">frequency</a> and
           $t$ is time/position. Any reasonable periodic function can be
           approximated by a sum of sines and cosines at integer-multiple
           frequencies. For a function $g(t)$ with period $T$,
@@ -92,13 +92,13 @@
         <p>
           and as $K$ grows the partial sum converges to $g$ at every point
           where $g$ is continuous. The sines and cosines at frequencies
-          $k/T$ form a complete basis for periodic functions on $[0, T]$.
+          $k/T$ form a complete <a class="def" href="glossary.html#basis">basis</a> for periodic functions on $[0, T]$.
         </p>
         <p>
           In practice we package the sine and cosine of the same frequency
           into a single complex exponential,
-          $e^{i 2\pi f t} = \cos(2\pi f t) + i \sin(2\pi f t)$. The amplitude
-          and phase of the wave end up encoded in the magnitude and argument
+          $e^{i 2\pi f t} = \cos(2\pi f t) + i \sin(2\pi f t)$. The <a class="def" href="glossary.html#amplitude">amplitude</a>
+          and <a class="def" href="glossary.html#phase">phase</a> of the wave end up encoded in the magnitude and argument
           of one complex coefficient. This gives:
         </p>
         <div class="formulas"><div class="formula">
@@ -110,14 +110,14 @@
           is one that can complete a full cycle within two pixels (ie. alternating between bright and dark every pixel).
           Anything faster does not have enough room to show
           its shape between pixels. This upper limit is called the
-          Nyquist frequency. The lower limit is zero, which represents a constant value with no oscillation.
+          <a class="def" href="glossary.html#nyquist-frequency">Nyquist frequency</a>. The lower limit is zero, which represents a constant value with no oscillation.
         </p>
       </section>
 
       <section class="panel">
         <h2>The Discrete Fourier Transform</h2>
         <p>
-          The 2D Discrete Fourier Transform turns an $N \times N$ image
+          The 2D <a class="def" href="glossary.html#discrete-fourier-transform">Discrete Fourier Transform</a> turns an $N \times N$ image
           $f[x, y]$, where $x$ and $y$ are pixel coordinates, into an $N \times N$ matrix of complex weights. $f[x, y]$ gives the individual pixel value at coordinates $x$ and $y$.
         </p>
         <div class="formulas"><div class="formula">
@@ -132,7 +132,7 @@
         <p>
           Each $F[u, v]$ tells you how much of the wave
           $e^{i 2\pi(ux + vy)/N}$ is present, and its squared magnitude
-          $|F[u, v]|^2$, called the spectral energy at frequency
+          $|F[u, v]|^2$, called the <a class="def" href="glossary.html#spectral-energy">spectral energy</a> at frequency
           $(u, v)$, measures how much of the image's total energy sits
           in that one wave.
         </p>
@@ -144,7 +144,7 @@
           $$f[x, y] = \frac{1}{N^2}\sum_{u=0}^{N-1} \sum_{v=0}^{N-1} F[u, v]\,e^{\,i 2\pi(ux + vy)/N}$$
         </div></div>
         <p>
-          This is a change of basis. The image still has $N^2$ degrees of
+          This is a <a class="def" href="glossary.html#change-of-basis">change of basis</a>. The image still has $N^2$ degrees of
           freedom; we have just rewritten them as frequency coefficients
           instead of pixel intensities. The reason to bother is that the new
           representation makes structure explicit. Smooth images concentrate
@@ -167,7 +167,7 @@
           If the image's edges happen to match (it fades to zero on every
           side, say), the wallpaper is seamless. If they do not, the tiling
           injects step discontinuities at every boundary, those edges show
-          up as high-frequency energy in $F$, and low-pass filtering them
+          up as high-frequency energy in $F$, and <a class="def" href="glossary.html#low-pass-filter">low-pass filtering</a> them
           out produces the ringing we will see in the demo below. The
           clearest example is the Quadrant preset: a single
           image that is white in the top-left and bottom-right quadrants and
@@ -187,7 +187,7 @@
           multiple scales.
         </p>
         <p>
-          Legendre polynomials $P_k(t)$ form an orthogonal
+          <a class="def" href="glossary.html#legendre-polynomials">Legendre polynomials</a> $P_k(t)$ form an <a class="def" href="glossary.html#orthogonal">orthogonal</a>
           basis on $[-1, 1]$ under the standard (unweighted) inner product.
           A degree-$d$ separable Legendre expansion gives the best
           polynomial approximation to the image, in the squared-error sense,
@@ -195,11 +195,11 @@
           coefficient depends on every pixel. Inside the domain they fit
           smoothly, and they make no assumption that the image tiles
           periodically. Outside the domain they diverge: high-degree fits
-          suffer from Runge's phenomenon, where small errors near
+          suffer from <a class="def" href="glossary.html#runges-phenomenon">Runge's phenomenon</a>, where small errors near
           the boundary amplify into large excursions just past it.
         </p>
         <p>
-          Chebyshev polynomials $T_k(t)$ are also
+          <a class="def" href="glossary.html#chebyshev-polynomials">Chebyshev polynomials</a> $T_k(t)$ are also
           orthogonal on $[-1, 1]$, but under the weighted inner product:
         </p>
         <div class="formulas"><div class="formula">
@@ -218,7 +218,7 @@
           Legendre.
         </p>
         <p>
-          Haar wavelets are a different idea entirely.
+          <a class="def" href="glossary.html#haar-wavelets">Haar wavelets</a> are a different idea entirely.
           Instead of global functions, the Haar basis is built from
           translated and dilated copies of a single square pulse, so every
           coefficient depends only on a small localized region. The
@@ -234,7 +234,7 @@
         </p>
         <p>
           None of these three bases is periodic. None of them suffer from
-          Gibbs ringing. But each pays its own price: polynomial divergence
+          <a class="def" href="glossary.html#gibbs-phenomenon">Gibbs ringing</a>. But each pays its own price: polynomial divergence
           outside the domain, weighted-inner-product subtleties, or
           staircase artifacts at coarse scales. The demo below lets you
           switch between all four bases on the same image so you can see

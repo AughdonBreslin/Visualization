@@ -40,17 +40,17 @@
       <section class="panel">
         <h2>Overview</h2>
         <p>
-          Bayesian inference uses observed data $\mathcal{D}$ to learn about unknown parameter(s) $\theta$. For example, $\theta$ might be a coin's probability of heads, a Gaussian mean, or a vector of regression coefficients, while $\mathcal{D}$ is the dataset you actually observed.
+          <a class="def" href="glossary.html#bayesian-inference">Bayesian inference</a> uses observed data $\mathcal{D}$ to learn about unknown <a class="def" href="glossary.html#parameter">parameter(s)</a> $\theta$. For example, $\theta$ might be a coin's probability of heads, a Gaussian mean, or a vector of regression coefficients, while $\mathcal{D}$ is the dataset you actually observed.
         </p>
         <p>
-          The point of introducing a prior and a posterior is to keep track of uncertainty throughout that learning process. Before seeing data, we use a prior to describe which parameter values seem plausible. This can be seen as our initial beliefs or assumptions, or as a form of regularization. After seeing data, we update those beliefs to a posterior, which tells us which parameter values are plausible given the evidence we observed.
+          The point of introducing a prior and a posterior is to keep track of uncertainty throughout that learning process. Before seeing data, we use a <a class="def" href="glossary.html#prior">prior</a> to describe which parameter values seem plausible. This can be seen as our initial beliefs or assumptions, or as a form of <a class="def" href="glossary.html#regularization">regularization</a>. After seeing data, we update those beliefs to a <a class="def" href="glossary.html#posterior">posterior</a>, which tells us which parameter values are plausible given the evidence we observed.
         </p>
         <div class="formulas">
           <div class="formula">$$\text{Prior: } p(\theta)$$</div>
           <div class="formula">$$\text{Posterior: } p(\theta\mid\mathcal{D})$$</div>
         </div>
         <p>
-          The central update rule is Bayes' rule. It combines the prior with the likelihood, $p(\mathcal{D}\mid\theta)$, which measures how compatible the observed data is with each possible value of $\theta$. Last is the probability of observing the data, which for continuous variables would be the probability density $p(\mathcal{D}) = \int p(\mathcal{D}\mid\theta)p(\theta)\,d\theta$, which acts as the evidence (or marginal likelihood). It is often hard to compute, and that difficulty motivates approximate inference.
+          The central update rule is <a class="def" href="glossary.html#bayes-rule">Bayes' rule</a>. It combines the prior with the <a class="def" href="glossary.html#likelihood">likelihood</a>, $p(\mathcal{D}\mid\theta)$, which measures how compatible the observed data is with each possible value of $\theta$. Last is the probability of observing the data, which for continuous variables would be the probability density $p(\mathcal{D}) = \int p(\mathcal{D}\mid\theta)p(\theta)\,d\theta$, which acts as the evidence (or <a class="def" href="glossary.html#marginal-likelihood">marginal likelihood</a>). It is often hard to compute, and that difficulty motivates <a class="def" href="glossary.html#approximate-inference">approximate inference</a>.
         </p>
         <div class="formula">$$p(\theta\mid\mathcal{D}) = \frac{p(\mathcal{D}\mid\theta)\,p(\theta)}{p(\mathcal{D})}$$</div>
       </section>
@@ -58,7 +58,7 @@
       <section class="panel">
         <h2>Conjugacy</h2>
         <p>
-          Conjugacy shows the core principle of Bayesian inference in its cleanest form. You start with a prior, update it with a likelihood after observing data, and end with a posterior. In general, carrying out that update can require difficult integration through the evidence term $p(\mathcal{D})$, but conjugate models are special because the posterior can be written down explicitly with a formula instead of requiring numerical approximation (they're closed-form).
+          <a class="def" href="glossary.html#conjugacy">Conjugacy</a> shows the core principle of Bayesian inference in its cleanest form. You start with a prior, update it with a likelihood after observing data, and end with a posterior. In general, carrying out that update can require difficult integration through the evidence term $p(\mathcal{D})$, but conjugate models are special because the posterior can be written down explicitly with a formula instead of requiring numerical approximation (they're closed-form).
         </p>
         <p>
           A prior is conjugate to a likelihood when the posterior belongs to the same distribution family (e.g., Normal, Beta, Uniform) as the prior, just with updated parameter values. In practice, conjugacy appears when the prior is chosen to match the algebraic structure of the likelihood, and it is useful because it makes Bayesian updating both exact and easy to interpret.
@@ -104,7 +104,7 @@
         <div class="callout">
           <div class="callout-label">Note</div>
           <div class="callout-body">
-            Intuition: the posterior mean is a precision-weighted average of the prior mean $\mu_0$ and the sample mean $\bar x$. Precision means inverse variance, so information with smaller variance receives more weight in the update.
+            Intuition: the posterior mean is a precision-weighted average of the prior mean $\mu_0$ and the sample mean $\bar x$. <a class="def" href="glossary.html#precision">Precision</a> means inverse variance, so information with smaller variance receives more weight in the update.
           </div>
         </div>
 
@@ -119,7 +119,7 @@
         <div class="callout">
           <div class="callout-label">Note</div>
           <div class="callout-body">
-            This is the multivariate version of the Normal-Normal story: a Gaussian prior combined with a Gaussian likelihood gives a Gaussian posterior. In this setting, the MAP solution matches ridge regression when you identify $\lambda=\alpha/\beta$.
+            This is the multivariate version of the Normal-Normal story: a Gaussian prior combined with a Gaussian likelihood gives a Gaussian posterior. In this setting, the <a class="def" href="glossary.html#map">MAP</a> solution matches <a class="def" href="glossary.html#ridge">ridge regression</a> when you identify $\lambda=\alpha/\beta$.
           </div>
         </div>
       </section>
@@ -136,7 +136,7 @@
               <div class="figcap">Prior vs likelihood vs posterior</div>
               <div id="bayesParamViz" class="viz bayes-viz" aria-label="Bayesian parameter update visualization"></div>
               <p id="bayesParamContext" class="help-text">
-                The prior shows what parameter values were plausible before seeing the dataset, the likelihood shows which parameter values best explain the observed data, and the posterior shows the updated belief after combining both. The shaded interval on the posterior plot is a 95% credible interval, which contains parameter values that together have 95% of the posterior probability mass.
+                The prior shows what parameter values were plausible before seeing the dataset, the likelihood shows which parameter values best explain the observed data, and the posterior shows the updated belief after combining both. The shaded interval on the posterior plot is a 95% <a class="def" href="glossary.html#credible-interval">credible interval</a>, which contains parameter values that together have 95% of the posterior probability mass.
               </p>
             </div>
             <div class="demo-fig">
@@ -241,7 +241,7 @@
       <section class="panel">
         <h2>Credible intervals vs confidence intervals</h2>
         <p>
-          These are often confused. The difference is about what is random and what the statement conditions on. A confidence interval is a statement about a procedure over repeated samples; a credible interval is a statement about parameters conditional on observed data (given a prior and likelihood).
+          These are often confused. The difference is about what is random and what the statement conditions on. A <a class="def" href="glossary.html#confidence-interval">confidence interval</a> is a statement about a procedure over repeated samples; a <a class="def" href="glossary.html#credible-interval">credible interval</a> is a statement about parameters conditional on observed data (given a prior and likelihood).
         </p>
         <div class="formulas">
           <div class="formula">$$\text{Credible: }\Pr(\theta\in[a,b]\mid\mathcal{D}) = 0.95$$</div>
@@ -252,7 +252,7 @@
       <section class="panel">
         <h2>Maximum a posteriori (MAP) estimation</h2>
         <p>
-          MAP is relevant because it keeps the Bayesian idea of combining prior information with data, but replaces the full posterior with a single estimate.
+          <a class="def" href="glossary.html#map">MAP</a> is relevant because it keeps the Bayesian idea of combining prior information with data, but replaces the full posterior with a single estimate.
         </p>
         <p>
           MAP chooses the parameter value with highest posterior density. In other words, instead of describing all plausible values of $\theta$ after observing $\mathcal{D}$, it asks which single value of $\theta$ is most plausible under the posterior.
@@ -262,7 +262,7 @@
           This formula motivates MAP as an optimization problem. Because the log function preserves maximizers, MAP can be found by maximizing log-likelihood plus log-prior, or equivalently by minimizing a data-fit term plus a penalty induced by the prior. That does not solve Bayesian inference in full, but it often gives a practical Bayesian-informed estimate even when exact conjugate updating is unavailable or unnecessary.
         </p>
         <p>
-          This is why priors often behave like regularizers: different prior choices reshape the objective and pull the estimate toward different kinds of solutions.
+          This is why <a class="def" href="glossary.html#prior">priors</a> often behave like <a class="def" href="glossary.html#regularization">regularizers</a>: different prior choices reshape the objective and pull the estimate toward different kinds of solutions.
         </p>
         <div class="formulas">
           <div class="formula">$$\theta\sim\mathcal{N}(0,\sigma^2 I)\ \Rightarrow\ \text{L2 penalty}$$</div>
@@ -279,7 +279,7 @@
       <section class="panel">
         <h2>MAP vs MLE (Normal mean)</h2>
         <p>
-          To see that optimization view concretely, suppose $x_i\sim\mathcal{N}(\mu,\sigma^2)$ with a Gaussian prior $\mu\sim\mathcal{N}(\mu_0,\tau^2)$. The MLE is $\hat\mu_{\mathrm{MLE}}=\bar x$, while the MAP estimate adds a prior penalty and therefore balances fit to the data against agreement with the prior.
+          To see that optimization view concretely, suppose $x_i\sim\mathcal{N}(\mu,\sigma^2)$ with a Gaussian prior $\mu\sim\mathcal{N}(\mu_0,\tau^2)$. The <a class="def" href="glossary.html#mle">MLE</a> is $\hat\mu_{\mathrm{MLE}}=\bar x$, while the <a class="def" href="glossary.html#map">MAP</a> estimate adds a prior penalty and therefore balances fit to the data against agreement with the prior.
         </p>
         <div class="formula">$$\hat\mu_{\mathrm{MAP}} = \arg\min_{\mu}\ \underbrace{\frac{n}{2\sigma^2}(\mu-\bar x)^2}_{-\log p(\mathcal{D}\mid\mu)} + \underbrace{\frac{1}{2\tau^2}(\mu-\mu_0)^2}_{-\log p(\mu)}$$</div>
 
@@ -345,11 +345,11 @@
       <section class="panel">
         <h2>Approximate inference</h2>
         <p>
-          When conjugacy is unavailable, we usually cannot write down the posterior in a clean closed form. In that case we turn to approximate inference: methods that either sample from the posterior indirectly or fit a simpler distribution to it.
+          When conjugacy is unavailable, we usually cannot write down the posterior in a clean closed form. In that case we turn to <a class="def" href="glossary.html#approximate-inference">approximate inference</a>: methods that either sample from the posterior indirectly or fit a simpler distribution to it.
         </p>
         <h3>MCMC (sampling)</h3>
         <p>
-          Markov Chain Monte Carlo builds a Markov chain, meaning a sequence of parameter values where the next value depends only on the current one.
+          <a class="def" href="glossary.html#mcmc">Markov Chain Monte Carlo</a> builds a Markov chain, meaning a sequence of parameter values where the next value depends only on the current one.
         </p>
         <div class="formula">$$p(\theta^{(t+1)}\mid\theta^{(1)}, \ldots, \theta^{(t)}) = p(\theta^{(t+1)}\mid\theta^{(t)})$$</div>
         <p>The transition rule is designed so that the posterior is the chain's stationary distribution: if the chain were already distributed according to the posterior, one more update step would leave that distribution unchanged. After enough steps, the samples produced by the chain behave approximately like posterior draws.</p>
@@ -358,10 +358,10 @@
         </p>
         <h3>Variational inference (optimization)</h3>
         <p>
-          Variational inference takes a different route. Instead of sampling from the posterior directly, it chooses a tractable family of distributions $q(\theta)$ and looks for the member of that family that is closest to the true posterior. The usual measure of closeness is the KL divergence, $\mathrm{KL}(q\,\|\,p)$, which measures how much information is lost when we use $q(\theta)$ in place of the posterior.
+          <a class="def" href="glossary.html#variational-inference">Variational inference</a> takes a different route. Instead of sampling from the posterior directly, it chooses a tractable family of distributions $q(\theta)$ and looks for the member of that family that is closest to the true posterior. The usual measure of closeness is the <a class="def" href="glossary.html#kl-divergence">KL divergence</a>, $\mathrm{KL}(q\,\|\,p)$, which measures how much information is lost when we use $q(\theta)$ in place of the posterior.
         </p>
         <p>
-          Because the posterior contains the hard-to-compute evidence term, VI usually works with the evidence lower bound (ELBO) instead. Maximizing the ELBO is equivalent to minimizing the KL divergence from $q(\theta)$ to the posterior, so optimization pushes $q(\theta)$ toward the best approximation available within the chosen family. If that family is flexible enough, the approximation can be very good; if it is restrictive, VI converges to the best approximation in that family rather than to the exact posterior.
+          Because the posterior contains the hard-to-compute evidence term, VI usually works with the <a class="def" href="glossary.html#elbo">evidence lower bound</a> (ELBO) instead. Maximizing the ELBO is equivalent to minimizing the KL divergence from $q(\theta)$ to the posterior, so optimization pushes $q(\theta)$ toward the best approximation available within the chosen family. If that family is flexible enough, the approximation can be very good; if it is restrictive, VI converges to the best approximation in that family rather than to the exact posterior.
         </p>
         <div class="formula">$$\log p(\mathcal{D}) \ge \mathbb{E}_{q(\theta)}[\log p(\mathcal{D}\mid\theta)] - \mathrm{KL}(q(\theta)\,\|\,p(\theta))$$</div>
         <div class="callout">

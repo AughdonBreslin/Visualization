@@ -43,25 +43,25 @@
       <section class="panel">
         <h2>Overview</h2>
         <p>
-          Principal Component Analysis (PCA) is a way to reorganize data around the directions where it varies most. If the centered data matrix is $X \in \mathbb{R}^{n \times d}$, PCA finds orthogonal directions that explain as much variance as possible, ordered from most important to least important. One axis points along the dominant direction of variation, the other points along the remaining orthogonal variation. This makes PCA useful for visualization, dimensionality reduction, denoising, and understanding the geometry of a dataset.
+          <a class="def" href="glossary.html#principal-component-analysis">Principal Component Analysis</a> (PCA) is a way to reorganize data around the directions where it varies most. If the centered data matrix is $X \in \mathbb{R}^{n \times d}$, PCA finds <a class="def" href="glossary.html#orthogonal">orthogonal</a> directions that explain as much <a class="def" href="glossary.html#variance">variance</a> as possible, ordered from most important to least important. One axis points along the dominant direction of variation, the other points along the remaining orthogonal variation. This makes PCA useful for visualization, <a class="def" href="glossary.html#dimensionality-reduction">dimensionality reduction</a>, denoising, and understanding the geometry of a dataset.
         </p>
       </section>
 
       <section class="panel">
         <h2>PCA and SVD</h2>
         <p>
-          For centered data, PCA is most cleanly computed through the singular value decomposition (SVD), which decomposes the data matrix $X$ into three simpler matrices: $U$ contains the left singular vectors, $\Sigma$ is a diagonal matrix of singular values, and $V^T$ contains the right singular vectors.
+          For centered data, PCA is most cleanly computed through the <a class="def" href="glossary.html#svd">singular value decomposition</a> (SVD), which decomposes the data matrix $X$ into three simpler matrices: $U$ contains the left singular vectors, $\Sigma$ is a diagonal matrix of singular values, and $V^T$ contains the right singular vectors.
         </p>
         <div class="formula">$$X = U\Sigma V^T$$</div>
         <p>
-          First, $V^T$ rotates feature space, meaning rotating the coordinate system used to describe the points rather than the points themselves, into the principal-direction basis, $V$, aligning the original axes with the principal directions. $\Sigma$ rescales those axes according to how strongly the data varies along each direction, and $U$ describes how the samples project onto those axes. The full product rebuilds the original centered data matrix.
+          First, $V^T$ rotates feature space, meaning rotating the coordinate system used to describe the points rather than the points themselves, into the principal-direction basis, $V$, aligning the original axes with the <a class="def" href="glossary.html#principal-component">principal directions</a>. $\Sigma$ rescales those axes according to how strongly the data varies along each direction, and $U$ describes how the samples project onto those axes. The full product rebuilds the original centered data matrix.
         </p>
       </section>
 
       <section class="panel">
         <h2>Covariance eigendecomposition and PCA as a change of basis</h2>
         <p>
-          Covariance measures how coordinates vary together, so we can use the unbiased sample covariance formula $C=\frac{1}{n-1}X^T X$ to package the shape of the data cloud into a symmetric operator whose dominant eigenvectors point along the directions of greatest variance. Substituting the SVD into the covariance formula gives us:
+          <a class="def" href="glossary.html#covariance-matrix">Covariance</a> measures how coordinates vary together, so we can use the unbiased sample covariance formula $C=\frac{1}{n-1}X^T X$ to package the shape of the data cloud into a symmetric operator whose dominant <a class="def" href="glossary.html#eigenvector">eigenvectors</a> point along the directions of greatest <a class="def" href="glossary.html#variance">variance</a>. Substituting the SVD into the covariance formula gives us:
         </p>
         <div class="formula">
           $$\frac{1}{n-1}X^T X = \frac{1}{n-1}(U\Sigma V^T)^T(U\Sigma V^T)
@@ -69,17 +69,17 @@
           = V\left(\frac{\Sigma^2}{n-1}\right)V^T$$
         </div>
         <p>
-          The covariance eigendecomposition, $C = V\Lambda V^T$, where $\Lambda = \frac{\Sigma^2}{n-1}$ is the diagonal matrix of eigenvalues. The eigenvectors are the right singular vectors, $V$, and the eigenvalues are the squared singular values scaled by $\frac{1}{n-1}$:
+          The covariance <a class="def" href="glossary.html#eigendecomposition">eigendecomposition</a>, $C = V\Lambda V^T$, where $\Lambda = \frac{\Sigma^2}{n-1}$ is the diagonal matrix of <a class="def" href="glossary.html#eigenvalue">eigenvalues</a>. The eigenvectors are the right singular vectors, $V$, and the eigenvalues are the squared singular values scaled by $\frac{1}{n-1}$:
         </p>
         <p>
-          Similar to above, $V^T$ rotates the original data into the principal basis, $\Lambda$ stretches along those axes according to the variance explained by each direction, and $V$ rotates back to the original feature space. This re-expresses the data in terms of its principal components ordered by their explained variance.
+          Similar to above, $V^T$ rotates the original data into the principal <a class="def" href="glossary.html#basis">basis</a>, $\Lambda$ stretches along those axes according to the variance explained by each direction, and $V$ rotates back to the original feature space. This re-expresses the data in terms of its <a class="def" href="glossary.html#principal-component">principal components</a> ordered by their <a class="def" href="glossary.html#explained-variance">explained variance</a>.
         </p>
       </section>
 
       <section class="panel">
         <h2>Visual step through</h2>
         <p>
-          Generate a dataset, inspect the SVD of the data matrix $X$, and step through the PCA-related transformation sequence. The right plot shows how the covariance operator acts on a unit circle or sphere and on the principal directions themselves.
+          Generate a dataset, inspect the <a class="def" href="glossary.html#svd">SVD</a> of the data matrix $X$, and step through the PCA-related transformation sequence. The right plot shows how the covariance operator acts on a unit circle or sphere and on the <a class="def" href="glossary.html#principal-component">principal directions</a> themselves.
         </p>
 
         <div class="demo">
@@ -200,18 +200,18 @@
       <section class="panel">
         <h2>Dimensionality reduction and reconstruction</h2>
         <p>
-          After rotating into the principal basis, because PCA orders coordinates by explained variance, keeping only the first few components gives a lower-dimensional representation that preserves as much variance as possible among all orthogonal linear projections of that rank.
+          After rotating into the principal basis, because PCA orders coordinates by <a class="def" href="glossary.html#explained-variance">explained variance</a>, keeping only the first few <a class="def" href="glossary.html#principal-component">components</a> gives a lower-dimensional representation that preserves as much variance as possible among all orthogonal linear <a class="def" href="glossary.html#projection">projections</a> of that rank.
         </p>
         <div class="formula">$$X_{\text{rank-}k} = U_k\Sigma_k V_k^T$$</div>
         <p>
-          Thus we can effectively compress the data while keeping as much of the dominant structure as possible. When only one or two components explain most of the variance, the reconstructed data can remain visually and statistically close to the original while using fewer degrees of freedom.
+          Thus we can effectively compress the data while keeping as much of the dominant structure as possible. When only one or two components explain most of the variance, the <a class="def" href="glossary.html#reconstruction">reconstructed</a> data can remain visually and statistically close to the original while using fewer degrees of freedom.
         </p>
       </section>
 
       <section class="panel">
         <h2>Conclusion</h2>
         <p>
-          PCA is ultimately a geometric and algebraic reorganization of the data. SVD gives a numerically stable way to compute it from the data matrix $X$, the principal directions come from the right singular vectors, and the explained variances come from the squared singular values. Conjugating the diagonal stretch by the eigenvector matrix explains why PCA can be understood as a rotation into a natural coordinate system, a variance-weighted scaling, and a rotation back.
+          PCA is ultimately a geometric and algebraic reorganization of the data. <a class="def" href="glossary.html#svd">SVD</a> gives a numerically stable way to compute it from the data matrix $X$, the <a class="def" href="glossary.html#principal-component">principal directions</a> come from the right singular vectors, and the <a class="def" href="glossary.html#explained-variance">explained variances</a> come from the squared singular values. Conjugating the diagonal stretch by the eigenvector matrix explains why PCA can be understood as a rotation into a natural coordinate system, a variance-weighted scaling, and a rotation back.
         </p>
       </section>
     </main>
