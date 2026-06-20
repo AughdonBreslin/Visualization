@@ -890,7 +890,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#point-estimation">point estimation</a>, <a href="#parameter">parameter</a>, <a href="#irreducible-noise">irreducible noise</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A smooth curve fitted through scattered points">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" /><line class="ax" x1="22" y1="16" x2="22" y2="104" />
+              <path class="key" d="M26 86 C66 38, 104 92, 180 46" />
+              <g class="keyf"><circle cx="40" cy="74" r="2.2" /><circle cx="60" cy="50" r="2.2" /><circle cx="82" cy="64" r="2.2" /><circle cx="104" cy="84" r="2.2" /><circle cx="128" cy="72" r="2.2" /><circle cx="152" cy="56" r="2.2" /><circle cx="172" cy="50" r="2.2" /></g>
+            </svg>
+            <figcaption>Estimate the function behind the data.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- G -->
@@ -929,7 +938,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#overfitting">overfitting</a>, <a href="#underfitting">underfitting</a>, <a href="#regularization">regularization</a>, <a href="#bias-variance-decomposition">bias-variance decomposition</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Training error falling while test error is U-shaped">
+              <line class="ax" x1="24" y1="104" x2="184" y2="104" /><line class="ax" x1="24" y1="16" x2="24" y2="104" />
+              <path class="ghost" d="M28 40 C70 78, 110 92, 180 96" />
+              <path class="key" d="M28 52 C72 92, 96 92, 120 74 C148 52, 164 44, 180 34" />
+              <text x="30" y="98">train</text><text x="150" y="44">test</text>
+            </svg>
+            <figcaption>Test error rises again when the model overfits.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="generative-model">
@@ -939,7 +958,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#discriminative-model">discriminative model</a>, <a href="#joint-distribution">joint distribution</a>, <a href="#class-conditional-density">class-conditional density</a>, <a href="#bayes-rule">Bayes' rule</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="generative_classification.html">Generative classification</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A distribution emitting new sample points">
+              <path class="key" d="M28 56 C58 52, 66 24, 84 24 C102 24, 110 52, 140 56" />
+              <line class="ax" x1="84" y1="62" x2="84" y2="84" /><polygon points="84,84 80,76 88,76" style="fill:var(--text-muted)" />
+              <g class="keyf"><circle cx="52" cy="98" r="2.4" /><circle cx="72" cy="104" r="2.4" /><circle cx="92" cy="96" r="2.4" /><circle cx="110" cy="104" r="2.4" /><circle cx="128" cy="98" r="2.4" /></g>
+              <text x="60" y="122">new samples</text>
+            </svg>
+            <figcaption>It learns the full data distribution, so it can generate new samples like the data.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="geodesic-distance">
@@ -1010,7 +1039,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#basis">basis</a>, <a href="#orthogonal">orthogonal</a>, <a href="#discrete-fourier-transform">discrete Fourier transform</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A smooth curve approximated by a blocky staircase">
+              <line class="ax" x1="20" y1="104" x2="184" y2="104" />
+              <path class="ghost" d="M24 92 C70 36, 110 96, 180 44" />
+              <path class="key" d="M24 84 H52 V58 H80 V80 H108 V72 H136 V52 H164 V48 H180" />
+            </svg>
+            <figcaption>Reconstructions look blocky at coarse scales.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- I -->
@@ -1021,7 +1059,21 @@
           <p class="see-also"><span class="label">See also</span><a href="#manifold">manifold</a>, <a href="#dimensionality-reduction">dimensionality reduction</a>, <a href="#embedding">embedding</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="manifold.html">Manifold learning</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A tilted 2D sheet with a grid aligned to its edges sitting in 3D space">
+              <path class="ghost" d="M40 44 L150 28 L168 84 L58 100 Z" />
+              <g class="ghost">
+                <line x1="77" y1="39" x2="95" y2="95" />
+                <line x1="113" y1="33" x2="131" y2="89" />
+                <line x1="46" y1="63" x2="156" y2="47" />
+                <line x1="52" y1="81" x2="162" y2="65" />
+              </g>
+              <g class="keyf"><circle cx="86" cy="56" r="2.2" /><circle cx="120" cy="52" r="2.2" /><circle cx="104" cy="76" r="2.2" /></g>
+            </svg>
+            <figcaption>A 2D surface curved through 3D.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="irreducible-noise">
