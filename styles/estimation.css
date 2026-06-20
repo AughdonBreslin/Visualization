@@ -30,6 +30,6 @@
   flex-direction: column;
   gap: 6px;
   font: 500 13px/1.5 var(--font-mono);
-  color: #cfd1d8;
+  color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }

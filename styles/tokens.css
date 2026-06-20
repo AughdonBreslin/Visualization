@@ -18,6 +18,7 @@
   /* neutrals (graphite) */
   --bg: #0c0c0d;
   --text: #fafafa;
+  --text-2: #cfd1d8;   /* secondary content text (values, table cells, list items) */
   --text-body: #8b8d96;
   --text-muted: #5d5f68;
   --hairline: rgba(255, 255, 255, 0.08);
@@ -30,10 +31,11 @@
 
   /* accent (user-overridable) */
   --accent: #6b7cff;
-  --accent-muted: rgba(107, 124, 255, 0.14);
+  --accent-rgb: 107, 124, 255; /* same color as --accent, as an r,g,b triplet for rgba() */
+  --accent-muted: rgba(var(--accent-rgb), 0.14);
   --accent-link: #9aa6ff;
   --link-ul: 0px; /* link underline width; the settings toggle sets it to 1px */
-  --focus-ring: 2px solid rgba(107, 124, 255, 0.60);
+  --focus-ring: 2px solid rgba(var(--accent-rgb), 0.60);
 
   /* status */
   --warning: #e0b341;

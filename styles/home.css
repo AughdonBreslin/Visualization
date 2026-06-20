@@ -16,11 +16,11 @@
 .ui.home .project-row:hover { border-bottom: 1px solid var(--hairline); }
 .ui.home .project-row:focus-visible { outline: var(--focus-ring); outline-offset: 3px; border-radius: var(--radius-sm); }
 
-.ui.home .pr-n { font: 500 12px/1.5 var(--font-mono); color: #4d4f57; transition: color 120ms ease; }
+.ui.home .pr-n { font: 500 12px/1.5 var(--font-mono); color: var(--text-muted); transition: color 120ms ease; }
 .ui.home .pr-main { min-width: 0; }
 .ui.home .pr-title { display: block; font: 600 15px/1.3 var(--font-sans); color: #ededf0; transition: color 120ms ease; }
 .ui.home .pr-desc { display: block; font: 400 12.5px/1.55 var(--font-sans); color: var(--text-body); margin-top: 5px; max-width: 66ch; }
-.ui.home .pr-cat { font: 600 9px/1.5 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: #6c6e77; align-self: center; white-space: nowrap; }
+.ui.home .pr-cat { font: 600 9px/1.5 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); align-self: center; white-space: nowrap; }
 
 .ui.home .project-row:hover .pr-title { color: var(--accent-link); }
 .ui.home .project-row:hover .pr-n { color: var(--accent); }

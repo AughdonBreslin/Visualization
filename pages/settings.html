@@ -41,6 +41,15 @@
     </section>
 
     <section class="setting panel">
+      <h2 class="setting-label">Text brightness</h2>
+      <p class="setting-help">Lift the dimmer body and label text toward white for easier reading on dimmer displays.</p>
+      <div class="brightness-row">
+        <input id="brightness" class="brightness-slider" type="range" min="0" max="100" step="1" value="50" aria-label="Text brightness" />
+        <output id="brightnessValue" for="brightness">50</output>
+      </div>
+    </section>
+
+    <section class="setting panel">
       <h2 class="setting-label">Density</h2>
       <p class="setting-help">How compact the type and spacing are.</p>
       <div class="tabs density-tabs">
@@ -77,26 +86,83 @@
     (function () {
       var T = window.UITheme;
       var hex = document.getElementById('accent-hex');
-      var swatches = Array.prototype.slice.call(document.querySelectorAll('.swatch'));
+      var row = document.querySelector('.accent-row');
+      var customAnchor = document.querySelector('.custom-accent');
       var dtabs = Array.prototype.slice.call(document.querySelectorAll('.density-tab'));
       var utabs = Array.prototype.slice.call(document.querySelectorAll('.underline-tab'));
       var well = document.querySelector('.hex-well');
+      var bright = document.getElementById('brightness');
+      var brightVal = document.getElementById('brightnessValue');
+      var SWATCH_KEY = 'ui-accent-swatches';
+
+      function isHex(s) { return /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(String(s || '').trim()); }
+      function norm(v) { v = String(v).trim(); if (v[0] !== '#') v = '#' + v; return v.toLowerCase(); }
+      function lc(v) { return String(v).toLowerCase(); }
+      function getSwatches() { return Array.prototype.slice.call(document.querySelectorAll('.swatch')); }
 
       function markSwatch(accent) {
-        swatches.forEach(function (s) { s.classList.toggle('on', s.dataset.accent.toLowerCase() === String(accent).toLowerCase()); });
+        getSwatches().forEach(function (s) { s.classList.toggle('on', lc(s.dataset.accent) === lc(accent)); });
         if (well) well.style.background = accent;
         if (hex && document.activeElement !== hex) hex.value = accent;
       }
+      function markBrightness(level) { if (bright) bright.value = level; if (brightVal) brightVal.textContent = level; }
       function markDensity(d) { dtabs.forEach(function (t) { t.classList.toggle('is-active', t.dataset.density === d); }); }
       function markUnderline(on) { utabs.forEach(function (t) { t.classList.toggle('is-active', (t.dataset.underline === '1') === on); }); }
 
-      swatches.forEach(function (s) {
-        s.addEventListener('click', function () { T.setAccent(s.dataset.accent); markSwatch(s.dataset.accent); });
+      function apply(n) { T.setAccent(n); markSwatch(n); }
+      function wireSwatch(btn) { btn.addEventListener('click', function () { apply(btn.dataset.accent); }); }
+      function swatchExists(n) { return getSwatches().some(function (s) { return lc(s.dataset.accent) === lc(n); }); }
+      function makeSwatch(n) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'swatch'; b.dataset.accent = n; b.title = n;
+        b.style.setProperty('--c', n);
+        wireSwatch(b);
+        row.insertBefore(b, customAnchor);
+        return b;
+      }
+
+      // persisted user swatches (added from the custom field)
+      function loadCustom() { try { return JSON.parse(localStorage.getItem(SWATCH_KEY) || '[]'); } catch (e) { return []; } }
+      function saveCustom(arr) { try { localStorage.setItem(SWATCH_KEY, JSON.stringify(arr)); } catch (e) {} }
+      function addCustomSwatch(n) {
+        if (!swatchExists(n)) makeSwatch(n);
+        var arr = loadCustom();
+        if (arr.map(lc).indexOf(lc(n)) === -1) { arr.push(n); saveCustom(arr); }
+      }
+
+      getSwatches().forEach(wireSwatch);
+      loadCustom().forEach(function (n) { if (isHex(n) && !swatchExists(norm(n))) makeSwatch(norm(n)); });
+
+      // Apply live as a valid hex is typed, so the custom field feels as instant as the swatches.
+      hex.addEventListener('input', function () {
+        if (!isHex(hex.value)) return;
+        var n = norm(hex.value);
+        T.setAccent(n);
+        if (well) well.style.background = n;
+        getSwatches().forEach(function (s) { s.classList.toggle('on', lc(s.dataset.accent) === lc(n)); });
       });
+      // Enter: commit the color and pin it as a new preset swatch.
+      hex.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        if (!isHex(hex.value)) return;
+        var n = norm(hex.value);
+        addCustomSwatch(n);
+        apply(n);
+        hex.blur();
+      });
+      // Blur: keep a valid value, otherwise revert the field to the last good accent.
       hex.addEventListener('change', function () {
-        var v = hex.value.trim(); if (v[0] !== '#') v = '#' + v;
-        T.setAccent(v); markSwatch(v);
+        if (isHex(hex.value)) apply(norm(hex.value));
+        else markSwatch(T.current().accent);
       });
+      if (bright) {
+        bright.addEventListener('input', function () {
+          var v = parseInt(bright.value, 10);
+          T.setBrightness(v);
+          if (brightVal) brightVal.textContent = v;
+        });
+      }
       dtabs.forEach(function (t) {
         t.addEventListener('click', function () { T.setDensity(t.dataset.density); markDensity(t.dataset.density); });
       });
@@ -104,12 +170,12 @@
         t.addEventListener('click', function () { var on = t.dataset.underline === '1'; T.setLinkUnderline(on); markUnderline(on); });
       });
       document.getElementById('reset').addEventListener('click', function () {
-        T.reset(); markSwatch(T.DEFAULT_ACCENT); markDensity('balanced'); markUnderline(false);
+        T.reset(); markSwatch(T.DEFAULT_ACCENT); markDensity('balanced'); markUnderline(false); markBrightness(T.DEFAULT_BRIGHTNESS);
       });
 
       // reflect current saved state in the UI
       var cur = T.current();
-      markSwatch(cur.accent); markDensity(cur.density); markUnderline(cur.linkUnderline);
+      markSwatch(cur.accent); markDensity(cur.density); markUnderline(cur.linkUnderline); markBrightness(cur.brightness);
     })();
   </script>
   <script defer src="/_vercel/insights/script.js"></script>
