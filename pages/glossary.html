@@ -910,7 +910,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#generative-model">generative model</a>, <a href="#gaussian-distribution">Gaussian distribution</a>, <a href="#class-conditional-density">class-conditional density</a>, <a href="#mle">MLE</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="generative_classification.html">Generative classification</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Two class Gaussian contours separated by a boundary">
+              <line class="dash" x1="150" y1="22" x2="62" y2="112" />
+              <g transform="rotate(-12 60 52)"><ellipse class="key" cx="60" cy="52" rx="28" ry="16" /><ellipse class="key" cx="60" cy="52" rx="15" ry="8" /></g>
+              <g transform="rotate(-12 142 84)"><ellipse class="ghost" cx="142" cy="84" rx="28" ry="16" /><ellipse class="ghost" cx="142" cy="84" rx="15" ry="8" /></g>
+            </svg>
+            <figcaption>Class contours meet at the decision boundary.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="gaussian-distribution">
@@ -1083,7 +1092,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#bias-variance-decomposition">bias-variance decomposition</a>, <a href="#function-estimation">function estimation</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Points scattered around the true function curve">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" /><line class="ax" x1="22" y1="16" x2="22" y2="104" />
+              <path class="key" d="M26 80 C70 40, 110 86, 180 48" />
+              <g class="keyf"><circle cx="44" cy="56" r="2.2" /><circle cx="44" cy="72" r="2.2" /><circle cx="72" cy="50" r="2.2" /><circle cx="96" cy="70" r="2.2" /><circle cx="96" cy="56" r="2.2" /><circle cx="124" cy="74" r="2.2" /><circle cx="150" cy="52" r="2.2" /><circle cx="168" cy="44" r="2.2" /><circle cx="168" cy="58" r="2.2" /></g>
+            </svg>
+            <figcaption>Scatter remains even with the true function.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="isomap">
@@ -2037,7 +2055,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#lasso">lasso</a>, <a href="#shrinkage">shrinkage</a>, <a href="#regularization">regularization</a>, <a href="#bias-variance-decomposition">bias-variance decomposition</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Original coefficient outlines with all bars shrunk but nonzero">
+              <line class="ax" x1="24" y1="100" x2="182" y2="100" />
+              <g class="ghost" fill="none"><rect x="38" y="40" width="18" height="60" /><rect x="68" y="52" width="18" height="48" /><rect x="98" y="46" width="18" height="54" /><rect x="128" y="58" width="18" height="42" /><rect x="158" y="50" width="18" height="50" /></g>
+              <g class="keyf"><rect x="38" y="60" width="18" height="40" /><rect x="68" y="70" width="18" height="30" /><rect x="98" y="66" width="18" height="34" /><rect x="128" y="76" width="18" height="24" /><rect x="158" y="70" width="18" height="30" /></g>
+            </svg>
+            <figcaption>Every coefficient shrinks, but stays nonzero.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="runges-phenomenon">
@@ -2047,7 +2074,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#legendre-polynomials">Legendre polynomials</a>, <a href="#chebyshev-polynomials">Chebyshev polynomials</a>, <a href="#overfitting">overfitting</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A polynomial matching a flat target in the middle but oscillating near both ends">
+              <line class="ax" x1="20" y1="65" x2="180" y2="65" />
+              <path class="ghost" d="M20 60 L180 60" />
+              <path class="key" d="M20 30 C28 92, 44 50, 60 60 C90 64, 110 64, 140 60 C156 50, 172 92, 180 30" />
+              <g class="keyf"><circle cx="40" cy="60" r="2" /><circle cx="70" cy="61" r="2" /><circle cx="100" cy="61" r="2" /><circle cx="130" cy="61" r="2" /><circle cx="160" cy="60" r="2" /></g>
+            </svg>
+            <figcaption>It fits the middle but swings near the ends.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- S -->
@@ -2101,7 +2138,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#principal-component">principal component</a>, <a href="#covariance-matrix">covariance matrix</a>, <a href="#eigendecomposition">eigendecomposition</a>, <a href="#low-rank-approximation">low-rank approximation</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="X equals U times Sigma times V transpose as blocks">
+              <text x="14" y="68">X =</text>
+              <rect class="key" x="44" y="44" width="30" height="40" /><text x="54" y="98">U</text>
+              <rect class="key" x="80" y="44" width="30" height="40" />
+              <g class="keyf"><circle cx="87" cy="52" r="2" /><circle cx="95" cy="64" r="2" /><circle cx="103" cy="76" r="2" /></g><text x="90" y="98">&Sigma;</text>
+              <rect class="key" x="116" y="44" width="40" height="40" /><text x="124" y="98">V&#7488;</text>
+            </svg>
+            <figcaption>Orthogonal U and V with diagonal &Sigma;.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="spectral-energy">
