@@ -1422,7 +1422,19 @@
           <p class="see-also"><span class="label">See also</span><a href="#svd">SVD</a>, <a href="#dimensionality-reduction">dimensionality reduction</a>, <a href="#reconstruction">reconstruction</a>, <a href="#explained-variance">explained variance</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A full matrix approximated by a thin matrix times a wide matrix">
+              <rect class="ghost" x="22" y="40" width="44" height="48" />
+              <text x="38" y="104">X</text>
+              <text x="74" y="68">&#8776;</text>
+              <rect class="keyfs" x="92" y="40" width="16" height="48" />
+              <rect class="keyfs" x="116" y="56" width="56" height="16" />
+              <text x="116" y="104">rank k</text>
+            </svg>
+            <figcaption>A few components rebuild most of the matrix.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- M -->
@@ -1451,7 +1463,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#manifold">manifold</a>, <a href="#isomap">Isomap</a>, <a href="#embedding">embedding</a>, <a href="#dimensionality-reduction">dimensionality reduction</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="manifold.html">Manifold learning</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A curved surface of points unrolled into a flat strip, points on the curve">
+              <path class="ghost" d="M30 44 C70 44, 70 96, 30 96" />
+              <g class="keyf"><circle cx="45" cy="47" r="2.4" /><circle cx="57" cy="59" r="2.4" /><circle cx="60" cy="70" r="2.4" /><circle cx="57" cy="81" r="2.4" /><circle cx="45" cy="93" r="2.4" /></g>
+              <line class="ax" x1="86" y1="70" x2="106" y2="70" /><polygon points="106,70 98,66 98,74" style="fill:var(--text-muted)" />
+              <line class="key" x1="120" y1="70" x2="186" y2="70" />
+              <g class="keyf"><circle cx="128" cy="70" r="2.4" /><circle cx="142" cy="70" r="2.4" /><circle cx="156" cy="70" r="2.4" /><circle cx="170" cy="70" r="2.4" /><circle cx="182" cy="70" r="2.4" /></g>
+            </svg>
+            <figcaption>Find the surface and flatten it.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="marginal-likelihood">
@@ -1461,7 +1484,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#bayes-rule">Bayes' rule</a>, <a href="#posterior">posterior</a>, <a href="#approximate-inference">approximate inference</a>, <a href="#elbo">ELBO</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="The shaded area under the prior-times-likelihood curve">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="keyfs" d="M40 100 C72 96, 86 44, 104 44 C122 44, 136 96, 168 100 Z" />
+              <path class="key" d="M40 100 C72 96, 86 44, 104 44 C122 44, 136 96, 168 100" />
+              <text x="78" y="118">area = p(D)</text>
+            </svg>
+            <figcaption>Evidence is the total area under the product.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="mcmc">
@@ -1471,7 +1504,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#approximate-inference">approximate inference</a>, <a href="#variational-inference">variational inference</a>, <a href="#posterior">posterior</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A wandering chain of samples lingering near the peak of a target density">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="ghost" d="M24 98 C66 94, 80 40, 100 40 C120 40, 134 94, 176 98" />
+              <path class="key" fill="none" d="M46 88 L70 62 L88 50 L78 64 L98 46 L110 56 L100 48 L120 58 L108 50 L132 70" />
+              <g class="keyf"><circle cx="46" cy="88" r="1.8" /><circle cx="70" cy="62" r="1.8" /><circle cx="88" cy="50" r="1.8" /><circle cx="98" cy="46" r="1.8" /><circle cx="110" cy="56" r="1.8" /><circle cx="120" cy="58" r="1.8" /><circle cx="132" cy="70" r="1.8" /></g>
+            </svg>
+            <figcaption>The chain lingers where the posterior is high.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="map">
@@ -1565,7 +1608,19 @@
           <p class="see-also"><span class="label">See also</span><a href="#isomap">Isomap</a>, <a href="#embedding">embedding</a>, <a href="#dimensionality-reduction">dimensionality reduction</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="manifold.html">Manifold learning</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A distance matrix turned into a layout of points">
+              <rect class="ghost" x="26" y="40" width="44" height="44" />
+              <g class="ghost"><line x1="26" y1="55" x2="70" y2="55" /><line x1="26" y1="70" x2="70" y2="70" /><line x1="41" y1="40" x2="41" y2="84" /><line x1="56" y1="40" x2="56" y2="84" /></g>
+              <text x="30" y="100">distances</text>
+              <line class="ax" x1="84" y1="62" x2="104" y2="62" /><polygon points="104,62 96,58 96,66" style="fill:var(--text-muted)" />
+              <g class="keyf"><circle cx="126" cy="50" r="2.6" /><circle cx="162" cy="44" r="2.6" /><circle cx="138" cy="84" r="2.6" /><circle cx="170" cy="76" r="2.6" /></g>
+              <g class="dash"><line x1="126" y1="50" x2="162" y2="44" /><line x1="126" y1="50" x2="138" y2="84" /><line x1="162" y1="44" x2="170" y2="76" /></g>
+            </svg>
+            <figcaption>Recover a layout that matches the distances.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- N -->
