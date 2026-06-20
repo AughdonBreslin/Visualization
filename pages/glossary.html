@@ -1751,7 +1751,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#amplitude">amplitude</a>, <a href="#frequency">frequency</a>, <a href="#discrete-fourier-transform">discrete Fourier transform</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A wave and a phase-shifted copy with the shift marked">
+              <line class="ax" x1="20" y1="64" x2="184" y2="64" />
+              <path class="ghost" d="M20 64 C40 36, 68 36, 88 64 C108 92, 136 92, 156 64 C164 52, 170 58, 176 56" />
+              <path class="key" d="M44 64 C64 36, 92 36, 112 64 C132 92, 160 92, 180 64" />
+              <line class="ax" x1="20" y1="104" x2="44" y2="104" /><polygon points="20,104 28,100 28,108" style="fill:var(--text-muted)" /><polygon points="44,104 36,100 36,108" style="fill:var(--text-muted)" />
+              <text x="48" y="108">phase</text>
+            </svg>
+            <figcaption>A horizontal shift of the same wave.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="point-estimation">
@@ -1761,7 +1772,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#parameter">parameter</a>, <a href="#estimator">estimator</a>, <a href="#confidence-interval">confidence interval</a>, <a href="#function-estimation">function estimation</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A rug of samples with a single point estimate marked">
+              <line class="ax" x1="20" y1="84" x2="184" y2="84" />
+              <g class="ghost"><line x1="58" y1="84" x2="58" y2="92" /><line x1="74" y1="84" x2="74" y2="92" /><line x1="88" y1="84" x2="88" y2="92" /><line x1="100" y1="84" x2="100" y2="92" /><line x1="112" y1="84" x2="112" y2="92" /><line x1="128" y1="84" x2="128" y2="92" /><line x1="142" y1="84" x2="142" y2="92" /></g>
+              <line class="dash" x1="104" y1="44" x2="104" y2="84" />
+              <circle class="keyf" cx="104" cy="84" r="3.6" />
+              <text x="98" y="38">&theta;&#770;</text>
+            </svg>
+            <figcaption>Collapse the data to a single value.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="posterior">
@@ -1790,7 +1812,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#posterior">posterior</a>, <a href="#bayesian-inference">Bayesian inference</a>, <a href="#marginal-likelihood">marginal likelihood</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Several candidate densities averaged into one wider predictive">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="ghost" d="M48 100 C66 96, 74 58, 86 58 C98 58, 106 96, 124 100" />
+              <path class="ghost" d="M64 100 C82 96, 90 54, 102 54 C114 54, 122 96, 140 100" />
+              <path class="ghost" d="M80 100 C98 96, 106 60, 118 60 C130 60, 138 96, 156 100" />
+              <path class="key" d="M30 100 C66 94, 84 50, 102 50 C120 50, 138 94, 174 100" />
+            </svg>
+            <figcaption>Averaging candidates widens the prediction.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="precision">
@@ -1800,7 +1833,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#variance">variance</a>, <a href="#posterior">posterior</a>, <a href="#prior">prior</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A narrow high-precision density beside a wide low-precision one">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="ghost" d="M24 98 C58 94, 70 64, 100 64 C130 64, 142 98, 176 98" />
+              <path class="key" d="M70 98 C92 95, 98 36, 100 36 C102 36, 108 95, 130 98" />
+              <text x="104" y="40">high</text><text x="30" y="80">low</text>
+            </svg>
+            <figcaption>More precision, narrower spread.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="principal-component">
@@ -1833,7 +1876,20 @@
           <p class="see-also"><span class="label">See also</span><a href="#principal-component">principal component</a>, <a href="#svd">SVD</a>, <a href="#covariance-matrix">covariance matrix</a>, <a href="#dimensionality-reduction">dimensionality reduction</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A tilted data cloud rotated so its main axis is horizontal">
+              <g transform="rotate(-26 56 64)">
+                <g class="ghostf"><circle cx="30" cy="62" r="2" /><circle cx="44" cy="68" r="2" /><circle cx="56" cy="60" r="2" /><circle cx="68" cy="66" r="2" /><circle cx="82" cy="62" r="2" /></g>
+                <line class="ghost" x1="26" y1="64" x2="86" y2="64" /><line class="ghost" x1="56" y1="44" x2="56" y2="84" />
+              </g>
+              <line class="ax" x1="94" y1="64" x2="114" y2="64" /><polygon points="114,64 106,60 106,68" style="fill:var(--text-muted)" />
+              <g class="keyf"><circle cx="126" cy="64" r="2" /><circle cx="140" cy="60" r="2" /><circle cx="152" cy="66" r="2" /><circle cx="164" cy="62" r="2" /><circle cx="176" cy="64" r="2" /></g>
+              <line class="key" x1="122" y1="64" x2="182" y2="64" /><line class="key" x1="150" y1="48" x2="150" y2="80" />
+            </svg>
+            <figcaption>Rotate into the axes that capture the variance.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="prior">
