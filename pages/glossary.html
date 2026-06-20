@@ -64,7 +64,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#mcmc">MCMC</a>, <a href="#variational-inference">variational inference</a>, <a href="#conjugacy">conjugacy</a>, <a href="#posterior">posterior</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A target density with samples drawn beneath it">
+              <line class="ax" x1="16" y1="98" x2="184" y2="98" />
+              <path class="key" d="M22 96 C70 94, 82 34, 100 34 C118 34, 130 94, 178 96" />
+              <g class="dash">
+                <line x1="60" y1="98" x2="60" y2="110" /><line x1="74" y1="98" x2="74" y2="110" /><line x1="86" y1="98" x2="86" y2="110" /><line x1="94" y1="98" x2="94" y2="110" /><line x1="100" y1="98" x2="100" y2="110" /><line x1="106" y1="98" x2="106" y2="110" /><line x1="114" y1="98" x2="114" y2="110" /><line x1="126" y1="98" x2="126" y2="110" /><line x1="140" y1="98" x2="140" y2="110" />
+              </g>
+            </svg>
+            <figcaption>Stand in for the distribution with draws from it.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- B -->
@@ -75,7 +86,19 @@
           <p class="see-also"><span class="label">See also</span><a href="#kernel-density-estimation">kernel density estimation</a>, <a href="#kernel">kernel</a>, <a href="#density-estimation">density estimation</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="generative_classification.html">Generative classification</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A spiky small-bandwidth estimate and a smooth large-bandwidth estimate over the same points">
+              <line class="ax" x1="16" y1="98" x2="184" y2="98" />
+              <path class="ghost" d="M44 98 C52 98, 54 70, 62 70 C70 70, 72 98, 76 98 C82 98, 84 64, 92 64 C100 64, 102 98, 108 98 C114 98, 116 72, 124 72 C132 72, 134 98, 140 98" />
+              <path class="key" d="M28 96 C72 92, 84 50, 100 50 C116 50, 128 92, 172 96" />
+              <g class="keyf">
+                <circle cx="62" cy="98" r="2" /><circle cx="92" cy="98" r="2" /><circle cx="100" cy="98" r="2" /><circle cx="124" cy="98" r="2" />
+              </g>
+            </svg>
+            <figcaption>Small bandwidth (spiky) vs large (smooth).</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="basis">
@@ -85,7 +108,20 @@
           <p class="see-also"><span class="label">See also</span><a href="#change-of-basis">change of basis</a>, <a href="#principal-component">principal component</a>, <a href="#orthogonal">orthogonal</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Two basis vectors spanning a faint grid">
+              <g class="ghost">
+                <line x1="40" y1="20" x2="40" y2="110" /><line x1="68" y1="20" x2="68" y2="110" /><line x1="96" y1="20" x2="96" y2="110" /><line x1="124" y1="20" x2="124" y2="110" /><line x1="152" y1="20" x2="152" y2="110" />
+                <line x1="40" y1="40" x2="170" y2="40" /><line x1="40" y1="68" x2="170" y2="68" /><line x1="40" y1="96" x2="170" y2="96" />
+              </g>
+              <line class="key" x1="40" y1="96" x2="96" y2="96" /><polygon points="96,96 88,92 88,100" style="fill:var(--accent)" />
+              <line class="key" x1="40" y1="96" x2="40" y2="40" /><polygon points="40,40 36,48 44,48" style="fill:var(--accent)" />
+              <text x="74" y="110">e&#8321;</text><text x="22" y="50">e&#8322;</text>
+            </svg>
+            <figcaption>Two directions that span the space.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="bayes-rule">
@@ -95,7 +131,22 @@
           <p class="see-also"><span class="label">See also</span><a href="#prior">prior</a>, <a href="#posterior">posterior</a>, <a href="#likelihood">likelihood</a>, <a href="#marginal-likelihood">marginal likelihood</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Overlaid prior, likelihood, and posterior with dashed lines from each core into the posterior peak">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="ghost" d="M20 98 C56 94, 66 64, 92 64 C118 64, 128 98, 168 100" />
+              <path class="ghost" d="M104 98 C124 96, 130 54, 142 54 C154 54, 160 96, 178 98" />
+              <path class="key" d="M70 98 C104 94, 110 42, 118 42 C126 42, 132 96, 160 98" />
+              <line class="dash" x1="92" y1="64" x2="118" y2="44" />
+              <line class="dash" x1="142" y1="54" x2="118" y2="44" />
+              <circle class="ghostf" cx="92" cy="64" r="2.4" />
+              <circle class="ghostf" cx="142" cy="54" r="2.4" />
+              <circle class="keyf" cx="118" cy="42" r="2.8" />
+            </svg>
+            <figcaption>The posterior core sits between the prior and likelihood cores.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="bayesian-inference">
@@ -105,7 +156,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#prior">prior</a>, <a href="#posterior">posterior</a>, <a href="#bayes-rule">Bayes' rule</a>, <a href="#map">MAP</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Belief curves narrowing as the sample size grows">
+              <line class="ax" x1="16" y1="104" x2="184" y2="104" />
+              <path class="ghost" d="M28 102 C66 98, 78 80, 100 80 C122 80, 134 102, 172 104" />
+              <path class="ghost" d="M50 102 C82 99, 92 62, 100 62 C108 62, 118 99, 150 102" />
+              <path class="key" d="M74 102 C92 100, 97 38, 100 38 C103 38, 108 100, 126 102" />
+              <text x="40" y="120">n grows &rarr;</text>
+            </svg>
+            <figcaption>More data, narrower belief.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="bias">
@@ -203,7 +265,22 @@
           <p class="see-also"><span class="label">See also</span><a href="#basis">basis</a>, <a href="#principal-component">principal component</a>, <a href="#eigenvector">eigenvector</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="An upright grid and a rotated grid over a fixed point">
+              <g class="ghost">
+                <line x1="50" y1="24" x2="50" y2="106" /><line x1="86" y1="24" x2="86" y2="106" /><line x1="122" y1="24" x2="122" y2="106" /><line x1="158" y1="24" x2="158" y2="106" />
+                <line x1="40" y1="34" x2="168" y2="34" /><line x1="40" y1="65" x2="168" y2="65" /><line x1="40" y1="96" x2="168" y2="96" />
+              </g>
+              <g class="key" transform="rotate(22 104 65)">
+                <line x1="50" y1="24" x2="50" y2="106" /><line x1="104" y1="24" x2="104" y2="106" /><line x1="158" y1="24" x2="158" y2="106" />
+                <line x1="40" y1="34" x2="168" y2="34" /><line x1="40" y1="96" x2="168" y2="96" />
+              </g>
+              <circle class="keyf" cx="104" cy="65" r="3.2" />
+            </svg>
+            <figcaption>New axes rotate and stretch the grid; the points stay put.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="chebyshev-polynomials">
@@ -213,7 +290,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#legendre-polynomials">Legendre polynomials</a>, <a href="#orthogonal">orthogonal</a>, <a href="#basis">basis</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="An oscillating polynomial touching equal bounds and bunching near the edges, over a faint lower-order curve">
+              <line class="ax" x1="20" y1="65" x2="180" y2="65" />
+              <line class="ghost" x1="20" y1="20" x2="20" y2="110" /><line class="ghost" x1="180" y1="20" x2="180" y2="110" />
+              <line class="dash" x1="20" y1="36" x2="180" y2="36" /><line class="dash" x1="20" y1="94" x2="180" y2="94" />
+              <path class="ghost" d="M20 40 C70 40, 70 92, 100 92 C130 92, 130 40, 180 40" />
+              <path class="key" d="M20 36 C24 36, 26 94, 34 94 C46 94, 48 36, 66 36 C92 36, 96 94, 114 94 C138 94, 142 36, 160 36 C170 36, 172 94, 180 94" />
+            </svg>
+            <figcaption>Orthogonal on [-1, 1]; the minimax error equioscillates between bounds, bunching toward the endpoints.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="class-conditional-density">
@@ -242,7 +330,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#prior">prior</a>, <a href="#generative-model">generative model</a>, <a href="#bayes-rule">Bayes' rule</a>, <a href="#posterior">posterior</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="generative_classification.html">Generative classification</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Three groups of dots of differing counts">
+              <g class="keyf"><circle cx="36" cy="44" r="3" /><circle cx="50" cy="44" r="3" /><circle cx="36" cy="58" r="3" /><circle cx="50" cy="58" r="3" /><circle cx="43" cy="72" r="3" /></g>
+              <g class="keyfs"><circle cx="92" cy="50" r="3" /><circle cx="106" cy="50" r="3" /><circle cx="99" cy="64" r="3" /></g>
+              <g class="ghostf"><circle cx="148" cy="50" r="3" /><circle cx="162" cy="50" r="3" /></g>
+            </svg>
+            <figcaption>Each class's share, by raw counts.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="conditional-log-likelihood">
@@ -252,7 +349,22 @@
           <p class="see-also"><span class="label">See also</span><a href="#log-likelihood">log-likelihood</a>, <a href="#mle">maximum likelihood</a>, <a href="#cross-entropy">cross-entropy</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A fitted line with a sideways Normal predictive distribution of y at one input x">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" /><line class="ax" x1="22" y1="16" x2="22" y2="104" />
+              <line class="key" x1="28" y1="94" x2="180" y2="38" />
+              <g class="ghostf"><circle cx="48" cy="84" r="2.2" /><circle cx="74" cy="79" r="2.2" /><circle cx="150" cy="52" r="2.2" /><circle cx="168" cy="46" r="2.2" /></g>
+              <line class="dash" x1="110" y1="24" x2="110" y2="104" />
+              <g transform="translate(110 64) rotate(90)">
+                <path class="key" d="M-34 0 C-20 0, -16 -28, 0 -28 C16 -28, 20 0, 34 0" />
+              </g>
+              <circle cx="110" cy="64" r="3" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5" />
+              <text x="150" y="100">x</text>
+            </svg>
+            <figcaption>Predicted distribution of y, centered on the fit at x.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="confidence-interval">
@@ -289,7 +401,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#prior">prior</a>, <a href="#posterior">posterior</a>, <a href="#bayes-rule">Bayes' rule</a>, <a href="#approximate-inference">approximate inference</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A broad prior and a narrower posterior of the same shape family">
+              <line class="ax" x1="16" y1="104" x2="184" y2="104" />
+              <path class="dash" d="M22 102 C62 98, 74 66, 100 66 C126 66, 138 98, 178 102" />
+              <path class="key" d="M58 102 C90 98, 98 48, 116 48 C134 48, 142 98, 168 102" />
+              <text x="120" y="34">same family</text>
+            </svg>
+            <figcaption>Prior (dashed) and posterior (solid) share a family.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="consistency">
@@ -299,7 +421,22 @@
           <p class="see-also"><span class="label">See also</span><a href="#convergence-in-probability">convergence in probability</a>, <a href="#unbiased-estimator">unbiased estimator</a>, <a href="#bias">bias</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Error bars around the true value shrinking as the sample size grows">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" />
+              <line class="dash" x1="22" y1="56" x2="184" y2="56" />
+              <g class="key">
+                <line x1="48" y1="24" x2="48" y2="88" /><line x1="42" y1="24" x2="54" y2="24" /><line x1="42" y1="88" x2="54" y2="88" />
+                <line x1="92" y1="38" x2="92" y2="74" /><line x1="86" y1="38" x2="98" y2="38" /><line x1="86" y1="74" x2="98" y2="74" />
+                <line x1="136" y1="48" x2="136" y2="64" /><line x1="130" y1="48" x2="142" y2="48" /><line x1="130" y1="64" x2="142" y2="64" />
+                <line x1="172" y1="53" x2="172" y2="59" />
+              </g>
+              <text x="150" y="120">n &rarr;</text>
+            </svg>
+            <figcaption>Uncertainty around the truth shrinks.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="convergence-in-probability">
@@ -309,7 +446,21 @@
           <p class="see-also"><span class="label">See also</span><a href="#consistency">consistency</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A decaying tail probability with noisy samples scattered around the trend">
+              <line class="ax" x1="34" y1="100" x2="186" y2="100" /><line class="ax" x1="34" y1="40" x2="34" y2="100" />
+              <text x="40" y="26" font-size="11">P(|&#952;_n &#8722; &#952;| &gt; &#949;)</text>
+              <path class="key" d="M38 46 C78 84, 122 96, 184 99" />
+              <g class="keyf">
+                <circle cx="44" cy="52" r="1.8" /><circle cx="56" cy="66" r="1.8" /><circle cx="68" cy="72" r="1.8" /><circle cx="84" cy="86" r="1.8" /><circle cx="102" cy="88" r="1.8" /><circle cx="122" cy="94" r="1.8" /><circle cx="144" cy="95" r="1.8" /><circle cx="166" cy="99" r="1.8" /><circle cx="180" cy="97" r="1.8" />
+              </g>
+              <text x="150" y="116">n &rarr;</text>
+              <text x="158" y="90">&rarr; 0</text>
+            </svg>
+            <figcaption>The chance of a miss bigger than &epsilon; vanishes.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="covariance-matrix">
@@ -363,7 +514,19 @@
           <p class="see-also"><span class="label">See also</span><a href="#conditional-log-likelihood">conditional log-likelihood</a>, <a href="#likelihood">likelihood</a>, <a href="#mle">maximum likelihood</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A noisy loss falling toward zero as the predicted probability of the true class approaches one">
+              <line class="ax" x1="26" y1="104" x2="184" y2="104" /><line class="ax" x1="26" y1="16" x2="26" y2="104" />
+              <path class="key" d="M30 22 C50 66, 78 92, 180 102" />
+              <g class="keyf">
+                <circle cx="38" cy="40" r="1.8" /><circle cx="48" cy="58" r="1.8" /><circle cx="60" cy="72" r="1.8" /><circle cx="72" cy="80" r="1.8" /><circle cx="88" cy="92" r="1.8" /><circle cx="106" cy="94" r="1.8" /><circle cx="128" cy="100" r="1.8" /><circle cx="152" cy="98" r="1.8" /><circle cx="172" cy="103" r="1.8" />
+              </g>
+              <text x="28" y="22">loss</text><text x="150" y="120">q&#8594;1</text>
+            </svg>
+            <figcaption>Per-sample loss scatters around the &minus;log(q) trend.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="cumulative-distribution-function">
@@ -414,7 +577,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#kernel-density-estimation">kernel density estimation</a>, <a href="#gaussian-distribution">Gaussian distribution</a>, <a href="#class-conditional-density">class-conditional density</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="generative_classification.html">Generative classification</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A smooth density over a histogram of the data">
+              <line class="ax" x1="20" y1="100" x2="184" y2="100" />
+              <g class="ghostf"><rect x="44" y="86" width="14" height="14" /><rect x="60" y="72" width="14" height="28" /><rect x="76" y="54" width="14" height="46" /><rect x="92" y="48" width="14" height="52" /><rect x="108" y="62" width="14" height="38" /><rect x="124" y="78" width="14" height="22" /><rect x="140" y="90" width="14" height="10" /></g>
+              <path class="key" d="M40 96 C78 92, 88 50, 100 50 C112 50, 122 92, 160 96" />
+            </svg>
+            <figcaption>Smooth out the histogram into a density.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="dimensionality-reduction">
@@ -424,7 +596,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#principal-component">principal component</a>, <a href="#explained-variance">explained variance</a>, <a href="#low-rank-approximation">low-rank approximation</a>, <a href="#projection">projection</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A 3D box of points reduced to a flat 2D panel of points">
+              <g class="ghost"><path d="M30 44 L66 32 L82 44 L82 92 L46 104 L30 92 Z" /><path d="M30 44 L46 56 L82 44" /><path d="M46 56 L46 104" /></g>
+              <g class="ghostf"><circle cx="44" cy="60" r="2.2" /><circle cx="60" cy="52" r="2.2" /><circle cx="54" cy="84" r="2.2" /><circle cx="70" cy="72" r="2.2" /></g>
+              <line class="ax" x1="92" y1="68" x2="112" y2="68" /><polygon points="112,68 104,64 104,72" style="fill:var(--text-muted)" />
+              <rect class="key" x="126" y="44" width="48" height="56" />
+              <g class="keyf"><circle cx="140" cy="62" r="2.2" /><circle cx="156" cy="56" r="2.2" /><circle cx="148" cy="84" r="2.2" /><circle cx="164" cy="74" r="2.2" /></g>
+            </svg>
+            <figcaption>Same points, fewer dimensions.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="dirac-delta">
@@ -434,7 +617,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#probability-distribution">probability distribution</a>, <a href="#probability-density-function">probability density function</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="distributions.html">Distribution visualizer</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A single tall spike at one point on the axis">
+              <line class="ax" x1="20" y1="100" x2="184" y2="100" />
+              <line class="key" x1="100" y1="100" x2="100" y2="30" />
+              <polygon points="100,26 95,40 105,40" style="fill:var(--accent)" />
+            </svg>
+            <figcaption>A spike of all the mass at one value.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="discrete-fourier-transform">
@@ -444,7 +636,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#frequency">frequency</a>, <a href="#spectral-energy">spectral energy</a>, <a href="#change-of-basis">change of basis</a>, <a href="#low-pass-filter">low-pass filter</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A family of sine waves at increasing frequency">
+              <line class="ax" x1="20" y1="65" x2="180" y2="65" />
+              <path class="ghost" d="M20 65 C45 30, 75 30, 100 65 C125 100, 155 100, 180 65" />
+              <path class="ghost" d="M20 65 C32 42, 52 42, 60 65 C68 88, 88 88, 100 65 C112 42, 132 42, 140 65 C148 88, 168 88, 180 65" />
+              <path class="key" d="M20 65 C27 47, 39 47, 46 65 C53 83, 65 83, 73 65 C80 47, 92 47, 100 65 C107 83, 119 83, 127 65 C134 47, 146 47, 153 65 C160 83, 172 83, 180 65" />
+            </svg>
+            <figcaption>Sines at 1, 2, 3, &hellip; cycles form the basis.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="discriminative-model">
@@ -454,7 +656,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#generative-model">generative model</a>, <a href="#decision-boundary">decision boundary</a>, <a href="#posterior">posterior</a>, <a href="#conditional-log-likelihood">conditional log-likelihood</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="generative_classification.html">Generative classification</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A diagonal boundary f with accented points above and grey points below">
+              <line class="key" x1="28" y1="104" x2="180" y2="34" />
+              <text x="168" y="30">f</text>
+              <g class="keyf"><circle cx="60" cy="46" r="2.6" /><circle cx="92" cy="40" r="2.6" /><circle cx="118" cy="34" r="2.6" /><circle cx="140" cy="44" r="2.6" /><circle cx="76" cy="58" r="2.6" /></g>
+              <g class="ghostf"><circle cx="60" cy="92" r="2.6" /><circle cx="92" cy="96" r="2.6" /><circle cx="120" cy="86" r="2.6" /><circle cx="150" cy="92" r="2.6" /></g>
+            </svg>
+            <figcaption>The function splits the classes; one side is the positive class.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- E -->
@@ -465,7 +677,20 @@
           <p class="see-also"><span class="label">See also</span><a href="#eigenvector">eigenvector</a>, <a href="#eigenvalue">eigenvalue</a>, <a href="#covariance-matrix">covariance matrix</a>, <a href="#svd">SVD</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A unit circle mapped to an ellipse along the eigen-axes">
+              <circle class="ghost" cx="56" cy="64" r="28" />
+              <g class="ghost"><line x1="28" y1="64" x2="84" y2="64" /><line x1="56" y1="36" x2="56" y2="92" /></g>
+              <line class="ax" x1="96" y1="64" x2="116" y2="64" /><polygon points="116,64 108,60 108,68" style="fill:var(--text-muted)" />
+              <g transform="rotate(-20 152 64)">
+                <ellipse class="key" cx="152" cy="64" rx="32" ry="15" />
+                <line class="key" x1="120" y1="64" x2="184" y2="64" /><line class="key" x1="152" y1="49" x2="152" y2="79" />
+              </g>
+            </svg>
+            <figcaption>The operator stretches along its eigen-axes.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="eigenvalue">
@@ -475,7 +700,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#eigenvector">eigenvector</a>, <a href="#covariance-matrix">covariance matrix</a>, <a href="#explained-variance">explained variance</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="An ellipse with its long and short semi-axes labeled by eigenvalue">
+              <g transform="rotate(-20 100 65)">
+                <ellipse class="ghost" cx="100" cy="65" rx="56" ry="24" />
+                <line class="key" x1="100" y1="65" x2="156" y2="65" /><line class="key" x1="100" y1="65" x2="100" y2="41" />
+              </g>
+              <text x="138" y="50">&lambda;&#8321;</text><text x="86" y="38">&lambda;&#8322;</text>
+            </svg>
+            <figcaption>Axis lengths are the eigenvalues.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="eigenvector">
@@ -552,7 +788,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#variational-inference">variational inference</a>, <a href="#kl-divergence">KL divergence</a>, <a href="#marginal-likelihood">marginal likelihood</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A noisy ELBO trace rising sharply then plateauing under the log-evidence ceiling">
+              <line class="ax" x1="24" y1="100" x2="186" y2="100" /><line class="ax" x1="24" y1="20" x2="24" y2="100" />
+              <line class="dash" x1="24" y1="30" x2="186" y2="30" /><text x="120" y="26">log p(D)</text>
+              <path class="key" fill="none" d="M28 98 L31 90 L34 80 L37 84 L40 70 L43 74 L46 60 L49 63 L53 52 L57 55 L61 47 L65 49 L70 43 L76 45 L82 41 L90 43 L98 40 L108 42 L118 40 L128 42 L138 40 L148 41 L158 40 L168 41 L178 40 L186 40" />
+              <text x="30" y="92">ELBO</text><text x="150" y="116">step &rarr;</text>
+            </svg>
+            <figcaption>Optimization pushes the bound up toward the evidence.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="explained-variance">
@@ -562,7 +808,19 @@
           <p class="see-also"><span class="label">See also</span><a href="#variance">variance</a>, <a href="#eigenvalue">eigenvalue</a>, <a href="#principal-component">principal component</a>, <a href="#dimensionality-reduction">dimensionality reduction</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A data cloud with a spread ellipse and two principal-axis arrows scaled to the variance">
+              <g transform="rotate(-22 100 65)">
+                <ellipse class="ghost" cx="100" cy="65" rx="64" ry="28" />
+                <g class="keyf"><circle cx="46" cy="62" r="2.2" /><circle cx="64" cy="71" r="2.2" /><circle cx="82" cy="60" r="2.2" /><circle cx="100" cy="68" r="2.2" /><circle cx="118" cy="60" r="2.2" /><circle cx="136" cy="71" r="2.2" /><circle cx="154" cy="63" r="2.2" /><circle cx="58" cy="56" r="2.2" /><circle cx="142" cy="73" r="2.2" /></g>
+                <line class="key" x1="100" y1="64" x2="164" y2="64" /><polygon points="164,64 156,60 156,68" style="fill:var(--accent)" />
+                <line class="key" x1="100" y1="64" x2="100" y2="37" /><polygon points="100,37 96,45 104,45" style="fill:var(--accent)" />
+              </g>
+            </svg>
+            <figcaption>Each direction's length is the variance it explains.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- F -->
@@ -592,7 +850,19 @@
           <p class="see-also"><span class="label">See also</span><a href="#lasso">lasso</a>, <a href="#regularization">regularization</a>, <a href="#shrinkage">shrinkage</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Feature columns, some kept and some dropped">
+              <line class="ax" x1="24" y1="102" x2="182" y2="102" />
+              <rect class="keyf" x="36" y="50" width="18" height="52" />
+              <rect class="keyf" x="92" y="44" width="18" height="58" />
+              <rect class="keyf" x="148" y="60" width="18" height="42" />
+              <g class="ghost"><rect x="64" y="74" width="18" height="28" /><line x1="64" y1="74" x2="82" y2="102" /><line x1="82" y1="74" x2="64" y2="102" /></g>
+              <g class="ghost"><rect x="120" y="68" width="18" height="34" /><line x1="120" y1="68" x2="138" y2="102" /><line x1="138" y1="68" x2="120" y2="102" /></g>
+            </svg>
+            <figcaption>Some features kept (accent), others dropped.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="frequency">
@@ -620,7 +890,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#point-estimation">point estimation</a>, <a href="#parameter">parameter</a>, <a href="#irreducible-noise">irreducible noise</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A smooth curve fitted through scattered points">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" /><line class="ax" x1="22" y1="16" x2="22" y2="104" />
+              <path class="key" d="M26 86 C66 38, 104 92, 180 46" />
+              <g class="keyf"><circle cx="40" cy="74" r="2.2" /><circle cx="60" cy="50" r="2.2" /><circle cx="82" cy="64" r="2.2" /><circle cx="104" cy="84" r="2.2" /><circle cx="128" cy="72" r="2.2" /><circle cx="152" cy="56" r="2.2" /><circle cx="172" cy="50" r="2.2" /></g>
+            </svg>
+            <figcaption>Estimate the function behind the data.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- G -->
@@ -631,7 +910,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#generative-model">generative model</a>, <a href="#gaussian-distribution">Gaussian distribution</a>, <a href="#class-conditional-density">class-conditional density</a>, <a href="#mle">MLE</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="generative_classification.html">Generative classification</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Two class Gaussian contours separated by a boundary">
+              <line class="dash" x1="150" y1="22" x2="62" y2="112" />
+              <g transform="rotate(-12 60 52)"><ellipse class="key" cx="60" cy="52" rx="28" ry="16" /><ellipse class="key" cx="60" cy="52" rx="15" ry="8" /></g>
+              <g transform="rotate(-12 142 84)"><ellipse class="ghost" cx="142" cy="84" rx="28" ry="16" /><ellipse class="ghost" cx="142" cy="84" rx="15" ry="8" /></g>
+            </svg>
+            <figcaption>Class contours meet at the decision boundary.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="gaussian-distribution">
@@ -659,7 +947,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#overfitting">overfitting</a>, <a href="#underfitting">underfitting</a>, <a href="#regularization">regularization</a>, <a href="#bias-variance-decomposition">bias-variance decomposition</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Training error falling while test error is U-shaped">
+              <line class="ax" x1="24" y1="104" x2="184" y2="104" /><line class="ax" x1="24" y1="16" x2="24" y2="104" />
+              <path class="ghost" d="M28 40 C70 78, 110 92, 180 96" />
+              <path class="key" d="M28 52 C72 92, 96 92, 120 74 C148 52, 164 44, 180 34" />
+              <text x="30" y="98">train</text><text x="150" y="44">test</text>
+            </svg>
+            <figcaption>Test error rises again when the model overfits.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="generative-model">
@@ -669,7 +967,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#discriminative-model">discriminative model</a>, <a href="#joint-distribution">joint distribution</a>, <a href="#class-conditional-density">class-conditional density</a>, <a href="#bayes-rule">Bayes' rule</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="generative_classification.html">Generative classification</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A distribution emitting new sample points">
+              <path class="key" d="M28 56 C58 52, 66 24, 84 24 C102 24, 110 52, 140 56" />
+              <line class="ax" x1="84" y1="62" x2="84" y2="84" /><polygon points="84,84 80,76 88,76" style="fill:var(--text-muted)" />
+              <g class="keyf"><circle cx="52" cy="98" r="2.4" /><circle cx="72" cy="104" r="2.4" /><circle cx="92" cy="96" r="2.4" /><circle cx="110" cy="104" r="2.4" /><circle cx="128" cy="98" r="2.4" /></g>
+              <text x="60" y="122">new samples</text>
+            </svg>
+            <figcaption>It learns the full data distribution, so it can generate new samples like the data.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="geodesic-distance">
@@ -740,7 +1048,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#basis">basis</a>, <a href="#orthogonal">orthogonal</a>, <a href="#discrete-fourier-transform">discrete Fourier transform</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A smooth curve approximated by a blocky staircase">
+              <line class="ax" x1="20" y1="104" x2="184" y2="104" />
+              <path class="ghost" d="M24 92 C70 36, 110 96, 180 44" />
+              <path class="key" d="M24 84 H52 V58 H80 V80 H108 V72 H136 V52 H164 V48 H180" />
+            </svg>
+            <figcaption>Reconstructions look blocky at coarse scales.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- I -->
@@ -751,7 +1068,21 @@
           <p class="see-also"><span class="label">See also</span><a href="#manifold">manifold</a>, <a href="#dimensionality-reduction">dimensionality reduction</a>, <a href="#embedding">embedding</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="manifold.html">Manifold learning</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A tilted 2D sheet with a grid aligned to its edges sitting in 3D space">
+              <path class="ghost" d="M40 44 L150 28 L168 84 L58 100 Z" />
+              <g class="ghost">
+                <line x1="77" y1="39" x2="95" y2="95" />
+                <line x1="113" y1="33" x2="131" y2="89" />
+                <line x1="46" y1="63" x2="156" y2="47" />
+                <line x1="52" y1="81" x2="162" y2="65" />
+              </g>
+              <g class="keyf"><circle cx="86" cy="56" r="2.2" /><circle cx="120" cy="52" r="2.2" /><circle cx="104" cy="76" r="2.2" /></g>
+            </svg>
+            <figcaption>A 2D surface curved through 3D.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="irreducible-noise">
@@ -761,7 +1092,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#bias-variance-decomposition">bias-variance decomposition</a>, <a href="#function-estimation">function estimation</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Points scattered around the true function curve">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" /><line class="ax" x1="22" y1="16" x2="22" y2="104" />
+              <path class="key" d="M26 80 C70 40, 110 86, 180 48" />
+              <g class="keyf"><circle cx="44" cy="56" r="2.2" /><circle cx="44" cy="72" r="2.2" /><circle cx="72" cy="50" r="2.2" /><circle cx="96" cy="70" r="2.2" /><circle cx="96" cy="56" r="2.2" /><circle cx="124" cy="74" r="2.2" /><circle cx="150" cy="52" r="2.2" /><circle cx="168" cy="44" r="2.2" /><circle cx="168" cy="58" r="2.2" /></g>
+            </svg>
+            <figcaption>Scatter remains even with the true function.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="isomap">
@@ -771,7 +1111,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#geodesic-distance">geodesic distance</a>, <a href="#mds">MDS</a>, <a href="#knn-graph">k-nearest-neighbor graph</a>, <a href="#manifold-learning">manifold learning</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="manifold.html">Manifold learning</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A neighborhood graph with a shortest path along the manifold versus a straight chord">
+              <g class="ghost"><line x1="30" y1="86" x2="46" y2="62" /><line x1="46" y1="62" x2="68" y2="50" /><line x1="68" y1="50" x2="92" y2="46" /><line x1="92" y1="46" x2="118" y2="50" /><line x1="118" y1="50" x2="142" y2="62" /><line x1="142" y1="62" x2="166" y2="86" /><line x1="46" y1="62" x2="92" y2="46" /><line x1="92" y1="46" x2="142" y2="62" /></g>
+              <line class="dash" x1="30" y1="86" x2="166" y2="86" />
+              <path class="key" fill="none" d="M30 86 L46 62 L68 50 L92 46 L118 50 L142 62 L166 86" />
+              <g class="keyf"><circle cx="30" cy="86" r="2.6" /><circle cx="46" cy="62" r="2.6" /><circle cx="68" cy="50" r="2.6" /><circle cx="92" cy="46" r="2.6" /><circle cx="118" cy="50" r="2.6" /><circle cx="142" cy="62" r="2.6" /><circle cx="166" cy="86" r="2.6" /></g>
+            </svg>
+            <figcaption>Distance along the graph, not the straight chord.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- J -->
@@ -782,7 +1132,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#generative-model">generative model</a>, <a href="#class-prior">class prior</a>, <a href="#class-conditional-density">class-conditional density</a>, <a href="#posterior">posterior</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="generative_classification.html">Generative classification</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A cloud of points with joint-density contours over an x-y plane">
+              <line class="ax" x1="24" y1="104" x2="184" y2="104" /><line class="ax" x1="24" y1="16" x2="24" y2="104" />
+              <g transform="rotate(-24 102 62)"><ellipse class="ghost" cx="102" cy="62" rx="52" ry="25" /><ellipse class="ghost" cx="102" cy="62" rx="28" ry="13" /></g>
+              <g class="keyf"><circle cx="58" cy="80" r="2.2" /><circle cx="72" cy="66" r="2.2" /><circle cx="86" cy="74" r="2.2" /><circle cx="96" cy="56" r="2.2" /><circle cx="108" cy="64" r="2.2" /><circle cx="120" cy="48" r="2.2" /><circle cx="132" cy="58" r="2.2" /><circle cx="146" cy="44" r="2.2" /><circle cx="80" cy="58" r="2.2" /><circle cx="112" cy="74" r="2.2" /></g>
+              <text x="160" y="100">x</text><text x="30" y="26">y</text>
+            </svg>
+            <figcaption>Both variables vary together; contours show the joint density.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- K -->
@@ -793,7 +1153,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#kernel-density-estimation">kernel density estimation</a>, <a href="#bandwidth">bandwidth</a>, <a href="#density-estimation">density estimation</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="generative_classification.html">Generative classification</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A single smooth bump centered on a data point">
+              <line class="ax" x1="20" y1="100" x2="184" y2="100" />
+              <path class="key" d="M62 100 C82 96, 89 48, 100 48 C111 48, 118 96, 138 100" />
+              <circle class="keyf" cx="100" cy="100" r="2.8" />
+            </svg>
+            <figcaption>A bump centered on one point.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="kernel-density-estimation">
@@ -867,7 +1236,15 @@
           <p class="see-also"><span class="label">See also</span><a href="#gaussian-distribution">Gaussian distribution</a>, <a href="#lasso">lasso</a>, <a href="#probability-density-function">probability density function</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="distributions.html">Distribution visualizer</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A peaked double-exponential density">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="key" d="M24 97 C66 90, 92 54, 100 34 C108 54, 134 90, 176 97" />
+            </svg>
+            <figcaption>A sharp central peak with long tails.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="laplacian-eigenmaps">
@@ -877,7 +1254,15 @@
           <p class="see-also"><span class="label">See also</span><a href="#knn-graph">k-nearest-neighbor graph</a>, <a href="#eigenvector">eigenvector</a>, <a href="#embedding">embedding</a>, <a href="#manifold-learning">manifold learning</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="manifold.html">Manifold learning</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A neighborhood graph with nodes shaded smoothly by an eigenvector">
+              <g class="ghost"><line x1="40" y1="84" x2="62" y2="56" /><line x1="62" y1="56" x2="90" y2="48" /><line x1="90" y1="48" x2="118" y2="56" /><line x1="118" y1="56" x2="142" y2="70" /><line x1="142" y1="70" x2="164" y2="92" /><line x1="62" y1="56" x2="90" y2="80" /><line x1="90" y1="80" x2="118" y2="56" /></g>
+              <circle class="keyf" cx="40" cy="84" r="3" /><circle class="keyf" cx="62" cy="56" r="3" /><circle class="keyfs" cx="90" cy="48" r="3" /><circle class="keyfs" cx="90" cy="80" r="3" /><circle class="ghostf" cx="118" cy="56" r="3" /><circle class="ghostf" cx="142" cy="70" r="3" /><circle class="ghostf" cx="164" cy="92" r="3" />
+            </svg>
+            <figcaption>An eigenvector varies smoothly across the graph.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="lasso">
@@ -910,7 +1295,23 @@
           <p class="see-also"><span class="label">See also</span><a href="#gradient-descent">gradient descent</a>, <a href="#weight-decay">weight decay</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Three small loss bowls showing too-small, just-right, and too-large step sizes">
+              <path class="ax" fill="none" d="M26 36 Q50 144 74 36" />
+              <path class="ax" fill="none" d="M76 36 Q100 144 124 36" />
+              <path class="ax" fill="none" d="M126 36 Q150 144 174 36" />
+              <path class="key" fill="none" d="M31 55 L35 68 L38 78 L42 84" />
+              <g class="keyf"><circle cx="31" cy="55" r="1.8" /><circle cx="35" cy="68" r="1.8" /><circle cx="38" cy="78" r="1.8" /><circle cx="42" cy="84" r="1.8" /></g>
+              <path class="key" fill="none" d="M83 64 L88 76 L93 85 L100 90" />
+              <g class="keyf"><circle cx="83" cy="64" r="1.8" /><circle cx="88" cy="76" r="1.8" /><circle cx="93" cy="85" r="1.8" /><circle cx="100" cy="90" r="1.8" /></g>
+              <path class="key" fill="none" d="M136 71 L164 71 L143 85 L157 85 L150 90" />
+              <g class="keyf"><circle cx="136" cy="71" r="1.8" /><circle cx="164" cy="71" r="1.8" /><circle cx="143" cy="85" r="1.8" /><circle cx="157" cy="85" r="1.8" /><circle cx="150" cy="90" r="1.8" /></g>
+              <text x="34" y="120">small</text><text x="90" y="120">good</text><text x="136" y="120">large</text>
+            </svg>
+            <figcaption>Too small crawls, just right converges, too large overshoots.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="legendre-polynomials">
@@ -920,7 +1321,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#chebyshev-polynomials">Chebyshev polynomials</a>, <a href="#runges-phenomenon">Runge's phenomenon</a>, <a href="#orthogonal">orthogonal</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A family of polynomials within an interval, the highest degree diverging beyond the ends">
+              <line class="ax" x1="20" y1="66" x2="180" y2="66" />
+              <line class="dash" x1="46" y1="20" x2="46" y2="112" /><line class="dash" x1="154" y1="20" x2="154" y2="112" />
+              <path class="ghost" d="M46 84 L154 50" />
+              <path class="ghost" d="M46 48 Q100 96 154 48" />
+              <path class="key" d="M22 26 C38 60, 46 64, 62 62 C100 56, 120 68, 140 62 C156 60, 162 74, 178 108" />
+            </svg>
+            <figcaption>Orthogonal inside [-1,1]; high degrees blow up just outside.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="likelihood">
@@ -949,7 +1361,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#ordinary-least-squares">ordinary least squares</a>, <a href="#ridge">ridge</a>, <a href="#lasso">lasso</a>, <a href="#mse">MSE</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A fitted line with residual ticks from each point">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" /><line class="ax" x1="22" y1="16" x2="22" y2="104" />
+              <line class="key" x1="28" y1="90" x2="180" y2="42" />
+              <g class="dash"><line x1="48" y1="68" x2="48" y2="84" /><line x1="80" y1="74" x2="80" y2="80" /><line x1="112" y1="50" x2="112" y2="63" /><line x1="148" y1="52" x2="148" y2="62" /></g>
+              <g class="keyf"><circle cx="48" cy="68" r="2.4" /><circle cx="80" cy="80" r="2.4" /><circle cx="112" cy="50" r="2.4" /><circle cx="148" cy="62" r="2.4" /></g>
+            </svg>
+            <figcaption>Minimize the squared residuals.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="lle">
@@ -959,7 +1381,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#manifold-learning">manifold learning</a>, <a href="#knn-graph">k-nearest-neighbor graph</a>, <a href="#embedding">embedding</a>, <a href="#laplacian-eigenmaps">Laplacian eigenmaps</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="manifold.html">Manifold learning</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A center point reconstructed from a few neighbor points">
+              <g class="ghost"><line x1="100" y1="64" x2="60" y2="42" /><line x1="100" y1="64" x2="68" y2="92" /><line x1="100" y1="64" x2="140" y2="48" /><line x1="100" y1="64" x2="134" y2="94" /></g>
+              <g class="keyf"><circle cx="60" cy="42" r="2.6" /><circle cx="68" cy="92" r="2.6" /><circle cx="140" cy="48" r="2.6" /><circle cx="134" cy="94" r="2.6" /></g>
+              <circle cx="100" cy="64" r="3.4" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5" />
+            </svg>
+            <figcaption>Each point is a blend of its neighbors.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="log-likelihood">
@@ -969,7 +1400,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#likelihood">likelihood</a>, <a href="#mle">maximum likelihood</a>, <a href="#conditional-log-likelihood">conditional log-likelihood</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A likelihood and a flatter log-likelihood sharing the same peak">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" />
+              <path class="ghost" d="M28 100 C72 96, 92 40, 100 40 C108 40, 128 96, 172 100" />
+              <path class="key" d="M24 90 C70 84, 90 54, 100 54 C110 54, 130 84, 176 90" />
+              <line class="dash" x1="100" y1="34" x2="100" y2="104" />
+              <text x="104" y="48">same peak</text>
+            </svg>
+            <figcaption>Same maximizer as the likelihood, easier to work with.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="low-pass-filter">
@@ -998,7 +1440,19 @@
           <p class="see-also"><span class="label">See also</span><a href="#svd">SVD</a>, <a href="#dimensionality-reduction">dimensionality reduction</a>, <a href="#reconstruction">reconstruction</a>, <a href="#explained-variance">explained variance</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A full matrix approximated by a thin matrix times a wide matrix">
+              <rect class="ghost" x="22" y="40" width="44" height="48" />
+              <text x="38" y="104">X</text>
+              <text x="74" y="68">&#8776;</text>
+              <rect class="keyfs" x="92" y="40" width="16" height="48" />
+              <rect class="keyfs" x="116" y="56" width="56" height="16" />
+              <text x="116" y="104">rank k</text>
+            </svg>
+            <figcaption>A few components rebuild most of the matrix.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- M -->
@@ -1027,7 +1481,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#manifold">manifold</a>, <a href="#isomap">Isomap</a>, <a href="#embedding">embedding</a>, <a href="#dimensionality-reduction">dimensionality reduction</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="manifold.html">Manifold learning</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A curved surface of points unrolled into a flat strip, points on the curve">
+              <path class="ghost" d="M30 44 C70 44, 70 96, 30 96" />
+              <g class="keyf"><circle cx="45" cy="47" r="2.4" /><circle cx="57" cy="59" r="2.4" /><circle cx="60" cy="70" r="2.4" /><circle cx="57" cy="81" r="2.4" /><circle cx="45" cy="93" r="2.4" /></g>
+              <line class="ax" x1="86" y1="70" x2="106" y2="70" /><polygon points="106,70 98,66 98,74" style="fill:var(--text-muted)" />
+              <line class="key" x1="120" y1="70" x2="186" y2="70" />
+              <g class="keyf"><circle cx="128" cy="70" r="2.4" /><circle cx="142" cy="70" r="2.4" /><circle cx="156" cy="70" r="2.4" /><circle cx="170" cy="70" r="2.4" /><circle cx="182" cy="70" r="2.4" /></g>
+            </svg>
+            <figcaption>Find the surface and flatten it.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="marginal-likelihood">
@@ -1037,7 +1502,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#bayes-rule">Bayes' rule</a>, <a href="#posterior">posterior</a>, <a href="#approximate-inference">approximate inference</a>, <a href="#elbo">ELBO</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="The shaded area under the prior-times-likelihood curve">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="keyfs" d="M40 100 C72 96, 86 44, 104 44 C122 44, 136 96, 168 100 Z" />
+              <path class="key" d="M40 100 C72 96, 86 44, 104 44 C122 44, 136 96, 168 100" />
+              <text x="78" y="118">area = p(D)</text>
+            </svg>
+            <figcaption>Evidence is the total area under the product.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="mcmc">
@@ -1047,7 +1522,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#approximate-inference">approximate inference</a>, <a href="#variational-inference">variational inference</a>, <a href="#posterior">posterior</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A wandering chain of samples lingering near the peak of a target density">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="ghost" d="M24 98 C66 94, 80 40, 100 40 C120 40, 134 94, 176 98" />
+              <path class="key" fill="none" d="M46 88 L70 62 L88 50 L78 64 L98 46 L110 56 L100 48 L120 58 L108 50 L132 70" />
+              <g class="keyf"><circle cx="46" cy="88" r="1.8" /><circle cx="70" cy="62" r="1.8" /><circle cx="88" cy="50" r="1.8" /><circle cx="98" cy="46" r="1.8" /><circle cx="110" cy="56" r="1.8" /><circle cx="120" cy="58" r="1.8" /><circle cx="132" cy="70" r="1.8" /></g>
+            </svg>
+            <figcaption>The chain lingers where the posterior is high.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="map">
@@ -1141,7 +1626,19 @@
           <p class="see-also"><span class="label">See also</span><a href="#isomap">Isomap</a>, <a href="#embedding">embedding</a>, <a href="#dimensionality-reduction">dimensionality reduction</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="manifold.html">Manifold learning</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A distance matrix turned into a layout of points">
+              <rect class="ghost" x="26" y="40" width="44" height="44" />
+              <g class="ghost"><line x1="26" y1="55" x2="70" y2="55" /><line x1="26" y1="70" x2="70" y2="70" /><line x1="41" y1="40" x2="41" y2="84" /><line x1="56" y1="40" x2="56" y2="84" /></g>
+              <text x="30" y="100">distances</text>
+              <line class="ax" x1="84" y1="62" x2="104" y2="62" /><polygon points="104,62 96,58 96,66" style="fill:var(--text-muted)" />
+              <g class="keyf"><circle cx="126" cy="50" r="2.6" /><circle cx="162" cy="44" r="2.6" /><circle cx="138" cy="84" r="2.6" /><circle cx="170" cy="76" r="2.6" /></g>
+              <g class="dash"><line x1="126" y1="50" x2="162" y2="44" /><line x1="126" y1="50" x2="138" y2="84" /><line x1="162" y1="44" x2="170" y2="76" /></g>
+            </svg>
+            <figcaption>Recover a layout that matches the distances.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- N -->
@@ -1152,7 +1649,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#frequency">frequency</a>, <a href="#discrete-fourier-transform">discrete Fourier transform</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A fast wave sampled at its peaks and troughs, two samples per cycle">
+              <line class="ax" x1="20" y1="65" x2="180" y2="65" />
+              <path class="key" d="M20 65 C25 39, 35 39, 40 65 C45 91, 55 91, 60 65 C65 39, 75 39, 80 65 C85 91, 95 91, 100 65 C105 39, 115 39, 120 65 C125 91, 135 91, 140 65 C145 39, 155 39, 160 65 C165 91, 175 91, 180 65" />
+              <g class="keyf"><circle cx="30" cy="39" r="2.4" /><circle cx="50" cy="91" r="2.4" /><circle cx="70" cy="39" r="2.4" /><circle cx="90" cy="91" r="2.4" /><circle cx="110" cy="39" r="2.4" /><circle cx="130" cy="91" r="2.4" /><circle cx="150" cy="39" r="2.4" /><circle cx="170" cy="91" r="2.4" /></g>
+            </svg>
+            <figcaption>The fastest wave resolvable: two samples per cycle.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- O -->
@@ -1163,7 +1669,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#linear-regression">linear regression</a>, <a href="#overfitting">overfitting</a>, <a href="#ridge">ridge</a>, <a href="#mse">MSE</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A fitted line with literal squares drawn on each residual">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" /><line class="ax" x1="22" y1="16" x2="22" y2="104" />
+              <line class="key" x1="28" y1="88" x2="180" y2="44" />
+              <g class="keyfs"><rect x="56" y="64" width="16" height="16" /><rect x="100" y="67" width="11" height="11" /><rect x="146" y="44" width="10" height="10" /></g>
+              <g class="keyf"><circle cx="56" cy="64" r="2.4" /><circle cx="100" cy="78" r="2.4" /><circle cx="146" cy="44" r="2.4" /></g>
+            </svg>
+            <figcaption>Minimize the total area of the residual squares.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="orthogonal">
@@ -1173,7 +1689,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#principal-component">principal component</a>, <a href="#basis">basis</a>, <a href="#eigenvector">eigenvector</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Two perpendicular vectors labeled with a zero dot product">
+              <line class="key" x1="58" y1="92" x2="144" y2="92" /><polygon points="144,92 136,88 136,96" style="fill:var(--accent)" />
+              <line class="key" x1="58" y1="92" x2="58" y2="28" /><polygon points="58,28 54,36 62,36" style="fill:var(--accent)" />
+              <path class="ax" d="M58 78 L72 78 L72 92" />
+              <text x="92" y="58">u &middot; v = 0</text>
+            </svg>
+            <figcaption>Their dot product is zero.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="overfitting">
@@ -1203,7 +1729,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#estimator">estimator</a>, <a href="#point-estimation">point estimation</a>, <a href="#function-estimation">function estimation</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A parameter value marked on a number line">
+              <line class="ax" x1="20" y1="78" x2="184" y2="78" />
+              <line class="dash" x1="116" y1="40" x2="116" y2="78" />
+              <circle class="keyf" cx="116" cy="78" r="3.4" />
+              <text x="110" y="34">&theta;</text>
+            </svg>
+            <figcaption>A fixed unknown value to recover.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="periodicity">
@@ -1213,7 +1749,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#frequency">frequency</a>, <a href="#discrete-fourier-transform">discrete Fourier transform</a>, <a href="#gibbs-phenomenon">Gibbs phenomenon</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A repeating wave with one period bracketed">
+              <line class="ax" x1="20" y1="60" x2="184" y2="60" />
+              <path class="key" d="M20 60 C32 36, 52 36, 64 60 C76 84, 96 84, 108 60 C120 36, 140 36, 152 60 C164 84, 180 84, 184 66" />
+              <line class="ax" x1="20" y1="100" x2="108" y2="100" /><polygon points="20,100 28,96 28,104" style="fill:var(--text-muted)" /><polygon points="108,100 100,96 100,104" style="fill:var(--text-muted)" />
+              <text x="58" y="116">T</text>
+            </svg>
+            <figcaption>The same shape repeats every period T.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="phase">
@@ -1223,7 +1769,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#amplitude">amplitude</a>, <a href="#frequency">frequency</a>, <a href="#discrete-fourier-transform">discrete Fourier transform</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A wave and a phase-shifted copy with the shift marked">
+              <line class="ax" x1="20" y1="64" x2="184" y2="64" />
+              <path class="ghost" d="M20 64 C40 36, 68 36, 88 64 C108 92, 136 92, 156 64 C164 52, 170 58, 176 56" />
+              <path class="key" d="M44 64 C64 36, 92 36, 112 64 C132 92, 160 92, 180 64" />
+              <line class="ax" x1="20" y1="104" x2="44" y2="104" /><polygon points="20,104 28,100 28,108" style="fill:var(--text-muted)" /><polygon points="44,104 36,100 36,108" style="fill:var(--text-muted)" />
+              <text x="48" y="108">phase</text>
+            </svg>
+            <figcaption>A horizontal shift of the same wave.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="point-estimation">
@@ -1233,7 +1790,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#parameter">parameter</a>, <a href="#estimator">estimator</a>, <a href="#confidence-interval">confidence interval</a>, <a href="#function-estimation">function estimation</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A rug of samples with a single point estimate marked">
+              <line class="ax" x1="20" y1="84" x2="184" y2="84" />
+              <g class="ghost"><line x1="58" y1="84" x2="58" y2="92" /><line x1="74" y1="84" x2="74" y2="92" /><line x1="88" y1="84" x2="88" y2="92" /><line x1="100" y1="84" x2="100" y2="92" /><line x1="112" y1="84" x2="112" y2="92" /><line x1="128" y1="84" x2="128" y2="92" /><line x1="142" y1="84" x2="142" y2="92" /></g>
+              <line class="dash" x1="104" y1="44" x2="104" y2="84" />
+              <circle class="keyf" cx="104" cy="84" r="3.6" />
+              <text x="98" y="38">&theta;&#770;</text>
+            </svg>
+            <figcaption>Collapse the data to a single value.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="posterior">
@@ -1262,7 +1830,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#posterior">posterior</a>, <a href="#bayesian-inference">Bayesian inference</a>, <a href="#marginal-likelihood">marginal likelihood</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Several candidate densities averaged into one wider predictive">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="ghost" d="M48 100 C66 96, 74 58, 86 58 C98 58, 106 96, 124 100" />
+              <path class="ghost" d="M64 100 C82 96, 90 54, 102 54 C114 54, 122 96, 140 100" />
+              <path class="ghost" d="M80 100 C98 96, 106 60, 118 60 C130 60, 138 96, 156 100" />
+              <path class="key" d="M30 100 C66 94, 84 50, 102 50 C120 50, 138 94, 174 100" />
+            </svg>
+            <figcaption>Averaging candidates widens the prediction.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="precision">
@@ -1272,7 +1851,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#variance">variance</a>, <a href="#posterior">posterior</a>, <a href="#prior">prior</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A narrow high-precision density beside a wide low-precision one">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="ghost" d="M24 98 C58 94, 70 64, 100 64 C130 64, 142 98, 176 98" />
+              <path class="key" d="M70 98 C92 95, 98 36, 100 36 C102 36, 108 95, 130 98" />
+              <text x="104" y="40">high</text><text x="30" y="80">low</text>
+            </svg>
+            <figcaption>More precision, narrower spread.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="principal-component">
@@ -1305,7 +1894,20 @@
           <p class="see-also"><span class="label">See also</span><a href="#principal-component">principal component</a>, <a href="#svd">SVD</a>, <a href="#covariance-matrix">covariance matrix</a>, <a href="#dimensionality-reduction">dimensionality reduction</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A tilted data cloud rotated so its main axis is horizontal">
+              <g transform="rotate(-26 56 64)">
+                <g class="ghostf"><circle cx="30" cy="62" r="2" /><circle cx="44" cy="68" r="2" /><circle cx="56" cy="60" r="2" /><circle cx="68" cy="66" r="2" /><circle cx="82" cy="62" r="2" /></g>
+                <line class="ghost" x1="26" y1="64" x2="86" y2="64" /><line class="ghost" x1="56" y1="44" x2="56" y2="84" />
+              </g>
+              <line class="ax" x1="94" y1="64" x2="114" y2="64" /><polygon points="114,64 106,60 106,68" style="fill:var(--text-muted)" />
+              <g class="keyf"><circle cx="126" cy="64" r="2" /><circle cx="140" cy="60" r="2" /><circle cx="152" cy="66" r="2" /><circle cx="164" cy="62" r="2" /><circle cx="176" cy="64" r="2" /></g>
+              <line class="key" x1="122" y1="64" x2="182" y2="64" /><line class="key" x1="150" y1="48" x2="150" y2="80" />
+            </svg>
+            <figcaption>Rotate into the axes that capture the variance.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="prior">
@@ -1315,7 +1917,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#posterior">posterior</a>, <a href="#likelihood">likelihood</a>, <a href="#bayes-rule">Bayes' rule</a>, <a href="#regularization">regularization</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A nearly flat, weakly-informative prior">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="key" d="M22 92 C70 80, 130 80, 178 92" />
+              <text x="74" y="56">weak prior</text>
+            </svg>
+            <figcaption>A flat prior expresses little prior knowledge.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="probability-density-function">
@@ -1344,7 +1955,15 @@
           <p class="see-also"><span class="label">See also</span><a href="#probability-density-function">probability density function</a>, <a href="#cumulative-distribution-function">cumulative distribution function</a>, <a href="#random-variable">random variable</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="distributions.html">Distribution visualizer</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A continuous density curve over an axis">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="key" d="M22 98 C58 94, 70 46, 96 46 C124 46, 140 94, 178 98" />
+            </svg>
+            <figcaption>A density over a continuous range.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="projection">
@@ -1375,7 +1994,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#probability-distribution">probability distribution</a>, <a href="#probability-density-function">probability density function</a>, <a href="#sampling-distribution">sampling distribution</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="distributions.html">Distribution visualizer</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A random process X producing a distribution over outcomes">
+              <rect class="key" x="26" y="48" width="32" height="32" rx="4" />
+              <text x="36" y="69">X</text>
+              <line class="ax" x1="66" y1="64" x2="90" y2="64" /><polygon points="90,64 82,60 82,68" style="fill:var(--text-muted)" />
+              <line class="ax" x1="104" y1="100" x2="184" y2="100" />
+              <g class="keyfs"><rect x="112" y="68" width="12" height="32" /><rect x="128" y="52" width="12" height="48" /><rect x="144" y="62" width="12" height="38" /><rect x="160" y="80" width="12" height="20" /></g>
+            </svg>
+            <figcaption>Chance turns the process into a distribution.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="reconstruction">
@@ -1385,7 +2015,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#low-rank-approximation">low-rank approximation</a>, <a href="#dimensionality-reduction">dimensionality reduction</a>, <a href="#explained-variance">explained variance</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="An original shape and its reconstruction overlaid">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="ghost" d="M24 92 C60 32, 100 100, 140 48 C158 26, 172 60, 184 50" />
+              <path class="key" d="M24 88 C62 44, 100 92, 140 56 C160 40, 172 62, 184 54" />
+              <text x="120" y="34">rebuilt</text>
+            </svg>
+            <figcaption>The rebuilt signal (solid) tracks the original (faint).</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="regularization">
@@ -1395,7 +2035,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#ridge">ridge</a>, <a href="#lasso">lasso</a>, <a href="#overfitting">overfitting</a>, <a href="#generalization">generalization</a>, <a href="#shrinkage">shrinkage</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A wiggly unregularized fit versus a smooth regularized fit through the same points">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" /><line class="ax" x1="22" y1="16" x2="22" y2="104" />
+              <path class="ghost" d="M28 90 C44 50, 56 100, 72 60 C88 28, 100 96, 116 56 C132 30, 148 92, 178 52" />
+              <path class="key" d="M28 84 C70 56, 120 52, 178 50" />
+              <g class="keyf"><circle cx="36" cy="84" r="2.2" /><circle cx="70" cy="64" r="2.2" /><circle cx="100" cy="62" r="2.2" /><circle cx="132" cy="54" r="2.2" /><circle cx="166" cy="52" r="2.2" /></g>
+            </svg>
+            <figcaption>Penalizing wiggle yields a smoother fit.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="ridge">
@@ -1405,7 +2055,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#lasso">lasso</a>, <a href="#shrinkage">shrinkage</a>, <a href="#regularization">regularization</a>, <a href="#bias-variance-decomposition">bias-variance decomposition</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Original coefficient outlines with all bars shrunk but nonzero">
+              <line class="ax" x1="24" y1="100" x2="182" y2="100" />
+              <g class="ghost" fill="none"><rect x="38" y="40" width="18" height="60" /><rect x="68" y="52" width="18" height="48" /><rect x="98" y="46" width="18" height="54" /><rect x="128" y="58" width="18" height="42" /><rect x="158" y="50" width="18" height="50" /></g>
+              <g class="keyf"><rect x="38" y="60" width="18" height="40" /><rect x="68" y="70" width="18" height="30" /><rect x="98" y="66" width="18" height="34" /><rect x="128" y="76" width="18" height="24" /><rect x="158" y="70" width="18" height="30" /></g>
+            </svg>
+            <figcaption>Every coefficient shrinks, but stays nonzero.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="runges-phenomenon">
@@ -1415,7 +2074,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#legendre-polynomials">Legendre polynomials</a>, <a href="#chebyshev-polynomials">Chebyshev polynomials</a>, <a href="#overfitting">overfitting</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A polynomial matching a flat target in the middle but oscillating near both ends">
+              <line class="ax" x1="20" y1="65" x2="180" y2="65" />
+              <path class="ghost" d="M20 60 L180 60" />
+              <path class="key" d="M20 30 C28 92, 44 50, 60 60 C90 64, 110 64, 140 60 C156 50, 172 92, 180 30" />
+              <g class="keyf"><circle cx="40" cy="60" r="2" /><circle cx="70" cy="61" r="2" /><circle cx="100" cy="61" r="2" /><circle cx="130" cy="61" r="2" /><circle cx="160" cy="60" r="2" /></g>
+            </svg>
+            <figcaption>It fits the middle but swings near the ends.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- S -->
@@ -1469,7 +2138,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#principal-component">principal component</a>, <a href="#covariance-matrix">covariance matrix</a>, <a href="#eigendecomposition">eigendecomposition</a>, <a href="#low-rank-approximation">low-rank approximation</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="X equals U times Sigma times V transpose as blocks">
+              <text x="14" y="68">X =</text>
+              <rect class="key" x="44" y="44" width="30" height="40" /><text x="54" y="98">U</text>
+              <rect class="key" x="80" y="44" width="30" height="40" />
+              <g class="keyf"><circle cx="87" cy="52" r="2" /><circle cx="95" cy="64" r="2" /><circle cx="103" cy="76" r="2" /></g><text x="90" y="98">&Sigma;</text>
+              <rect class="key" x="116" y="44" width="40" height="40" /><text x="124" y="98">V&#7488;</text>
+            </svg>
+            <figcaption>Orthogonal U and V with diagonal &Sigma;.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="spectral-energy">
@@ -1479,7 +2159,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#frequency">frequency</a>, <a href="#discrete-fourier-transform">discrete Fourier transform</a>, <a href="#low-pass-filter">low-pass filter</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A 2D frequency map bright at the low-frequency center">
+              <rect class="ghost" x="66" y="30" width="68" height="68" />
+              <circle class="keyf" cx="100" cy="64" r="7" />
+              <circle class="keyfs" cx="83" cy="47" r="3.4" /><circle class="keyfs" cx="117" cy="47" r="3.4" /><circle class="keyfs" cx="83" cy="81" r="3.4" /><circle class="keyfs" cx="117" cy="81" r="3.4" />
+              <circle class="ghostf" cx="100" cy="38" r="2" /><circle class="ghostf" cx="100" cy="90" r="2" /><circle class="ghostf" cx="74" cy="64" r="2" /><circle class="ghostf" cx="126" cy="64" r="2" />
+            </svg>
+            <figcaption>Energy concentrates at the low-frequency center.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="standard-error">
@@ -1511,7 +2201,15 @@
           <p class="see-also"><span class="label">See also</span><a href="#manifold">manifold</a>, <a href="#intrinsic-dimension">intrinsic dimension</a>, <a href="#embedding">embedding</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="manifold.html">Manifold learning</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A smooth spiral with evenly shaded points along it">
+              <path class="ghost" fill="none" d="M99.6 55.3 C99.8 55.9, 101.1 57.7, 101.2 59.2 C101.4 60.7, 101.4 62.6, 100.7 64.3 C100.1 65.9, 99.0 67.8, 97.4 69.3 C95.9 70.7, 93.8 72.1, 91.5 72.8 C89.2 73.5, 86.4 73.8, 83.7 73.5 C81.0 73.1, 78.0 72.1, 75.4 70.5 C72.9 68.8, 70.3 66.4, 68.5 63.6 C66.7 60.8, 65.1 57.3, 64.6 53.7 C64.0 50.1, 64.1 45.8, 65.1 42.0 C66.2 38.2, 68.1 34.1, 70.8 30.7 C73.5 27.4, 77.2 24.2, 81.3 22.0 C85.4 19.9, 90.4 18.3, 95.3 18.0 C100.2 17.7, 105.8 18.3, 110.7 20.0 C115.6 21.8, 120.8 24.7, 124.9 28.5 C129.0 32.3, 132.7 37.4, 135.1 42.7 C137.5 48.1, 139.0 54.6, 139.1 60.8 C139.1 67.0, 137.9 73.9, 135.4 79.9 C132.8 85.9, 128.8 92.1, 123.9 96.8 C118.9 101.6, 112.5 105.8, 105.8 108.4 C99.1 110.9, 91.1 112.3, 83.7 112.0" />
+              <g class="keyf"><circle cx="101" cy="64" r="2.6" /><circle cx="84" cy="73" r="2.6" /><circle cx="65" cy="54" r="2.6" /><circle cx="81" cy="22" r="2.6" /><circle cx="111" cy="20" r="2.6" /><circle cx="139" cy="61" r="2.6" /><circle cx="124" cy="97" r="2.6" /><circle cx="84" cy="112" r="2.6" /></g>
+            </svg>
+            <figcaption>A sheet coiled into a spiral.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- U -->
@@ -1544,7 +2242,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#overfitting">overfitting</a>, <a href="#generalization">generalization</a>, <a href="#regularization">regularization</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A straight line failing to capture clearly curved data">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" /><line class="ax" x1="22" y1="16" x2="22" y2="104" />
+              <g class="keyf"><circle cx="40" cy="52" r="2.4" /><circle cx="64" cy="74" r="2.4" /><circle cx="90" cy="86" r="2.4" /><circle cx="116" cy="82" r="2.4" /><circle cx="146" cy="60" r="2.4" /><circle cx="168" cy="40" r="2.4" /></g>
+              <line class="key" x1="28" y1="78" x2="180" y2="60" />
+            </svg>
+            <figcaption>Too simple to follow the data's shape.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="uniform-distribution">
@@ -1596,7 +2303,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#mcmc">MCMC</a>, <a href="#elbo">ELBO</a>, <a href="#kl-divergence">KL divergence</a>, <a href="#approximate-inference">approximate inference</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Several candidate q distributions, the best fitting the posterior">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="ghost" d="M24 98 C56 92, 60 44, 84 44 C114 44, 132 96, 176 100" />
+              <path class="ghost" d="M58 98 C84 94, 92 66, 104 66 C116 66, 124 94, 150 98" />
+              <path class="ghost" d="M30 98 C66 94, 86 70, 110 70 C134 70, 150 96, 178 98" />
+              <path class="key" d="M40 98 C76 92, 90 52, 102 52 C114 52, 128 92, 164 98" />
+            </svg>
+            <figcaption>Optimization selects the best-fitting candidate.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <!-- W -->
@@ -1607,7 +2325,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#ridge">ridge</a>, <a href="#gradient-descent">gradient descent</a>, <a href="#learning-rate">learning rate</a>, <a href="#shrinkage">shrinkage</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A weight value decaying toward zero over training steps">
+              <line class="ax" x1="24" y1="100" x2="184" y2="100" /><line class="ax" x1="24" y1="20" x2="24" y2="100" />
+              <path class="key" d="M28 28 C70 78, 110 94, 184 98" />
+              <g class="keyf"><circle cx="41" cy="42" r="1.8" /><circle cx="53" cy="54" r="1.8" /><circle cx="73" cy="69" r="1.8" /><circle cx="94" cy="80" r="1.8" /><circle cx="126" cy="91" r="1.8" /><circle cx="163" cy="96" r="1.8" /></g>
+              <text x="28" y="28">w</text><text x="150" y="116">step &rarr;</text>
+            </svg>
+            <figcaption>Weights are nudged toward zero each step.</figcaption>
+          </figure>
+        </div>
       </section>
 
     </main>
