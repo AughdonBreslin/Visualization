@@ -39,3 +39,6 @@ __pycache__/
 .claude/skills/
 .claude/worktrees/
 skills-lock.json
+
+# Local audit artifacts (embedding/PCA audit renders, not site source)
+_audit/
