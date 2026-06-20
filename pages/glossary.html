@@ -1277,7 +1277,23 @@
           <p class="see-also"><span class="label">See also</span><a href="#gradient-descent">gradient descent</a>, <a href="#weight-decay">weight decay</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="Three small loss bowls showing too-small, just-right, and too-large step sizes">
+              <path class="ax" fill="none" d="M26 36 Q50 144 74 36" />
+              <path class="ax" fill="none" d="M76 36 Q100 144 124 36" />
+              <path class="ax" fill="none" d="M126 36 Q150 144 174 36" />
+              <path class="key" fill="none" d="M31 55 L35 68 L38 78 L42 84" />
+              <g class="keyf"><circle cx="31" cy="55" r="1.8" /><circle cx="35" cy="68" r="1.8" /><circle cx="38" cy="78" r="1.8" /><circle cx="42" cy="84" r="1.8" /></g>
+              <path class="key" fill="none" d="M83 64 L88 76 L93 85 L100 90" />
+              <g class="keyf"><circle cx="83" cy="64" r="1.8" /><circle cx="88" cy="76" r="1.8" /><circle cx="93" cy="85" r="1.8" /><circle cx="100" cy="90" r="1.8" /></g>
+              <path class="key" fill="none" d="M136 71 L164 71 L143 85 L157 85 L150 90" />
+              <g class="keyf"><circle cx="136" cy="71" r="1.8" /><circle cx="164" cy="71" r="1.8" /><circle cx="143" cy="85" r="1.8" /><circle cx="157" cy="85" r="1.8" /><circle cx="150" cy="90" r="1.8" /></g>
+              <text x="34" y="120">small</text><text x="90" y="120">good</text><text x="136" y="120">large</text>
+            </svg>
+            <figcaption>Too small crawls, just right converges, too large overshoots.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="legendre-polynomials">
@@ -1287,7 +1303,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#chebyshev-polynomials">Chebyshev polynomials</a>, <a href="#runges-phenomenon">Runge's phenomenon</a>, <a href="#orthogonal">orthogonal</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="fourier.html">Fourier image decomposition</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A family of polynomials within an interval, the highest degree diverging beyond the ends">
+              <line class="ax" x1="20" y1="66" x2="180" y2="66" />
+              <line class="dash" x1="46" y1="20" x2="46" y2="112" /><line class="dash" x1="154" y1="20" x2="154" y2="112" />
+              <path class="ghost" d="M46 84 L154 50" />
+              <path class="ghost" d="M46 48 Q100 96 154 48" />
+              <path class="key" d="M22 26 C38 60, 46 64, 62 62 C100 56, 120 68, 140 62 C156 60, 162 74, 178 108" />
+            </svg>
+            <figcaption>Orthogonal inside [-1,1]; high degrees blow up just outside.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="likelihood">
@@ -1316,7 +1343,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#ordinary-least-squares">ordinary least squares</a>, <a href="#ridge">ridge</a>, <a href="#lasso">lasso</a>, <a href="#mse">MSE</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A fitted line with residual ticks from each point">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" /><line class="ax" x1="22" y1="16" x2="22" y2="104" />
+              <line class="key" x1="28" y1="90" x2="180" y2="42" />
+              <g class="dash"><line x1="48" y1="68" x2="48" y2="84" /><line x1="80" y1="74" x2="80" y2="80" /><line x1="112" y1="50" x2="112" y2="63" /><line x1="148" y1="52" x2="148" y2="62" /></g>
+              <g class="keyf"><circle cx="48" cy="68" r="2.4" /><circle cx="80" cy="80" r="2.4" /><circle cx="112" cy="50" r="2.4" /><circle cx="148" cy="62" r="2.4" /></g>
+            </svg>
+            <figcaption>Minimize the squared residuals.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="lle">
@@ -1326,7 +1363,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#manifold-learning">manifold learning</a>, <a href="#knn-graph">k-nearest-neighbor graph</a>, <a href="#embedding">embedding</a>, <a href="#laplacian-eigenmaps">Laplacian eigenmaps</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="manifold.html">Manifold learning</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A center point reconstructed from a few neighbor points">
+              <g class="ghost"><line x1="100" y1="64" x2="60" y2="42" /><line x1="100" y1="64" x2="68" y2="92" /><line x1="100" y1="64" x2="140" y2="48" /><line x1="100" y1="64" x2="134" y2="94" /></g>
+              <g class="keyf"><circle cx="60" cy="42" r="2.6" /><circle cx="68" cy="92" r="2.6" /><circle cx="140" cy="48" r="2.6" /><circle cx="134" cy="94" r="2.6" /></g>
+              <circle cx="100" cy="64" r="3.4" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5" />
+            </svg>
+            <figcaption>Each point is a blend of its neighbors.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="log-likelihood">
@@ -1336,7 +1382,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#likelihood">likelihood</a>, <a href="#mle">maximum likelihood</a>, <a href="#conditional-log-likelihood">conditional log-likelihood</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="estimation.html">Estimation</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A likelihood and a flatter log-likelihood sharing the same peak">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" />
+              <path class="ghost" d="M28 100 C72 96, 92 40, 100 40 C108 40, 128 96, 172 100" />
+              <path class="key" d="M24 90 C70 84, 90 54, 100 54 C110 54, 130 84, 176 90" />
+              <line class="dash" x1="100" y1="34" x2="100" y2="104" />
+              <text x="104" y="48">same peak</text>
+            </svg>
+            <figcaption>Same maximizer as the likelihood, easier to work with.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="low-pass-filter">
