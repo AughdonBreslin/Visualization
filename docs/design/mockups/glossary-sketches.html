@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glossary sketch sandbox</title>
+  <link rel="stylesheet" href="../../../styles/tokens.css">
+  <link rel="stylesheet" href="../../../styles/glossary.css">
+  <style>
+    body { background: var(--bg); color: var(--text-body); font-family: var(--font-sans); margin: 0; padding: 32px 40px 80px; }
+    h1 { color: var(--text); font: 600 22px/1.2 var(--font-sans); margin: 0 0 6px; }
+    .intro { color: var(--text-muted); font: 400 13px/1.6 var(--font-sans); margin: 0 0 32px; max-width: 74ch; }
+    .term-block { border-top: 1px solid var(--hairline); padding: 24px 0; }
+    .term-block h2 { color: var(--text); font: 600 16px/1.2 var(--font-sans); margin: 0 0 4px; }
+    .term-block .gloss { color: var(--text-muted); font: 400 12.5px/1.5 var(--font-sans); margin: 0 0 18px; max-width: 64ch; }
+    .cands { display: flex; flex-wrap: wrap; gap: 26px; }
+    .cand { width: 232px; }
+    .cand .cand-label { font: 600 10px/1.2 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  </style>
+</head>
+
+<body>
+  <h1>Glossary sketch sandbox &middot; explained-variance (direction magnitudes)</h1>
+  <p class="intro">Ported: elbo (B). Explained variance as principal directions whose length matches the
+    variance of the data along that direction.</p>
+
+  <section class="term-block" id="explained-variance">
+    <h2>Explained variance</h2>
+    <p class="gloss">A long axis along the direction of most spread, a short axis along the least; each
+      axis length is the variance it explains.</p>
+    <div class="cands">
+      <div class="cand">
+        <div class="cand-label">A &middot; scaled principal arrows</div>
+        <div class="term-visual"><figure>
+          <svg viewBox="0 0 200 130" role="img" aria-label="A data cloud with a long and a short principal-axis arrow from the center">
+            <g transform="rotate(-22 100 64)">
+              <g class="keyf"><circle cx="58" cy="60" r="2.2" /><circle cx="72" cy="67" r="2.2" /><circle cx="86" cy="61" r="2.2" /><circle cx="100" cy="66" r="2.2" /><circle cx="114" cy="60" r="2.2" /><circle cx="128" cy="67" r="2.2" /><circle cx="142" cy="62" r="2.2" /><circle cx="78" cy="57" r="2.2" /><circle cx="120" cy="69" r="2.2" /></g>
+              <line class="key" x1="100" y1="63" x2="150" y2="63" /><polygon points="150,63 142,59 142,67" style="fill:var(--accent)" />
+              <line class="key" x1="100" y1="63" x2="100" y2="43" /><polygon points="100,43 96,51 104,51" style="fill:var(--accent)" />
+            </g>
+          </svg>
+          <figcaption>Each direction's length is the variance it explains.</figcaption>
+        </figure></div>
+      </div>
+      <div class="cand">
+        <div class="cand-label">B &middot; arrows + variance ellipse</div>
+        <div class="term-visual"><figure>
+          <svg viewBox="0 0 200 130" role="img" aria-label="A data cloud with a spread ellipse and two principal-axis arrows scaled to the variance">
+            <g transform="rotate(-22 100 64)">
+              <ellipse class="ghost" cx="100" cy="63" rx="50" ry="21" />
+              <g class="keyf"><circle cx="60" cy="61" r="2" /><circle cx="76" cy="67" r="2" /><circle cx="92" cy="60" r="2" /><circle cx="108" cy="66" r="2" /><circle cx="126" cy="61" r="2" /><circle cx="140" cy="66" r="2" /></g>
+              <line class="key" x1="100" y1="63" x2="150" y2="63" /><polygon points="150,63 142,59 142,67" style="fill:var(--accent)" />
+              <line class="key" x1="100" y1="63" x2="100" y2="42" /><polygon points="100,42 96,50 104,50" style="fill:var(--accent)" />
+            </g>
+          </svg>
+          <figcaption>Axes scaled to the spread along each direction.</figcaption>
+        </figure></div>
+      </div>
+    </div>
+  </section>
+
+</body>
+
+</html>
