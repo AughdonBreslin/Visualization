@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DATASETS } from '../../js/manifold/datasets/index.js';
+import { DATASETS } from '../../../js/manifold/datasets/index.js';
 
 test('every dataset parameter has a non-empty label and description', () => {
   for (const d of DATASETS) {

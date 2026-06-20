@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { allocate, addNoise, CLUSTER_PALETTE, fibonacciSpherePoints } from '../../js/manifold/datasets/shared.js';
-import { mulberry32 } from '../../js/manifold/rng.js';
+import { allocate, addNoise, CLUSTER_PALETTE, fibonacciSpherePoints } from '../../../js/manifold/datasets/shared.js';
+import { mulberry32 } from '../../../js/manifold/rng.js';
 
 test('allocate returns typed arrays of the right size', () => {
   const out = allocate(10);

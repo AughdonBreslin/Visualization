@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { solveLinearSystem } from '../../js/manifold/linalg.js';
+import { solveLinearSystem } from '../../../js/manifold/linalg.js';
 
 test('solveLinearSystem on a 3x3 identity returns the right-hand side', () => {
   const A = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];

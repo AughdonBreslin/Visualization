@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CANONICAL_STEPS, canonicalOf, compareSubSteps, unionSubSteps } from '../../js/manifold/canonical_steps.js';
+import { CANONICAL_STEPS, canonicalOf, compareSubSteps, unionSubSteps } from '../../../js/manifold/canonical_steps.js';
 
 test('CANONICAL_STEPS has 7 entries 0..6', () => {
   assert.equal(CANONICAL_STEPS.length, 7);
