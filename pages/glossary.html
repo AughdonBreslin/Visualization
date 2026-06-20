@@ -1899,7 +1899,16 @@
           <p class="see-also"><span class="label">See also</span><a href="#posterior">posterior</a>, <a href="#likelihood">likelihood</a>, <a href="#bayes-rule">Bayes' rule</a>, <a href="#regularization">regularization</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="bayesian.html">Bayesian inference</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A nearly flat, weakly-informative prior">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="key" d="M22 92 C70 80, 130 80, 178 92" />
+              <text x="74" y="56">weak prior</text>
+            </svg>
+            <figcaption>A flat prior expresses little prior knowledge.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="probability-density-function">
@@ -1928,7 +1937,15 @@
           <p class="see-also"><span class="label">See also</span><a href="#probability-density-function">probability density function</a>, <a href="#cumulative-distribution-function">cumulative distribution function</a>, <a href="#random-variable">random variable</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="distributions.html">Distribution visualizer</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A continuous density curve over an axis">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="key" d="M22 98 C58 94, 70 46, 96 46 C124 46, 140 94, 178 98" />
+            </svg>
+            <figcaption>A density over a continuous range.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="projection">
@@ -1959,7 +1976,18 @@
           <p class="see-also"><span class="label">See also</span><a href="#probability-distribution">probability distribution</a>, <a href="#probability-density-function">probability density function</a>, <a href="#sampling-distribution">sampling distribution</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="distributions.html">Distribution visualizer</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A random process X producing a distribution over outcomes">
+              <rect class="key" x="26" y="48" width="32" height="32" rx="4" />
+              <text x="36" y="69">X</text>
+              <line class="ax" x1="66" y1="64" x2="90" y2="64" /><polygon points="90,64 82,60 82,68" style="fill:var(--text-muted)" />
+              <line class="ax" x1="104" y1="100" x2="184" y2="100" />
+              <g class="keyfs"><rect x="112" y="68" width="12" height="32" /><rect x="128" y="52" width="12" height="48" /><rect x="144" y="62" width="12" height="38" /><rect x="160" y="80" width="12" height="20" /></g>
+            </svg>
+            <figcaption>Chance turns the process into a distribution.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="reconstruction">
@@ -1969,7 +1997,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#low-rank-approximation">low-rank approximation</a>, <a href="#dimensionality-reduction">dimensionality reduction</a>, <a href="#explained-variance">explained variance</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="pca.html">Principal component analysis</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="An original shape and its reconstruction overlaid">
+              <line class="ax" x1="16" y1="100" x2="184" y2="100" />
+              <path class="ghost" d="M24 92 C60 32, 100 100, 140 48 C158 26, 172 60, 184 50" />
+              <path class="key" d="M24 88 C62 44, 100 92, 140 56 C160 40, 172 62, 184 54" />
+              <text x="120" y="34">rebuilt</text>
+            </svg>
+            <figcaption>The rebuilt signal (solid) tracks the original (faint).</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="regularization">
@@ -1979,7 +2017,17 @@
           <p class="see-also"><span class="label">See also</span><a href="#ridge">ridge</a>, <a href="#lasso">lasso</a>, <a href="#overfitting">overfitting</a>, <a href="#generalization">generalization</a>, <a href="#shrinkage">shrinkage</a></p>
           <p class="see-also"><span class="label">Learn more</span><a href="regularization.html">Linear regression regularization</a></p>
         </div>
-        <div class="term-visual"><figure><div class="sketch-todo">sketch pending</div></figure></div>
+        <div class="term-visual">
+          <figure>
+            <svg viewBox="0 0 200 130" role="img" aria-label="A wiggly unregularized fit versus a smooth regularized fit through the same points">
+              <line class="ax" x1="22" y1="104" x2="184" y2="104" /><line class="ax" x1="22" y1="16" x2="22" y2="104" />
+              <path class="ghost" d="M28 90 C44 50, 56 100, 72 60 C88 28, 100 96, 116 56 C132 30, 148 92, 178 52" />
+              <path class="key" d="M28 84 C70 56, 120 52, 178 50" />
+              <g class="keyf"><circle cx="36" cy="84" r="2.2" /><circle cx="70" cy="64" r="2.2" /><circle cx="100" cy="62" r="2.2" /><circle cx="132" cy="54" r="2.2" /><circle cx="166" cy="52" r="2.2" /></g>
+            </svg>
+            <figcaption>Penalizing wiggle yields a smoother fit.</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section class="term" id="ridge">
