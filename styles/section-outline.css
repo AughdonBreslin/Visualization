@@ -1,7 +1,7 @@
 /* styles/section-outline.css
  * On-page section outline. Desktop (>=1100px): a fixed rail in a reserved left
  * column. Narrow/phone (<1100px): a hamburger button opening a slide-in drawer.
- * Colors reuse the site's dark-theme tokens from base.css.
+ * Colors reuse the site's dark-theme tokens from tokens.css.
  */
 :root {
   --outline-rail-w: 160px;

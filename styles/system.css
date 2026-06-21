@@ -1,5 +1,4 @@
-/* styles/system.css - redesign global styling. Scoped under .ui so it only applies on
-   opted-in pages and overrides base.css element rules via class specificity. */
+/* styles/system.css - global styling for the site, scoped under .ui. */
 
 .ui {
   background: var(--bg);
