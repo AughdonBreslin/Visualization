@@ -55,3 +55,8 @@ Roll these into the deferred phases in `redesign-backlog.md` (robustness / mobil
 - [ ] **Fourier:** make the worked examples better.
 - [ ] **Manifold (Isomap player):** add a +10s / -10s skip control. In fullscreen, trigger via
   left/right arrow keys and via double-tap on the far-left (-10s) / far-right (+10s) of the video.
+
+## New pages
+- [ ] **Neural networks:** a new explainer page (likely a series) covering neural networks,
+  convolutional neural networks (CNNs), RNNs, LSTMs, transformers, attention, and multi-head
+  attention. Scope is large; may need to split into multiple pages/sections.
