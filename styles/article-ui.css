@@ -1,7 +1,7 @@
 /* styles/article-ui.css
  * Support layer for migrated article pages (scoped under .ui). Loaded after components.css.
  * Provides: back-to-home link, flat hairline-separated sections, display-math (.formula /
- * .formulas via formulas_layout.js), the visualization row + control-grid restyle, and a
+ * .formulas), the visualization row + control-grid restyle, and a
  * .tab.active alias so the shared tabs.js (which toggles .active) lights up the new tab style.
  */
 
