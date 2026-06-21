@@ -7,14 +7,14 @@
 # per algorithm and uses chapter start times, so only the combined video is
 # needed (not the per-step section clips).
 #
-# Usage:  ./manimexp/render_walkthroughs.sh            # all
-#         ./manimexp/render_walkthroughs.sh mds lle    # a subset
+# Usage:  ./dev/manimexp/render_walkthroughs.sh            # all
+#         ./dev/manimexp/render_walkthroughs.sh mds lle    # a subset
 #
 # Full quality is slow (1000 points, 1080p, 60fps).
 set -euo pipefail
-cd "$(dirname "$0")/.."          # repo root
-export PYTHONPATH=.
-PY=manimexp/.venv/bin/manim
+cd "$(dirname "$0")/../.."          # repo root
+export PYTHONPATH=dev
+PY=dev/manimexp/.venv/bin/manim
 VID_DIR=media/videos/walkthrough/1080p60
 
 # Remux the combined scene video with faststart and write a mid-clip poster.
@@ -31,7 +31,7 @@ emit() {
 
 render_one() {
   local file="$1" scene="$2"
-  $PY -qh --fps 60 --save_sections --disable_caching "manimexp/${file}" "$scene"
+  $PY -qh --fps 60 --save_sections --disable_caching "dev/manimexp/${file}" "$scene"
 }
 
 want() { [ "$#" -eq 0 ] && return 0; for a in "$@"; do [ "$a" = "$TARGET" ] && return 0; done; return 1; }

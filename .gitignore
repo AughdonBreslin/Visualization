@@ -7,11 +7,11 @@
 .claude/settings.local.json
 
 # Python virtualenvs
-manimexp/.venv/
+dev/manimexp/.venv/
 
 # Manim render output (ephemeral, large)
 media/
-manimexp/media/
+dev/manimexp/media/
 # Installed agent skills (tooling, not site source)
 .agents/
 
@@ -19,17 +19,17 @@ manimexp/media/
 assets/manim/isomap/preview/
 
 # Rendered walkthrough videos/posters are build artifacts produced by
-# manimexp/render_*.sh from the committed manim scenes. Intermediary/preview
+# dev/manimexp/render_*.sh from the committed manim scenes. Intermediary/preview
 # renders stay out of git; push only the final results (git add -f when ready).
 assets/manim/mds/
 assets/manim/lle/
 assets/manim/laplacian/
 assets/manim/kpca/
 
-manimexp/.logs/
+dev/manimexp/.logs/
 
 # Isomap manim pipeline build artifacts
-manimexp/isomap/points/
+dev/manimexp/isomap/points/
 
 # Python bytecode caches (all manim packages)
 __pycache__/
