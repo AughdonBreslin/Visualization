@@ -10,8 +10,10 @@ You build the explainer page that plays the rendered Isomap clips, to a polished
 ## Context
 - Spec: `docs/superpowers/specs/2026-06-03-manifold-isomap-manim-design.md`.
 - Follow the existing per-page pattern: `pages/manifold_isomap.html`, `js/manifold_isomap.js`,
-  `styles/manifold_isomap.css`. Reuse `styles/base.css` and `styles/article.css`. The site is
-  static vanilla JS, no build step; ES modules load via `<script type="module">`.
+  `styles/manifold_isomap.css`. Reuse the shared style layer: `styles/tokens.css`,
+  `styles/system.css`, `styles/components.css`, `styles/article-ui.css` (the `.ui` article
+  archetype). The site is static vanilla JS, no build step; ES modules load via
+  `<script type="module">`.
 - Clips and posters are served from `assets/manim/isomap/step-N.mp4` and `step-N.png`.
 
 ## What to build
