@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { bottomKSymmetricEig } from '../../js/manifold/linalg.js';
+import { bottomKSymmetricEig } from '../../../js/manifold/linalg.js';
 
 test('bottomKSymmetricEig on a small diagonal matrix returns the smallest eigenvalues', () => {
   const N = 5;

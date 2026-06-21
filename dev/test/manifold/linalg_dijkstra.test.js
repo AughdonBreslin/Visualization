@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { dijkstraAllPairs } from '../../js/manifold/linalg.js';
+import { dijkstraAllPairs } from '../../../js/manifold/linalg.js';
 
 test('Dijkstra on a 3-node path returns expected distances', () => {
   const adj = [

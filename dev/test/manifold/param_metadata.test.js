@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PCA } from '../../js/manifold/algorithms/pca.js';
-import { ISOMAP } from '../../js/manifold/algorithms/isomap.js';
-import { MDS } from '../../js/manifold/algorithms/mds.js';
-import { LLE } from '../../js/manifold/algorithms/lle.js';
-import { LAPLACIAN } from '../../js/manifold/algorithms/laplacian.js';
-import { KPCA } from '../../js/manifold/algorithms/kpca.js';
+import { PCA } from '../../../js/manifold/algorithms/pca.js';
+import { ISOMAP } from '../../../js/manifold/algorithms/isomap.js';
+import { MDS } from '../../../js/manifold/algorithms/mds.js';
+import { LLE } from '../../../js/manifold/algorithms/lle.js';
+import { LAPLACIAN } from '../../../js/manifold/algorithms/laplacian.js';
+import { KPCA } from '../../../js/manifold/algorithms/kpca.js';
 
 const ALGOS = [PCA, ISOMAP, MDS, LLE, LAPLACIAN, KPCA];
 

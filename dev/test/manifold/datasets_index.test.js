@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DATASETS, DATASETS_BY_ID, parseCSV } from '../../js/manifold/datasets/index.js';
+import { DATASETS, DATASETS_BY_ID, parseCSV } from '../../../js/manifold/datasets/index.js';
 
 const EXPECTED_ORDER = [
   'swiss_roll', 's_curve', 'helix', 'trefoil_knot', 'toroidal_helix', 'spiral_disk',
@@ -22,7 +22,7 @@ test('parseCSV is re-exported from the aggregator', () => {
 });
 
 test('the datasets.js shim re-exports the same DATASETS', async () => {
-  const shim = await import('../../js/manifold/datasets.js');
+  const shim = await import('../../../js/manifold/datasets.js');
   assert.deepEqual(shim.DATASETS.map(d => d.id), EXPECTED_ORDER);
   assert.equal(typeof shim.parseCSV, 'function');
 });

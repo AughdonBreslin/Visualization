@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mulberry32, gaussian } from '../../js/manifold/rng.js';
+import { mulberry32, gaussian } from '../../../js/manifold/rng.js';
 
 test('mulberry32 is deterministic for a given seed', () => {
   const a = mulberry32(42);

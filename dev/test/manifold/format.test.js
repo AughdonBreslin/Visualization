@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatVec3, formatMatrix, formatTable } from '../../js/manifold/format.js';
+import { formatVec3, formatMatrix, formatTable } from '../../../js/manifold/format.js';
 
 test('formatVec3 pads numbers to fixed width', () => {
   const s = formatVec3([1.234, -0.5, 12.3]);

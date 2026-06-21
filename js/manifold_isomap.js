@@ -3,7 +3,7 @@
 // is seamless across step boundaries and the active step always matches the
 // pseudocode timeline in the top-left of the video. `start` is the step's start
 // time in seconds (the section boundaries of the rendered walkthrough).
-// Explanations mirror manimexp/isomap/walkthrough_explained.md.
+// Explanations mirror dev/manimexp/isomap/walkthrough_explained.md.
 import { typesetMath } from './manifold/mathjax.js';
 
 const STEPS_ISOMAP = [
