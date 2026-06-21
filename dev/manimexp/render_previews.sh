@@ -10,12 +10,12 @@
 # Deliberately NOT set -e: a single failed render must not abort the whole batch.
 # Each failure is logged and the loop continues.
 #
-# Usage:  ./manimexp/render_previews.sh            # all algos, all datasets
-#         ./manimexp/render_previews.sh mds lle    # a subset of algo units
+# Usage:  ./dev/manimexp/render_previews.sh            # all algos, all datasets
+#         ./dev/manimexp/render_previews.sh mds lle    # a subset of algo units
 set -uo pipefail
-cd "$(dirname "$0")/.."          # repo root
-export PYTHONPATH=.
-PY=manimexp/.venv/bin/manim
+cd "$(dirname "$0")/../.."          # repo root
+export PYTHONPATH=dev
+PY=dev/manimexp/.venv/bin/manim
 # Quality is overridable: defaults to 480p/30fps; pass MFI_QFLAG=-qh MFI_FPS=60
 # MFI_VIDDIR=media/videos/walkthrough/1080p60 for the production 1080p sweep.
 QFLAG="${MFI_QFLAG:--ql}"
@@ -60,8 +60,8 @@ WANT=("$@")
 # Pre-generate point files for every dataset at this N (idempotent, deterministic).
 echo "=== generating points (N=$N) ==="
 for ds in "${DATASETS[@]}"; do
-  node manimexp/isomap/gen_points.mjs "$ds" "$N" "$SEED" \
-    "manimexp/isomap/points/${ds}_${N}.json" >/dev/null 2>&1 \
+  node dev/manimexp/isomap/gen_points.mjs "$ds" "$N" "$SEED" \
+    "dev/manimexp/isomap/points/${ds}_${N}.json" >/dev/null 2>&1 \
     && echo "  points: $ds" || echo "  POINTS FAILED: $ds"
 done
 
@@ -93,7 +93,7 @@ for unit in "${UNITS[@]}"; do
     # Use `env` so the expansion-produced MFI_KERNEL=... is honored as an
     # assignment (bash would otherwise treat it as a command word and fail).
     if env MFI_N="$N" MFI_DATASET="$ds" ${kernel:+MFI_KERNEL="$kernel"} \
-        "$PY" "$QFLAG" --fps "$FPS" --media_dir "$MEDIADIR" --disable_caching "manimexp/$file" "$scene" >/dev/null 2>&1; then
+        "$PY" "$QFLAG" --fps "$FPS" --media_dir "$MEDIADIR" --disable_caching "dev/manimexp/$file" "$scene" >/dev/null 2>&1; then
       if emit "$scene" "assets/manim/${outdir}/${ds}"; then
         ok=$((ok+1)); echo "   ok -> assets/manim/${outdir}/${ds}.mp4"
         # Mirror isomap drafts into preview480/isomap for the fallback path.
