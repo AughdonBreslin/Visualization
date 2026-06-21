@@ -3,19 +3,19 @@
 # and copy them plus poster frames to assets/manim/isomap/.
 #
 # Usage:
-#   ./manimexp/render.sh
+#   ./dev/manimexp/render.sh
 #
 # The full-quality render is slow (1000 points, 1080p, 60fps).
 # For a fast preview use:
-#   MFI_N=120 PYTHONPATH=. manimexp/.venv/bin/manim -ql --fps 30 --save_sections manimexp/isomap/walkthrough.py IsomapWalkthrough
+#   MFI_N=120 PYTHONPATH=dev dev/manimexp/.venv/bin/manim -ql --fps 30 --save_sections dev/manimexp/isomap/walkthrough.py IsomapWalkthrough
 set -euo pipefail
-cd "$(dirname "$0")/.."          # repo root
-export PYTHONPATH=.
-PY=manimexp/.venv/bin/manim
+cd "$(dirname "$0")/../.."          # repo root
+export PYTHONPATH=dev
+PY=dev/manimexp/.venv/bin/manim
 OUT=assets/manim/isomap
 mkdir -p "$OUT"
 
-$PY -qh --fps 60 --save_sections --disable_caching manimexp/isomap/walkthrough.py IsomapWalkthrough
+$PY -qh --fps 60 --save_sections --disable_caching dev/manimexp/isomap/walkthrough.py IsomapWalkthrough
 
 SECTIONS_DIR=$(find media/videos/walkthrough -type d -name sections | head -1)
 i=1

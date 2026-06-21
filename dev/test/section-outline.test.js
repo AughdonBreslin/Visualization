@@ -1,7 +1,7 @@
 // test/section-outline.test.js
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slugify, uniqueId, normalizeLabel } from '../js/section-outline.js';
+import { slugify, uniqueId, normalizeLabel } from '../../js/section-outline.js';
 
 test('slugify lowercases and hyphenates non-word runs', () => {
   assert.equal(slugify('PCA and SVD'), 'pca-and-svd');

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { knnGraph } from '../../js/manifold/linalg.js';
+import { knnGraph } from '../../../js/manifold/linalg.js';
 
 test('kNN on a small line returns nearest neighbours', () => {
   const X = new Float64Array([

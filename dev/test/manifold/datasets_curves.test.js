@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   SWISS_ROLL, S_CURVE, HELIX, TREFOIL_KNOT, TOROIDAL_HELIX, SPIRAL_DISK,
-} from '../../js/manifold/datasets/synthetic_curves.js';
+} from '../../../js/manifold/datasets/synthetic_curves.js';
 
 const CURVES = [SWISS_ROLL, S_CURVE, HELIX, TREFOIL_KNOT, TOROIDAL_HELIX, SPIRAL_DISK];
 

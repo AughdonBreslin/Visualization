@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CLUSTERS_3D } from '../../js/manifold/datasets/synthetic_clusters.js';
-import { CLUSTER_PALETTE } from '../../js/manifold/datasets/shared.js';
+import { CLUSTERS_3D } from '../../../js/manifold/datasets/synthetic_clusters.js';
+import { CLUSTER_PALETTE } from '../../../js/manifold/datasets/shared.js';
 
 test('clusters_3d yields 3N flat X and length-N t', () => {
   const out = CLUSTERS_3D.generate({ samples: 20, noise: 0, seed: 1, clusters: 5, sep: 2 });
