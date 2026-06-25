@@ -30,11 +30,6 @@
       <h2 class="setting-label">Accent color</h2>
       <p class="setting-help">Used for links, active states, highlights, and focus rings.</p>
       <div class="accent-row">
-        <button class="swatch" data-accent="#6b7cff" style="--c:#6b7cff" title="Periwinkle"></button>
-        <button class="swatch" data-accent="#4aa3ff" style="--c:#4aa3ff" title="Azure"></button>
-        <button class="swatch" data-accent="#5ec99a" style="--c:#5ec99a" title="Mint"></button>
-        <button class="swatch" data-accent="#d9a441" style="--c:#d9a441" title="Gold"></button>
-        <button class="swatch" data-accent="#8a9bd6" style="--c:#8a9bd6" title="Steel"></button>
         <span class="custom-accent"><span class="custom-label">Custom</span>
           <span class="hex-field"><span class="hex-well"></span><input id="accent-hex" value="#6b7cff" spellcheck="false"></span></span>
       </div>
@@ -94,6 +89,8 @@
       var bright = document.getElementById('brightness');
       var brightVal = document.getElementById('brightnessValue');
       var SWATCH_KEY = 'ui-accent-swatches';
+      var DEFAULT_SWATCHES = ['#6b7cff', '#4aa3ff', '#5ec99a', '#d9a441', '#8a9bd6'];
+      var swatchList = [];
 
       function isHex(s) { return /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(String(s || '').trim()); }
       function norm(v) { v = String(v).trim(); if (v[0] !== '#') v = '#' + v; return v.toLowerCase(); }
@@ -110,28 +107,71 @@
       function markUnderline(on) { utabs.forEach(function (t) { t.classList.toggle('is-active', (t.dataset.underline === '1') === on); }); }
 
       function apply(n) { T.setAccent(n); markSwatch(n); }
-      function wireSwatch(btn) { btn.addEventListener('click', function () { apply(btn.dataset.accent); }); }
-      function swatchExists(n) { return getSwatches().some(function (s) { return lc(s.dataset.accent) === lc(n); }); }
-      function makeSwatch(n) {
-        var b = document.createElement('button');
-        b.type = 'button'; b.className = 'swatch'; b.dataset.accent = n; b.title = n;
-        b.style.setProperty('--c', n);
-        wireSwatch(b);
-        row.insertBefore(b, customAnchor);
-        return b;
+
+      function saveSwatches() { try { localStorage.setItem(SWATCH_KEY, JSON.stringify(swatchList)); } catch (e) {} }
+
+      function initSwatches() {
+        try {
+          var raw = localStorage.getItem(SWATCH_KEY);
+          if (!raw) { swatchList = DEFAULT_SWATCHES.slice(); saveSwatches(); return; }
+          var arr = JSON.parse(raw);
+          if (!Array.isArray(arr)) { swatchList = DEFAULT_SWATCHES.slice(); saveSwatches(); return; }
+          // Migration: old format stored only custom colors with no defaults present.
+          var hasDefault = DEFAULT_SWATCHES.some(function (d) {
+            return arr.some(function (a) { return lc(a) === lc(d); });
+          });
+          if (arr.length > 0 && !hasDefault) {
+            arr = DEFAULT_SWATCHES.concat(arr.filter(function (a) {
+              return DEFAULT_SWATCHES.every(function (d) { return lc(d) !== lc(a); });
+            }));
+            swatchList = arr;
+            saveSwatches();
+          } else {
+            swatchList = arr;
+          }
+        } catch (e) { swatchList = DEFAULT_SWATCHES.slice(); }
       }
 
-      // persisted user swatches (added from the custom field)
-      function loadCustom() { try { return JSON.parse(localStorage.getItem(SWATCH_KEY) || '[]'); } catch (e) { return []; } }
-      function saveCustom(arr) { try { localStorage.setItem(SWATCH_KEY, JSON.stringify(arr)); } catch (e) {} }
+      function renderSwatches() {
+        Array.prototype.slice.call(row.querySelectorAll('.swatch-wrap')).forEach(function (w) { row.removeChild(w); });
+        var cur = T.current().accent;
+        swatchList.forEach(function (n) {
+          var wrap = document.createElement('div');
+          wrap.className = 'swatch-wrap';
+
+          var btn = document.createElement('button');
+          btn.type = 'button'; btn.className = 'swatch'; btn.dataset.accent = n; btn.title = n;
+          btn.style.setProperty('--c', n);
+          btn.classList.toggle('on', lc(n) === lc(cur));
+          btn.addEventListener('click', function () { apply(n); });
+
+          var rm = document.createElement('button');
+          rm.type = 'button'; rm.className = 'swatch-remove'; rm.setAttribute('aria-label', 'Remove');
+          rm.textContent = '×';
+          rm.addEventListener('click', function (e) { e.stopPropagation(); removeSwatch(n); });
+
+          wrap.appendChild(btn);
+          wrap.appendChild(rm);
+          row.insertBefore(wrap, customAnchor);
+        });
+      }
+
+      function removeSwatch(n) {
+        swatchList = swatchList.filter(function (a) { return lc(a) !== lc(n); });
+        saveSwatches();
+        renderSwatches();
+      }
+
       function addCustomSwatch(n) {
-        if (!swatchExists(n)) makeSwatch(n);
-        var arr = loadCustom();
-        if (arr.map(lc).indexOf(lc(n)) === -1) { arr.push(n); saveCustom(arr); }
+        if (swatchList.every(function (a) { return lc(a) !== lc(n); })) {
+          swatchList.push(n);
+          saveSwatches();
+        }
+        renderSwatches();
       }
 
-      getSwatches().forEach(wireSwatch);
-      loadCustom().forEach(function (n) { if (isHex(n) && !swatchExists(norm(n))) makeSwatch(norm(n)); });
+      initSwatches();
+      renderSwatches();
 
       // Apply live as a valid hex is typed, so the custom field feels as instant as the swatches.
       hex.addEventListener('input', function () {
@@ -141,7 +181,7 @@
         if (well) well.style.background = n;
         getSwatches().forEach(function (s) { s.classList.toggle('on', lc(s.dataset.accent) === lc(n)); });
       });
-      // Enter: commit the color and pin it as a new preset swatch.
+      // Enter: commit the color and pin it as a new swatch.
       hex.addEventListener('keydown', function (e) {
         if (e.key !== 'Enter') return;
         e.preventDefault();
@@ -170,7 +210,11 @@
         t.addEventListener('click', function () { var on = t.dataset.underline === '1'; T.setLinkUnderline(on); markUnderline(on); });
       });
       document.getElementById('reset').addEventListener('click', function () {
-        T.reset(); markSwatch(T.DEFAULT_ACCENT); markDensity('balanced'); markUnderline(false); markBrightness(T.DEFAULT_BRIGHTNESS);
+        T.reset();
+        swatchList = DEFAULT_SWATCHES.slice();
+        saveSwatches();
+        renderSwatches();
+        markSwatch(T.DEFAULT_ACCENT); markDensity('balanced'); markUnderline(false); markBrightness(T.DEFAULT_BRIGHTNESS);
       });
 
       // reflect current saved state in the UI
