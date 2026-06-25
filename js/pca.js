@@ -133,10 +133,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function debounce(fn, delay = 180) {
     let timer = null;
-    return (...args) => {
+    const debounced = (...args) => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => fn(...args), delay);
     };
+    debounced.cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    return debounced;
   }
 
   function setActiveControlTab(tabName) {
@@ -1401,6 +1403,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const debouncedRender = debounce(render, 220);
+  const debouncedSliderRender = debounce(render, 80);
   [
     dimensionInput,
     presetInput,
@@ -1430,50 +1433,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
   spread1Input?.addEventListener('input', () => {
     syncNumericLabel(spread1Input, spread1ValueEl);
-    render();
+    debouncedSliderRender();
   });
   spread1Input?.addEventListener('change', () => {
+    debouncedSliderRender.cancel();
     syncNumericLabel(spread1Input, spread1ValueEl);
     render();
   });
 
   spread2Input?.addEventListener('input', () => {
     syncNumericLabel(spread2Input, spread2ValueEl);
-    render();
+    debouncedSliderRender();
   });
   spread2Input?.addEventListener('change', () => {
+    debouncedSliderRender.cancel();
     syncNumericLabel(spread2Input, spread2ValueEl);
     render();
   });
 
   spread3Input?.addEventListener('input', () => {
     syncNumericLabel(spread3Input, spread3ValueEl);
-    render();
+    debouncedSliderRender();
   });
   spread3Input?.addEventListener('change', () => {
+    debouncedSliderRender.cancel();
     syncNumericLabel(spread3Input, spread3ValueEl);
     render();
   });
 
-  angleInput?.addEventListener('input', syncAngleLabel);
-  angleInput?.addEventListener('input', render);
-  angleInput?.addEventListener('change', syncAngleLabel);
-  angleInput?.addEventListener('change', render);
+  angleInput?.addEventListener('input', () => { syncAngleLabel(); debouncedSliderRender(); });
+  angleInput?.addEventListener('change', () => { debouncedSliderRender.cancel(); syncAngleLabel(); render(); });
 
   elevationInput?.addEventListener('input', () => {
     syncNumericLabel(elevationInput, elevationValueEl, 0, '°');
-    render();
+    debouncedSliderRender();
   });
   elevationInput?.addEventListener('change', () => {
+    debouncedSliderRender.cancel();
     syncNumericLabel(elevationInput, elevationValueEl, 0, '°');
     render();
   });
 
   noiseInput?.addEventListener('input', () => {
     syncNumericLabel(noiseInput, noiseValueEl);
-    render();
+    debouncedSliderRender();
   });
   noiseInput?.addEventListener('change', () => {
+    debouncedSliderRender.cancel();
     syncNumericLabel(noiseInput, noiseValueEl);
     render();
   });

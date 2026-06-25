@@ -43,6 +43,7 @@
   margin: 12px 0;
   max-width: 100%;
   overflow-x: auto;
+  min-height: 3em;
 }
 .ui .formulas .formula { margin: 4px 0; }
 .ui .formulas .formula:not(:first-child) { border-left-color: transparent; padding-left: 0; }
