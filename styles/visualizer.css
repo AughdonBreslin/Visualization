@@ -106,14 +106,14 @@
 .ui.distributions .distribution-detail h3 .color-indicator { display: none; }
 .ui.distributions .color-indicator { width: 11px; height: 11px; border-radius: 3px; flex: none; display: inline-block; background: var(--indicator-color, var(--accent)); }
 /* per-distribution property table: label column + math value column */
-.ui.distributions .dv-ptable { width: 100%; border-collapse: collapse; margin: 0 0 16px; }
+.ui.distributions .dv-ptable { width: 100%; border-collapse: collapse; margin: 0 0 16px; table-layout: fixed; }
 .ui.distributions .dv-ptable td { border-top: 1px solid var(--hairline); padding: 11px 16px 11px 0; vertical-align: middle; }
 .ui.distributions .dv-ptable tr:first-child td { border-top: 0; }
 .ui.distributions .dv-ptable .dv-pk { width: 150px; white-space: nowrap; vertical-align: top; padding-top: 14px; }
 .ui.distributions .dv-plabel { font: 600 9.5px/1.2 var(--font-sans); letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); }
 .ui.distributions .dv-pv { color: var(--text-2); }
 /* flat math display: keep the .formula component but drop its left accent wall */
-.ui.distributions .dv-pv .formula { margin: 0; border-left: 0; padding-left: 0; }
+.ui.distributions .dv-pv .formula { margin: 0; border-left: 0; padding-left: 0; overflow-x: auto; }
 .ui.distributions .dv-pv mjx-container { text-align: left !important; margin: 0 !important; color: #eceef3; }
 .ui.distributions .dv-uc-lbl { font: 600 9.5px/1.2 var(--font-sans); letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 8px; }
 .ui.distributions .distribution-detail .properties { display: flex; gap: 34px; flex-wrap: wrap; margin: 0 0 12px; }
