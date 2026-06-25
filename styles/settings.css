@@ -9,8 +9,19 @@
 .ui .settings .setting-help { font: 400 13px/1.5 var(--font-sans); color: var(--text-muted); margin: 0 0 16px; max-width: 56ch; }
 
 .ui .settings .accent-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.ui .settings .swatch-wrap { position: relative; display: inline-block; }
 .ui .settings .swatch { width: 30px; height: 30px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: var(--c); }
 .ui .settings .swatch.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--c); }
+.ui .settings .swatch-remove {
+  position: absolute; top: -4px; right: -4px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--surface-strong); border: 1px solid var(--hairline-strong);
+  color: var(--text-muted); font-size: 10px; line-height: 1; padding: 0;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 120ms ease;
+}
+.ui .settings .swatch-wrap:hover .swatch-remove { opacity: 1; pointer-events: auto; }
+@media (hover: none) { .ui .settings .swatch-remove { opacity: 1; pointer-events: auto; } }
 .ui .settings .custom-accent { display: inline-flex; align-items: center; gap: 10px; margin-left: 8px; padding-left: 18px; border-left: 1px solid var(--hairline); }
 .ui .settings .custom-label { font: 600 9.5px/1 var(--font-sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
 .ui .settings .hex-field { display: inline-flex; align-items: center; gap: 8px; }
