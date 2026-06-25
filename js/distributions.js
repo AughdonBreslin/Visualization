@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let distributions = JSON.parse(localStorage.getItem('distributions') || '[]');
     let nextId = distributions.length ? Math.max(...distributions.map(d => d.id)) + 1 : 1;
+    let scheduleRedraw; // assigned after redrawAll is defined
 
     const formsContainer = d3.select('#forms');
     const xMinInput = d3.select('#xMin');
@@ -232,8 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // sync color input -> model
         colorInput.on('input', function () {
             formObj.color = this.value;
-            redrawAll();
-            saveState();
+            scheduleRedraw();
         });
 
         const paramsWrap = wrapper.append('div')
@@ -342,8 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 // recompute the displayed shares (density normalizes internally).
                                 formObj.params.weights[idx] = +this.value;
                                 refreshShares();
-                                redrawAll();
-                                saveState();
+                                scheduleRedraw();
                             });
                         const shareWrap = weightRow.append('span').attr('class', 'mix-share');
                         shareWrap.append('span').attr('class', 'mix-wbar').append('i');
@@ -359,8 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 .property('value', comp.params[paramIdx])
                                 .on('input', function () {
                                     comp.params[paramIdx] = +this.value;
-                                    redrawAll();
-                                    saveState();
+                                    scheduleRedraw();
                                 });
                         });
 
@@ -396,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         .attr('step', label.toLowerCase().includes('prob') ? '0.01' : '0.1')
                         .property('value', (pref.defaults && pref.defaults[idx] !== undefined) ? pref.defaults[idx] : info.defaults[idx]);
                     formObj.params[idx] = +inp.property('value');
-                    inp.on('input', () => { formObj.params[idx] = +inp.property('value'); redrawAll(); saveState(); });
+                    inp.on('input', () => { formObj.params[idx] = +inp.property('value'); scheduleRedraw(); });
                 });
             }
             redrawAll(); saveState();
@@ -514,8 +512,8 @@ document.addEventListener('DOMContentLoaded', () => {
     createMixtureBtn.on('click', showMixtureUI);
     applyMixtureBtn.on('click', createMixture);
     cancelMixtureBtn.on('click', hideMixtureUI);
-    xMinInput.on('input', () => { redrawAll(); saveState(); });
-    xMaxInput.on('input', () => { redrawAll(); saveState(); });
+    xMinInput.on('input', scheduleRedraw);
+    xMaxInput.on('input', scheduleRedraw);
 
     setupCharts(); loadRange();
 
@@ -674,11 +672,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Update distribution info when distributions change
+    // Update distribution info when distributions change.
+    // updateDistributionInfo is deferred via setTimeout so the chart SVG paints first
+    // (keeping INP fast) and MathJax typesetting runs as a separate task after.
     const originalRedrawAll = redrawAll;
     redrawAll = function () {
         originalRedrawAll();
-        updateDistributionInfo();
+        setTimeout(updateDistributionInfo, 0);
+    };
+
+    // Debounced redraw for rapid-fire input events (param edits, x-range, color picker).
+    // Click-driven actions (add, remove, type change) use redrawAll directly.
+    let redrawTimer;
+    scheduleRedraw = function () {
+        clearTimeout(redrawTimer);
+        redrawTimer = setTimeout(redrawAll, 80);
     };
 
     // Populate the info panel immediately on refresh.
