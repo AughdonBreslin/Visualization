@@ -9,7 +9,7 @@
 .ui.distributions .dv-plots { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
 .ui.distributions .dv-plot { border: 1px solid var(--hairline); border-radius: var(--radius-md); background: #080809; padding: 12px 14px 6px; min-width: 0; }
 .ui.distributions .dv-plot-title { font: 600 10px/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-.ui.distributions .dv-plot-host { width: 100%; }
+.ui.distributions .dv-plot-host { width: 100%; min-height: 340px; }
 .ui.distributions .dv-plot-host svg { display: block; width: 100%; }
 /* d3 axes, dark */
 .ui.distributions .axis path.domain,
