@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     datasetWarningEl.classList.toggle('is-error', !!isError);
   }
 
-  function loadData(text) {
+  function loadData(text, { autoFit = false } = {}) {
     let result;
     try {
       result = parseData(text);
@@ -150,18 +150,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (calcPointGDAEl) calcPointGDAEl.textContent = 'No point computed yet.';
     if (calcPointLegacyEl && !calcPointKDEEl && !calcPointGDAEl) calcPointLegacyEl.textContent = 'No point computed yet.';
 
-    // reset GDA fit state
     gda.fitted = false; gda.classes = []; gda.params = {};
-    render();
+
+    if (autoFit) {
+      // Auto-fit on initial load so GDA is ready before any interaction.
+      // fitGDA() calls render() internally; fall back only if fitting fails.
+      fitGDA();
+      if (!gda.fitted) render();
+    } else {
+      render();
+    }
   }
 
-  // Re-load the pasted data as it is edited (the initial load runs at the end
-  // of this handler, after all state is initialized).
+  // Reload data when the user leaves the CSV textarea, not on every keystroke.
+  // A dirty flag tracks whether content changed so blur only triggers work when needed.
   if (csvInput) {
-    let reloadTimer;
-    csvInput.addEventListener('input', () => {
-      clearTimeout(reloadTimer);
-      reloadTimer = setTimeout(() => loadData(csvInput.value), 300);
+    let csvDirty = false;
+    csvInput.addEventListener('input', () => { csvDirty = true; });
+    csvInput.addEventListener('blur', () => {
+      if (!csvDirty) return;
+      csvDirty = false;
+      loadData(csvInput.value);
     });
   }
   fileInput.addEventListener('change', (ev) => {
@@ -464,13 +473,9 @@ document.addEventListener('DOMContentLoaded', () => {
       queryMarkerPoint = [x, y];
       drawQueryMarker(mx, my);
 
-      updateQueryTable([x, y], { header: `Query (${x.toFixed(2)},${y.toFixed(2)})`, autoFitGDA: true });
-      showCalculationForPoint([x,y]);
+      updateQueryTable([x, y], { header: `Query (${x.toFixed(2)},${y.toFixed(2)})` });
+      setTimeout(() => showCalculationForPoint([x, y]), 0);
     });
-
-    if (showGDAEl && showGDAEl.checked && !gda.fitted) {
-      fitGDA();
-    }
 
     if (showGDAEl && showGDAEl.checked && gda.fitted) {
       // compute posteriors for grid points and mark soft boundaries where top classes are close
@@ -1017,8 +1022,8 @@ document.addEventListener('DOMContentLoaded', () => {
   fitGDAButton && fitGDAButton.addEventListener('click', fitGDA);
   example1Btn && example1Btn.addEventListener('click', ()=>{
     const pt = [75,89.5];
-    updateQueryTable(pt, { header: `Query (${pt[0].toFixed(2)},${pt[1].toFixed(2)})`, autoFitGDA: true });
-    showCalculationForPoint(pt);
+    updateQueryTable(pt, { header: `Query (${pt[0].toFixed(2)},${pt[1].toFixed(2)})` });
+    setTimeout(() => showCalculationForPoint(pt), 0);
   });
   example2Btn && example2Btn.addEventListener('click', ()=>{
     const x1 = example2x1Input ? parseFloat(example2x1Input.value) : NaN;
@@ -1028,9 +1033,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const pt = [x1, x2];
-    updateQueryTable(pt, { header: `Query (${pt[0].toFixed(2)},${pt[1].toFixed(2)})`, autoFitGDA: true });
-    showCalculationForPoint(pt);
+    updateQueryTable(pt, { header: `Query (${pt[0].toFixed(2)},${pt[1].toFixed(2)})` });
+    setTimeout(() => showCalculationForPoint(pt), 0);
   });
 
-  loadData(csvInput.value);
+  loadData(csvInput.value, { autoFit: true });
 });
