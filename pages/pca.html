@@ -6,14 +6,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Principal Component Analysis: SVD, Rotation, Stretch, and Reconstruction</title>
 
+  <script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
-  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 
   <script>
+    document.documentElement.classList.add('math-loading');
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
-      svg: { fontCache: 'global' }
+      svg: { fontCache: 'global' },
+      startup: {
+        ready() {
+          MathJax.startup.defaultReady();
+          MathJax.startup.promise.then(() => document.documentElement.classList.remove('math-loading'));
+        }
+      }
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
@@ -26,12 +41,12 @@
   <link rel="stylesheet" href="../styles/section-outline.css">
   <script src="../js/theme.js"></script>
 
-  <script defer src="../js/pca.js?v=20260617"></script>
+  <script type="module" defer src="../js/pca.js?v=20260617"></script>
   <script defer src="../js/favicon.js"></script>
   <script type="module" src="../js/section-outline.js"></script>
 </head>
 
-<body class="ui pca">
+<body class="ui pca has-section-outline">
   <div class="container">
     <header class="page-head">
       <div class="eyebrow">// Linear algebra</div>
