@@ -155,22 +155,155 @@ function makeContextApi(ctx, container) {
   };
 }
 
-// --- stub exports (replaced in Tasks 3 and 4) ---
+// --- createDataPlot3D ---
 
 export function createDataPlot3D(container) {
   const ctx = makePlot3DContext(container);
-  ctx.render();
-  return {
-    update(_s) { ctx.render(); },
-    destroy() {
-      ctx.resizeObserver.disconnect();
-      ctx.renderer.dispose();
-      if (container.contains(ctx.renderer.domElement)) container.removeChild(ctx.renderer.domElement);
-      if (container.contains(ctx.css2d.domElement)) container.removeChild(ctx.css2d.domElement);
-    },
-    ...makeContextApi(ctx, container),
-  };
+  const { scene, camera, controls } = ctx;
+
+  const PC_COLORS = [0x7dffb2, 0xffc456, 0xff7a7a];
+  const AXIS_OPACITIES = [0.22, 0.18, 0.14];
+  const AXIS_DIRS = [[1,0,0],[0,1,0],[0,0,1]];
+
+  // Three axis lines, each a 2-point geometry from origin to axis tip
+  const axisGeos = AXIS_DIRS.map(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0,0,0, 0,0,0]), 3));
+    return g;
+  });
+  axisGeos.forEach((g, i) => {
+    scene.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: AXIS_OPACITIES[i] })));
+  });
+
+  // Axis labels at tip positions
+  const axisLabelObjs = AXIS_DIRS.map(() => {
+    const lbl = makeCss2DLabel('');
+    scene.add(lbl);
+    return lbl;
+  });
+
+  // Scatter points (BufferGeometry grows on demand, never shrinks)
+  const pointsCapRef = { cap: 0 };
+  const pointsMesh = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({ color: 0x4aa3ff, size: 6, sizeAttenuation: true, transparent: true, opacity: 0.9 }),
+  );
+  scene.add(pointsMesh);
+
+  // Overlay points (rank reconstruction, hidden when no overlay)
+  const overlayCapRef = { cap: 0 };
+  const overlayMesh = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({ color: 0xffc456, size: 5, sizeAttenuation: true, transparent: true, opacity: 0.9 }),
+  );
+  overlayMesh.visible = false;
+  scene.add(overlayMesh);
+
+  // PC vector arrows (ArrowHelper: from origin toward +v, arrowhead at positive tip)
+  const arrows = PC_COLORS.map(color => {
+    const arrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 1, color);
+    arrow.visible = false;
+    scene.add(arrow);
+    return arrow;
+  });
+
+  // Vector tip labels
+  const vecLabelObjs = PC_COLORS.map(() => {
+    const lbl = makeCss2DLabel('');
+    lbl.visible = false;
+    scene.add(lbl);
+    return lbl;
+  });
+
+  // Point number label pool -- grows to max-seen N, never shrinks
+  const ptLabelPool = [];
+  function getPtLabel(i) {
+    if (i < ptLabelPool.length) return ptLabelPool[i];
+    const lbl = makeCss2DLabel(String(i + 1));
+    lbl.visible = false;
+    scene.add(lbl);
+    ptLabelPool.push(lbl);
+    return lbl;
+  }
+
+  let initialized = false;
+
+  function update({ points, principalVectors, showVectors, showLabels, overlayPoints, axisLabels, basisLabels, bound }) {
+    const safebound = bound || 1;
+    const axisLen = safebound * 1.15;
+
+    if (!initialized) {
+      camera.position.setLength(Math.max(safebound * 3, 4));
+      controls.update();
+      initialized = true;
+    }
+
+    // Axis lines and labels
+    axisGeos.forEach((g, i) => {
+      const pos = g.attributes.position;
+      pos.setXYZ(1, AXIS_DIRS[i][0] * axisLen, AXIS_DIRS[i][1] * axisLen, AXIS_DIRS[i][2] * axisLen);
+      pos.needsUpdate = true;
+      axisLabelObjs[i].position.set(AXIS_DIRS[i][0] * axisLen, AXIS_DIRS[i][1] * axisLen, AXIS_DIRS[i][2] * axisLen);
+      axisLabelObjs[i].element.textContent = axisLabels[i] || '';
+    });
+
+    // Scatter points
+    writePoints(ensurePointsGeo(pointsMesh, points.length, pointsCapRef), points);
+
+    // Overlay
+    if (overlayPoints && overlayPoints.length) {
+      writePoints(ensurePointsGeo(overlayMesh, overlayPoints.length, overlayCapRef), overlayPoints);
+      overlayMesh.visible = true;
+    } else {
+      overlayMesh.visible = false;
+    }
+
+    // PC arrows and vector tip labels
+    const dim = principalVectors.length;
+    arrows.forEach((arrow, i) => {
+      const lbl = vecLabelObjs[i];
+      if (!showVectors || i >= dim) { arrow.visible = false; lbl.visible = false; return; }
+      const v = principalVectors[i];
+      const len = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+      if (len < 1e-6) { arrow.visible = false; lbl.visible = false; return; }
+      const headLen = Math.min(len * 0.2, axisLen * 0.12);
+      arrow.setDirection(new THREE.Vector3(v[0]/len, v[1]/len, v[2]/len));
+      arrow.setLength(len, headLen, headLen * 0.6);
+      arrow.visible = true;
+      const labelText = basisLabels[i] || '';
+      lbl.position.set(v[0], v[1], v[2]);
+      lbl.element.textContent = labelText;
+      lbl.visible = !!labelText;
+    });
+
+    // Point number labels (only when showLabels and N <= 60)
+    const showPtLabels = showLabels && points.length <= 60;
+    points.forEach((pt, i) => {
+      const lbl = getPtLabel(i);
+      if (!showPtLabels) { lbl.visible = false; return; }
+      lbl.position.set(pt[0], pt[1], pt[2]);
+      lbl.element.textContent = String(i + 1);
+      lbl.visible = true;
+    });
+    for (let i = points.length; i < ptLabelPool.length; i++) ptLabelPool[i].visible = false;
+
+    ctx.render();
+  }
+
+  function destroy() {
+    ctx.resizeObserver.disconnect();
+    axisGeos.forEach(g => g.dispose());
+    pointsMesh.geometry.dispose();
+    overlayMesh.geometry.dispose();
+    ctx.renderer.dispose();
+    if (container.contains(ctx.renderer.domElement)) container.removeChild(ctx.renderer.domElement);
+    if (container.contains(ctx.css2d.domElement)) container.removeChild(ctx.css2d.domElement);
+  }
+
+  return { update, destroy, ...makeContextApi(ctx, container) };
 }
+
+// --- createOperatorPlot3D stub (replaced in Task 4) ---
 
 export function createOperatorPlot3D(container) {
   const ctx = makePlot3DContext(container);
