@@ -43,9 +43,8 @@
   margin: 12px 0;
   max-width: 100%;
   overflow-x: auto;
-  min-height: 3em;
 }
-html.math-loading .ui .formula { max-height: 3em; overflow: hidden; }
+
 .ui .formulas .formula { margin: 4px 0; }
 .ui .formulas .formula:not(:first-child) { border-left-color: transparent; padding-left: 0; }
 .ui .formula mjx-container { color: #e4e6ea; text-align: left !important; margin: 0 !important; }
