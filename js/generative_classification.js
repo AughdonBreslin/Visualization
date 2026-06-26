@@ -221,14 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  function makeGrid(xmin,xmax,ymin,ymax,nx=120,ny=100) {
-    const xs = d3.range(nx).map(i => xmin + (xmax - xmin) * i/(nx-1));
-    const ys = d3.range(ny).map(j => ymin + (ymax - ymin) * j/(ny-1));
-    const grid = [];
-    for (let j = 0; j < ys.length; j++) for (let i = 0; i < xs.length; i++) grid.push([xs[i], ys[j]]);
-    return { xs, ys, grid, nx, ny };
-  }
-
   function kdeForPoint(x, classes, pdfs, logPdfs, priors, useLog) {
     const doLog = !!useLog;
     if (doLog) {
@@ -366,6 +358,45 @@ document.addEventListener('DOMContentLoaded', () => {
     marker.append('circle').attr('r', 1.5).attr('fill', '#fff');
   }
 
+  const gcRecomputingEl = document.getElementById('gcRecomputing');
+  const gcWorker = new Worker('../js/gc-worker.js');
+  let renderGeneration = 0;
+
+  gcWorker.onmessage = ({ data: result }) => {
+    if (result.token !== renderGeneration) return;
+
+    if (result.kdePostInfo) {
+      const wClasses = kdeModel ? kdeModel.classes : [];
+      const wColor = d3.scaleOrdinal(d3.schemeCategory10).domain(wClasses);
+      const nx = 150, ny = 120;
+      const rectW = innerW / (nx - 1); const rectH = innerH / (ny - 1);
+
+      g.select('g.heatmap').selectAll('rect').data(result.kdePostInfo).enter().append('rect')
+        .attr('x', d => xScale(d.x) - rectW / 2)
+        .attr('y', d => yScale(d.y) - rectH / 2)
+        .attr('width', Math.max(1, rectW))
+        .attr('height', Math.max(1, rectH))
+        .attr('fill', d => d3.interpolateRgb(wColor(wClasses[d.maxIdx]), '#000000')(0.3))
+        .attr('opacity', d => Math.max(0.12, d.maxVal * 0.7));
+
+      g.select('g.kde-soft-boundary').selectAll('circle.contour')
+        .data(result.kdePostInfo.filter(d => d.isSoftBoundary))
+        .enter().append('circle')
+        .attr('class', 'contour')
+        .attr('cx', d => xScale(d.x)).attr('cy', d => yScale(d.y))
+        .attr('r', 1.2).attr('fill', '#000');
+    }
+
+    if (result.gdaBoundaryLines) {
+      g.select('g.gda-boundary').selectAll('line').data(result.gdaBoundaryLines).enter().append('line')
+        .attr('x1', d => xScale(d.x1)).attr('y1', d => yScale(d.y1))
+        .attr('x2', d => xScale(d.x2)).attr('y2', d => yScale(d.y2))
+        .attr('stroke', '#fff').attr('stroke-width', 1.2).attr('opacity', 1).attr('stroke-linecap', 'round');
+    }
+
+    if (gcRecomputingEl) gcRecomputingEl.hidden = true;
+  };
+
   function render() {
     if (!data.length) return;
     const xs = data.map(d => d.x[0]); const ys = data.map(d => d.x[1]);
@@ -386,8 +417,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pdfs = classPoints.map(arr => arr.length ? kdePdf(arr, bw) : (() => 0));
     const logPdfs = classPoints.map(arr => arr.length ? kdeLogPdf(arr, bw) : (() => -Infinity));
     kdeModel = { classes, priors, pdfs, logPdfs };
-
-    const { grid, nx, ny } = makeGrid(xmin, xmax, ymin, ymax, 150, 120);
 
     const classColor = d3.scaleOrdinal(d3.schemeCategory10).domain(classes);
 
@@ -419,40 +448,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-
     const showKDEEl = showKDEChk;
     const showGDAEl = showGDAChk;
 
-    // KDE posterior heatmap (only draw if KDE overlay enabled)
-    if (showKDEEl && showKDEEl.checked) {
-      const postInfo = grid.map(pt => {
-        const kde = kdeForPoint(pt, classes, pdfs, logPdfs, priors, useLogSpace);
-        const maxIdx = kde.classPosteriors.indexOf(Math.max(...kde.classPosteriors));
-        return { x: pt[0], y: pt[1], posts: kde.classPosteriors, maxIdx, maxVal: kde.classPosteriors[maxIdx] };
-      });
-
-      const rectW = innerW / (nx-1); const rectH = innerH / (ny-1);
-
-      g.append('g').attr('class','heatmap')
-        .selectAll('rect').data(postInfo).enter()
-        .append('rect')
-        .attr('x', d => xScale(d.x) - rectW/2)
-        .attr('y', d => yScale(d.y) - rectH/2)
-        .attr('width', Math.max(1, rectW))
-        .attr('height', Math.max(1, rectH))
-        .attr('fill', d => {
-          // blend the class color toward white for a pastel (less bright) heatmap fill
-          const base = classColor(classes[d.maxIdx]);
-          return d3.interpolateRgb(base, '#000000')(0.3);
-        })
-        .attr('opacity', d => Math.max(0.12, d.maxVal * 0.7));
-
-      // draw soft decision boundary where top two classes are close
-      g.append('g').selectAll('circle.contour').data(postInfo.filter(d=>{
-        const ps = d.posts.slice().sort((a,b)=>b-a); return (ps[0]-ps[1]) < 0.06;
-      }))
-        .enter().append('circle').attr('class','contour').attr('cx', d=>xScale(d.x)).attr('cy', d=>yScale(d.y)).attr('r',1.2).attr('fill','#000');
-    }
+    // Pre-create layer groups in z-order (background to foreground).
+    // The worker fills these asynchronously; scatter points and ellipses draw immediately.
+    g.append('g').attr('class', 'heatmap');
+    g.append('g').attr('class', 'kde-soft-boundary');
 
     g.append('g').selectAll('circle.point').data(data).enter().append('circle')
       .attr('class','point')
@@ -477,48 +479,10 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => showCalculationForPoint([x, y]), 0);
     });
 
+    // GDA boundary group filled by the worker; ellipses are drawn immediately from gda.params.
+    g.append('g').attr('class', 'gda-boundary');
     if (showGDAEl && showGDAEl.checked && gda.fitted) {
-      // compute posteriors for grid points and mark soft boundaries where top classes are close
-      const gdaPost = grid.map(pt => {
-        const g = gdaForPoint(pt);
-        // determine top-two gap
-        const sorted = g.classPosteriors.slice().sort((a,b)=>b-a);
-        const gap = sorted[0] - (sorted[1] || 0);
-        return { x: pt[0], y: pt[1], gap, topIdx: g.classPosteriors.indexOf(Math.max(...g.classPosteriors)), posts: g.classPosteriors };
-      });
-
-      // draw crisp decision boundaries: connect grid neighboring cells where the top predicted class changes
-      const boundaryLines = [];
-      for (let j = 0; j < ny; j++) {
-        for (let i = 0; i < nx; i++) {
-          const idx = j * nx + i;
-          const cur = gdaPost[idx];
-          if (!cur) continue;
-          // right neighbor
-          if (i < nx - 1) {
-            const right = gdaPost[idx + 1];
-            if (right && cur.topIdx !== right.topIdx) {
-              boundaryLines.push({ x1: xScale(cur.x), y1: yScale(cur.y), x2: xScale(right.x), y2: yScale(right.y) });
-            }
-          }
-          // down neighbor
-          if (j < ny - 1) {
-            const down = gdaPost[idx + nx];
-            if (down && cur.topIdx !== down.topIdx) {
-              boundaryLines.push({ x1: xScale(cur.x), y1: yScale(cur.y), x2: xScale(down.x), y2: yScale(down.y) });
-            }
-          }
-        }
-      }
-
-      // main thin dark boundary line
-      g.append('g').attr('class','gda-boundary')
-        .selectAll('line').data(boundaryLines).enter().append('line')
-        .attr('x1', d=>d.x1).attr('y1', d=>d.y1).attr('x2', d=>d.x2).attr('y2', d=>d.y2)
-        .attr('stroke', '#fff').attr('stroke-width', 1.2).attr('opacity', 1).attr('stroke-linecap', 'round');
-    
-      // draw 1-sigma ellipses for each class using their color
-      for (let i=0;i<gda.classes.length;i++) {
+      for (let i = 0; i < gda.classes.length; i++) {
         const c = gda.classes[i];
         drawEllipse(gda.params[c].mu, gda.params[c].sigma, classColor(c));
       }
@@ -528,6 +492,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (queryMarkerPoint) {
       drawQueryMarker(xScale(queryMarkerPoint[0]), yScale(queryMarkerPoint[1]));
     }
+
+    // Hand off grid computation to the worker.
+    const token = ++renderGeneration;
+    if (gcRecomputingEl) gcRecomputingEl.hidden = false;
+    gcWorker.postMessage({
+      token,
+      showKDE: !!(showKDEEl && showKDEEl.checked),
+      showGDA: !!(showGDAEl && showGDAEl.checked),
+      xmin, xmax, ymin, ymax, nx: 150, ny: 120,
+      classPoints, classes, priors, bandwidth: bw, useLogSpace,
+      gdaFitted: gda.fitted, gdaClasses: gda.classes, gdaParams: gda.params
+    });
   }
 
   function mean(points) {

@@ -20,8 +20,18 @@
 /* --- Zone 3: viz demo grid --- */
 .ui.generative-classification .gc-viz-grid { display: grid; grid-template-columns: 1fr 270px; gap: 26px; align-items: start; }
 @container (max-width: 840px) { .ui.generative-classification .gc-viz-grid { grid-template-columns: 1fr; gap: 22px; } }
+.ui.generative-classification .gc-viz-wrapper { position: relative; }
 .ui.generative-classification #viz { width: 100%; }
 .ui.generative-classification #viz svg { width: 100%; height: auto; display: block; }
+.ui.generative-classification .gc-recomputing {
+  position: absolute; top: 8px; right: 8px;
+  font: 500 11px/1 var(--font-mono); letter-spacing: 0.04em; color: var(--text-muted);
+  background: rgba(6, 6, 7, 0.88); border: 1px solid var(--hairline); border-radius: var(--radius-sm);
+  padding: 4px 8px; pointer-events: none;
+  animation: gc-recomputing-pulse 1.4s ease-in-out infinite;
+}
+.ui.generative-classification .gc-recomputing[hidden] { display: none; }
+@keyframes gc-recomputing-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 .ui.generative-classification .gc-viz-controls { min-width: 0; }
 .ui.generative-classification .gc-ctrl-group + .gc-ctrl-group { margin-top: 20px; }
 .ui.generative-classification .gc-opt { display: flex; align-items: center; gap: 9px; font: 500 12.5px/1.35 var(--font-sans); color: var(--text-2); cursor: pointer; }
