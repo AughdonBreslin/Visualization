@@ -1,7 +1,8 @@
 /* estimation.css - page-specific D3 chart styling for the bootstrap demo (under .ui .estimation). */
 
-/* Reserve the chart height before JS renders so the page does not shift on load. */
+/* Reserve chart and results heights before JS renders so the page does not shift on load. */
 .ui.estimation #bootstrapPlot { min-height: 320px; }
+.ui.estimation #bootstrapStats { min-height: 110px; }
 
 .estimation .boot-svg .axis path,
 .estimation .boot-svg .axis line { stroke: rgba(255, 255, 255, 0.22); }
