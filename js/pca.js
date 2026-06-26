@@ -1,3 +1,5 @@
+import { createDataPlot3D, createOperatorPlot3D } from './pca-3d.js';
+
 document.addEventListener('DOMContentLoaded', () => {
   const dataContainer = document.getElementById('pcaDataViz');
   const operatorContainer = document.getElementById('pcaOperatorViz');
