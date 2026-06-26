@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (shouldSync3DCameras()) dataPlot.applyCameraDir(phi, theta);
       });
     } catch (_err) {
+      if (dataPlot) { dataPlot.destroy(); }
       dataContainer.textContent = 'WebGL is not available in this browser.';
       operatorContainer.textContent = '';
       dataPlot = null;
