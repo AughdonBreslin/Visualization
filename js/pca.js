@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const showVectorsInput = document.getElementById('pcaShowVectors');
   const showLabelsInput = document.getElementById('pcaShowLabels');
   const showRank1Input = document.getElementById('pcaShowRank1');
-  const useCubeAspectInput = document.getElementById('pcaUseCubeAspect');
   const syncCamerasInput = document.getElementById('pcaSyncCameras');
   const randomizeBtn = document.getElementById('pcaRandomize');
   const controlTabButtons = Array.from(document.querySelectorAll('.pca-control-tab'));
@@ -39,10 +38,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const matrixCovEl = document.getElementById('pcaMatrixCov');
 
   let seed = 7;
-  let shared3DCamera = { eye: { x: 1.45, y: 1.35, z: 1.15 } };
-  let last3DCameraSource = dataContainer;
   const GRAPH_FONT_SIZE = 14;
-  const GRAPH_TICK_FONT_SIZE = 12;
+
+  let dataPlot = null;
+  let operatorPlot = null;
+
+  function ensureContextsCreated() {
+    if (dataPlot && operatorPlot) return;
+    try {
+      dataPlot = createDataPlot3D(dataContainer);
+      operatorPlot = createOperatorPlot3D(operatorContainer);
+      dataPlot.onCameraChange((phi, theta) => {
+        if (shouldSync3DCameras()) operatorPlot.applyCameraDir(phi, theta);
+      });
+      operatorPlot.onCameraChange((phi, theta) => {
+        if (shouldSync3DCameras()) dataPlot.applyCameraDir(phi, theta);
+      });
+    } catch (_err) {
+      dataContainer.textContent = 'WebGL is not available in this browser.';
+      operatorContainer.textContent = '';
+      dataPlot = null;
+      operatorPlot = null;
+    }
+  }
+
+  function ensureContextsDestroyed() {
+    if (dataPlot) { dataPlot.destroy(); dataPlot = null; }
+    if (operatorPlot) { operatorPlot.destroy(); operatorPlot = null; }
+  }
 
   function syncAngleLabel() {
     if (!angleValueEl || !angleInput) return;
@@ -61,84 +84,18 @@ document.addEventListener('DOMContentLoaded', () => {
     return Math.max(minValue, x);
   }
 
-  function get3DAspectMode() {
-    return useCubeAspectInput?.checked ? 'cube' : 'data';
-  }
-
   function shouldSync3DCameras() {
     return !!syncCamerasInput?.checked;
   }
 
-  function getLiveCamera(container) {
-    return cloneCamera(container?._fullLayout?.scene?.camera) || cloneCamera(shared3DCamera);
-  }
-
-  function getVectorLength(vector) {
-    if (!vector) return 0;
-    const x = Number(vector.x) || 0;
-    const y = Number(vector.y) || 0;
-    const z = Number(vector.z) || 0;
-    return Math.sqrt(x * x + y * y + z * z);
-  }
-
-  function normalizeVector(vector, fallback = { x: 1.45, y: 1.35, z: 1.15 }) {
-    const length = getVectorLength(vector);
-    if (length < 1e-6) {
-      return normalizeVector(fallback, { x: 1, y: 0, z: 0 });
-    }
-    return {
-      x: (Number(vector.x) || 0) / length,
-      y: (Number(vector.y) || 0) / length,
-      z: (Number(vector.z) || 0) / length,
-    };
-  }
-
-  function scaleVector(vector, length) {
-    return {
-      x: vector.x * length,
-      y: vector.y * length,
-      z: vector.z * length,
-    };
-  }
-
-  function mergeCameraOrientation(sourceCamera, targetCamera) {
-    const nextTargetCamera = cloneCamera(targetCamera) || {};
-    const sourceEye = sourceCamera?.eye || shared3DCamera?.eye;
-    const targetEye = nextTargetCamera.eye || sourceEye || { x: 1.45, y: 1.35, z: 1.15 };
-    const direction = normalizeVector(sourceEye);
-    const targetDistance = Math.max(getVectorLength(targetEye), 1e-6);
-
-    nextTargetCamera.eye = scaleVector(direction, targetDistance);
-    if (sourceCamera?.up) {
-      nextTargetCamera.up = cloneCamera(sourceCamera.up);
-    }
-    if (!nextTargetCamera.center && sourceCamera?.center) {
-      nextTargetCamera.center = cloneCamera(sourceCamera.center);
-    }
-
-    return nextTargetCamera;
-  }
-
-  function applyCameraOrientation(sourceContainer, targetContainer) {
-    if (!window.Plotly || !sourceContainer || !targetContainer) return;
-    if (sourceContainer.dataset.plotlyInitialized !== 'true' || targetContainer.dataset.plotlyInitialized !== 'true') return;
-
-    const sourceCamera = getLiveCamera(sourceContainer);
-
-    targetContainer.dataset.suppressCameraSync = 'true';
-    Plotly.relayout(targetContainer, { 'scene.camera': cloneCamera(sourceCamera) })
-      .catch(() => {})
-      .finally(() => {
-        delete targetContainer.dataset.suppressCameraSync;
-      });
-  }
-
   function debounce(fn, delay = 180) {
     let timer = null;
-    return (...args) => {
+    const d = (...args) => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => fn(...args), delay);
     };
+    d.cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    return d;
   }
 
   function setActiveControlTab(tabName) {
@@ -154,136 +111,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function clear(el) {
-    if (window.Plotly && el?.dataset?.plotlyInitialized === 'true') {
-      Plotly.purge(el);
-    }
     if (el) {
       el.innerHTML = '';
-      delete el.dataset.plotlyInitialized;
       delete el.dataset.renderer;
-      delete el.dataset.cameraSyncBound;
-      delete el.dataset.suppressCameraSync;
     }
-  }
-
-  function renderPlotly(container, traces, layout) {
-    if (!window.Plotly) {
-      throw new Error('Plotly failed to load, so the 3D view is unavailable.');
-    }
-
-    if (container.dataset.renderer && container.dataset.renderer !== 'plotly') {
-      clear(container);
-    }
-
-    const config = {
-      responsive: true,
-      displayModeBar: false,
-    };
-
-    if (container.dataset.plotlyInitialized === 'true') {
-      Plotly.react(container, traces, layout, config);
-    } else {
-      Plotly.newPlot(container, traces, layout, config);
-      container.dataset.plotlyInitialized = 'true';
-    }
-    container.dataset.renderer = 'plotly';
-  }
-
-  function cloneCamera(camera) {
-    if (!camera) return null;
-    return JSON.parse(JSON.stringify(camera));
-  }
-
-  function getCameraFromEvent(sourceContainer, eventData) {
-    const eventCamera = eventData?.['scene.camera'];
-    if (eventCamera) return cloneCamera(eventCamera);
-
-    const cameraKeys = Object.keys(eventData || {}).filter((key) => key.startsWith('scene.camera.'));
-    if (cameraKeys.length > 0) {
-      const baseCamera = cloneCamera(sourceContainer?._fullLayout?.scene?.camera) || {};
-      cameraKeys.forEach((key) => {
-        const segments = key.split('.').slice(1);
-        let cursor = baseCamera;
-        for (let index = 0; index < segments.length - 1; index += 1) {
-          const segment = segments[index];
-          if (!cursor[segment] || typeof cursor[segment] !== 'object') {
-            cursor[segment] = {};
-          }
-          cursor = cursor[segment];
-        }
-        cursor[segments[segments.length - 1]] = eventData[key];
-      });
-      return baseCamera;
-    }
-
-    const liveCamera = sourceContainer?._fullLayout?.scene?.camera;
-    if (liveCamera) return cloneCamera(liveCamera);
-
-    return null;
-  }
-
-  function syncPlotlyCamera(sourceContainer, targetContainer) {
-    if (!window.Plotly || !sourceContainer || !targetContainer) return;
-    if (sourceContainer.dataset.cameraSyncBound === 'true') return;
-
-    let syncFrameId = null;
-    let queuedCamera = null;
-    let relayoutInFlight = false;
-
-    function flushQueuedCamera() {
-      if (relayoutInFlight || !queuedCamera) return;
-      if (targetContainer.dataset.plotlyInitialized !== 'true') return;
-
-      const cameraToApply = cloneCamera(queuedCamera);
-      queuedCamera = null;
-      relayoutInFlight = true;
-      targetContainer.dataset.suppressCameraSync = 'true';
-
-      Plotly.relayout(targetContainer, { 'scene.camera': cloneCamera(cameraToApply) })
-        .catch(() => {})
-        .finally(() => {
-          relayoutInFlight = false;
-          delete targetContainer.dataset.suppressCameraSync;
-          if (queuedCamera) {
-            flushQueuedCamera();
-          }
-        });
-    }
-
-    function queueCameraSync(eventData) {
-      if (sourceContainer.dataset.suppressCameraSync === 'true') return;
-      const nextCamera = getCameraFromEvent(sourceContainer, eventData);
-      if (!nextCamera) return;
-
-      last3DCameraSource = sourceContainer;
-      shared3DCamera = cloneCamera(nextCamera);
-
-      if (!shouldSync3DCameras()) return;
-
-      queuedCamera = cloneCamera(nextCamera);
-
-      if (syncFrameId !== null) return;
-      syncFrameId = window.requestAnimationFrame(() => {
-        syncFrameId = null;
-        flushQueuedCamera();
-      });
-    }
-
-    sourceContainer.on('plotly_relayouting', queueCameraSync);
-    sourceContainer.on('plotly_relayout', queueCameraSync);
-
-    sourceContainer.dataset.cameraSyncBound = 'true';
-  }
-
-  function sync3DPlots() {
-    syncPlotlyCamera(dataContainer, operatorContainer);
-    syncPlotlyCamera(operatorContainer, dataContainer);
-
-    if (!shouldSync3DCameras()) return;
-
-    const sourceContainer = last3DCameraSource === operatorContainer ? operatorContainer : dataContainer;
-    const targetContainer = sourceContainer === dataContainer ? operatorContainer : dataContainer;
-    applyCameraOrientation(sourceContainer, targetContainer);
   }
 
   function mulberry32(seedValue) {
@@ -568,58 +399,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return [minValue - pad, maxValue + pad];
   }
 
-  function makeVectorTrace(vector, color, label) {
-    return {
-      type: 'scatter3d',
-      mode: 'lines',
-      x: [-vector[0], vector[0]],
-      y: [-vector[1], vector[1]],
-      z: [-vector[2], vector[2]],
-      line: { color, width: 7 },
-      hoverinfo: 'skip',
-      showlegend: false,
-    };
-  }
-
-  function makeAxisTrace(axisVector, color, label) {
-    return {
-      type: 'scatter3d',
-      mode: 'lines',
-      x: [0, axisVector[0]],
-      y: [0, axisVector[1]],
-      z: [0, axisVector[2]],
-      line: { color, width: 5 },
-      hoverinfo: 'skip',
-      showlegend: false,
-    };
-  }
-
-  function makeSceneAnnotation(vector, label, color, offsets = {}) {
-    const { ax = 14, ay = -14 } = offsets;
-    return {
-      x: vector[0],
-      y: vector[1],
-      z: vector[2],
-      xref: 'x',
-      yref: 'y',
-      zref: 'z',
-      text: label,
-      showarrow: true,
-      arrowhead: 0,
-      arrowcolor: 'rgba(0,0,0,0)',
-      arrowwidth: 1,
-      ax,
-      ay,
-      bgcolor: 'rgba(0,0,0,0)',
-      bordercolor: 'rgba(0,0,0,0)',
-      borderpad: 1,
-      font: {
-        size: GRAPH_FONT_SIZE,
-        color,
-      },
-    };
-  }
-
   function styleSvgAxis(axisSelection) {
     axisSelection.selectAll('text').attr('font-size', GRAPH_FONT_SIZE);
   }
@@ -833,183 +612,6 @@ document.addEventListener('DOMContentLoaded', () => {
     pointLabelLayer.raise();
   }
 
-  function drawScatterPlot3D({ container, points, principalVectors, showVectors, showLabels, overlayPoints, title, axisLabels, basisLabels }) {
-    const combinedPoints = (overlayPoints ? points.concat(overlayPoints) : points.slice()).concat([[0, 0, 0]]);
-    const bound = Math.max(1, d3.max(combinedPoints.flatMap((point) => point.map((value) => Math.abs(value)))) || 1);
-    const axisLength = bound * 1.15;
-    const axisLabelLength = axisLength * 0.9;
-    const pointTrace = {
-      type: 'scatter3d',
-      mode: showLabels ? 'markers+text' : 'markers',
-      x: points.map((point) => point[0]),
-      y: points.map((point) => point[1]),
-      z: points.map((point) => point[2]),
-      text: showLabels ? points.map((_, index) => String(index + 1)) : undefined,
-      textposition: 'top center',
-      textfont: {
-        color: 'rgba(255,255,255,0.9)',
-        size: GRAPH_FONT_SIZE,
-      },
-      marker: {
-        size: 4,
-        color: 'rgba(74, 163, 255, 0.9)',
-      },
-      hovertemplate: '(%{x:.2f}, %{y:.2f}, %{z:.2f})<extra></extra>',
-      showlegend: false,
-    };
-
-    const axisLabelOffsets = { ax: -26, ay: -18 };
-    const vectorLabelOffsets = { ax: 14, ay: -14 };
-    const sceneAnnotations = [
-      makeSceneAnnotation([0, 0, axisLabelLength], axisLabels[2], 'rgba(255,255,255,0.72)', axisLabelOffsets),
-      makeSceneAnnotation([0, axisLabelLength, 0], axisLabels[1], 'rgba(255,255,255,0.72)', axisLabelOffsets),
-      makeSceneAnnotation([axisLabelLength, 0, 0], axisLabels[0], 'rgba(255,255,255,0.72)', axisLabelOffsets),
-    ];
-
-    const traces = [
-      makeAxisTrace([0, 0, axisLength], 'rgba(255,255,255,0.14)', axisLabels[2]),
-      makeAxisTrace([0, axisLength, 0], 'rgba(255,255,255,0.18)', axisLabels[1]),
-      makeAxisTrace([axisLength, 0, 0], 'rgba(255,255,255,0.22)', axisLabels[0]),
-    ];
-    const overlayTrace = overlayPoints ? {
-        type: 'scatter3d',
-        mode: 'markers',
-        x: overlayPoints.map((point) => point[0]),
-        y: overlayPoints.map((point) => point[1]),
-        z: overlayPoints.map((point) => point[2]),
-        marker: {
-          size: 3.5,
-          color: 'rgba(255, 196, 86, 0.9)',
-        },
-        hovertemplate: 'recon (%{x:.2f}, %{y:.2f}, %{z:.2f})<extra></extra>',
-        showlegend: false,
-      } : null;
-
-    if (showVectors) {
-      const shouldLabelVectors = basisLabels.some((label, index) => label !== axisLabels[index]);
-      const colors = ['rgba(125, 255, 178, 0.95)', 'rgba(255, 196, 86, 0.95)', 'rgba(255, 122, 122, 0.95)'];
-      for (let index = principalVectors.length - 1; index >= 0; index -= 1) {
-        const vector = principalVectors[index];
-        traces.push(makeVectorTrace(vector, colors[index], basisLabels[index]));
-        if (shouldLabelVectors) {
-          sceneAnnotations.push(
-            makeSceneAnnotation(vector, basisLabels[index], colors[index], vectorLabelOffsets),
-          );
-        }
-      }
-    }
-
-    traces.push(pointTrace);
-    if (overlayTrace) {
-      traces.push(overlayTrace);
-    }
-
-    renderPlotly(container, traces, {
-      paper_bgcolor: 'rgba(0,0,0,0)',
-      plot_bgcolor: 'rgba(0,0,0,0)',
-      margin: { l: 0, r: 0, b: 0, t: 0 },
-      uirevision: `pca-data-3d-${get3DAspectMode()}`,
-      scene: {
-        annotations: sceneAnnotations,
-        aspectmode: get3DAspectMode(),
-        camera: getLiveCamera(container),
-        xaxis: {
-          title: { text: axisLabels[0], font: { size: GRAPH_FONT_SIZE } },
-          range: [-axisLength, axisLength],
-          tickfont: { size: GRAPH_TICK_FONT_SIZE },
-          backgroundcolor: 'rgba(255,255,255,0.02)',
-          gridcolor: 'rgba(255,255,255,0.08)',
-          zerolinecolor: 'rgba(255,255,255,0.18)',
-          color: 'rgba(255,255,255,0.72)',
-        },
-        yaxis: {
-          title: { text: axisLabels[1], font: { size: GRAPH_FONT_SIZE } },
-          range: [-axisLength, axisLength],
-          tickfont: { size: GRAPH_TICK_FONT_SIZE },
-          backgroundcolor: 'rgba(255,255,255,0.02)',
-          gridcolor: 'rgba(255,255,255,0.08)',
-          zerolinecolor: 'rgba(255,255,255,0.18)',
-          color: 'rgba(255,255,255,0.72)',
-        },
-        zaxis: {
-          title: { text: axisLabels[2], font: { size: GRAPH_FONT_SIZE } },
-          range: [-axisLength, axisLength],
-          tickfont: { size: GRAPH_TICK_FONT_SIZE },
-          backgroundcolor: 'rgba(255,255,255,0.02)',
-          gridcolor: 'rgba(255,255,255,0.08)',
-          zerolinecolor: 'rgba(255,255,255,0.18)',
-          color: 'rgba(255,255,255,0.72)',
-        },
-      },
-    });
-  }
-
-  function drawScatterPlot(args) {
-    const dimension = args.points[0]?.length || 2;
-    if (dimension === 3) {
-      drawScatterPlot3D(args);
-      return;
-    }
-    drawScatterPlot2D(args);
-  }
-
-  function buildSphereWireframe(transform) {
-    const traces = [];
-    const step = 12;
-    const latitudes = [-60, -30, 0, 30, 60];
-    const longitudes = [0, 30, 60, 90, 120, 150];
-
-    latitudes.forEach((latDeg) => {
-      const lat = degToRad(latDeg);
-      const points = [];
-      for (let lonDeg = 0; lonDeg <= 360; lonDeg += step) {
-        const lon = degToRad(lonDeg);
-        const base = [
-          Math.cos(lat) * Math.cos(lon),
-          Math.cos(lat) * Math.sin(lon),
-          Math.sin(lat),
-        ];
-        points.push(applyMatrix(transform, base));
-      }
-      traces.push({
-        type: 'scatter3d',
-        mode: 'lines',
-        x: points.map((point) => point[0]),
-        y: points.map((point) => point[1]),
-        z: points.map((point) => point[2]),
-        line: { color: 'rgba(74, 163, 255, 0.58)', width: 4 },
-        hoverinfo: 'skip',
-        showlegend: false,
-      });
-    });
-
-    longitudes.forEach((lonDeg) => {
-      const lon = degToRad(lonDeg);
-      const points = [];
-      for (let thetaDeg = 0; thetaDeg <= 360; thetaDeg += step) {
-        const theta = degToRad(thetaDeg);
-        const base = [
-          Math.cos(theta) * Math.cos(lon),
-          Math.cos(theta) * Math.sin(lon),
-          Math.sin(theta),
-        ];
-        points.push(applyMatrix(transform, base));
-      }
-      traces.push({
-        type: 'scatter3d',
-        mode: 'lines',
-        x: points.map((point) => point[0]),
-        y: points.map((point) => point[1]),
-        z: points.map((point) => point[2]),
-        line: { color: 'rgba(255,255,255,0.10)', width: 3 },
-        hoverinfo: 'skip',
-        showlegend: false,
-      });
-    });
-
-    return traces;
-  }
-
   function drawOperatorPlot2D({ container, transform, principalVectors, lambda, showVectors, title }) {
     const {
       root,
@@ -1103,70 +705,6 @@ document.addEventListener('DOMContentLoaded', () => {
     operatorVectors
       .filter((_, index) => index === 0)
       .raise();
-  }
-
-  function drawOperatorPlot3D({ container, transform, principalVectors, lambda, showVectors, title }) {
-    const traces = buildSphereWireframe(transform);
-    const sceneAnnotations = [];
-    if (showVectors) {
-      const colors = ['rgba(125, 255, 178, 0.95)', 'rgba(255, 196, 86, 0.95)', 'rgba(255, 122, 122, 0.95)'];
-      for (let index = principalVectors.length - 1; index >= 0; index -= 1) {
-        const vector = principalVectors[index];
-        const transformed = applyMatrix(transform, vector);
-        traces.push(makeVectorTrace(transformed, colors[index], `λ${index + 1}=${lambda[index].toFixed(2)}`));
-        sceneAnnotations.push(
-          makeSceneAnnotation(
-            transformed,
-            `λ${index + 1}=${lambda[index].toFixed(2)}`,
-            colors[index],
-          ),
-        );
-      }
-    }
-
-    renderPlotly(container, traces, {
-      paper_bgcolor: 'rgba(0,0,0,0)',
-      plot_bgcolor: 'rgba(0,0,0,0)',
-      margin: { l: 0, r: 0, b: 0, t: 0 },
-      uirevision: `pca-operator-3d-${get3DAspectMode()}`,
-      scene: {
-        annotations: sceneAnnotations,
-        aspectmode: get3DAspectMode(),
-        camera: getLiveCamera(container),
-        xaxis: {
-          title: { text: 'x₁', font: { size: GRAPH_FONT_SIZE } },
-          tickfont: { size: GRAPH_TICK_FONT_SIZE },
-          backgroundcolor: 'rgba(255,255,255,0.02)',
-          gridcolor: 'rgba(255,255,255,0.08)',
-          zerolinecolor: 'rgba(255,255,255,0.18)',
-          color: 'rgba(255,255,255,0.72)',
-        },
-        yaxis: {
-          title: { text: 'x₂', font: { size: GRAPH_FONT_SIZE } },
-          tickfont: { size: GRAPH_TICK_FONT_SIZE },
-          backgroundcolor: 'rgba(255,255,255,0.02)',
-          gridcolor: 'rgba(255,255,255,0.08)',
-          zerolinecolor: 'rgba(255,255,255,0.18)',
-          color: 'rgba(255,255,255,0.72)',
-        },
-        zaxis: {
-          title: { text: 'x₃', font: { size: GRAPH_FONT_SIZE } },
-          tickfont: { size: GRAPH_TICK_FONT_SIZE },
-          backgroundcolor: 'rgba(255,255,255,0.02)',
-          gridcolor: 'rgba(255,255,255,0.08)',
-          zerolinecolor: 'rgba(255,255,255,0.18)',
-          color: 'rgba(255,255,255,0.72)',
-        },
-      },
-    });
-  }
-
-  function drawOperatorPlot(args) {
-    if (args.principalVectors[0]?.length === 3) {
-      drawOperatorPlot3D(args);
-      return;
-    }
-    drawOperatorPlot2D(args);
   }
 
   function getAxisLabels(step, dimension) {
@@ -1360,29 +898,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayVectors = getDisplayVectors(step, decomposition, principalVectors);
     const basisLabels = getBasisLabels(step, decomposition.dimension);
 
-    drawScatterPlot({
-      container: dataContainer,
-      points: transformedPoints,
-      principalVectors: displayVectors,
-      showVectors,
-      showLabels,
-      overlayPoints,
-      title: stepName,
-      axisLabels,
-      basisLabels,
-    });
-
-    drawOperatorPlot({
-      container: operatorContainer,
-      transform: currentTransform,
-      principalVectors,
-      lambda: decomposition.lambda,
-      showVectors,
-      title: 'How the covariance operator acts on directions',
-    });
+    const combinedForBound = (overlayPoints ? transformedPoints.concat(overlayPoints) : transformedPoints).concat([[0,0,0]]);
+    const bound = Math.max(1, d3.max(combinedForBound.flatMap(p => p.map(Math.abs))) || 1);
 
     if (decomposition.dimension === 3) {
-      sync3DPlots();
+      ensureContextsCreated();
+      if (dataPlot) {
+        dataPlot.update({
+          points: transformedPoints,
+          principalVectors: displayVectors,
+          showVectors,
+          showLabels,
+          overlayPoints,
+          axisLabels,
+          basisLabels,
+          bound,
+        });
+      }
+      if (operatorPlot) {
+        operatorPlot.update({
+          transform: currentTransform,
+          principalVectors,
+          lambda: decomposition.lambda,
+          showVectors,
+        });
+      }
+    } else {
+      ensureContextsDestroyed();
+      drawScatterPlot2D({
+        container: dataContainer,
+        points: transformedPoints,
+        principalVectors: displayVectors,
+        showVectors,
+        showLabels,
+        overlayPoints,
+        axisLabels,
+        basisLabels,
+      });
+      drawOperatorPlot2D({
+        container: operatorContainer,
+        transform: currentTransform,
+        principalVectors,
+        lambda: decomposition.lambda,
+        showVectors,
+        title: 'How the covariance operator acts on directions',
+      });
     }
 
     renderLegend(dataLegendEl, getDataLegendItems({
@@ -1403,6 +963,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const debouncedRender = debounce(render, 220);
+  const debouncedSliderRender = debounce(render, 80);
   [
     dimensionInput,
     presetInput,
@@ -1412,7 +973,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showVectorsInput,
     showLabelsInput,
     showRank1Input,
-    useCubeAspectInput,
     syncCamerasInput,
   ].forEach((element) => {
     element?.addEventListener('input', debouncedRender);
@@ -1432,50 +992,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
   spread1Input?.addEventListener('input', () => {
     syncNumericLabel(spread1Input, spread1ValueEl);
-    render();
+    debouncedSliderRender();
   });
   spread1Input?.addEventListener('change', () => {
+    debouncedSliderRender.cancel();
     syncNumericLabel(spread1Input, spread1ValueEl);
     render();
   });
 
   spread2Input?.addEventListener('input', () => {
     syncNumericLabel(spread2Input, spread2ValueEl);
-    render();
+    debouncedSliderRender();
   });
   spread2Input?.addEventListener('change', () => {
+    debouncedSliderRender.cancel();
     syncNumericLabel(spread2Input, spread2ValueEl);
     render();
   });
 
   spread3Input?.addEventListener('input', () => {
     syncNumericLabel(spread3Input, spread3ValueEl);
-    render();
+    debouncedSliderRender();
   });
   spread3Input?.addEventListener('change', () => {
+    debouncedSliderRender.cancel();
     syncNumericLabel(spread3Input, spread3ValueEl);
     render();
   });
 
-  angleInput?.addEventListener('input', syncAngleLabel);
-  angleInput?.addEventListener('input', render);
-  angleInput?.addEventListener('change', syncAngleLabel);
-  angleInput?.addEventListener('change', render);
+  angleInput?.addEventListener('input', () => { syncAngleLabel(); debouncedSliderRender(); });
+  angleInput?.addEventListener('change', () => { debouncedSliderRender.cancel(); syncAngleLabel(); render(); });
 
   elevationInput?.addEventListener('input', () => {
     syncNumericLabel(elevationInput, elevationValueEl, 0, '°');
-    render();
+    debouncedSliderRender();
   });
   elevationInput?.addEventListener('change', () => {
+    debouncedSliderRender.cancel();
     syncNumericLabel(elevationInput, elevationValueEl, 0, '°');
     render();
   });
 
   noiseInput?.addEventListener('input', () => {
     syncNumericLabel(noiseInput, noiseValueEl);
-    render();
+    debouncedSliderRender();
   });
   noiseInput?.addEventListener('change', () => {
+    debouncedSliderRender.cancel();
     syncNumericLabel(noiseInput, noiseValueEl);
     render();
   });
