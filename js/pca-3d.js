@@ -41,6 +41,18 @@ function makeCss2DLabel(text) {
   return new CSS2DObject(div);
 }
 
+function makeCircleTexture() {
+  const size = 32;
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const c = canvas.getContext('2d');
+  c.beginPath();
+  c.arc(size / 2, size / 2, 14, 0, Math.PI * 2);
+  c.fillStyle = '#ffffff';
+  c.fill();
+  return new THREE.CanvasTexture(canvas);
+}
+
 // --- wireframe sphere helpers (used by createOperatorPlot3D) ---
 
 const LAT_DEGS = [-60, -30, 0, 30, 60];
@@ -185,10 +197,11 @@ export function createDataPlot3D(container) {
   });
 
   // Scatter points (BufferGeometry grows on demand, never shrinks)
+  const circleTex = makeCircleTexture();
   const pointsCapRef = { cap: 0 };
   const pointsMesh = new THREE.Points(
     new THREE.BufferGeometry(),
-    new THREE.PointsMaterial({ color: 0x4aa3ff, size: 6, sizeAttenuation: false, transparent: true, opacity: 0.9 }),
+    new THREE.PointsMaterial({ color: 0x4aa3ff, size: 6, sizeAttenuation: false, transparent: true, opacity: 0.9, map: circleTex, alphaTest: 0.5 }),
   );
   scene.add(pointsMesh);
 
@@ -196,7 +209,7 @@ export function createDataPlot3D(container) {
   const overlayCapRef = { cap: 0 };
   const overlayMesh = new THREE.Points(
     new THREE.BufferGeometry(),
-    new THREE.PointsMaterial({ color: 0xffc456, size: 5, sizeAttenuation: false, transparent: true, opacity: 0.9 }),
+    new THREE.PointsMaterial({ color: 0xffc456, size: 5, sizeAttenuation: false, transparent: true, opacity: 0.9, map: circleTex, alphaTest: 0.5 }),
   );
   overlayMesh.visible = false;
   scene.add(overlayMesh);
@@ -229,9 +242,38 @@ export function createDataPlot3D(container) {
   }
 
   let initialized = false;
+  let gridBound = 0;
+  let gridHelpers = [];
+
+  function updateGrid(safebound) {
+    if (Math.abs(safebound - gridBound) < 0.01) return;
+    gridHelpers.forEach(g => { scene.remove(g); g.geometry.dispose(); g.material.dispose(); });
+    gridHelpers = [];
+    const size = safebound * 2;
+    const divs = 5;
+    const dimColor = 0x1e2840;
+
+    const g1 = new THREE.GridHelper(size, divs, dimColor, dimColor);
+    g1.position.y = -safebound;
+    scene.add(g1);
+
+    const g2 = new THREE.GridHelper(size, divs, dimColor, dimColor);
+    g2.rotation.x = Math.PI / 2;
+    g2.position.z = -safebound;
+    scene.add(g2);
+
+    const g3 = new THREE.GridHelper(size, divs, dimColor, dimColor);
+    g3.rotation.z = Math.PI / 2;
+    g3.position.x = -safebound;
+    scene.add(g3);
+
+    gridHelpers.push(g1, g2, g3);
+    gridBound = safebound;
+  }
 
   function update({ points, principalVectors, showVectors, showLabels, overlayPoints, axisLabels, basisLabels, bound }) {
     const safebound = bound || 1;
+    updateGrid(safebound);
     const axisLen = safebound * 1.15;
 
     if (!initialized) {
@@ -307,6 +349,8 @@ export function createDataPlot3D(container) {
       a.cone.geometry.dispose();
       a.cone.material.dispose();
     });
+    circleTex.dispose();
+    gridHelpers.forEach(g => { g.geometry.dispose(); g.material.dispose(); });
     ctx.renderer.dispose();
     if (container.contains(ctx.renderer.domElement)) container.removeChild(ctx.renderer.domElement);
     if (container.contains(ctx.css2d.domElement)) container.removeChild(ctx.css2d.domElement);
