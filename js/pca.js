@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const showLabelsInput = document.getElementById('pcaShowLabels');
   const showRank1Input = document.getElementById('pcaShowRank1');
   const syncCamerasInput = document.getElementById('pcaSyncCameras');
+  const useCubeAspectInput = document.getElementById('pcaUseCubeAspect');
   const randomizeBtn = document.getElementById('pcaRandomize');
   const controlTabButtons = Array.from(document.querySelectorAll('.pca-control-tab'));
   const controlTabPanels = Array.from(document.querySelectorAll('.pca-control-panel'));
@@ -912,21 +913,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (decomposition.dimension === 3) {
       ensureContextsCreated();
+
+      const useCubeAspect = !!useCubeAspectInput?.checked;
+      let plotPoints = transformedPoints;
+      let plotOverlayPoints = overlayPoints;
+      let plotVectors = displayVectors;
+      let plotBound = bound;
+      let plotTransform = currentTransform;
+
+      if (useCubeAspect && transformedPoints.length > 0) {
+        const allForScale = overlayPoints ? transformedPoints.concat(overlayPoints) : transformedPoints;
+        const axisScale = [0, 1, 2].map(ax => {
+          const maxAbs = d3.max(allForScale, p => Math.abs(p[ax])) || 0;
+          return maxAbs > 1e-9 ? maxAbs : 1;
+        });
+        plotPoints = transformedPoints.map(p => [p[0] / axisScale[0], p[1] / axisScale[1], p[2] / axisScale[2]]);
+        plotOverlayPoints = overlayPoints
+          ? overlayPoints.map(p => [p[0] / axisScale[0], p[1] / axisScale[1], p[2] / axisScale[2]])
+          : null;
+        plotVectors = displayVectors.map(v => [v[0] / axisScale[0], v[1] / axisScale[1], v[2] / axisScale[2]]);
+        plotBound = 1;
+        plotTransform = currentTransform.map((row, i) => row.map(v => v / axisScale[i]));
+      }
+
       if (dataPlot) {
         dataPlot.update({
-          points: transformedPoints,
-          principalVectors: displayVectors,
+          points: plotPoints,
+          principalVectors: plotVectors,
           showVectors,
           showLabels,
-          overlayPoints,
+          overlayPoints: plotOverlayPoints,
           axisLabels,
           basisLabels,
-          bound,
+          bound: plotBound,
         });
       }
       if (operatorPlot) {
         operatorPlot.update({
-          transform: currentTransform,
+          transform: plotTransform,
           principalVectors,
           lambda: decomposition.lambda,
           showVectors,
@@ -982,6 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showLabelsInput,
     showRank1Input,
     syncCamerasInput,
+    useCubeAspectInput,
   ].forEach((element) => {
     element?.addEventListener('input', debouncedRender);
     element?.addEventListener('change', render);

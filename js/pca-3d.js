@@ -204,6 +204,7 @@ export function createDataPlot3D(container) {
     new THREE.PointsMaterial({ color: 0x4aa3ff, size: 6, sizeAttenuation: false, transparent: true, opacity: 0.9, map: circleTex, alphaTest: 0.5 }),
   );
   scene.add(pointsMesh);
+  pointsMesh.renderOrder = 1;
 
   // Overlay points (rank reconstruction, hidden when no overlay)
   const overlayCapRef = { cap: 0 };
@@ -213,6 +214,7 @@ export function createDataPlot3D(container) {
   );
   overlayMesh.visible = false;
   scene.add(overlayMesh);
+  overlayMesh.renderOrder = 1;
 
   // PC vector arrows (ArrowHelper: from origin toward +v, arrowhead at positive tip)
   const arrows = PC_COLORS.map(color => {
@@ -242,6 +244,7 @@ export function createDataPlot3D(container) {
   }
 
   let initialized = false;
+  let lastBound = 0;
   let gridBound = 0;
   let gridHelpers = [];
 
@@ -276,11 +279,19 @@ export function createDataPlot3D(container) {
     updateGrid(safebound);
     const axisLen = safebound * 1.15;
 
+    controls.maxDistance = safebound * 6;
     if (!initialized) {
       camera.position.setLength(Math.max(safebound * 3, 4));
       controls.update();
       initialized = true;
+    } else if (safebound > lastBound * 1.5) {
+      camera.position.setLength(camera.position.length() * (safebound / lastBound));
+      controls.update();
+    } else if (camera.position.length() > controls.maxDistance) {
+      camera.position.setLength(controls.maxDistance);
+      controls.update();
     }
+    lastBound = safebound;
 
     // Axis lines and labels
     axisGeos.forEach((g, i) => {
@@ -433,6 +444,13 @@ export function createOperatorPlot3D(container) {
       camera.position.setLength(4);
       controls.update();
       initialized = true;
+    }
+
+    const maxExtent = Math.max(1, ...lambda.map(l => Math.abs(l) || 0));
+    controls.maxDistance = maxExtent * 5;
+    if (camera.position.length() > controls.maxDistance) {
+      camera.position.setLength(controls.maxDistance);
+      controls.update();
     }
 
     updateWireframe(latLines, lonLines, transform);
