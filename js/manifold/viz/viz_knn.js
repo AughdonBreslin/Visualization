@@ -83,30 +83,14 @@ export function mountKnn(container, state, { width = 480, height = 360 } = {}) {
     .attr('d', edgePathD()).attr('fill', 'none')
     .attr('stroke', 'rgba(255,255,255,0.32)').attr('stroke-width', 0.8)
     .attr('opacity', 0);
-  // Separate path for the edges incident to a hovered node (built on demand).
-  const highlightPath = gEdges.append('path').attr('class', 'knn-edge-highlight')
-    .attr('fill', 'none').attr('stroke', 'rgba(255,255,255,0.95)').attr('stroke-width', 1.6)
-    .attr('opacity', 0);
-
-  function incidentEdges(i) {
-    const out = [];
-    for (let k = 0; k < edges.length; k++) { if (edges[k][0] === i || edges[k][1] === i) out.push(edges[k]); }
-    return out;
-  }
-
   const gPoints = svg.append('g');
   const nodeEls = proj.map(p => gPoints.append('circle')
     .attr('cx', p.sx).attr('cy', p.sy).attr('r', 2.8)
-    .attr('fill', colorOf(p.i))
-    .attr('class', 'knn-node')
-    .attr('data-i', p.i)
-    .style('cursor', 'pointer'));
+    .attr('fill', colorOf(p.i)));
 
-  let hoverNode = -1;
   function rerender() {
     proj = project(R, recentered, scale, cx, cy);
     edgePath.attr('d', edgePathD());
-    if (hoverNode >= 0) highlightPath.attr('d', edgePathD(incidentEdges(hoverNode)));
     nodeEls.forEach((node, i) => {
       node.attr('cx', proj[i].sx).attr('cy', proj[i].sy);
     });
@@ -116,22 +100,8 @@ export function mountKnn(container, state, { width = 480, height = 360 } = {}) {
   // stagger (delay = i * 4ms) meant a several-thousand-edge graph kept fading in for ~20s.
   edgePath.transition().delay(60).duration(420).attr('opacity', 1);
 
-  nodeEls.forEach((node, i) => {
-    node.on('mouseenter', () => {
-      hoverNode = i;
-      edgePath.attr('opacity', 0.06);
-      highlightPath.attr('d', edgePathD(incidentEdges(i))).attr('opacity', 1);
-    });
-    node.on('mouseleave', () => {
-      hoverNode = -1;
-      edgePath.attr('opacity', 1);
-      highlightPath.attr('opacity', 0);
-    });
-  });
-
-  let dragging = false, lastX = 0, lastY = 0;
+  let dragging = false, lastX = 0, lastY = 0, rafId = null;
   svg.on('pointerdown', (event) => {
-    if (event.target && event.target.classList && event.target.classList.contains('knn-node')) return;
     dragging = true; lastX = event.clientX; lastY = event.clientY;
     svg.style('cursor', 'grabbing');
     try { svg.node().setPointerCapture(event.pointerId); } catch (e) {}
@@ -142,7 +112,7 @@ export function mountKnn(container, state, { width = 480, height = 360 } = {}) {
     const dy = (event.clientY - lastY) * 0.008;
     lastX = event.clientX; lastY = event.clientY;
     R = matmul(matmul(rotX(dy), rotY(dx)), R);
-    rerender();
+    if (!rafId) rafId = requestAnimationFrame(() => { rafId = null; rerender(); });
   });
   function endDrag(event) {
     dragging = false; svg.style('cursor', 'grab');
