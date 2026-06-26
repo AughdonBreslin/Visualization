@@ -54,3 +54,13 @@
 @container (max-width: 480px) {
   .ui.pca .pca-control-panel .demo-band { grid-template-columns: 1fr; }
 }
+
+/* CSS2DRenderer labels: axis names, PC vector labels, eigenvalue labels, point numbers */
+.pca-label {
+  font: 500 11px/1 var(--font-mono);
+  color: rgba(255, 255, 255, 0.72);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  padding: 2px 4px;
+}
