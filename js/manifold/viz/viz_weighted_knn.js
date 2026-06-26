@@ -70,51 +70,82 @@ export function mountWeightedKnn(container, state, { width = 480, height = 360 }
   if (t) for (let i = 0; i < t.length; i++) { if (t[i] < tMin) tMin = t[i]; if (t[i] > tMax) tMax = t[i]; }
   const colorOf = (i) => t ? rainbow(t[i], tMin, tMax) : '#7ec8ff';
 
+  // Pre-build per-node incident edge index for O(k) hover updates.
+  const incidentByNode = Array.from({length: N}, () => []);
+  edges.forEach(([a, b], idx) => {
+    incidentByNode[a].push(idx);
+    incidentByNode[b].push(idx);
+  });
+  const maxK = incidentByNode.reduce((m, e) => Math.max(m, e.length), 0);
+
+  // Single path for all edges. Replaces N*k individual <line> elements so
+  // drag redraws cost one attribute write instead of 6×N*k DOM mutations.
   const gEdges = svg.append('g');
-  const gPoints = svg.append('g');
+  const bgPath = gEdges.append('path').attr('fill', 'none')
+    .attr('stroke', 'rgba(255,255,255,0.22)').attr('stroke-width', 0.5);
+
+  function bgPathD() {
+    let d = '';
+    for (let k = 0; k < edges.length; k++) {
+      const a = proj[edges[k][0]], b = proj[edges[k][1]];
+      d += 'M' + a.sx.toFixed(1) + ' ' + a.sy.toFixed(1) + 'L' + b.sx.toFixed(1) + ' ' + b.sy.toFixed(1);
+    }
+    return d;
+  }
+
+  // Pre-created incident lines: at most maxK, reused across hover changes.
+  const gIncident = svg.append('g');
+  const incidentLineEls = Array.from({length: maxK}, () =>
+    gIncident.append('line').attr('fill', 'none')
+      .attr('stroke', 'rgba(255,255,255,0.92)').attr('stroke-linecap', 'round')
+      .attr('display', 'none'));
 
   let proj = project(R, recentered, scale, cx, cy);
-  const edgeEls = edges.map(([a, b]) =>
-    gEdges.append('line').attr('data-from', a).attr('data-to', b));
-  const nodeEls = proj.map(p =>
-    gPoints.append('circle').attr('data-i', p.i).style('cursor', 'pointer'));
 
-  function redraw() {
-    proj = project(R, recentered, scale, cx, cy);
-    edgeEls.forEach((e, idx) => {
-      const a = edges[idx][0];
-      const b = edges[idx][1];
-      const isSelectedEdge = (a === selectedPoint || b === selectedPoint);
-      let wij = 0;
-      if (isSelectedEdge) {
-        const other = a === selectedPoint ? b : a;
-        wij = W ? W[selectedPoint * N + other] : 0;
-      }
-      e.attr('x1', proj[a].sx).attr('y1', proj[a].sy)
-       .attr('x2', proj[b].sx).attr('y2', proj[b].sy)
-       .attr('stroke', isSelectedEdge ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.10)')
-       .attr('stroke-width', isSelectedEdge ? strokeWidthForWeight(wij) : 0.5);
+  const gPoints = svg.append('g');
+  const nodeEls = proj.map(p =>
+    gPoints.append('circle').attr('cx', p.sx).attr('cy', p.sy)
+      .attr('r', 2.5).attr('fill', colorOf(p.i)).style('cursor', 'pointer'));
+
+  function updateIncidentLines() {
+    const incs = incidentByNode[selectedPoint];
+    incs.forEach((edgeIdx, k) => {
+      const [a, b] = edges[edgeIdx];
+      const other = a === selectedPoint ? b : a;
+      const wij = W ? W[selectedPoint * N + other] : 0;
+      const pa = proj[a], pb = proj[b];
+      incidentLineEls[k]
+        .attr('x1', pa.sx).attr('y1', pa.sy)
+        .attr('x2', pb.sx).attr('y2', pb.sy)
+        .attr('stroke-width', strokeWidthForWeight(wij))
+        .attr('display', null);
     });
-    nodeEls.forEach((node, i) => {
-      const isSelected = (i === selectedPoint);
-      node.attr('cx', proj[i].sx).attr('cy', proj[i].sy)
-        .attr('r', isSelected ? 4.5 : 2.5)
-        .attr('fill', isSelected ? '#ff9f43' : colorOf(i));
-    });
+    for (let k = incs.length; k < maxK; k++) incidentLineEls[k].attr('display', 'none');
   }
-  redraw();
+
+  function applyNodeSelection(prev, next) {
+    if (prev >= 0) nodeEls[prev].attr('r', 2.5).attr('fill', colorOf(prev));
+    nodeEls[next].attr('r', 4.5).attr('fill', '#ff9f43');
+  }
+
+  // Initial render.
+  bgPath.attr('d', bgPathD());
+  applyNodeSelection(-1, selectedPoint);
+  updateIncidentLines();
+  gEdges.attr('opacity', 0.35);
 
   nodeEls.forEach((node, i) => {
     node.on('mouseenter', () => {
       if (i === selectedPoint) return;
+      const prev = selectedPoint;
       selectedPoint = i;
-      redraw();
+      applyNodeSelection(prev, i);
+      updateIncidentLines();
     });
   });
 
   let dragging = false, lastX = 0, lastY = 0, rafId = null;
   svg.on('pointerdown', (event) => {
-    if (event.target && event.target.tagName === 'circle') return;
     dragging = true; lastX = event.clientX; lastY = event.clientY;
     svg.style('cursor', 'grabbing');
     try { svg.node().setPointerCapture(event.pointerId); } catch (e) {}
@@ -125,7 +156,13 @@ export function mountWeightedKnn(container, state, { width = 480, height = 360 }
     const dy = (event.clientY - lastY) * 0.008;
     lastX = event.clientX; lastY = event.clientY;
     R = matmul(matmul(rotX(dy), rotY(dx)), R);
-    if (!rafId) rafId = requestAnimationFrame(() => { rafId = null; redraw(); });
+    if (!rafId) rafId = requestAnimationFrame(() => {
+      rafId = null;
+      proj = project(R, recentered, scale, cx, cy);
+      bgPath.attr('d', bgPathD());
+      nodeEls.forEach((node, i) => node.attr('cx', proj[i].sx).attr('cy', proj[i].sy));
+      updateIncidentLines();
+    });
   });
   function endDrag(event) {
     dragging = false; svg.style('cursor', 'grab');
