@@ -120,7 +120,7 @@ function makePlot3DContext(container) {
   ctx.render = function () {
     const w = container.clientWidth || 400;
     const h = container.clientHeight || 400;
-    renderer.setSize(w, h, false);
+    renderer.setSize(w, h);
     css2d.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
@@ -150,7 +150,6 @@ function makeContextApi(ctx, container) {
       const r = ctx.camera.position.length();
       ctx.camera.position.setFromSphericalCoords(r, phi, theta);
       ctx.controls.update();
-      ctx.render();
       ctx.syncing = false;
     },
   };
