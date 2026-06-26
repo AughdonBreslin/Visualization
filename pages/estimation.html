@@ -7,10 +7,17 @@
   <title>Estimation: Bias, Variance, MSE, MLE</title>
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>document.documentElement.classList.add('math-loading');</script>
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
-      svg: { fontCache: 'global' }
+      svg: { fontCache: 'global' },
+      startup: {
+        ready() {
+          MathJax.startup.defaultReady();
+          MathJax.startup.promise.then(() => document.documentElement.classList.remove('math-loading'));
+        }
+      }
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
@@ -144,11 +151,10 @@
         <p>
           The initial sample of data is just one of many possible samples we could have drawn from the data-generating process, and only gives us one realization of the <a class="def" href="glossary.html#estimator">estimator</a> $\hat\theta$.
           The <a class="def" href="glossary.html#bootstrap">bootstrap</a> is one way to get a better understanding of the uncertainty of our estimate by redrawing many collections of samples from our observed dataset (with replacement) and computing $\hat\theta^*$ for each resample.
-          <ul>
-
-            <li>If $\theta = \mu$, then on each resample, $\hat\theta^*=\hat\mu^*=\frac{1}{n}\sum_{i=1}^n X_i^*$</li>
-          </ul>
+          When $\theta = \mu$, each resample estimate is:
         </p>
+        <div class="formula">$$\hat\theta^*=\hat\mu^*=\frac{1}{n}\sum_{i=1}^n X_i^*$$</div>
+        <p>
 
         <p>
           This allows us to empirically approximate the <a class="def" href="glossary.html#sampling-distribution">sampling distribution</a> of $\hat\theta$ and estimate its <a class="def" href="glossary.html#standard-error">standard error</a> and <a class="def" href="glossary.html#confidence-interval">confidence intervals</a>.
