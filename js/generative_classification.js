@@ -188,8 +188,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   bandwidthInput && bandwidthInput.addEventListener('input', ()=>{ render(); });
-  showKDEChk && showKDEChk.addEventListener('change', ()=>{ render(); });
-  showGDAChk && showGDAChk.addEventListener('change', ()=>{ render(); });
+  showKDEChk && showKDEChk.addEventListener('change', () => {
+    const show = showKDEChk.checked;
+    g.select('g.heatmap').attr('display', show ? null : 'none');
+    g.select('g.kde-soft-boundary').attr('display', show ? null : 'none');
+  });
+  showGDAChk && showGDAChk.addEventListener('change', () => {
+    const show = showGDAChk.checked;
+    g.select('g.gda-boundary').attr('display', show ? null : 'none');
+    g.select('g.gda-ellipses').attr('display', show ? null : 'none');
+  });
 
   function kdePdf(points, bandwidth) {
     const invTwoSigma2 = 1 / (2 * bandwidth * bandwidth);
@@ -400,11 +408,18 @@ document.addEventListener('DOMContentLoaded', () => {
       overlayCache.kdePostInfo = result.kdePostInfo;
       overlayCache.kdeCacheKey = lastPostedKeys.kde;
       applyKDEOverlay(result.kdePostInfo);
+      if (showKDEChk && !showKDEChk.checked) {
+        g.select('g.heatmap').attr('display', 'none');
+        g.select('g.kde-soft-boundary').attr('display', 'none');
+      }
     }
     if (result.gdaBoundaryLines) {
       overlayCache.gdaBoundaryLines = result.gdaBoundaryLines;
       overlayCache.gdaCacheKey = lastPostedKeys.gda;
       applyGDABoundary(result.gdaBoundaryLines);
+      if (showGDAChk && !showGDAChk.checked) {
+        g.select('g.gda-boundary').attr('display', 'none');
+      }
     }
 
     if (gcRecomputingEl) gcRecomputingEl.hidden = true;
@@ -472,11 +487,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const gdaHit = overlayCache.gdaCacheKey === gdaCacheKey && overlayCache.gdaBoundaryLines;
 
     // Pre-create layer groups in z-order (background to foreground).
-    // Cached overlay data is painted immediately; the worker fills only what is stale.
+    // Cached data is painted immediately and hidden via display when the checkbox is off;
+    // the worker fills only stale layers.
     g.append('g').attr('class', 'heatmap');
     g.append('g').attr('class', 'kde-soft-boundary');
 
-    if (showKDEEl && showKDEEl.checked && kdeHit) applyKDEOverlay(overlayCache.kdePostInfo);
+    if (kdeHit) applyKDEOverlay(overlayCache.kdePostInfo);
+    if (showKDEEl && !showKDEEl.checked) {
+      g.select('g.heatmap').attr('display', 'none');
+      g.select('g.kde-soft-boundary').attr('display', 'none');
+    }
 
     g.append('g').selectAll('circle.point').data(data).enter().append('circle')
       .attr('class','point')
@@ -501,14 +521,20 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => showCalculationForPoint([x, y]), 0);
     });
 
-    // GDA boundary group; ellipses draw immediately from gda.params (no grid needed).
+    // GDA groups are always created so display toggling works without a re-render.
+    // Ellipses draw immediately from gda.params; boundary lines come from cache or worker.
     g.append('g').attr('class', 'gda-boundary');
-    if (showGDAEl && showGDAEl.checked && gda.fitted) {
+    g.append('g').attr('class', 'gda-ellipses');
+    if (gda.fitted) {
       if (gdaHit) applyGDABoundary(overlayCache.gdaBoundaryLines);
       for (let i = 0; i < gda.classes.length; i++) {
         const c = gda.classes[i];
         drawEllipse(gda.params[c].mu, gda.params[c].sigma, classColor(c));
       }
+    }
+    if (showGDAEl && !showGDAEl.checked) {
+      g.select('g.gda-boundary').attr('display', 'none');
+      g.select('g.gda-ellipses').attr('display', 'none');
     }
 
     // Persist the clicked query marker across re-renders (draw it on top).
@@ -516,9 +542,10 @@ document.addEventListener('DOMContentLoaded', () => {
       drawQueryMarker(xScale(queryMarkerPoint[0]), yScale(queryMarkerPoint[1]));
     }
 
-    // Dispatch only what the cache cannot supply.
-    const needsKDE = !!(showKDEEl && showKDEEl.checked) && !kdeHit;
-    const needsGDA = !!(showGDAEl && showGDAEl.checked && gda.fitted) && !gdaHit;
+    // Dispatch to the worker for any stale layer, regardless of checkbox state, so the
+    // data is already cached when the user enables the overlay.
+    const needsKDE = !kdeHit;
+    const needsGDA = gda.fitted && !gdaHit;
     const token = ++renderGeneration;
     if (needsKDE || needsGDA) {
       lastPostedKeys = { kde: kdeCacheKey, gda: gdaCacheKey };
@@ -1020,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const ryr = rx * Math.sin(angle) + ry * Math.cos(angle);
       return [mu[0] + rxr, mu[1] + ryr];
     });
-    g.append('path').attr('d', d3.line().x(d=>xScale(d[0])).y(d=>yScale(d[1]))(pts))
+    g.select('g.gda-ellipses').append('path').attr('d', d3.line().x(d=>xScale(d[0])).y(d=>yScale(d[1]))(pts))
       .attr('stroke', color).attr('stroke-width', 1.2).attr('fill','none').attr('opacity',0.9);
   }
 
