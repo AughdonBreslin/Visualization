@@ -938,8 +938,11 @@ document.addEventListener('DOMContentLoaded', () => {
         axisDisplayScale = axisScale;
       }
 
-      const maxLambda = Math.max(1, ...(decomposition.lambda || [1]).map(l => Math.abs(l) || 0));
-      const operatorBound = useCubeAspect ? 1.5 : Math.max(1.5, maxLambda * 1.15);
+      const operatorMaxExtent = Math.max(
+        1,
+        ...currentTransform.map(row => Math.sqrt(row.reduce((s, v) => s + v * v, 0)))
+      );
+      const operatorBound = useCubeAspect ? 1.5 : Math.max(1.5, operatorMaxExtent * 1.15);
 
       if (dataPlot) {
         dataPlot.update({
