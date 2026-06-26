@@ -12,24 +12,11 @@
   }
 
   function randn(rng) {
-    // Box–Muller
+    // Box-Muller
     let u = 0, v = 0;
     while (u === 0) u = rng();
     while (v === 0) v = rng();
     return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-  }
-
-  function mean(xs) {
-    let s = 0;
-    for (let i = 0; i < xs.length; i++) s += xs[i];
-    return s / xs.length;
-  }
-
-  function median(xs) {
-    const a = xs.slice().sort((x, y) => x - y);
-    const n = a.length;
-    const mid = Math.floor(n / 2);
-    return n % 2 ? a[mid] : 0.5 * (a[mid - 1] + a[mid]);
   }
 
   function clampInt(x, lo, hi) {
@@ -49,31 +36,6 @@
     const abs = Math.abs(x);
     if (abs >= 1000 || (abs > 0 && abs < 1e-3)) return x.toExponential(2);
     return x.toFixed(digits);
-  }
-
-  function bootstrapStatistic(sample, statFn, B, rng) {
-    const n = sample.length;
-    const stats = new Array(B);
-    const resample = new Array(n);
-
-    for (let b = 0; b < B; b++) {
-      for (let i = 0; i < n; i++) {
-        const j = Math.floor(rng() * n);
-        resample[i] = sample[j];
-      }
-      stats[b] = statFn(resample);
-    }
-
-    return stats;
-  }
-
-  function percentileCI(sortedStats, level) {
-    const alpha = 1 - level;
-    const loQ = alpha / 2;
-    const hiQ = 1 - alpha / 2;
-    const lo = d3.quantileSorted(sortedStats, loQ);
-    const hi = d3.quantileSorted(sortedStats, hiQ);
-    return { lo, hi };
   }
 
   function init() {
@@ -100,6 +62,10 @@
       last: null,
     };
 
+    // Web Worker for the bootstrap loop -- keeps the main thread free during computation.
+    const worker = new Worker('../js/estimation-bootstrap-worker.js');
+    let generation = 0;
+
     function getConfig() {
       const n = clampInt(elN.value, 5, 500);
       const B = clampInt(elB.value, 100, 20000);
@@ -108,7 +74,6 @@
       const mu = clampFloat(elMu.value, -10, 10);
       const sigma = clampFloat(elSigma.value, 0.05, 10);
       const statKey = elStat.value;
-      const statFn = statKey === "median" ? median : mean;
 
       elN.value = String(n);
       elB.value = String(B);
@@ -117,7 +82,7 @@
       elMu.value = String(mu);
       elSigma.value = String(sigma);
 
-      return { n, B, level, seed, mu, sigma, statKey, statFn };
+      return { n, B, level, seed, mu, sigma, statKey };
     }
 
     function drawSample() {
@@ -132,20 +97,8 @@
     const margin = { top: 16, right: 18, bottom: 34, left: 46 };
     const height = 320;
 
-    function render() {
-      if (!state.sample.length) drawSample();
-
-      const { B, level, seed, mu, sigma, statKey, statFn } = getConfig();
-      const rng = mulberry32(seed + 1337);
-
-      const thetaHat = statFn(state.sample);
-      const stats = bootstrapStatistic(state.sample, statFn, B, rng);
-      stats.sort((a, b) => a - b);
-
-      const { lo, hi } = percentileCI(stats, level);
-      const se = d3.deviation(stats) || 0;
-
-      const binsCount = Math.max(12, Math.min(46, Math.round(Math.sqrt(B))));
+    function drawChart({ stats, thetaHat, se, ci: { lo, hi } }, { mu, sigma, level, statKey }) {
+      const binsCount = Math.max(12, Math.min(46, Math.round(Math.sqrt(stats.length))));
       const xMin = Math.min(stats[0], thetaHat, lo);
       const xMax = Math.max(stats[stats.length - 1], thetaHat, hi);
       const pad = (xMax - xMin) * 0.06 || 1;
@@ -308,33 +261,38 @@
       `;
 
       if (window.MathJax && typeof window.MathJax.typesetPromise === "function") {
-        // Re-typeset math inserted after initial MathJax render.
         if (typeof window.MathJax.typesetClear === "function") {
           window.MathJax.typesetClear([elStats]);
         }
         window.MathJax.typesetPromise([elStats]).catch((err) => console.error(err));
       }
 
-      state.last = { thetaHat, stats, lo, hi, se, level };
+      state.last = { stats, thetaHat, se, ci: { lo, hi } };
     }
 
-    function safeRender() {
+    worker.onmessage = function ({ data: result }) {
+      if (result.token !== generation) return;
+      const { mu, sigma, level, statKey } = getConfig();
       try {
-        render();
+        drawChart(result, { mu, sigma, level, statKey });
       } catch (e) {
         console.error(e);
         elStats.textContent = "Error rendering bootstrap widget. See console.";
       }
+    };
+
+    function dispatchWorker({ redrawSample } = {}) {
+      if (!state.sample.length || redrawSample) drawSample();
+      const { B, level, seed, statKey } = getConfig();
+      const token = ++generation;
+      worker.postMessage({ token, sample: state.sample, statKey, B, seed, level });
     }
 
-    // Auto-update: debounce renders because bootstrapping can be expensive for large B.
+    // Auto-update: debounce so rapid keystrokes coalesce before dispatching to the worker.
     let renderTimer = null;
     function scheduleRender({ redrawSample } = { redrawSample: false }) {
       if (renderTimer) window.clearTimeout(renderTimer);
-      renderTimer = window.setTimeout(() => {
-        if (redrawSample) drawSample();
-        safeRender();
-      }, 120);
+      renderTimer = window.setTimeout(() => dispatchWorker({ redrawSample }), 120);
     }
 
     function onControlEvent(el) {
@@ -343,17 +301,19 @@
     }
 
     [elN, elB, elLevel, elSeed, elMu, elSigma, elStat].forEach((el) => {
-      // `input` gives immediate feedback for number fields; `change` covers selects and blur commits.
       el.addEventListener("input", () => onControlEvent(el));
       el.addEventListener("change", () => onControlEvent(el));
     });
 
     window.addEventListener("resize", () => {
-      if (state.last) scheduleRender({ redrawSample: false });
+      if (state.last) {
+        const { mu, sigma, level, statKey } = getConfig();
+        drawChart(state.last, { mu, sigma, level, statKey });
+      }
     });
 
     drawSample();
-    safeRender();
+    dispatchWorker();
   }
 
   document.addEventListener("DOMContentLoaded", init);
