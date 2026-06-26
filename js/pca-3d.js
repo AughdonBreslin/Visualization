@@ -34,9 +34,9 @@ function applyMat3(m, v) {
   ];
 }
 
-function makeCss2DLabel(text) {
+function makeCss2DLabel(text, extraClass = '') {
   const div = document.createElement('div');
-  div.className = 'pca-label';
+  div.className = extraClass ? `pca-label ${extraClass}` : 'pca-label';
   div.textContent = text;
   return new CSS2DObject(div);
 }
@@ -243,40 +243,54 @@ export function createDataPlot3D(container) {
     return lbl;
   }
 
+  const GRID_DIVS = 4;
+  const GRID_TICKS = GRID_DIVS + 1; // 5: at -1, -0.5, 0, 0.5, 1 (relative)
+  const gridTickLabels = Array.from({ length: 3 * GRID_TICKS }, () => {
+    const lbl = makeCss2DLabel('', 'pca-tick');
+    lbl.visible = false;
+    scene.add(lbl);
+    return lbl;
+  });
+
   let initialized = false;
   let lastBound = 0;
   let gridBound = 0;
   let gridHelpers = [];
 
-  function updateGrid(safebound) {
-    if (Math.abs(safebound - gridBound) < 0.01) return;
-    gridHelpers.forEach(g => { scene.remove(g); g.geometry.dispose(); g.material.dispose(); });
-    gridHelpers = [];
-    const size = safebound * 2;
-    const divs = 5;
-    const dimColor = 0x1e2840;
-
-    const g1 = new THREE.GridHelper(size, divs, dimColor, dimColor);
-    g1.position.y = -safebound;
-    scene.add(g1);
-
-    const g2 = new THREE.GridHelper(size, divs, dimColor, dimColor);
-    g2.rotation.x = Math.PI / 2;
-    g2.position.z = -safebound;
-    scene.add(g2);
-
-    const g3 = new THREE.GridHelper(size, divs, dimColor, dimColor);
-    g3.rotation.z = Math.PI / 2;
-    g3.position.x = -safebound;
-    scene.add(g3);
-
-    gridHelpers.push(g1, g2, g3);
-    gridBound = safebound;
+  function updateGrid(safebound, displayScale) {
+    if (Math.abs(safebound - gridBound) > 0.01) {
+      gridHelpers.forEach(g => { scene.remove(g); g.geometry.dispose(); g.material.dispose(); });
+      gridHelpers = [];
+      const size = safebound * 2;
+      const dimColor = 0x1e2840;
+      const g1 = new THREE.GridHelper(size, GRID_DIVS, dimColor, dimColor);
+      g1.position.y = -safebound; scene.add(g1);
+      const g2 = new THREE.GridHelper(size, GRID_DIVS, dimColor, dimColor);
+      g2.rotation.x = Math.PI / 2; g2.position.z = -safebound; scene.add(g2);
+      const g3 = new THREE.GridHelper(size, GRID_DIVS, dimColor, dimColor);
+      g3.rotation.z = Math.PI / 2; g3.position.x = -safebound; scene.add(g3);
+      gridHelpers.push(g1, g2, g3);
+      gridBound = safebound;
+    }
+    for (let ax = 0; ax < 3; ax++) {
+      for (let t = 0; t < GRID_TICKS; t++) {
+        const frac = t / GRID_DIVS; // 0..1
+        const p = -safebound + frac * safebound * 2;
+        const actualVal = (frac * 2 - 1) * displayScale[ax];
+        const lbl = gridTickLabels[ax * GRID_TICKS + t];
+        lbl.element.textContent = String(Number(actualVal.toFixed(2)));
+        if (ax === 0) lbl.position.set(p, -safebound, -safebound);
+        else if (ax === 1) lbl.position.set(-safebound, p, -safebound);
+        else lbl.position.set(-safebound, -safebound, p);
+        lbl.visible = true;
+      }
+    }
   }
 
-  function update({ points, principalVectors, showVectors, showLabels, overlayPoints, axisLabels, basisLabels, bound }) {
+  function update({ points, principalVectors, showVectors, showLabels, overlayPoints, axisLabels, basisLabels, bound, axisDisplayScale }) {
     const safebound = bound || 1;
-    updateGrid(safebound);
+    const displayScale = axisDisplayScale || [safebound, safebound, safebound];
+    updateGrid(safebound, displayScale);
     const axisLen = safebound * 1.15;
 
     controls.maxDistance = safebound * 6;
@@ -362,6 +376,7 @@ export function createDataPlot3D(container) {
     });
     circleTex.dispose();
     gridHelpers.forEach(g => { g.geometry.dispose(); g.material.dispose(); });
+    gridTickLabels.forEach(lbl => scene.remove(lbl));
     ctx.renderer.dispose();
     if (container.contains(ctx.renderer.domElement)) container.removeChild(ctx.renderer.domElement);
     if (container.contains(ctx.css2d.domElement)) container.removeChild(ctx.css2d.domElement);
@@ -384,21 +399,46 @@ export function createOperatorPlot3D(container) {
   const lonLines = LON_DEGS.map(() => makeCircleLine(0xffffff, 0.10));
   [...latLines, ...lonLines].forEach(l => scene.add(l));
 
-  // Back-face grid frame (fixed unit-sphere scale, bound = 1.5)
-  const GRID_BOUND = 1.5;
-  const dimColor = 0x1e2840;
-  const g1 = new THREE.GridHelper(GRID_BOUND * 2, 5, dimColor, dimColor);
-  g1.position.y = -GRID_BOUND;
-  scene.add(g1);
-  const g2 = new THREE.GridHelper(GRID_BOUND * 2, 5, dimColor, dimColor);
-  g2.rotation.x = Math.PI / 2;
-  g2.position.z = -GRID_BOUND;
-  scene.add(g2);
-  const g3 = new THREE.GridHelper(GRID_BOUND * 2, 5, dimColor, dimColor);
-  g3.rotation.z = Math.PI / 2;
-  g3.position.x = -GRID_BOUND;
-  scene.add(g3);
-  const opGridMeshes = [g1, g2, g3];
+  // Dynamic back-face grid frame
+  const OP_GRID_DIVS = 4;
+  const OP_GRID_TICKS = OP_GRID_DIVS + 1;
+  let opGridBound = 0;
+  let opGridMeshes = [];
+  const opGridTickLabels = Array.from({ length: 3 * OP_GRID_TICKS }, () => {
+    const lbl = makeCss2DLabel('', 'pca-tick');
+    lbl.visible = false;
+    scene.add(lbl);
+    return lbl;
+  });
+
+  function updateOpGrid(safebound) {
+    if (Math.abs(safebound - opGridBound) > 0.01) {
+      opGridMeshes.forEach(g => { scene.remove(g); g.geometry.dispose(); g.material.dispose(); });
+      opGridMeshes = [];
+      const size = safebound * 2;
+      const dimColor = 0x1e2840;
+      const g1 = new THREE.GridHelper(size, OP_GRID_DIVS, dimColor, dimColor);
+      g1.position.y = -safebound; scene.add(g1);
+      const g2 = new THREE.GridHelper(size, OP_GRID_DIVS, dimColor, dimColor);
+      g2.rotation.x = Math.PI / 2; g2.position.z = -safebound; scene.add(g2);
+      const g3 = new THREE.GridHelper(size, OP_GRID_DIVS, dimColor, dimColor);
+      g3.rotation.z = Math.PI / 2; g3.position.x = -safebound; scene.add(g3);
+      opGridMeshes.push(g1, g2, g3);
+      opGridBound = safebound;
+    }
+    for (let ax = 0; ax < 3; ax++) {
+      for (let t = 0; t < OP_GRID_TICKS; t++) {
+        const frac = t / OP_GRID_DIVS;
+        const p = -safebound + frac * safebound * 2;
+        const lbl = opGridTickLabels[ax * OP_GRID_TICKS + t];
+        lbl.element.textContent = String(Number(p.toFixed(2)));
+        if (ax === 0) lbl.position.set(p, -safebound, -safebound);
+        else if (ax === 1) lbl.position.set(-safebound, p, -safebound);
+        else lbl.position.set(-safebound, -safebound, p);
+        lbl.visible = true;
+      }
+    }
+  }
 
   // Basis axis lines (static, unit-sphere scale)
   const OP_AXIS_DIRS = [[1,0,0],[0,1,0],[0,0,1]];
@@ -439,16 +479,15 @@ export function createOperatorPlot3D(container) {
 
   let initialized = false;
 
-  function update({ transform, principalVectors, lambda, showVectors }) {
+  function update({ transform, principalVectors, lambda, showVectors, bound }) {
+    const safeBound = Math.max(1.5, bound || 1.5);
+    updateOpGrid(safeBound);
+    controls.maxDistance = safeBound * 5;
     if (!initialized) {
-      camera.position.setLength(4);
+      camera.position.setLength(Math.max(safeBound * 3, 4));
       controls.update();
       initialized = true;
-    }
-
-    const maxExtent = Math.max(1, ...lambda.map(l => Math.abs(l) || 0));
-    controls.maxDistance = maxExtent * 5;
-    if (camera.position.length() > controls.maxDistance) {
+    } else if (camera.position.length() > controls.maxDistance) {
       camera.position.setLength(controls.maxDistance);
       controls.update();
     }
@@ -479,6 +518,7 @@ export function createOperatorPlot3D(container) {
     ctx.resizeObserver.disconnect();
     [...latLines, ...lonLines].forEach(l => { l.geometry.dispose(); l.material.dispose(); });
     opGridMeshes.forEach(g => { g.geometry.dispose(); g.material.dispose(); });
+    opGridTickLabels.forEach(lbl => scene.remove(lbl));
     opAxisLineMeshes.forEach(l => { l.geometry.dispose(); l.material.dispose(); });
     arrows.forEach(a => {
       a.line.geometry.dispose();

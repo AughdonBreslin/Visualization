@@ -920,6 +920,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let plotVectors = displayVectors;
       let plotBound = bound;
       let plotTransform = currentTransform;
+      let axisDisplayScale = [bound, bound, bound];
 
       if (useCubeAspect && transformedPoints.length > 0) {
         const allForScale = overlayPoints ? transformedPoints.concat(overlayPoints) : transformedPoints;
@@ -933,8 +934,12 @@ document.addEventListener('DOMContentLoaded', () => {
           : null;
         plotVectors = displayVectors.map(v => [v[0] / axisScale[0], v[1] / axisScale[1], v[2] / axisScale[2]]);
         plotBound = 1;
-        plotTransform = currentTransform.map((row, i) => row.map(v => v / axisScale[i]));
+        plotTransform = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]; // identity: operator is always a perfect sphere
+        axisDisplayScale = axisScale;
       }
+
+      const maxLambda = Math.max(1, ...(decomposition.lambda || [1]).map(l => Math.abs(l) || 0));
+      const operatorBound = useCubeAspect ? 1.5 : Math.max(1.5, maxLambda * 1.15);
 
       if (dataPlot) {
         dataPlot.update({
@@ -946,6 +951,7 @@ document.addEventListener('DOMContentLoaded', () => {
           axisLabels,
           basisLabels,
           bound: plotBound,
+          axisDisplayScale,
         });
       }
       if (operatorPlot) {
@@ -954,6 +960,7 @@ document.addEventListener('DOMContentLoaded', () => {
           principalVectors,
           lambda: decomposition.lambda,
           showVectors,
+          bound: operatorBound,
         });
       }
     } else {
