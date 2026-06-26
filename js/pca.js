@@ -89,6 +89,14 @@ document.addEventListener('DOMContentLoaded', () => {
     return !!syncCamerasInput?.checked;
   }
 
+  let rafScheduled = false;
+  function rafRender() {
+    if (!rafScheduled) {
+      rafScheduled = true;
+      requestAnimationFrame(() => { rafScheduled = false; render(); });
+    }
+  }
+
   function debounce(fn, delay = 180) {
     let timer = null;
     const d = (...args) => {
@@ -992,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   spread1Input?.addEventListener('input', () => {
     syncNumericLabel(spread1Input, spread1ValueEl);
-    render();
+    rafRender();
   });
   spread1Input?.addEventListener('change', () => {
     syncNumericLabel(spread1Input, spread1ValueEl);
@@ -1001,7 +1009,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   spread2Input?.addEventListener('input', () => {
     syncNumericLabel(spread2Input, spread2ValueEl);
-    render();
+    rafRender();
   });
   spread2Input?.addEventListener('change', () => {
     syncNumericLabel(spread2Input, spread2ValueEl);
@@ -1010,19 +1018,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   spread3Input?.addEventListener('input', () => {
     syncNumericLabel(spread3Input, spread3ValueEl);
-    render();
+    rafRender();
   });
   spread3Input?.addEventListener('change', () => {
     syncNumericLabel(spread3Input, spread3ValueEl);
     render();
   });
 
-  angleInput?.addEventListener('input', () => { syncAngleLabel(); render(); });
+  angleInput?.addEventListener('input', () => { syncAngleLabel(); rafRender(); });
   angleInput?.addEventListener('change', () => { syncAngleLabel(); render(); });
 
   elevationInput?.addEventListener('input', () => {
     syncNumericLabel(elevationInput, elevationValueEl, 0, '°');
-    render();
+    rafRender();
   });
   elevationInput?.addEventListener('change', () => {
     syncNumericLabel(elevationInput, elevationValueEl, 0, '°');
@@ -1031,7 +1039,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   noiseInput?.addEventListener('input', () => {
     syncNumericLabel(noiseInput, noiseValueEl);
-    render();
+    rafRender();
   });
   noiseInput?.addEventListener('change', () => {
     syncNumericLabel(noiseInput, noiseValueEl);
