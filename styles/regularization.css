@@ -14,8 +14,9 @@
 .ui.regularization .reg-svg,
 .ui.regularization .coef-svg,
 .ui.regularization .bv-svg { display: block; width: 100%; height: auto; }
-.ui.regularization .coef-viz,
-.ui.regularization .bv-viz { min-height: 220px; }
+.ui.regularization #regViz { min-height: 420px; }
+.ui.regularization .coef-viz { min-height: 220px; }
+.ui.regularization .bv-viz { min-height: 280px; }
 .ui.regularization .coef-info { font: 400 11.5px/1.5 var(--font-sans); color: var(--text-muted); margin-top: 8px; max-width: 60ch; }
 
 .ui.regularization .reg-svg .tick text,
