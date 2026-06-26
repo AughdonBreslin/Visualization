@@ -314,19 +314,86 @@ export function createDataPlot3D(container) {
   return { update, destroy, ...makeContextApi(ctx, container) };
 }
 
-// --- createOperatorPlot3D stub (replaced in Task 4) ---
+// --- createOperatorPlot3D ---
 
 export function createOperatorPlot3D(container) {
   const ctx = makePlot3DContext(container);
-  ctx.render();
-  return {
-    update(_s) { ctx.render(); },
-    destroy() {
-      ctx.resizeObserver.disconnect();
-      ctx.renderer.dispose();
-      if (container.contains(ctx.renderer.domElement)) container.removeChild(ctx.renderer.domElement);
-      if (container.contains(ctx.css2d.domElement)) container.removeChild(ctx.css2d.domElement);
-    },
-    ...makeContextApi(ctx, container),
-  };
+  const { scene, camera, controls } = ctx;
+
+  const PC_COLORS = [0x7dffb2, 0xffc456, 0xff7a7a];
+
+  // Latitude circles (5): blue, relatively opaque
+  const latLines = LAT_DEGS.map(() => makeCircleLine(0x4aa3ff, 0.58));
+  // Longitude circles (6): white, very faint
+  const lonLines = LON_DEGS.map(() => makeCircleLine(0xffffff, 0.10));
+  [...latLines, ...lonLines].forEach(l => scene.add(l));
+
+  // PC vector arrows (transformed by covariance matrix)
+  const arrows = PC_COLORS.map(color => {
+    const arrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 1, color);
+    arrow.visible = false;
+    scene.add(arrow);
+    return arrow;
+  });
+
+  // Eigenvalue labels at transformed arrow tips
+  const eigenLabels = PC_COLORS.map(() => {
+    const lbl = makeCss2DLabel('');
+    lbl.visible = false;
+    scene.add(lbl);
+    return lbl;
+  });
+
+  // Static axis labels at unit radius along each axis
+  ['x₁','x₂','x₃'].forEach((text, i) => {
+    const lbl = makeCss2DLabel(text);
+    lbl.position.set(i === 0 ? 1 : 0, i === 1 ? 1 : 0, i === 2 ? 1 : 0);
+    scene.add(lbl);
+  });
+
+  let initialized = false;
+
+  function update({ transform, principalVectors, lambda, showVectors }) {
+    if (!initialized) {
+      camera.position.setLength(4);
+      controls.update();
+      initialized = true;
+    }
+
+    updateWireframe(latLines, lonLines, transform);
+
+    const dim = principalVectors.length;
+    arrows.forEach((arrow, i) => {
+      const lbl = eigenLabels[i];
+      if (!showVectors || i >= dim) { arrow.visible = false; lbl.visible = false; return; }
+      const tv = applyMat3(transform, principalVectors[i]);
+      const len = Math.sqrt(tv[0]*tv[0] + tv[1]*tv[1] + tv[2]*tv[2]);
+      if (len < 1e-6) { arrow.visible = false; lbl.visible = false; return; }
+      const headLen = len * 0.2;
+      arrow.setDirection(new THREE.Vector3(tv[0]/len, tv[1]/len, tv[2]/len));
+      arrow.setLength(len, headLen, headLen * 0.6);
+      arrow.visible = true;
+      lbl.position.set(tv[0], tv[1], tv[2]);
+      lbl.element.textContent = 'λ' + (i+1) + '=' + (lambda[i] || 0).toFixed(2);
+      lbl.visible = true;
+    });
+
+    ctx.render();
+  }
+
+  function destroy() {
+    ctx.resizeObserver.disconnect();
+    [...latLines, ...lonLines].forEach(l => { l.geometry.dispose(); l.material.dispose(); });
+    arrows.forEach(a => {
+      a.line.geometry.dispose();
+      a.line.material.dispose();
+      a.cone.geometry.dispose();
+      a.cone.material.dispose();
+    });
+    ctx.renderer.dispose();
+    if (container.contains(ctx.renderer.domElement)) container.removeChild(ctx.renderer.domElement);
+    if (container.contains(ctx.css2d.domElement)) container.removeChild(ctx.css2d.domElement);
+  }
+
+  return { update, destroy, ...makeContextApi(ctx, container) };
 }
