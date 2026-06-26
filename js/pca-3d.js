@@ -188,7 +188,7 @@ export function createDataPlot3D(container) {
   const pointsCapRef = { cap: 0 };
   const pointsMesh = new THREE.Points(
     new THREE.BufferGeometry(),
-    new THREE.PointsMaterial({ color: 0x4aa3ff, size: 6, sizeAttenuation: true, transparent: true, opacity: 0.9 }),
+    new THREE.PointsMaterial({ color: 0x4aa3ff, size: 6, sizeAttenuation: false, transparent: true, opacity: 0.9 }),
   );
   scene.add(pointsMesh);
 
@@ -196,7 +196,7 @@ export function createDataPlot3D(container) {
   const overlayCapRef = { cap: 0 };
   const overlayMesh = new THREE.Points(
     new THREE.BufferGeometry(),
-    new THREE.PointsMaterial({ color: 0xffc456, size: 5, sizeAttenuation: true, transparent: true, opacity: 0.9 }),
+    new THREE.PointsMaterial({ color: 0xffc456, size: 5, sizeAttenuation: false, transparent: true, opacity: 0.9 }),
   );
   overlayMesh.visible = false;
   scene.add(overlayMesh);
@@ -293,6 +293,7 @@ export function createDataPlot3D(container) {
   }
 
   function destroy() {
+    ctx.controls.dispose();
     ctx.resizeObserver.disconnect();
     axisGeos.forEach(g => g.dispose());
     axisLineMeshes.forEach(l => l.material.dispose());
@@ -382,6 +383,7 @@ export function createOperatorPlot3D(container) {
   }
 
   function destroy() {
+    ctx.controls.dispose();
     ctx.resizeObserver.disconnect();
     [...latLines, ...lonLines].forEach(l => { l.geometry.dispose(); l.material.dispose(); });
     arrows.forEach(a => {
