@@ -49,11 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       dataPlot = createDataPlot3D(dataContainer);
       operatorPlot = createOperatorPlot3D(operatorContainer);
-      dataPlot.onCameraChange((phi, theta) => {
-        if (shouldSync3DCameras()) operatorPlot.applyCameraDir(phi, theta);
+      dataPlot.onCameraChange((phi, theta, zoomRatio) => {
+        if (shouldSync3DCameras()) operatorPlot.applyCameraDir(phi, theta, zoomRatio);
       });
-      operatorPlot.onCameraChange((phi, theta) => {
-        if (shouldSync3DCameras()) dataPlot.applyCameraDir(phi, theta);
+      operatorPlot.onCameraChange((phi, theta, zoomRatio) => {
+        if (shouldSync3DCameras()) dataPlot.applyCameraDir(phi, theta, zoomRatio);
       });
     } catch (_err) {
       if (dataPlot) { dataPlot.destroy(); }

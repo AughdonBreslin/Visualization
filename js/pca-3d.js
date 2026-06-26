@@ -147,7 +147,9 @@ function makePlot3DContext(container) {
     ctx.render();
     if (!ctx.syncing) {
       const s = new THREE.Spherical().setFromVector3(camera.position);
-      ctx.cameraListeners.forEach(fn => fn(s.phi, s.theta));
+      const maxD = isFinite(controls.maxDistance) && controls.maxDistance > 0 ? controls.maxDistance : 0;
+      const zoomRatio = maxD > 0 ? s.radius / maxD : null;
+      ctx.cameraListeners.forEach(fn => fn(s.phi, s.theta, zoomRatio));
     }
   });
 
@@ -157,9 +159,12 @@ function makePlot3DContext(container) {
 function makeContextApi(ctx, container) {
   return {
     onCameraChange(fn) { ctx.cameraListeners.push(fn); },
-    applyCameraDir(phi, theta) {
+    applyCameraDir(phi, theta, zoomRatio) {
       ctx.syncing = true;
-      const r = ctx.camera.position.length();
+      const maxD = isFinite(ctx.controls.maxDistance) && ctx.controls.maxDistance > 0 ? ctx.controls.maxDistance : 0;
+      const r = (zoomRatio != null && maxD > 0)
+        ? Math.max(ctx.controls.minDistance || 0.1, zoomRatio * maxD)
+        : ctx.camera.position.length();
       ctx.camera.position.setFromSphericalCoords(r, phi, theta);
       ctx.controls.update();
       ctx.syncing = false;
