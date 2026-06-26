@@ -373,6 +373,36 @@ export function createOperatorPlot3D(container) {
   const lonLines = LON_DEGS.map(() => makeCircleLine(0xffffff, 0.10));
   [...latLines, ...lonLines].forEach(l => scene.add(l));
 
+  // Back-face grid frame (fixed unit-sphere scale, bound = 1.5)
+  const GRID_BOUND = 1.5;
+  const dimColor = 0x1e2840;
+  const g1 = new THREE.GridHelper(GRID_BOUND * 2, 5, dimColor, dimColor);
+  g1.position.y = -GRID_BOUND;
+  scene.add(g1);
+  const g2 = new THREE.GridHelper(GRID_BOUND * 2, 5, dimColor, dimColor);
+  g2.rotation.x = Math.PI / 2;
+  g2.position.z = -GRID_BOUND;
+  scene.add(g2);
+  const g3 = new THREE.GridHelper(GRID_BOUND * 2, 5, dimColor, dimColor);
+  g3.rotation.z = Math.PI / 2;
+  g3.position.x = -GRID_BOUND;
+  scene.add(g3);
+  const opGridMeshes = [g1, g2, g3];
+
+  // Basis axis lines (static, unit-sphere scale)
+  const OP_AXIS_DIRS = [[1,0,0],[0,1,0],[0,0,1]];
+  const OP_AXIS_OPACITIES = [0.22, 0.18, 0.14];
+  const OP_AXIS_LEN = 1.3;
+  const opAxisLineMeshes = OP_AXIS_DIRS.map((dir, i) => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(
+      new Float32Array([0, 0, 0, dir[0] * OP_AXIS_LEN, dir[1] * OP_AXIS_LEN, dir[2] * OP_AXIS_LEN]), 3
+    ));
+    const line = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: OP_AXIS_OPACITIES[i] }));
+    scene.add(line);
+    return line;
+  });
+
   // PC vector arrows (transformed by covariance matrix)
   const arrows = PC_COLORS.map(color => {
     const arrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 1, color);
@@ -392,7 +422,7 @@ export function createOperatorPlot3D(container) {
   // Static axis labels at unit radius along each axis
   ['x₁','x₂','x₃'].forEach((text, i) => {
     const lbl = makeCss2DLabel(text);
-    lbl.position.set(i === 0 ? 1 : 0, i === 1 ? 1 : 0, i === 2 ? 1 : 0);
+    lbl.position.set(i === 0 ? 1.4 : 0, i === 1 ? 1.4 : 0, i === 2 ? 1.4 : 0);
     scene.add(lbl);
   });
 
@@ -430,6 +460,8 @@ export function createOperatorPlot3D(container) {
     ctx.controls.dispose();
     ctx.resizeObserver.disconnect();
     [...latLines, ...lonLines].forEach(l => { l.geometry.dispose(); l.material.dispose(); });
+    opGridMeshes.forEach(g => { g.geometry.dispose(); g.material.dispose(); });
+    opAxisLineMeshes.forEach(l => { l.geometry.dispose(); l.material.dispose(); });
     arrows.forEach(a => {
       a.line.geometry.dispose();
       a.line.material.dispose();
