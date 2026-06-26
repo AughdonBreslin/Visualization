@@ -41,6 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let data = [];
   let kdeModel = null;
+  let dataVersion = 0;
+  let gdaVersion = 0;
 
   let useLogSpace = !!useLogSpaceChk && useLogSpaceChk.checked;
   useLogSpaceChk && useLogSpaceChk.addEventListener('change', () => {
@@ -150,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (calcPointGDAEl) calcPointGDAEl.textContent = 'No point computed yet.';
     if (calcPointLegacyEl && !calcPointKDEEl && !calcPointGDAEl) calcPointLegacyEl.textContent = 'No point computed yet.';
 
+    ++dataVersion;
     gda.fitted = false; gda.classes = []; gda.params = {};
 
     if (autoFit) {
@@ -361,37 +364,47 @@ document.addEventListener('DOMContentLoaded', () => {
   const gcRecomputingEl = document.getElementById('gcRecomputing');
   const gcWorker = new Worker('../js/gc-worker.js');
   let renderGeneration = 0;
+  let lastPostedKeys = { kde: null, gda: null };
+  let overlayCache = { kdePostInfo: null, kdeCacheKey: null, gdaBoundaryLines: null, gdaCacheKey: null };
+
+  function applyKDEOverlay(postInfo) {
+    const wClasses = kdeModel ? kdeModel.classes : [];
+    const wColor = d3.scaleOrdinal(d3.schemeCategory10).domain(wClasses);
+    const nx = 150, ny = 120;
+    const rectW = innerW / (nx - 1); const rectH = innerH / (ny - 1);
+    g.select('g.heatmap').selectAll('rect').data(postInfo).enter().append('rect')
+      .attr('x', d => xScale(d.x) - rectW / 2)
+      .attr('y', d => yScale(d.y) - rectH / 2)
+      .attr('width', Math.max(1, rectW))
+      .attr('height', Math.max(1, rectH))
+      .attr('fill', d => d3.interpolateRgb(wColor(wClasses[d.maxIdx]), '#000000')(0.3))
+      .attr('opacity', d => Math.max(0.12, d.maxVal * 0.7));
+    g.select('g.kde-soft-boundary').selectAll('circle.contour')
+      .data(postInfo.filter(d => d.isSoftBoundary)).enter().append('circle')
+      .attr('class', 'contour')
+      .attr('cx', d => xScale(d.x)).attr('cy', d => yScale(d.y))
+      .attr('r', 1.2).attr('fill', '#000');
+  }
+
+  function applyGDABoundary(lines) {
+    g.select('g.gda-boundary').selectAll('line').data(lines).enter().append('line')
+      .attr('x1', d => xScale(d.x1)).attr('y1', d => yScale(d.y1))
+      .attr('x2', d => xScale(d.x2)).attr('y2', d => yScale(d.y2))
+      .attr('stroke', '#fff').attr('stroke-width', 1.2).attr('opacity', 1).attr('stroke-linecap', 'round');
+  }
 
   gcWorker.onmessage = ({ data: result }) => {
     if (result.token !== renderGeneration) return;
 
     if (result.kdePostInfo) {
-      const wClasses = kdeModel ? kdeModel.classes : [];
-      const wColor = d3.scaleOrdinal(d3.schemeCategory10).domain(wClasses);
-      const nx = 150, ny = 120;
-      const rectW = innerW / (nx - 1); const rectH = innerH / (ny - 1);
-
-      g.select('g.heatmap').selectAll('rect').data(result.kdePostInfo).enter().append('rect')
-        .attr('x', d => xScale(d.x) - rectW / 2)
-        .attr('y', d => yScale(d.y) - rectH / 2)
-        .attr('width', Math.max(1, rectW))
-        .attr('height', Math.max(1, rectH))
-        .attr('fill', d => d3.interpolateRgb(wColor(wClasses[d.maxIdx]), '#000000')(0.3))
-        .attr('opacity', d => Math.max(0.12, d.maxVal * 0.7));
-
-      g.select('g.kde-soft-boundary').selectAll('circle.contour')
-        .data(result.kdePostInfo.filter(d => d.isSoftBoundary))
-        .enter().append('circle')
-        .attr('class', 'contour')
-        .attr('cx', d => xScale(d.x)).attr('cy', d => yScale(d.y))
-        .attr('r', 1.2).attr('fill', '#000');
+      overlayCache.kdePostInfo = result.kdePostInfo;
+      overlayCache.kdeCacheKey = lastPostedKeys.kde;
+      applyKDEOverlay(result.kdePostInfo);
     }
-
     if (result.gdaBoundaryLines) {
-      g.select('g.gda-boundary').selectAll('line').data(result.gdaBoundaryLines).enter().append('line')
-        .attr('x1', d => xScale(d.x1)).attr('y1', d => yScale(d.y1))
-        .attr('x2', d => xScale(d.x2)).attr('y2', d => yScale(d.y2))
-        .attr('stroke', '#fff').attr('stroke-width', 1.2).attr('opacity', 1).attr('stroke-linecap', 'round');
+      overlayCache.gdaBoundaryLines = result.gdaBoundaryLines;
+      overlayCache.gdaCacheKey = lastPostedKeys.gda;
+      applyGDABoundary(result.gdaBoundaryLines);
     }
 
     if (gcRecomputingEl) gcRecomputingEl.hidden = true;
@@ -451,10 +464,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const showKDEEl = showKDEChk;
     const showGDAEl = showGDAChk;
 
+    // Cache keys: KDE depends on data + bandwidth + log-space; GDA depends on data + fit + log-space.
+    // dataVersion covers data identity and grid bounds (xmin/xmax/ymin/ymax are derived from data).
+    const kdeCacheKey = `${dataVersion}:${bw}:${useLogSpace}`;
+    const gdaCacheKey = `${dataVersion}:${gdaVersion}:${useLogSpace}`;
+    const kdeHit = overlayCache.kdeCacheKey === kdeCacheKey && overlayCache.kdePostInfo;
+    const gdaHit = overlayCache.gdaCacheKey === gdaCacheKey && overlayCache.gdaBoundaryLines;
+
     // Pre-create layer groups in z-order (background to foreground).
-    // The worker fills these asynchronously; scatter points and ellipses draw immediately.
+    // Cached overlay data is painted immediately; the worker fills only what is stale.
     g.append('g').attr('class', 'heatmap');
     g.append('g').attr('class', 'kde-soft-boundary');
+
+    if (showKDEEl && showKDEEl.checked && kdeHit) applyKDEOverlay(overlayCache.kdePostInfo);
 
     g.append('g').selectAll('circle.point').data(data).enter().append('circle')
       .attr('class','point')
@@ -479,9 +501,10 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => showCalculationForPoint([x, y]), 0);
     });
 
-    // GDA boundary group filled by the worker; ellipses are drawn immediately from gda.params.
+    // GDA boundary group; ellipses draw immediately from gda.params (no grid needed).
     g.append('g').attr('class', 'gda-boundary');
     if (showGDAEl && showGDAEl.checked && gda.fitted) {
+      if (gdaHit) applyGDABoundary(overlayCache.gdaBoundaryLines);
       for (let i = 0; i < gda.classes.length; i++) {
         const c = gda.classes[i];
         drawEllipse(gda.params[c].mu, gda.params[c].sigma, classColor(c));
@@ -493,17 +516,22 @@ document.addEventListener('DOMContentLoaded', () => {
       drawQueryMarker(xScale(queryMarkerPoint[0]), yScale(queryMarkerPoint[1]));
     }
 
-    // Hand off grid computation to the worker.
+    // Dispatch only what the cache cannot supply.
+    const needsKDE = !!(showKDEEl && showKDEEl.checked) && !kdeHit;
+    const needsGDA = !!(showGDAEl && showGDAEl.checked && gda.fitted) && !gdaHit;
     const token = ++renderGeneration;
-    if (gcRecomputingEl) gcRecomputingEl.hidden = false;
-    gcWorker.postMessage({
-      token,
-      showKDE: !!(showKDEEl && showKDEEl.checked),
-      showGDA: !!(showGDAEl && showGDAEl.checked),
-      xmin, xmax, ymin, ymax, nx: 150, ny: 120,
-      classPoints, classes, priors, bandwidth: bw, useLogSpace,
-      gdaFitted: gda.fitted, gdaClasses: gda.classes, gdaParams: gda.params
-    });
+    if (needsKDE || needsGDA) {
+      lastPostedKeys = { kde: kdeCacheKey, gda: gdaCacheKey };
+      if (gcRecomputingEl) gcRecomputingEl.hidden = false;
+      gcWorker.postMessage({
+        token,
+        showKDE: needsKDE,
+        showGDA: needsGDA,
+        xmin, xmax, ymin, ymax, nx: 150, ny: 120,
+        classPoints, classes, priors, bandwidth: bw, useLogSpace,
+        gdaFitted: gda.fitted, gdaClasses: gda.classes, gdaParams: gda.params
+      });
+    }
   }
 
   function mean(points) {
@@ -571,6 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
       params[c] = { mu, sigma, prior };
     }
     gda.classes = classes; gda.params = params; gda.fitted = true;
+    ++gdaVersion;
 
     // render GDA params into the #gdaParams container as a table (one row per class), so it scales
     // with the number of classes: Class | Prior | mean μ | covariance Σ.
