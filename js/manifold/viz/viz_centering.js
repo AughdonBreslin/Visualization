@@ -74,32 +74,42 @@ export function mountCentering(container, state, { width = 480, height = 360 } =
   if (t) for (let i = 0; i < t.length; i++) { if (t[i] < tMin) tMin = t[i]; if (t[i] > tMax) tMax = t[i]; }
   const colorOf = (i) => t ? rainbow(t[i], tMin, tMax) : '#7ec8ff';
 
+  // Pre-create axis lines + labels so orbit redraws only update attributes, not recreate elements.
+  const axisLineEls = axes.map(({ v, color, label }) => {
+    const line = gAxes.append('line').attr('stroke', color).attr('stroke-width', 1);
+    const text = gAxes.append('text').attr('fill', color).attr('font-size', '10').text(label);
+    return { v, line, text };
+  });
+
+  // Pre-create grid lines: 2 s-values × 2 directions = 4 lines.
+  const gridLineEls = [];
+  const gridDefs = [
+    { s: -1, varAxis: 'x' }, { s: -1, varAxis: 'z' },
+    { s:  1, varAxis: 'x' }, { s:  1, varAxis: 'z' },
+  ];
+  gridDefs.forEach(() => {
+    gridLineEls.push(gGrid.append('line')
+      .attr('stroke', 'rgba(255,255,255,0.06)').attr('stroke-width', 1));
+  });
+
   function drawAxesAndGrid() {
-    gAxes.html('');
-    gGrid.html('');
-    axes.forEach(({ v, color, label }) => {
+    axisLineEls.forEach(({ v, line, text }) => {
       const a = projectVec(R, [-axLen * v[0], -axLen * v[1], -axLen * v[2]], scale, cx, cy);
       const b = projectVec(R, [axLen * v[0], axLen * v[1], axLen * v[2]], scale, cx, cy);
-      gAxes.append('line').attr('x1', a[0]).attr('y1', a[1]).attr('x2', b[0]).attr('y2', b[1])
-        .attr('stroke', color).attr('stroke-width', 1);
-      gAxes.append('text').attr('x', b[0] + 4).attr('y', b[1] + 3)
-        .attr('fill', color).attr('font-size', '10').text(label);
+      line.attr('x1', a[0]).attr('y1', a[1]).attr('x2', b[0]).attr('y2', b[1]);
+      text.attr('x', b[0] + 4).attr('y', b[1] + 3);
     });
     const gridStep = radius / 2;
-    for (let s = -1; s <= 1; s++) {
-      if (s === 0) continue;
+    gridDefs.forEach(({ s, varAxis }, idx) => {
       const offset = s * gridStep;
-      [['x', 'z'], ['z', 'x']].forEach(([varAxis]) => {
-        const a = projectVec(R,
-          varAxis === 'x' ? [-axLen, 0, offset] : [offset, 0, -axLen],
-          scale, cx, cy);
-        const b = projectVec(R,
-          varAxis === 'x' ? [axLen, 0, offset] : [offset, 0, axLen],
-          scale, cx, cy);
-        gGrid.append('line').attr('x1', a[0]).attr('y1', a[1]).attr('x2', b[0]).attr('y2', b[1])
-          .attr('stroke', 'rgba(255,255,255,0.06)').attr('stroke-width', 1);
-      });
-    }
+      const a = projectVec(R,
+        varAxis === 'x' ? [-axLen, 0, offset] : [offset, 0, -axLen],
+        scale, cx, cy);
+      const b = projectVec(R,
+        varAxis === 'x' ? [axLen, 0, offset] : [offset, 0, axLen],
+        scale, cx, cy);
+      gridLineEls[idx].attr('x1', a[0]).attr('y1', a[1]).attr('x2', b[0]).attr('y2', b[1]);
+    });
   }
 
   drawAxesAndGrid();
@@ -144,7 +154,7 @@ export function mountCentering(container, state, { width = 480, height = 360 } =
     });
   }
 
-  let dragging = false, lastX = 0, lastY = 0;
+  let dragging = false, lastX = 0, lastY = 0, rafId = null;
   svg.on('pointerdown', (event) => {
     if (!animationDone) return;
     dragging = true; lastX = event.clientX; lastY = event.clientY;
@@ -157,7 +167,7 @@ export function mountCentering(container, state, { width = 480, height = 360 } =
     const dy = (event.clientY - lastY) * 0.008;
     lastX = event.clientX; lastY = event.clientY;
     R = matmul(matmul(rotX(dy), rotY(dx)), R);
-    redrawAfterOrbit();
+    if (!rafId) rafId = requestAnimationFrame(() => { rafId = null; redrawAfterOrbit(); });
   });
   function endDrag(event) {
     dragging = false; svg.style('cursor', 'grab');

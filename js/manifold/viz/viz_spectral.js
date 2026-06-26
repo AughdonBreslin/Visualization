@@ -37,7 +37,7 @@ function colorFromValue(v, lo, hi) {
 }
 
 function attachOrbit(svg, getR, setR, redraw) {
-  let dragging = false, lastX = 0, lastY = 0;
+  let dragging = false, lastX = 0, lastY = 0, rafId = null;
   svg.style('cursor', 'grab').style('touch-action', 'none');
   svg.on('pointerdown', (event) => {
     dragging = true; lastX = event.clientX; lastY = event.clientY;
@@ -50,7 +50,7 @@ function attachOrbit(svg, getR, setR, redraw) {
     const dy = (event.clientY - lastY) * 0.008;
     lastX = event.clientX; lastY = event.clientY;
     setR(matmul(matmul(rotX(dy), rotY(dx)), getR()));
-    redraw();
+    if (!rafId) rafId = requestAnimationFrame(() => { rafId = null; redraw(); });
   });
   function endDrag(event) {
     dragging = false; svg.style('cursor', 'grab');
@@ -93,9 +93,29 @@ function mountPcaSpectral(svg, state, width, height) {
   // cloud uncolored and no component highlighted).
   let highlightedK = 0;
 
+  const defs = svg.append('defs');
+  for (let k = 0; k < 3; k++) {
+    defs.append('marker').attr('id', `pc-arrow-${k}`).attr('viewBox', '0 0 10 10').attr('refX', 9)
+      .attr('refY', 5).attr('markerWidth', 5).attr('markerHeight', 5).attr('orient', 'auto-start-reverse')
+      .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z').attr('fill', colors[k]);
+  }
+
+  // Pre-create circles -- update positions in place instead of destroying/recreating on every drag frame.
+  const circleEls = [];
+  for (let i = 0; i < N; i++) {
+    circleEls.push(gCloud.append('circle').attr('r', 2.4).attr('fill', 'rgba(255,255,255,0.55)'));
+  }
+
+  // Pre-create axis line + label elements (if pcAxes present).
+  const axisEls = axesV.map((v, k) => {
+    if (!state.pcAxes || !v) return null;
+    const line = gAxes.append('line').attr('x1', cx).attr('y1', cy)
+      .attr('stroke', colors[k]).attr('stroke-width', 2.2).attr('marker-end', `url(#pc-arrow-${k})`);
+    const text = gAxes.append('text').attr('fill', colors[k]).attr('font-size', '11').text(labels[k]);
+    return { line, text };
+  });
+
   function redraw() {
-    gCloud.html('');
-    gAxes.html('');
     const vec = highlightedK !== null ? proj[highlightedK] : null;
     let lo = Infinity, hi = -Infinity;
     if (vec) for (let i = 0; i < N; i++) { if (vec[i] < lo) lo = vec[i]; if (vec[i] > hi) hi = vec[i]; }
@@ -103,32 +123,24 @@ function mountPcaSpectral(svg, state, width, height) {
       const x = points[i * 3] - ax, y = points[i * 3 + 1] - ay, z = points[i * 3 + 2] - az;
       const px = R[0][0]*x + R[0][1]*y + R[0][2]*z;
       const py = R[1][0]*x + R[1][1]*y + R[1][2]*z;
-      gCloud.append('circle').attr('cx', cx + scale*px).attr('cy', cy - scale*py)
-        .attr('r', 2.4).attr('fill', vec ? colorFromValue(vec[i], lo, hi) : 'rgba(255,255,255,0.55)');
+      circleEls[i].attr('cx', cx + scale*px).attr('cy', cy - scale*py)
+        .attr('fill', vec ? colorFromValue(vec[i], lo, hi) : 'rgba(255,255,255,0.55)');
     }
     if (state.pcAxes) {
       const top = Math.max(Math.abs(lam[0]) || 1, 1e-9);
       axesV.forEach((v, k) => {
-        if (!v) return;
+        if (!v || !axisEls[k]) return;
         const len = r * 0.95 * Math.sqrt(Math.max(0, Math.abs(lam[k] || 0)) / top);
         const end = projectVec(R, [v[0] * len, v[1] * len, v[2] * len], scale, cx, cy);
         const emph = highlightedK === k;
         const dim = highlightedK !== null && !emph;
-        gAxes.append('line').attr('x1', cx).attr('y1', cy).attr('x2', end[0]).attr('y2', end[1])
-          .attr('stroke', colors[k]).attr('stroke-width', emph ? 3.4 : 2.2).attr('opacity', dim ? 0.25 : 1)
-          .attr('marker-end', `url(#pc-arrow-${k})`);
-        gAxes.append('text').attr('x', end[0] + 6).attr('y', end[1] - 4)
-          .attr('fill', colors[k]).attr('font-size', '11').attr('opacity', dim ? 0.25 : 1).text(labels[k]);
+        axisEls[k].line.attr('x2', end[0]).attr('y2', end[1])
+          .attr('stroke-width', emph ? 3.4 : 2.2).attr('opacity', dim ? 0.25 : 1);
+        axisEls[k].text.attr('x', end[0] + 6).attr('y', end[1] - 4).attr('opacity', dim ? 0.25 : 1);
       });
     }
   }
 
-  const defs = svg.append('defs');
-  for (let k = 0; k < 3; k++) {
-    defs.append('marker').attr('id', `pc-arrow-${k}`).attr('viewBox', '0 0 10 10').attr('refX', 9)
-      .attr('refY', 5).attr('markerWidth', 5).attr('markerHeight', 5).attr('orient', 'auto-start-reverse')
-      .append('path').attr('d', 'M 0 0 L 10 5 L 0 10 z').attr('fill', colors[k]);
-  }
   redraw();
   attachOrbit(svg, () => R, (newR) => { R = newR; }, redraw);
 
@@ -197,8 +209,13 @@ function mountIsomapSpectral(svg, state, width, height) {
     return v1;
   }
 
+  // Pre-create circles -- update positions in place instead of destroying/recreating on every drag frame.
+  const circleEls = [];
+  for (let i = 0; i < N; i++) {
+    circleEls.push(gCloud.append('circle').attr('r', 2.6));
+  }
+
   function redraw() {
-    gCloud.html('');
     const vec = activeVec();
     let lo = Infinity, hi = -Infinity;
     for (let i = 0; i < vec.length; i++) { if (vec[i] < lo) lo = vec[i]; if (vec[i] > hi) hi = vec[i]; }
@@ -206,8 +223,8 @@ function mountIsomapSpectral(svg, state, width, height) {
       const x = points[i * 3] - ax, y = points[i * 3 + 1] - ay, z = points[i * 3 + 2] - az;
       const px = R[0][0]*x + R[0][1]*y + R[0][2]*z;
       const py = R[1][0]*x + R[1][1]*y + R[1][2]*z;
-      gCloud.append('circle').attr('cx', cx + scale*px).attr('cy', cy - scale*py)
-        .attr('r', 2.6).attr('fill', colorFromValue(vec[i], lo, hi));
+      circleEls[i].attr('cx', cx + scale*px).attr('cy', cy - scale*py)
+        .attr('fill', colorFromValue(vec[i], lo, hi));
     }
   }
   redraw();

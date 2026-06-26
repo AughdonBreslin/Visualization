@@ -129,7 +129,7 @@ export function mountKnn(container, state, { width = 480, height = 360 } = {}) {
     });
   });
 
-  let dragging = false, lastX = 0, lastY = 0;
+  let dragging = false, lastX = 0, lastY = 0, rafId = null;
   svg.on('pointerdown', (event) => {
     if (event.target && event.target.classList && event.target.classList.contains('knn-node')) return;
     dragging = true; lastX = event.clientX; lastY = event.clientY;
@@ -142,7 +142,7 @@ export function mountKnn(container, state, { width = 480, height = 360 } = {}) {
     const dy = (event.clientY - lastY) * 0.008;
     lastX = event.clientX; lastY = event.clientY;
     R = matmul(matmul(rotX(dy), rotY(dx)), R);
-    rerender();
+    if (!rafId) rafId = requestAnimationFrame(() => { rafId = null; rerender(); });
   });
   function endDrag(event) {
     dragging = false; svg.style('cursor', 'grab');

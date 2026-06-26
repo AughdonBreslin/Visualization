@@ -61,15 +61,8 @@ export function createViz3d(container, { width = 480, height = 360, isThumbnail 
 
   function render() {
     if (!state) return;
-    const { points, t, edges, colors } = state;
-    const { center, radius } = state.bounds;
-    const N = points.length / 3;
-    const recentered = new Float64Array(points.length);
-    for (let i = 0; i < N; i++) {
-      recentered[i*3] = points[i*3] - center[0];
-      recentered[i*3+1] = points[i*3+1] - center[1];
-      recentered[i*3+2] = points[i*3+2] - center[2];
-    }
+    const { recentered, t, edges, colors, bounds: { radius } } = state;
+    const N = recentered.length / 3;
     const margin = isThumbnail ? 6 : 18;
     const scale = (Math.min(width, height) / 2 - margin) / radius;
     const cx = width / 2, cy = height / 2;
@@ -107,7 +100,7 @@ export function createViz3d(container, { width = 480, height = 360, isThumbnail 
     sel.exit().remove();
   }
 
-  let dragging = false, lastX = 0, lastY = 0;
+  let dragging = false, lastX = 0, lastY = 0, rafId = null;
   svg.on('pointerdown', (event) => {
     dragging = true; lastX = event.clientX; lastY = event.clientY;
     svg.style('cursor', 'grabbing');
@@ -119,7 +112,7 @@ export function createViz3d(container, { width = 480, height = 360, isThumbnail 
     const dy = (event.clientY - lastY) * 0.008;
     lastX = event.clientX; lastY = event.clientY;
     R = matmul(matmul(rotX(dy), rotY(dx)), R);
-    render();
+    if (!rafId) rafId = requestAnimationFrame(() => { rafId = null; render(); });
   });
   function endDrag(event) {
     dragging = false; svg.style('cursor', 'grab');
@@ -130,12 +123,20 @@ export function createViz3d(container, { width = 480, height = 360, isThumbnail 
   svg.on('pointerleave', endDrag);
 
   function setState(next) {
+    const bounds = computeBounds(next.points);
+    const N = next.points.length / 3;
+    const recentered = new Float64Array(next.points.length);
+    for (let i = 0; i < N; i++) {
+      recentered[i*3] = next.points[i*3] - bounds.center[0];
+      recentered[i*3+1] = next.points[i*3+1] - bounds.center[1];
+      recentered[i*3+2] = next.points[i*3+2] - bounds.center[2];
+    }
     state = {
-      points: next.points,
+      recentered,
       colors: next.colors || null,
       edges: next.edges || null,
       t: next.t || null,
-      bounds: computeBounds(next.points),
+      bounds,
     };
     render();
   }

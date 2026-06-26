@@ -112,7 +112,7 @@ export function mountWeightedKnn(container, state, { width = 480, height = 360 }
     });
   });
 
-  let dragging = false, lastX = 0, lastY = 0;
+  let dragging = false, lastX = 0, lastY = 0, rafId = null;
   svg.on('pointerdown', (event) => {
     if (event.target && event.target.tagName === 'circle') return;
     dragging = true; lastX = event.clientX; lastY = event.clientY;
@@ -125,7 +125,7 @@ export function mountWeightedKnn(container, state, { width = 480, height = 360 }
     const dy = (event.clientY - lastY) * 0.008;
     lastX = event.clientX; lastY = event.clientY;
     R = matmul(matmul(rotX(dy), rotY(dx)), R);
-    redraw();
+    if (!rafId) rafId = requestAnimationFrame(() => { rafId = null; redraw(); });
   });
   function endDrag(event) {
     dragging = false; svg.style('cursor', 'grab');

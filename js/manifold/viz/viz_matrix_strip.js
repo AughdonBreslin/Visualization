@@ -112,7 +112,7 @@ function mountOrbitablePane(svg, pane, x, y, w, h) {
   redraw();
 
   const imgNode = image.node();
-  let dragging = false, lastX = 0, lastY = 0;
+  let dragging = false, lastX = 0, lastY = 0, rafId = null;
   imgNode.addEventListener('pointerdown', (event) => {
     dragging = true; lastX = event.clientX; lastY = event.clientY;
     image.style('cursor', 'grabbing');
@@ -124,7 +124,7 @@ function mountOrbitablePane(svg, pane, x, y, w, h) {
     const dy = (event.clientY - lastY) * 0.01;
     lastX = event.clientX; lastY = event.clientY;
     R = matmul(matmul(rotX(dy), rotY(dx)), R);
-    redraw();
+    if (!rafId) rafId = requestAnimationFrame(() => { rafId = null; redraw(); });
   });
   function endDrag(event) {
     dragging = false; image.style('cursor', 'grab');
