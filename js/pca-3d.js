@@ -174,7 +174,7 @@ export function createDataPlot3D(container) {
   const { scene, camera, controls } = ctx;
 
   const PC_COLORS = [0x7dffb2, 0xffc456, 0xff7a7a];
-  const AXIS_OPACITIES = [0.22, 0.18, 0.14];
+  const AXIS_OPACITIES = [0.55, 0.48, 0.40];
   const AXIS_DIRS = [[1,0,0],[0,1,0],[0,0,1]];
 
   // Three axis lines, each a 2-point geometry from origin to axis tip
@@ -279,9 +279,9 @@ export function createDataPlot3D(container) {
         const actualVal = (frac * 2 - 1) * displayScale[ax];
         const lbl = gridTickLabels[ax * GRID_TICKS + t];
         lbl.element.textContent = String(Number(actualVal.toFixed(2)));
-        if (ax === 0) lbl.position.set(p, -safebound, -safebound);
+        if (ax === 0) lbl.position.set(p, -safebound, safebound);
         else if (ax === 1) lbl.position.set(-safebound, p, -safebound);
-        else lbl.position.set(-safebound, -safebound, p);
+        else lbl.position.set(safebound, -safebound, p);
         lbl.visible = true;
       }
     }
@@ -432,9 +432,9 @@ export function createOperatorPlot3D(container) {
         const p = -safebound + frac * safebound * 2;
         const lbl = opGridTickLabels[ax * OP_GRID_TICKS + t];
         lbl.element.textContent = String(Number(p.toFixed(2)));
-        if (ax === 0) lbl.position.set(p, -safebound, -safebound);
+        if (ax === 0) lbl.position.set(p, -safebound, safebound);
         else if (ax === 1) lbl.position.set(-safebound, p, -safebound);
-        else lbl.position.set(-safebound, -safebound, p);
+        else lbl.position.set(safebound, -safebound, p);
         lbl.visible = true;
       }
     }
@@ -442,7 +442,7 @@ export function createOperatorPlot3D(container) {
 
   // Basis axis lines (static, unit-sphere scale)
   const OP_AXIS_DIRS = [[1,0,0],[0,1,0],[0,0,1]];
-  const OP_AXIS_OPACITIES = [0.22, 0.18, 0.14];
+  const OP_AXIS_OPACITIES = [0.55, 0.48, 0.40];
   const OP_AXIS_LEN = 1.3;
   const opAxisLineMeshes = OP_AXIS_DIRS.map((dir, i) => {
     const g = new THREE.BufferGeometry();
