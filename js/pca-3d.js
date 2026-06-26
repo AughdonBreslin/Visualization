@@ -171,8 +171,10 @@ export function createDataPlot3D(container) {
     g.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0,0,0, 0,0,0]), 3));
     return g;
   });
-  axisGeos.forEach((g, i) => {
-    scene.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: AXIS_OPACITIES[i] })));
+  const axisLineMeshes = axisGeos.map((g, i) => {
+    const line = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: AXIS_OPACITIES[i] }));
+    scene.add(line);
+    return line;
   });
 
   // Axis labels at tip positions
@@ -293,8 +295,17 @@ export function createDataPlot3D(container) {
   function destroy() {
     ctx.resizeObserver.disconnect();
     axisGeos.forEach(g => g.dispose());
+    axisLineMeshes.forEach(l => l.material.dispose());
     pointsMesh.geometry.dispose();
+    pointsMesh.material.dispose();
     overlayMesh.geometry.dispose();
+    overlayMesh.material.dispose();
+    arrows.forEach(a => {
+      a.line.geometry.dispose();
+      a.line.material.dispose();
+      a.cone.geometry.dispose();
+      a.cone.material.dispose();
+    });
     ctx.renderer.dispose();
     if (container.contains(ctx.renderer.domElement)) container.removeChild(ctx.renderer.domElement);
     if (container.contains(ctx.css2d.domElement)) container.removeChild(ctx.css2d.domElement);
