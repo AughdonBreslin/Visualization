@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gradient Descent: SGD, Momentum, and Adam</title>
+
+  <script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../styles/system.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/article-ui.css">
+  <link rel="stylesheet" href="../styles/gradient-descent.css">
+  <link rel="stylesheet" href="../styles/section-outline.css">
+  <script src="../js/theme.js"></script>
+  <script type="module" src="../js/gradient-descent.js"></script>
+  <script defer src="../js/favicon.js"></script>
+  <script type="module" src="../js/section-outline.js"></script>
+</head>
+<body class="ui gradient-descent has-section-outline">
+  <div class="container">
+    <header class="page-head">
+      <div class="eyebrow">// Optimization</div>
+      <h1>Gradient descent</h1>
+      <p class="lede">Step through how SGD, momentum, and Adam navigate a loss surface, and see where each one struggles.</p>
+    </header>
+
+    <main class="article-body">
+
+      <section class="panel">
+        <h2>Sandbox</h2>
+        <p>Pick a loss surface and watch three optimizers descend from the same starting point.
+        Click anywhere on the contour map to move the start.</p>
+
+        <div class="gd-controls">
+          <div class="gd-control-group">
+            <label class="gd-label" for="gdFn">Surface</label>
+            <select id="gdFn" class="gd-select">
+              <option value="elongated">Elongated bowl</option>
+              <option value="rosenbrock">Rosenbrock</option>
+              <option value="bowl">Quadratic bowl</option>
+              <option value="saddle">Saddle + valleys</option>
+            </select>
+          </div>
+          <div class="gd-control-group">
+            <label class="gd-label" for="gdLr">Learning rate</label>
+            <div class="gd-slider-row">
+              <input type="range" id="gdLr" class="gd-slider" min="-4" max="-1" step="0.05" value="-2">
+              <output id="gdLrVal" class="gd-output">0.01</output>
+            </div>
+          </div>
+          <div class="gd-btn-group">
+            <button id="gdAnimate" class="gd-btn gd-btn-primary" type="button">Animate</button>
+            <button id="gdStep"    class="gd-btn" type="button">Step</button>
+            <button id="gdReset"   class="gd-btn" type="button">Reset</button>
+          </div>
+        </div>
+
+        <div class="gd-viz-row">
+          <div class="gd-surface-wrap" id="gdSurface"></div>
+          <div class="gd-right-col">
+            <div class="gd-contour-wrap" id="gdContour"></div>
+            <div class="gd-legend" id="gdLegend"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>The algorithms</h2>
+
+        <h3>Stochastic gradient descent</h3>
+        <p>At each step, SGD moves the parameters directly opposite the gradient, scaled by the learning rate $\alpha$.</p>
+        <div class="formula">$$\theta_{t+1} = \theta_t - \alpha \nabla L(\theta_t)$$</div>
+        <p>On an elongated bowl, equal step sizes in every direction means SGD bounces across the narrow axis while crawling along the long axis.
+        The learning rate that is small enough to avoid divergence on the steep axis is far too small for efficient progress on the shallow axis.</p>
+
+        <h3>Momentum</h3>
+        <p>Momentum accumulates a velocity vector $v$ that carries the optimizer across flat regions and dampens oscillations across curved ones.
+        $\beta$ (typically 0.9) controls how much of the previous velocity survives each step.</p>
+        <div class="formula">$$v_{t+1} = \beta v_t - \alpha \nabla L(\theta_t)$$</div>
+        <div class="formula">$$\theta_{t+1} = \theta_t + v_{t+1}$$</div>
+        <p>On the elongated bowl, the accumulated velocity along the long axis lets momentum accelerate where SGD is slow.
+        The overshoot into the steep walls eventually dampens, but the path oscillates more dramatically before settling.</p>
+
+        <h3>Adam</h3>
+        <p>Adam maintains a running estimate of both the first moment (mean gradient $m$) and the second moment (uncentered variance $v$) of the gradient.
+        The parameter update is scaled by the per-dimension gradient variance, so large gradients get smaller effective steps and small gradients get larger ones.</p>
+        <div class="formula">$$m_t = \beta_1 m_{t-1} + (1-\beta_1)\nabla L$$</div>
+        <div class="formula">$$v_t = \beta_2 v_{t-1} + (1-\beta_2)(\nabla L)^2$$</div>
+        <div class="formula">$$\theta_{t+1} = \theta_t - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}$$</div>
+        <p>The $\hat{m}_t$ and $\hat{v}_t$ are bias-corrected estimates that account for the zero-initialization of the moment vectors at $t=0$.
+        Adam navigates elongated landscapes efficiently because the per-dimension scaling automatically compensates for the difference in curvature between axes.
+        Its effective learning rate for each parameter is approximately $\alpha$, regardless of gradient magnitude.</p>
+      </section>
+
+    </main>
+    <footer class="site-footer"><span class="credit">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></span></footer>
+  </div>
+</body>
+</html>
