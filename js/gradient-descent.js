@@ -190,6 +190,7 @@ let compareMode = 'optimizer'; // 'batch' | 'optimizer'
 let pinnedOptimizerKey = 'sgd';
 let pinnedBatchKey = 'full';
 let checkedOptimizerKeys = new Set(OPTIMIZERS.map(o => o.key));
+let highlightedKey = null; // legend row clicked to isolate one line, or null for none
 
 function activeLines() {
   if (compareMode === 'batch') {
@@ -309,7 +310,7 @@ function rebuildTrajLines() {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3000), 3));
     geo.setDrawRange(0, 0);
-    const threeLine = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: line.color, linewidth: 2 }));
+    const threeLine = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: line.color, linewidth: 2, transparent: true, opacity: 1 }));
     scene.add(threeLine);
     trajLines[line.key] = threeLine;
   }
@@ -442,6 +443,7 @@ function resetAll() {
   if (startMarker) startMarker.position.copy(pt3(startPt.x, startPt.y));
   updateContourMarkers();
   updateLegend();
+  applyHighlight();
 }
 
 function clamp(v, d) { return Math.max(-d, Math.min(d, v)); }
@@ -485,13 +487,32 @@ function updateLegend() {
     const s = states[line.key];
     const loss = s ? fn.f(s.x, s.y) : 0;
     const iter = s ? (s.iter || 0) : 0;
-    return `<div class="gd-legend-row">
+    const isHighlighted = highlightedKey === line.key;
+    const isDimmed = highlightedKey !== null && !isHighlighted;
+    const rowClass = 'gd-legend-row' + (isHighlighted ? ' is-highlighted' : '') + (isDimmed ? ' is-dimmed' : '');
+    return `<div class="${rowClass}" data-key="${line.key}" role="button" tabindex="0" aria-pressed="${isHighlighted}">
       <div class="gd-legend-dot" style="background:${line.color}"></div>
       <span class="gd-legend-name">${line.label}</span>
       <span class="gd-legend-stats">iter ${iter}<br>loss ${loss.toFixed(4)}</span>
     </div>`;
   }).join('');
   el.innerHTML = `<div class="gd-legend-summary">${summary}</div>${rows}`;
+}
+
+// Reflects highlightedKey onto the 3D trajectory lines and the contour paths/dots.
+// Legend row styling is handled inline in updateLegend, since its markup is
+// regenerated every step; the 3D/2D elements persist across steps and only need
+// their opacity touched when the highlight changes or when they are rebuilt.
+function applyHighlight() {
+  for (const line of lines) {
+    const dim = highlightedKey !== null && line.key !== highlightedKey;
+    const tl = trajLines[line.key];
+    if (tl) tl.material.opacity = dim ? 0.15 : 1;
+    if (svg) {
+      svg.select(`.traj-${line.key}`).attr('opacity', dim ? 0.15 : 0.9);
+      if (dotEls[line.key]) dotEls[line.key].attr('opacity', dim ? 0.3 : 1);
+    }
+  }
 }
 
 // ---- Animation loop --------------------------------------------------------
@@ -537,6 +558,7 @@ function switchFn(key) {
 
 function applyLineChange() {
   lines = activeLines();
+  highlightedKey = null; // the previous key may not exist in the new line set
   if (svg) initContour(document.getElementById('gdContour'));
   resetAll();
 }
@@ -619,6 +641,25 @@ try {
       checkedOptimizerKeys = next;
       applyLineChange();
     });
+  });
+
+  // Delegated: legend rows are regenerated every step, so listeners live on the
+  // stable parent rather than being re-attached to each row every frame.
+  function toggleHighlight(key) {
+    highlightedKey = highlightedKey === key ? null : key;
+    updateLegend();
+    applyHighlight();
+  }
+  document.getElementById('gdLegend').addEventListener('click', e => {
+    const row = e.target.closest('.gd-legend-row');
+    if (row) toggleHighlight(row.dataset.key);
+  });
+  document.getElementById('gdLegend').addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const row = e.target.closest('.gd-legend-row');
+    if (!row) return;
+    e.preventDefault();
+    toggleHighlight(row.dataset.key);
   });
 } catch (e) {
   showErr('Init error: ' + e.message + '\n' + e.stack);

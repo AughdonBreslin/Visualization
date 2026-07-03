@@ -157,7 +157,18 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 3px 4px;
+  margin: -3px -4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
 }
+.ui.gradient-descent .gd-legend-row:hover { background: var(--surface-2); }
+.ui.gradient-descent .gd-legend-row:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
+.ui.gradient-descent .gd-legend-row.is-dimmed { opacity: 0.4; }
+.ui.gradient-descent .gd-legend-row.is-dimmed:hover { opacity: 0.7; }
+.ui.gradient-descent .gd-legend-row.is-highlighted { background: var(--surface-2); }
+.ui.gradient-descent .gd-legend-row.is-highlighted .gd-legend-name { color: var(--accent-link, var(--text-1)); }
 .ui.gradient-descent .gd-legend-dot {
   width: 10px; height: 10px;
   border-radius: 50%;
