@@ -15,11 +15,20 @@ const FUNCTIONS = {
     start: { x: -2.4, y: 1.0 },
   },
   rosenbrock: {
+    // The textbook Rosenbrock function uses b=100, but at that value its gradient
+    // magnitude runs 10-200x larger than every other surface here while its color
+    // and height are auto-normalized (see zNorm) to fill the same visual range as
+    // the rest, so the surface LOOKS like a comparably gentle bowl right up until
+    // an optimizer takes a wildly oversized step on it, for no reason visible in
+    // the picture. b=8 keeps the same curved, non-convex valley (still zero only
+    // at (1, 1), still not convex) but brings its gradient scale down to the same
+    // ballpark as the other three surfaces, so what you see and how it behaves
+    // agree with each other.
     label: 'Rosenbrock',
     domain: 2,
-    f:    (x, y) => (1 - x)**2 + 100*(y - x*x)**2,
-    grad: (x, y) => [-2*(1-x) - 400*x*(y - x*x), 200*(y - x*x)],
-    zNorm: v => Math.min(v / 3600, 1),
+    f:    (x, y) => (1 - x)**2 + 8*(y - x*x)**2,
+    grad: (x, y) => [-2*(1-x) - 32*x*(y - x*x), 16*(y - x*x)],
+    zNorm: v => Math.min(v / 297, 1),
     start: { x: -1.4, y: 1.6 },
   },
   bowl: {
@@ -64,19 +73,15 @@ const BATCH_MODES = [
 
 const BASE_NOISE = 0.35;
 
-// Rosenbrock's gradient magnitude near its start point (and along its walls) is an
-// order of magnitude larger than any other surface here (~200+ vs ~17 at most). Left
-// unclipped, a single default-learning-rate step overshoots into a region with an even
-// steeper gradient, and the trajectory cascades to the domain edge within 2-3 steps
-// regardless of batch size, including full-batch with no noise at all. Clipping the
-// gradient norm before it is used keeps every surface's descent numerically stable.
-// During normal descent from each surface's default start point, the clip does not
-// engage on the other three surfaces (elongated bowl peaks around 17). Only the
-// elongated bowl can engage the clip if the user clicks a start point near a domain
-// corner (e.g. at (2.9, 2.9), gradient norm around 47). The quadratic bowl and
-// saddle never reach the threshold even at their domain corners. This has been
-// verified to only moderately cap an already-large initial step and never cause NaN
-// or a stuck trajectory.
+// Every surface here is tuned so its gradient near the default start point stays
+// well under this threshold (elongated bowl ~17, Rosenbrock ~22 with b=8, quadratic
+// bowl and saddle both well under 15), so the clip does not engage during normal
+// descent from any surface's default start. It exists purely as a safety net for
+// extreme click-to-move-start positions near a domain corner, where any of these
+// surfaces' true gradient can spike well above what a single learning-rate step
+// should safely take (e.g. elongated bowl reaches ~47 at (2.9, 2.9); Rosenbrock's
+// corners exceed 300). Without it, an oversized single step can cascade to the
+// domain edge within 2-3 steps and get stuck oscillating there.
 const MAX_GRAD_NORM = 25;
 
 // A line stops taking steps once its own displacement has stayed below this
