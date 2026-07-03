@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gradient Descent: SGD, Momentum, and Adam</title>
+  <title>Gradient Descent: Batch Size and Optimizers</title>
 
   <script type="importmap">
 {
@@ -40,7 +40,7 @@
     <header class="page-head">
       <div class="eyebrow">// Optimization</div>
       <h1>Gradient descent</h1>
-      <p class="lede">Step through how SGD, momentum, and Adam navigate a loss surface, and see where each one struggles.</p>
+      <p class="lede">Compare how batch size and optimizer choice change the way a point descends a loss surface, from full-batch and stochastic gradients to momentum, AdaGrad, RMSProp, and Adam.</p>
     </header>
 
     <main class="article-body">
@@ -117,22 +117,37 @@
       <section class="panel">
         <h2>The algorithms</h2>
 
-        <h3>Stochastic gradient descent</h3>
+        <h3>SGD</h3>
         <p>At each step, SGD moves the parameters directly opposite the gradient, scaled by the learning rate $\alpha$.</p>
         <div class="formula">$$\theta_{t+1} = \theta_t - \alpha \nabla L(\theta_t)$$</div>
         <p>On an elongated bowl, equal step sizes in every direction means SGD bounces across the narrow axis while crawling along the long axis.
-        The learning rate that is small enough to avoid divergence on the steep axis is far too small for efficient progress on the shallow axis.</p>
+        The learning rate that is small enough to avoid divergence on the steep axis is far too small for efficient progress on the shallow axis.
+        This same update rule is what every batch-size line in the sandbox uses when SGD is the pinned optimizer; only how noisy the gradient it receives changes.</p>
 
         <h3>Momentum</h3>
-        <p>Momentum accumulates a velocity vector $v$ that carries the optimizer across flat regions and dampens oscillations across curved ones.
+        <p>Momentum accumulates a velocity vector $v$ that carries the optimizer across flat regions and dampens oscillations across curved ones, fixing the bouncing SGD shows above.
         $\beta$ (typically 0.9) controls how much of the previous velocity survives each step.</p>
         <div class="formula">$$v_{t+1} = \beta v_t - \alpha \nabla L(\theta_t)$$</div>
         <div class="formula">$$\theta_{t+1} = \theta_t + v_{t+1}$$</div>
         <p>On the elongated bowl, the accumulated velocity along the long axis lets momentum accelerate where SGD is slow.
         The overshoot into the steep walls eventually dampens, but the path oscillates more dramatically before settling.</p>
 
+        <h3>AdaGrad</h3>
+        <p>Momentum still applies the same effective step size to every parameter, so a steeply curved axis and a shallow one are still stuck sharing one learning rate.
+        AdaGrad addresses this by giving each parameter its own rate, shrinking it in proportion to the cumulative sum of squared gradients that parameter has seen so far.</p>
+        <div class="formula">$$G_t = G_{t-1} + (\nabla L(\theta_t))^2$$</div>
+        <div class="formula">$$\theta_{t+1} = \theta_t - \frac{\alpha}{\sqrt{G_t} + \epsilon} \nabla L(\theta_t)$$</div>
+        <p>Parameters with consistently large gradients get their rate shrunk quickly; parameters with small gradients keep a larger effective rate.
+        Because $G_t$ only ever grows, the effective rate keeps shrinking for the rest of the run, and on a long descent it can decay so far that progress effectively stalls.</p>
+
+        <h3>RMSProp</h3>
+        <p>RMSProp keeps AdaGrad's idea of a per-parameter rate but fixes the stall: instead of an ever-growing sum of squared gradients, it keeps an exponential moving average, so old gradients are gradually forgotten.</p>
+        <div class="formula">$$E[g^2]_t = \beta E[g^2]_{t-1} + (1-\beta)(\nabla L(\theta_t))^2$$</div>
+        <div class="formula">$$\theta_{t+1} = \theta_t - \frac{\alpha}{\sqrt{E[g^2]_t} + \epsilon} \nabla L(\theta_t)$$</div>
+        <p>Because the average can rise again if gradients grow again, RMSProp's effective rate does not monotonically decay the way AdaGrad's does, so it keeps making progress over long runs.</p>
+
         <h3>Adam</h3>
-        <p>Adam maintains a running estimate of both the first moment (mean gradient $m$) and the second moment (uncentered variance $v$) of the gradient.
+        <p>Adam combines momentum's directional smoothing with RMSProp's per-parameter scaling: a running estimate of both the first moment (mean gradient $m$) and the second moment (uncentered variance $v$) of the gradient.
         The parameter update is scaled by the per-dimension gradient variance, so large gradients get smaller effective steps and small gradients get larger ones.</p>
         <div class="formula">$$m_t = \beta_1 m_{t-1} + (1-\beta_1)\nabla L$$</div>
         <div class="formula">$$v_t = \beta_2 v_{t-1} + (1-\beta_2)(\nabla L)^2$$</div>
@@ -140,6 +155,14 @@
         <p>The $\hat{m}_t$ and $\hat{v}_t$ are bias-corrected estimates that account for the zero-initialization of the moment vectors at $t=0$.
         Adam navigates elongated landscapes efficiently because the per-dimension scaling automatically compensates for the difference in curvature between axes.
         Its effective learning rate for each parameter is approximately $\alpha$, regardless of gradient magnitude.</p>
+
+        <h3>Batch size</h3>
+        <p>Every update rule above needs a gradient to work with, and how that gradient is computed is a separate choice from which update rule consumes it.
+        Full-batch gradient descent computes the exact gradient over the entire dataset every step: the direction is precise, but one step costs a full pass over the data.
+        Stochastic gradient descent estimates the gradient from a single example: each step is cheap, but the estimate is noisy, so the path jitters.
+        Mini-batch gradient descent averages over a small batch of examples, trading some of SGD's noise for some of full-batch's cost, and is what most training in practice actually uses.</p>
+        <p>The surfaces in this sandbox are analytic functions, not real datasets, so there is nothing to literally subsample.
+        The batch-size comparison instead adds simulated Gaussian noise to the true analytic gradient, scaled down as the batch size grows ($\sigma \propto 1/\sqrt{n}$), to illustrate the effect a real batch size would have.</p>
       </section>
 
     </main>
