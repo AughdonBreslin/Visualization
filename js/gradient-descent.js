@@ -40,29 +40,81 @@ const FUNCTIONS = {
   },
 };
 
-// ---- Optimizers ------------------------------------------------------------
+// ---- Optimizers --------------------------------------------------------
 
-const OPTS = [
+const OPTIMIZERS = [
   { key: 'sgd',      label: 'SGD',      color: '#74b9ff' },
   { key: 'momentum', label: 'Momentum', color: '#fd79a8' },
+  { key: 'adagrad',  label: 'AdaGrad',  color: '#a29bfe' },
+  { key: 'rmsprop',  label: 'RMSProp',  color: '#55efc4' },
   { key: 'adam',     label: 'Adam',     color: '#00cec9' },
 ];
 
-function stepSGD(s, grad, lr) {
-  const [gx, gy] = grad(s.x, s.y);
+// ---- Batch modes -------------------------------------------------------
+// n is the simulated number of examples averaged per gradient estimate. These
+// surfaces are analytic functions with no real dataset to subsample, so batch
+// size is simulated: full-batch uses the exact analytic gradient (no noise),
+// mini-batch and stochastic add Gaussian noise scaled by 1/sqrt(n).
+
+const BATCH_MODES = [
+  { key: 'full',       label: 'Full-batch',  n: Infinity, color: '#74b9ff' },
+  { key: 'mini',       label: 'Mini-batch',  n: 16,       color: '#ffeaa7' },
+  { key: 'stochastic', label: 'Stochastic',  n: 1,        color: '#ff7675' },
+];
+
+const BASE_NOISE = 0.35;
+
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function noisyGrad([gx, gy], batchMode) {
+  if (batchMode.n === Infinity) return [gx, gy];
+  const sigma = BASE_NOISE / Math.sqrt(batchMode.n);
+  const norm = Math.hypot(gx, gy);
+  return [gx + sigma * norm * randn(), gy + sigma * norm * randn()];
+}
+
+function stepSGD(s, gradVec, lr) {
+  const [gx, gy] = gradVec;
   return { x: s.x - lr*gx, y: s.y - lr*gy };
 }
 
-function stepMomentum(s, grad, lr, beta = 0.9) {
-  const [gx, gy] = grad(s.x, s.y);
+function stepMomentum(s, gradVec, lr, beta = 0.9) {
+  const [gx, gy] = gradVec;
   const vx = beta*(s.vx||0) - lr*gx;
   const vy = beta*(s.vy||0) - lr*gy;
   return { x: s.x + vx, y: s.y + vy, vx, vy };
 }
 
-function stepAdam(s, grad, lr, b1 = 0.9, b2 = 0.999, eps = 1e-8) {
+function stepAdaGrad(s, gradVec, lr, eps = 1e-8) {
+  const [gx, gy] = gradVec;
+  const gxSq = (s.gxSq||0) + gx*gx;
+  const gySq = (s.gySq||0) + gy*gy;
+  return {
+    x: s.x - lr*gx/(Math.sqrt(gxSq)+eps),
+    y: s.y - lr*gy/(Math.sqrt(gySq)+eps),
+    gxSq, gySq,
+  };
+}
+
+function stepRMSProp(s, gradVec, lr, beta = 0.9, eps = 1e-8) {
+  const [gx, gy] = gradVec;
+  const ex = beta*(s.ex||0) + (1-beta)*gx*gx;
+  const ey = beta*(s.ey||0) + (1-beta)*gy*gy;
+  return {
+    x: s.x - lr*gx/(Math.sqrt(ex)+eps),
+    y: s.y - lr*gy/(Math.sqrt(ey)+eps),
+    ex, ey,
+  };
+}
+
+function stepAdam(s, gradVec, lr, b1 = 0.9, b2 = 0.999, eps = 1e-8) {
   const t = (s.t||0) + 1;
-  const [gx, gy] = grad(s.x, s.y);
+  const [gx, gy] = gradVec;
   const mx = b1*(s.mx||0) + (1-b1)*gx;
   const my = b1*(s.my||0) + (1-b1)*gy;
   const vx = b2*(s.vx||0) + (1-b2)*gx*gx;
@@ -74,7 +126,7 @@ function stepAdam(s, grad, lr, b1 = 0.9, b2 = 0.999, eps = 1e-8) {
   return { x: s.x - lr*mxh/(Math.sqrt(vxh)+eps), y: s.y - lr*myh/(Math.sqrt(vyh)+eps), mx, my, vx, vy, t };
 }
 
-const STEP_FNS = { sgd: stepSGD, momentum: stepMomentum, adam: stepAdam };
+const STEP_FNS = { sgd: stepSGD, momentum: stepMomentum, adagrad: stepAdaGrad, rmsprop: stepRMSProp, adam: stepAdam };
 
 // ---- Color map (magma-like) ------------------------------------------------
 
@@ -92,6 +144,27 @@ let activeFnKey = 'elongated';
 let fn = FUNCTIONS[activeFnKey];
 let lr = 0.01;
 let startPt = { ...fn.start };
+
+let compareMode = 'optimizer'; // 'batch' | 'optimizer'
+let pinnedOptimizerKey = 'sgd';
+let pinnedBatchKey = 'full';
+let checkedOptimizerKeys = new Set(OPTIMIZERS.map(o => o.key));
+
+function activeLines() {
+  if (compareMode === 'batch') {
+    return BATCH_MODES.map(bm => ({
+      key: bm.key, label: bm.label, color: bm.color,
+      optimizerKey: pinnedOptimizerKey, batchMode: bm,
+    }));
+  }
+  const batchMode = BATCH_MODES.find(b => b.key === pinnedBatchKey);
+  return OPTIMIZERS.filter(o => checkedOptimizerKeys.has(o.key)).map(o => ({
+    key: o.key, label: o.label, color: o.color,
+    optimizerKey: o.key, batchMode,
+  }));
+}
+
+let lines = activeLines();
 let states = {};
 let histories = {};
 let iteration = 0;
@@ -192,13 +265,13 @@ function rebuildTrajLines() {
   trajLines = {};
   if (startMarker) { scene.remove(startMarker); startMarker = null; }
 
-  for (const opt of OPTS) {
+  for (const line of lines) {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3000), 3));
     geo.setDrawRange(0, 0);
-    const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: opt.color, linewidth: 2 }));
-    scene.add(line);
-    trajLines[opt.key] = line;
+    const threeLine = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: line.color, linewidth: 2 }));
+    scene.add(threeLine);
+    trajLines[line.key] = threeLine;
   }
 
   const sg = new THREE.SphereGeometry(0.055, 12, 8);
@@ -269,15 +342,15 @@ function initContour(container) {
     .attr('stroke-width', 0.4);
 
   // Trajectory paths
-  for (const opt of OPTS) {
-    svg.append('path').attr('class', `traj-path traj-${opt.key}`)
-      .attr('fill','none').attr('stroke', opt.color).attr('stroke-width', 1.8).attr('opacity', 0.9);
+  for (const line of lines) {
+    svg.append('path').attr('class', `traj-path traj-${line.key}`)
+      .attr('fill','none').attr('stroke', line.color).attr('stroke-width', 1.8).attr('opacity', 0.9);
   }
 
   // Current position dots
   dotEls = {};
-  for (const opt of OPTS) {
-    dotEls[opt.key] = svg.append('circle').attr('r', 4).attr('fill', opt.color)
+  for (const line of lines) {
+    dotEls[line.key] = svg.append('circle').attr('r', 4).attr('fill', line.color)
       .attr('stroke','#fff').attr('stroke-width', 1.2);
   }
 
@@ -297,16 +370,15 @@ function initContour(container) {
 }
 
 function updateContourMarkers() {
-  const d3 = window.d3;
   svg.select('.start-dot').attr('cx', xSc(startPt.x)).attr('cy', ySc(startPt.y));
 
-  for (const opt of OPTS) {
-    const hist = histories[opt.key] || [];
+  for (const line of lines) {
+    const hist = histories[line.key] || [];
     if (!hist.length) continue;
     const pts = hist.map(p => [xSc(p.x), ySc(p.y)]);
-    svg.select(`.traj-${opt.key}`).attr('d', 'M' + pts.map(p => p.join(',')).join('L'));
+    svg.select(`.traj-${line.key}`).attr('d', 'M' + pts.map(p => p.join(',')).join('L'));
     const last = pts[pts.length-1];
-    dotEls[opt.key].attr('cx', last[0]).attr('cy', last[1]);
+    dotEls[line.key].attr('cx', last[0]).attr('cy', last[1]);
   }
 }
 
@@ -321,13 +393,13 @@ function resetAll() {
   iteration = 0;
   states = {};
   histories = {};
-  for (const opt of OPTS) {
-    states[opt.key] = { x: startPt.x, y: startPt.y };
-    histories[opt.key] = [{ x: startPt.x, y: startPt.y }];
+  for (const line of lines) {
+    states[line.key] = { x: startPt.x, y: startPt.y };
+    histories[line.key] = [{ x: startPt.x, y: startPt.y }];
   }
 
   rebuildTrajLines();
-  for (const opt of OPTS) updateTrajLine(opt.key);
+  for (const line of lines) updateTrajLine(line.key);
   if (startMarker) startMarker.position.copy(pt3(startPt.x, startPt.y));
   updateContourMarkers();
   updateLegend();
@@ -338,19 +410,20 @@ function clamp(v, d) { return Math.max(-d, Math.min(d, v)); }
 function doStep() {
   iteration++;
   const D = fn.domain;
-  for (const opt of OPTS) {
-    const s = states[opt.key];
-    const next = STEP_FNS[opt.key](s, fn.grad, lr);
+  for (const line of lines) {
+    const s = states[line.key];
+    const g = noisyGrad(fn.grad(s.x, s.y), line.batchMode);
+    const next = STEP_FNS[line.optimizerKey](s, g, lr);
     next.x = clamp(isFinite(next.x) ? next.x : s.x, D * 1.5);
     next.y = clamp(isFinite(next.y) ? next.y : s.y, D * 1.5);
-    states[opt.key] = { ...s, ...next };
-    histories[opt.key].push({ x: next.x, y: next.y });
+    states[line.key] = { ...s, ...next };
+    histories[line.key].push({ x: next.x, y: next.y });
   }
 }
 
 function stepAndDraw() {
   doStep();
-  for (const opt of OPTS) updateTrajLine(opt.key);
+  for (const line of lines) updateTrajLine(line.key);
   updateContourMarkers();
   updateLegend();
 }
@@ -358,15 +431,19 @@ function stepAndDraw() {
 function updateLegend() {
   const el = document.getElementById('gdLegend');
   if (!el) return;
-  el.innerHTML = OPTS.map(opt => {
-    const s = states[opt.key];
+  const summary = compareMode === 'batch'
+    ? `Comparing batch size — optimizer: ${OPTIMIZERS.find(o => o.key === pinnedOptimizerKey).label}`
+    : `Comparing optimizers — batch size: ${BATCH_MODES.find(b => b.key === pinnedBatchKey).label}`;
+  const rows = lines.map(line => {
+    const s = states[line.key];
     const loss = s ? fn.f(s.x, s.y) : 0;
     return `<div class="gd-legend-row">
-      <div class="gd-legend-dot" style="background:${opt.color}"></div>
-      <span class="gd-legend-name">${opt.label}</span>
+      <div class="gd-legend-dot" style="background:${line.color}"></div>
+      <span class="gd-legend-name">${line.label}</span>
       <span class="gd-legend-stats">iter ${iteration}<br>loss ${loss.toFixed(4)}</span>
     </div>`;
   }).join('');
+  el.innerHTML = `<div class="gd-legend-summary">${summary}</div>${rows}`;
 }
 
 // ---- Animation loop --------------------------------------------------------
@@ -374,7 +451,7 @@ function updateLegend() {
 function animate() {
   if (!isRunning) return;
   for (let i = 0; i < stepsPerFrame; i++) doStep();
-  for (const opt of OPTS) updateTrajLine(opt.key);
+  for (const line of lines) updateTrajLine(line.key);
   updateContourMarkers();
   updateLegend();
   controls.update();
@@ -396,6 +473,12 @@ function switchFn(key) {
   fn = FUNCTIONS[key];
   startPt = { ...fn.start };
   buildSurface();
+  if (svg) initContour(document.getElementById('gdContour'));
+  resetAll();
+}
+
+function applyLineChange() {
+  lines = activeLines();
   if (svg) initContour(document.getElementById('gdContour'));
   resetAll();
 }
