@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gradient Descent: Batch Size and Optimizers</title>
+  <title>Gradient Descent</title>
 
   <script type="importmap">
 {
@@ -115,13 +115,25 @@
       </section>
 
       <section class="panel">
+        <h2>Convexity</h2>
+        <p>A function is convex if the line segment between any two points on its graph never dips below the graph itself: every local dip is the same dip as the global minimum.</p>
+        <div class="formula">$$f(t x + (1-t) y) \le t f(x) + (1-t) f(y), \quad t \in [0,1]$$</div>
+        <p>For a twice-differentiable function like the surfaces here, this is equivalent to the Hessian (the matrix of second derivatives) being positive semi-definite everywhere: curving upward, never downward, in every direction, at every point.
+        When a surface is convex, any local minimum gradient descent finds is automatically the global minimum, and where you start only changes how long the descent takes, never which minimum it ends at.</p>
+        <p>The elongated bowl and quadratic bowl are both convex: simple paraboloids, curving upward in every direction everywhere, with a single minimum at the origin regardless of start point.
+        Rosenbrock is not convex, its curved valley bends the wrong way along parts of its length, but it is still unimodal: only one minimum exists, at $(1, 1)$, so a non-convex surface does not by itself mean multiple competing minima.
+        The saddle surface is both non-convex and multimodal: the origin is a saddle point, curving upward along one axis and downward along the other, with two separate, equally deep minima sitting on opposite sides of it.
+        Try setting the start point above the origin versus below it on the saddle surface: the same optimizer settles into two different minima depending only on which side of the saddle it started, not on which optimizer is used.</p>
+      </section>
+
+      <section class="panel">
         <h2>The algorithms</h2>
 
         <h3>SGD</h3>
         <p>At each step, SGD moves the parameters directly opposite the gradient, scaled by the learning rate $\alpha$.</p>
         <div class="formula">$$\theta_{t+1} = \theta_t - \alpha \nabla L(\theta_t)$$</div>
-        <p>On an elongated bowl, equal step sizes in every direction means SGD bounces across the narrow axis while crawling along the long axis.
-        The learning rate that is small enough to avoid divergence on the steep axis is far too small for efficient progress on the shallow axis.
+        <p>When a surface curves much more steeply in one direction than another, a single learning rate cannot serve both directions well: small enough to avoid diverging on the steep direction means far too small for efficient progress on the shallow one.
+        SGD has no way to tell the two apart, so on any such surface it bounces across the steep axis while crawling along the shallow one.
         This same update rule is what every batch-size line in the sandbox uses when SGD is the pinned optimizer; only how noisy the gradient it receives changes.</p>
 
         <h3>Momentum</h3>

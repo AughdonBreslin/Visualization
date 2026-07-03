@@ -91,7 +91,7 @@ const CONVERGE_STREAK = 5;
 // constant, non-vanishing size instead of shrinking below CONVERGE_EPS the way
 // SGD/Momentum/Adam's does. This cap guarantees every line eventually stops
 // animating (and stops growing its history) even in that case.
-const MAX_ITER_PER_LINE = 1500;
+const MAX_ITER_PER_LINE = 2500;
 
 function randn() {
   let u = 0, v = 0;
