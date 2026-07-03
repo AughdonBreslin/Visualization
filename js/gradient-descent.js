@@ -62,16 +62,19 @@ const BATCH_MODES = [
   { key: 'stochastic', label: 'Stochastic',  n: 1,        color: '#ff7675' },
 ];
 
-const BASE_NOISE = 0.15;
+const BASE_NOISE = 0.35;
 
 // Rosenbrock's gradient magnitude near its start point (and along its walls) is an
 // order of magnitude larger than any other surface here (~200+ vs ~17 at most). Left
 // unclipped, a single default-learning-rate step overshoots into a region with an even
 // steeper gradient, and the trajectory cascades to the domain edge within 2-3 steps
 // regardless of batch size, including full-batch with no noise at all. Clipping the
-// gradient norm before it is used keeps every surface's descent numerically stable
-// without changing behavior on the other three surfaces, whose gradients never
-// approach this bound (elongated bowl peaks around 17 within its normal trajectory).
+// gradient norm before it is used keeps every surface's descent numerically stable.
+// During normal descent from each surface's default start point, the clip does not
+// engage on the other three surfaces (elongated bowl peaks around 17). It CAN engage
+// on those surfaces if the user clicks a start point near a domain corner (e.g.
+// elongated bowl at (2.9, 2.9), gradient norm ~47) -- verified this only moderately
+// caps an already-large initial step and never causes NaN or a stuck trajectory.
 const MAX_GRAD_NORM = 25;
 
 function randn() {
