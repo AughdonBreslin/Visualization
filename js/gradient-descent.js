@@ -71,10 +71,12 @@ const BASE_NOISE = 0.35;
 // regardless of batch size, including full-batch with no noise at all. Clipping the
 // gradient norm before it is used keeps every surface's descent numerically stable.
 // During normal descent from each surface's default start point, the clip does not
-// engage on the other three surfaces (elongated bowl peaks around 17). It CAN engage
-// on those surfaces if the user clicks a start point near a domain corner (e.g.
-// elongated bowl at (2.9, 2.9), gradient norm ~47) -- verified this only moderately
-// caps an already-large initial step and never causes NaN or a stuck trajectory.
+// engage on the other three surfaces (elongated bowl peaks around 17). Only the
+// elongated bowl can engage the clip if the user clicks a start point near a domain
+// corner (e.g. at (2.9, 2.9), gradient norm around 47). The quadratic bowl and
+// saddle never reach the threshold even at their domain corners. This has been
+// verified to only moderately cap an already-large initial step and never cause NaN
+// or a stuck trajectory.
 const MAX_GRAD_NORM = 25;
 
 function randn() {
