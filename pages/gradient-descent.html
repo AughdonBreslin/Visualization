@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="../styles/gradient-descent.css">
   <link rel="stylesheet" href="../styles/section-outline.css">
   <script src="../js/theme.js"></script>
+  <script defer src="../js/tabs.js"></script>
   <script type="module" src="../js/gradient-descent.js"></script>
   <script defer src="../js/favicon.js"></script>
   <script type="module" src="../js/section-outline.js"></script>
@@ -46,10 +47,41 @@
 
       <section class="panel">
         <h2>Sandbox</h2>
-        <p>Pick a loss surface and watch three optimizers descend from the same starting point.
+        <p>Pick a loss surface, choose whether to compare batch size or optimizers, and watch how the pinned dimension changes the descent.
         Click anywhere on the contour map to move the start.</p>
 
+        <div class="tabs gd-mode-tabs" role="tablist">
+          <button type="button" class="tab" data-tab="batch">Compare batch size</button>
+          <button type="button" class="tab active" data-tab="optimizer">Compare optimizers</button>
+        </div>
+
         <div class="gd-controls">
+          <div class="gd-control-group" data-panel="batch" hidden>
+            <label class="gd-label" for="gdPinnedOptimizer">Optimizer</label>
+            <select id="gdPinnedOptimizer" class="gd-select">
+              <option value="sgd">SGD</option>
+              <option value="momentum">Momentum</option>
+              <option value="adagrad">AdaGrad</option>
+              <option value="rmsprop">RMSProp</option>
+              <option value="adam">Adam</option>
+            </select>
+          </div>
+          <div class="gd-control-group" data-panel="optimizer">
+            <label class="gd-label" for="gdPinnedBatch">Batch size</label>
+            <select id="gdPinnedBatch" class="gd-select">
+              <option value="full">Full-batch</option>
+              <option value="mini">Mini-batch</option>
+              <option value="stochastic">Stochastic</option>
+            </select>
+          </div>
+          <div class="gd-control-group gd-checkbox-group" id="gdOptimizerChecks" data-panel="optimizer">
+            <span class="gd-label">Optimizers</span>
+            <label class="control-row"><input class="check" type="checkbox" value="sgd" checked> SGD</label>
+            <label class="control-row"><input class="check" type="checkbox" value="momentum" checked> Momentum</label>
+            <label class="control-row"><input class="check" type="checkbox" value="adagrad" checked> AdaGrad</label>
+            <label class="control-row"><input class="check" type="checkbox" value="rmsprop" checked> RMSProp</label>
+            <label class="control-row"><input class="check" type="checkbox" value="adam" checked> Adam</label>
+          </div>
           <div class="gd-control-group">
             <label class="gd-label" for="gdFn">Surface</label>
             <select id="gdFn" class="gd-select">

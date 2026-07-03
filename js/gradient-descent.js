@@ -537,6 +537,34 @@ try {
   });
 
   document.getElementById('gdReset').addEventListener('click', resetAll);
+
+  document.querySelectorAll('.gd-mode-tabs .tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.tab === compareMode) return;
+      compareMode = btn.dataset.tab;
+      applyLineChange();
+    });
+  });
+
+  document.getElementById('gdPinnedOptimizer').addEventListener('change', e => {
+    pinnedOptimizerKey = e.target.value;
+    applyLineChange();
+  });
+
+  document.getElementById('gdPinnedBatch').addEventListener('change', e => {
+    pinnedBatchKey = e.target.value;
+    applyLineChange();
+  });
+
+  document.querySelectorAll('#gdOptimizerChecks .check').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const next = new Set(checkedOptimizerKeys);
+      if (cb.checked) next.add(cb.value); else next.delete(cb.value);
+      if (next.size === 0) { cb.checked = true; return; }
+      checkedOptimizerKeys = next;
+      applyLineChange();
+    });
+  });
 } catch (e) {
   showErr('Init error: ' + e.message + '\n' + e.stack);
 }
