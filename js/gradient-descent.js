@@ -62,13 +62,30 @@ const BATCH_MODES = [
   { key: 'stochastic', label: 'Stochastic',  n: 1,        color: '#ff7675' },
 ];
 
-const BASE_NOISE = 0.35;
+const BASE_NOISE = 0.15;
+
+// Rosenbrock's gradient magnitude near its start point (and along its walls) is an
+// order of magnitude larger than any other surface here (~200+ vs ~17 at most). Left
+// unclipped, a single default-learning-rate step overshoots into a region with an even
+// steeper gradient, and the trajectory cascades to the domain edge within 2-3 steps
+// regardless of batch size, including full-batch with no noise at all. Clipping the
+// gradient norm before it is used keeps every surface's descent numerically stable
+// without changing behavior on the other three surfaces, whose gradients never
+// approach this bound (elongated bowl peaks around 17 within its normal trajectory).
+const MAX_GRAD_NORM = 25;
 
 function randn() {
   let u = 0, v = 0;
   while (u === 0) u = Math.random();
   while (v === 0) v = Math.random();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function clipGrad([gx, gy], maxNorm) {
+  const norm = Math.hypot(gx, gy);
+  if (norm <= maxNorm || norm === 0) return [gx, gy];
+  const scale = maxNorm / norm;
+  return [gx * scale, gy * scale];
 }
 
 function noisyGrad([gx, gy], batchMode) {
@@ -412,7 +429,7 @@ function doStep() {
   const D = fn.domain;
   for (const line of lines) {
     const s = states[line.key];
-    const g = noisyGrad(fn.grad(s.x, s.y), line.batchMode);
+    const g = noisyGrad(clipGrad(fn.grad(s.x, s.y), MAX_GRAD_NORM), line.batchMode);
     const next = STEP_FNS[line.optimizerKey](s, g, lr);
     next.x = clamp(isFinite(next.x) ? next.x : s.x, D * 1.5);
     next.y = clamp(isFinite(next.y) ? next.y : s.y, D * 1.5);
