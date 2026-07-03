@@ -79,6 +79,20 @@ const BASE_NOISE = 0.35;
 // or a stuck trajectory.
 const MAX_GRAD_NORM = 25;
 
+// A line stops taking steps once its own displacement has stayed below this
+// threshold for CONVERGE_STREAK consecutive steps, independent of every other
+// line's state, so a line that reaches a flat region stops animating instead
+// of running (and growing its history) forever.
+const CONVERGE_EPS = 1e-4;
+const CONVERGE_STREAK = 5;
+
+// AdaGrad and RMSProp normalize each step by that parameter's own recent gradient
+// scale, so near a minimum their displacement can hover at a small but roughly
+// constant, non-vanishing size instead of shrinking below CONVERGE_EPS the way
+// SGD/Momentum/Adam's does. This cap guarantees every line eventually stops
+// animating (and stops growing its history) even in that case.
+const MAX_ITER_PER_LINE = 1500;
+
 function randn() {
   let u = 0, v = 0;
   while (u === 0) u = Math.random();
@@ -189,7 +203,6 @@ function activeLines() {
 let lines = activeLines();
 let states = {};
 let histories = {};
-let iteration = 0;
 let isRunning = false;
 let rafId = null;
 let stepsPerFrame = 1;
@@ -412,7 +425,6 @@ function resetAll() {
   document.getElementById('gdAnimate').textContent = 'Animate';
   document.getElementById('gdAnimate').classList.remove('is-running');
 
-  iteration = 0;
   states = {};
   histories = {};
   for (const line of lines) {
@@ -430,17 +442,25 @@ function resetAll() {
 function clamp(v, d) { return Math.max(-d, Math.min(d, v)); }
 
 function doStep() {
-  iteration++;
   const D = fn.domain;
   for (const line of lines) {
     const s = states[line.key];
+    if (s.converged) continue;
     const g = noisyGrad(clipGrad(fn.grad(s.x, s.y), MAX_GRAD_NORM), line.batchMode);
     const next = STEP_FNS[line.optimizerKey](s, g, lr);
     next.x = clamp(isFinite(next.x) ? next.x : s.x, D * 1.5);
     next.y = clamp(isFinite(next.y) ? next.y : s.y, D * 1.5);
+    const displacement = Math.hypot(next.x - s.x, next.y - s.y);
+    next.convergeStreak = displacement < CONVERGE_EPS ? (s.convergeStreak || 0) + 1 : 0;
+    next.iter = (s.iter || 0) + 1;
+    next.converged = next.convergeStreak >= CONVERGE_STREAK || next.iter >= MAX_ITER_PER_LINE;
     states[line.key] = { ...s, ...next };
     histories[line.key].push({ x: next.x, y: next.y });
   }
+}
+
+function allConverged() {
+  return lines.every(line => states[line.key] && states[line.key].converged);
 }
 
 function stepAndDraw() {
@@ -459,16 +479,26 @@ function updateLegend() {
   const rows = lines.map(line => {
     const s = states[line.key];
     const loss = s ? fn.f(s.x, s.y) : 0;
+    const iter = s ? (s.iter || 0) : 0;
     return `<div class="gd-legend-row">
       <div class="gd-legend-dot" style="background:${line.color}"></div>
       <span class="gd-legend-name">${line.label}</span>
-      <span class="gd-legend-stats">iter ${iteration}<br>loss ${loss.toFixed(4)}</span>
+      <span class="gd-legend-stats">iter ${iter}<br>loss ${loss.toFixed(4)}</span>
     </div>`;
   }).join('');
   el.innerHTML = `<div class="gd-legend-summary">${summary}</div>${rows}`;
 }
 
 // ---- Animation loop --------------------------------------------------------
+
+function stopAnimating() {
+  isRunning = false;
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  const btn = document.getElementById('gdAnimate');
+  btn.textContent = 'Animate';
+  btn.classList.remove('is-running');
+  requestAnimationFrame(threeLoop);
+}
 
 function animate() {
   if (!isRunning) return;
@@ -478,6 +508,7 @@ function animate() {
   updateLegend();
   controls.update();
   renderer.render(scene, camera);
+  if (allConverged()) { stopAnimating(); return; }
   rafId = requestAnimationFrame(animate);
 }
 
@@ -538,16 +569,13 @@ try {
 
   document.getElementById('gdAnimate').addEventListener('click', () => {
     isRunning = !isRunning;
-    const btn = document.getElementById('gdAnimate');
     if (isRunning) {
+      const btn = document.getElementById('gdAnimate');
       btn.textContent = 'Pause';
       btn.classList.add('is-running');
       animate();
     } else {
-      btn.textContent = 'Animate';
-      btn.classList.remove('is-running');
-      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-      requestAnimationFrame(threeLoop);
+      stopAnimating();
     }
   });
 

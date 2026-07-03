@@ -87,7 +87,13 @@
 .ui.gradient-descent .gd-btn-primary:hover { opacity: 0.88; }
 .ui.gradient-descent .gd-btn-primary.is-running { background: #c0392b; border-color: #c0392b; }
 .ui.gradient-descent .gd-mode-tabs { margin-bottom: 16px; }
-.ui.gradient-descent .gd-checkbox-group { gap: 7px; }
+.ui.gradient-descent .gd-checkbox-group {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+}
+.ui.gradient-descent .gd-checkbox-group .gd-label { flex-basis: 100%; }
 .ui.gradient-descent .gd-checkbox-group .control-row { gap: 7px; }
 
 /* --- Viz row --- */
