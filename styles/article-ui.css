@@ -42,12 +42,24 @@
   padding: 8px 0 8px 18px;
   margin: 12px 0;
   max-width: 100%;
-  overflow-x: auto;
+  /* No overflow-x/-y here: setting only one axis to a non-visible value makes the
+     browser coerce the other to "auto" too (CSS Overflow spec), which is what was
+     producing a vertical scrollbar on tall (fraction-containing) formulas even
+     though nothing here needs vertical clipping. Horizontal scroll for wide
+     equations lives on the mjx-container child below instead, whose own box
+     already matches its content's height, so "hidden" there never clips anything. */
 }
 
 .ui .formulas .formula { margin: 4px 0; }
 .ui .formulas .formula:not(:first-child) { border-left-color: transparent; padding-left: 0; }
-.ui .formula mjx-container { color: #e4e6ea; text-align: left !important; margin: 0 !important; }
+.ui .formula mjx-container {
+  color: #e4e6ea;
+  text-align: left !important;
+  margin: 0 !important;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 .ui p mjx-container[display] { text-align: left !important; margin-left: 0 !important; }
 /* Render math at the body text size. MathJax defaults to ~16px, a touch large next to the
    14.5px prose; matching it keeps inline symbols and display equations in the text rhythm. */
