@@ -432,8 +432,8 @@ function updateLegend() {
   const el = document.getElementById('gdLegend');
   if (!el) return;
   const summary = compareMode === 'batch'
-    ? `Comparing batch size — optimizer: ${OPTIMIZERS.find(o => o.key === pinnedOptimizerKey).label}`
-    : `Comparing optimizers — batch size: ${BATCH_MODES.find(b => b.key === pinnedBatchKey).label}`;
+    ? `Comparing batch size, optimizer: ${OPTIMIZERS.find(o => o.key === pinnedOptimizerKey).label}`
+    : `Comparing optimizers, batch size: ${BATCH_MODES.find(b => b.key === pinnedBatchKey).label}`;
   const rows = lines.map(line => {
     const s = states[line.key];
     const loss = s ? fn.f(s.x, s.y) : 0;
