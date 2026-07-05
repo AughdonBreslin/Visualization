@@ -262,26 +262,35 @@ function initThree(container) {
   // contour view's click-to-move-start. Only armed before any step has run, since
   // OrbitControls uses the same pointer events for rotation and a stray click
   // mid-descent should not silently relocate the start out from under it.
+  //
+  // The raycast runs at pointerdown, not pointerup: OrbitControls processes
+  // pointermove continuously, so even the few pixels of natural jitter in a real
+  // mouse click (well under the drag threshold below) can nudge the camera's
+  // rotation before pointerup fires, throwing off a raycast done at that point.
+  // Raycasting immediately on pointerdown captures the camera before any such
+  // rotation from this gesture has happened, and pointerup only decides whether
+  // to apply that already-computed result.
   const raycaster = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
-  let pointerDownPos = null;
+  let pointerDownInfo = null;
 
   renderer.domElement.addEventListener('pointerdown', e => {
-    pointerDownPos = { x: e.clientX, y: e.clientY };
-  });
-
-  renderer.domElement.addEventListener('pointerup', e => {
-    const down = pointerDownPos;
-    pointerDownPos = null;
-    if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return; // was an orbit drag
+    pointerDownInfo = { x: e.clientX, y: e.clientY, domainPt: null };
     if (!surfaceMesh || !hasNotStarted()) return;
     const rect = renderer.domElement.getBoundingClientRect();
     ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(ndc, camera);
     const hits = raycaster.intersectObject(surfaceMesh);
-    if (!hits.length) return;
-    startPt = { x: hits[0].point.x, y: -hits[0].point.z };
+    if (hits.length) pointerDownInfo.domainPt = { x: hits[0].point.x, y: -hits[0].point.z };
+  });
+
+  renderer.domElement.addEventListener('pointerup', e => {
+    const down = pointerDownInfo;
+    pointerDownInfo = null;
+    if (!down || !down.domainPt) return;
+    if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return; // was an orbit drag
+    startPt = down.domainPt;
     resetAll();
   });
 }
