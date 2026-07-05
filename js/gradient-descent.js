@@ -257,6 +257,33 @@ function initThree(container) {
     camera.updateProjectionMatrix();
     renderer.setSize(w2, h2);
   }).observe(container);
+
+  // Click (not drag-to-orbit) on the surface moves the start point, mirroring the
+  // contour view's click-to-move-start. Only armed before any step has run, since
+  // OrbitControls uses the same pointer events for rotation and a stray click
+  // mid-descent should not silently relocate the start out from under it.
+  const raycaster = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  let pointerDownPos = null;
+
+  renderer.domElement.addEventListener('pointerdown', e => {
+    pointerDownPos = { x: e.clientX, y: e.clientY };
+  });
+
+  renderer.domElement.addEventListener('pointerup', e => {
+    const down = pointerDownPos;
+    pointerDownPos = null;
+    if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return; // was an orbit drag
+    if (!surfaceMesh || !hasNotStarted()) return;
+    const rect = renderer.domElement.getBoundingClientRect();
+    ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(ndc, camera);
+    const hits = raycaster.intersectObject(surfaceMesh);
+    if (!hits.length) return;
+    startPt = { x: hits[0].point.x, y: -hits[0].point.z };
+    resetAll();
+  });
 }
 
 function buildSurface() {
@@ -473,6 +500,14 @@ function doStep() {
 
 function allConverged() {
   return lines.every(line => states[line.key] && states[line.key].converged);
+}
+
+// True from a fresh page load or right after Reset/a new start point, until the
+// first step actually runs. Used to gate 3D click-to-move-start: once any line
+// has taken a step, a stray click while orbiting the camera should not silently
+// relocate the start point out from under an in-progress descent.
+function hasNotStarted() {
+  return lines.every(line => !states[line.key] || !states[line.key].iter);
 }
 
 function stepAndDraw() {
