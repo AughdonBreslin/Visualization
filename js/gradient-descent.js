@@ -190,11 +190,12 @@ let compareMode = 'optimizer'; // 'batch' | 'optimizer'
 let pinnedOptimizerKey = 'sgd';
 let pinnedBatchKey = 'full';
 let checkedOptimizerKeys = new Set(OPTIMIZERS.map(o => o.key));
+let checkedBatchKeys = new Set(BATCH_MODES.map(b => b.key));
 let highlightedKey = null; // legend row clicked to isolate one line, or null for none
 
 function activeLines() {
   if (compareMode === 'batch') {
-    return BATCH_MODES.map(bm => ({
+    return BATCH_MODES.filter(bm => checkedBatchKeys.has(bm.key)).map(bm => ({
       key: bm.key, label: bm.label, color: bm.color,
       optimizerKey: pinnedOptimizerKey, batchMode: bm,
     }));
@@ -665,6 +666,16 @@ try {
       if (cb.checked) next.add(cb.value); else next.delete(cb.value);
       if (next.size === 0) { cb.checked = true; return; }
       checkedOptimizerKeys = next;
+      applyLineChange();
+    });
+  });
+
+  document.querySelectorAll('#gdBatchChecks .check').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const next = new Set(checkedBatchKeys);
+      if (cb.checked) next.add(cb.value); else next.delete(cb.value);
+      if (next.size === 0) { cb.checked = true; return; }
+      checkedBatchKeys = next;
       applyLineChange();
     });
   });

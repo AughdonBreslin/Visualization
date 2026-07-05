@@ -55,7 +55,7 @@
           <button type="button" class="tab active" data-tab="optimizer">Compare optimizers</button>
         </div>
 
-        <div class="gd-controls">
+        <div class="gd-controls gd-controls-top">
           <div class="gd-control-group" data-panel="batch" hidden>
             <label class="gd-label" for="gdPinnedOptimizer">Optimizer</label>
             <select id="gdPinnedOptimizer" class="gd-select">
@@ -66,6 +66,14 @@
               <option value="adam">Adam</option>
             </select>
           </div>
+          <div class="gd-control-group" id="gdBatchChecks" data-panel="batch" hidden>
+            <span class="gd-label">Batch sizes</span>
+            <div class="gd-checkbox-row">
+              <label class="control-row"><input class="check" type="checkbox" value="full" checked> Full-batch</label>
+              <label class="control-row"><input class="check" type="checkbox" value="mini" checked> Mini-batch</label>
+              <label class="control-row"><input class="check" type="checkbox" value="stochastic" checked> Stochastic</label>
+            </div>
+          </div>
           <div class="gd-control-group" data-panel="optimizer">
             <label class="gd-label" for="gdPinnedBatch">Batch size</label>
             <select id="gdPinnedBatch" class="gd-select">
@@ -74,14 +82,19 @@
               <option value="stochastic">Stochastic</option>
             </select>
           </div>
-          <div class="gd-control-group gd-checkbox-group" id="gdOptimizerChecks" data-panel="optimizer">
+          <div class="gd-control-group" id="gdOptimizerChecks" data-panel="optimizer">
             <span class="gd-label">Optimizers</span>
-            <label class="control-row"><input class="check" type="checkbox" value="sgd" checked> SGD</label>
-            <label class="control-row"><input class="check" type="checkbox" value="momentum" checked> Momentum</label>
-            <label class="control-row"><input class="check" type="checkbox" value="adagrad" checked> AdaGrad</label>
-            <label class="control-row"><input class="check" type="checkbox" value="rmsprop" checked> RMSProp</label>
-            <label class="control-row"><input class="check" type="checkbox" value="adam" checked> Adam</label>
+            <div class="gd-checkbox-row">
+              <label class="control-row"><input class="check" type="checkbox" value="sgd" checked> SGD</label>
+              <label class="control-row"><input class="check" type="checkbox" value="momentum" checked> Momentum</label>
+              <label class="control-row"><input class="check" type="checkbox" value="adagrad" checked> AdaGrad</label>
+              <label class="control-row"><input class="check" type="checkbox" value="rmsprop" checked> RMSProp</label>
+              <label class="control-row"><input class="check" type="checkbox" value="adam" checked> Adam</label>
+            </div>
           </div>
+        </div>
+
+        <div class="gd-controls">
           <div class="gd-control-group">
             <label class="gd-label" for="gdFn">Surface</label>
             <select id="gdFn" class="gd-select">

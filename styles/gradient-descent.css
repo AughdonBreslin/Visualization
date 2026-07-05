@@ -8,6 +8,10 @@
   gap: 20px 32px;
   margin-bottom: 20px;
 }
+/* The tab-specific row mixes a single select with a taller checkbox group, so its
+   labels are top-aligned rather than bottom-aligned like the fixed row below it
+   (whose button group relies on flex-end to sit level with the sliders). */
+.ui.gradient-descent .gd-controls-top { align-items: flex-start; }
 .ui.gradient-descent .gd-control-group {
   display: flex;
   flex-direction: column;
@@ -87,14 +91,13 @@
 .ui.gradient-descent .gd-btn-primary:hover { opacity: 0.88; }
 .ui.gradient-descent .gd-btn-primary.is-running { background: #c0392b; border-color: #c0392b; }
 .ui.gradient-descent .gd-mode-tabs { margin-bottom: 16px; }
-.ui.gradient-descent .gd-checkbox-group {
-  flex-direction: row;
+.ui.gradient-descent .gd-checkbox-row {
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 16px;
 }
-.ui.gradient-descent .gd-checkbox-group .gd-label { flex-basis: 100%; }
-.ui.gradient-descent .gd-checkbox-group .control-row { gap: 7px; }
+.ui.gradient-descent .gd-checkbox-row .control-row { gap: 7px; }
 
 /* --- Viz row --- */
 /* Definite height on surface wrap — min-height alone is not a definite height so
