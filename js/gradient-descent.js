@@ -211,7 +211,9 @@ let states = {};
 let histories = {};
 let isRunning = false;
 let rafId = null;
-let stepsPerFrame = 1;
+let speed = 60; // iterations per second, set by the Speed slider
+let lastFrameTime = null;
+let stepAccumulator = 0;
 
 // ---- Three.js --------------------------------------------------------------
 
@@ -428,6 +430,8 @@ function updateContourMarkers() {
 function resetAll() {
   isRunning = false;
   if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  lastFrameTime = null;
+  stepAccumulator = 0;
   document.getElementById('gdAnimate').textContent = 'Animate';
   document.getElementById('gdAnimate').classList.remove('is-running');
 
@@ -520,15 +524,30 @@ function applyHighlight() {
 function stopAnimating() {
   isRunning = false;
   if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  lastFrameTime = null;
+  stepAccumulator = 0;
   const btn = document.getElementById('gdAnimate');
   btn.textContent = 'Animate';
   btn.classList.remove('is-running');
   requestAnimationFrame(threeLoop);
 }
 
+// Iteration count is decoupled from display refresh rate: an accumulator tracks
+// how many steps "should" have run by now at the current speed (iterations/sec),
+// so slower-than-refresh-rate speeds skip frames and faster ones run several
+// steps per frame. Elapsed time per frame is capped so resuming a long-backgrounded
+// tab cannot dump a huge backlog of steps into a single synchronous frame.
+const MAX_FRAME_DT = 0.25;
+
 function animate() {
   if (!isRunning) return;
-  for (let i = 0; i < stepsPerFrame; i++) doStep();
+  const now = performance.now();
+  const dt = lastFrameTime === null ? 0 : Math.min((now - lastFrameTime) / 1000, MAX_FRAME_DT);
+  lastFrameTime = now;
+  stepAccumulator += dt * speed;
+  const stepsThisFrame = Math.floor(stepAccumulator);
+  stepAccumulator -= stepsThisFrame;
+  for (let i = 0; i < stepsThisFrame; i++) doStep();
   for (const line of lines) updateTrajLine(line.key);
   updateContourMarkers();
   updateLegend();
@@ -592,6 +611,13 @@ try {
   lrInput.addEventListener('input', () => {
     lr = Math.pow(10, +lrInput.value);
     lrVal.textContent = lr.toFixed(lr < 0.01 ? 4 : lr < 0.1 ? 3 : 2);
+  });
+
+  const speedInput = document.getElementById('gdSpeed');
+  const speedVal    = document.getElementById('gdSpeedVal');
+  speedInput.addEventListener('input', () => {
+    speed = +speedInput.value;
+    speedVal.textContent = `${speed} iter/s`;
   });
 
   document.getElementById('gdAnimate').addEventListener('click', () => {
