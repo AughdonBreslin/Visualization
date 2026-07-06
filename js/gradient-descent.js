@@ -248,14 +248,6 @@ function initThree(container) {
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.target.set(0, 0.5, 0);
-  // Keep a margin away from directly overhead/underneath. At the exact pole the
-  // camera's forward direction and its world-up reference vector become
-  // anti-parallel, so the cross product used to build its left/right basis
-  // degenerates to zero and the effective orientation gets an arbitrary
-  // numerical roll, so every raycast (click-to-move-start) lands shifted by a
-  // consistent offset instead of where the screen position actually points.
-  controls.minPolarAngle = 0.2;
-  controls.maxPolarAngle = Math.PI - 0.2;
   controls.update();
 
   new ResizeObserver(() => {
@@ -265,42 +257,6 @@ function initThree(container) {
     camera.updateProjectionMatrix();
     renderer.setSize(w2, h2);
   }).observe(container);
-
-  // Click (not drag-to-orbit) on the surface moves the start point, mirroring the
-  // contour view's click-to-move-start. Only armed before any step has run, since
-  // OrbitControls uses the same pointer events for rotation and a stray click
-  // mid-descent should not silently relocate the start out from under it.
-  //
-  // The raycast runs at pointerdown, not pointerup: OrbitControls processes
-  // pointermove continuously, so even the few pixels of natural jitter in a real
-  // mouse click (well under the drag threshold below) can nudge the camera's
-  // rotation before pointerup fires, throwing off a raycast done at that point.
-  // Raycasting immediately on pointerdown captures the camera before any such
-  // rotation from this gesture has happened, and pointerup only decides whether
-  // to apply that already-computed result.
-  const raycaster = new THREE.Raycaster();
-  const ndc = new THREE.Vector2();
-  let pointerDownInfo = null;
-
-  renderer.domElement.addEventListener('pointerdown', e => {
-    pointerDownInfo = { x: e.clientX, y: e.clientY, domainPt: null };
-    if (!surfaceMesh || !hasNotStarted()) return;
-    const rect = renderer.domElement.getBoundingClientRect();
-    ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.setFromCamera(ndc, camera);
-    const hits = raycaster.intersectObject(surfaceMesh);
-    if (hits.length) pointerDownInfo.domainPt = { x: hits[0].point.x, y: -hits[0].point.z };
-  });
-
-  renderer.domElement.addEventListener('pointerup', e => {
-    const down = pointerDownInfo;
-    pointerDownInfo = null;
-    if (!down || !down.domainPt) return;
-    if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return; // was an orbit drag
-    startPt = down.domainPt;
-    resetAll();
-  });
 }
 
 function buildSurface() {
@@ -473,6 +429,13 @@ function updateContourMarkers() {
 // ---- Optimizer state -------------------------------------------------------
 
 function resetAll() {
+  // Pause first: if this reset interrupts a running animation, animate()'s rAF
+  // chain stops here, but threeLoop()'s idle chain was never running (it last
+  // exited via `if (isRunning) return`). Without resuming it, the freshly
+  // rebuilt (empty) trajectories would update in the scene graph but never
+  // actually get rendered, leaving the old paths visible until some other
+  // interaction happens to trigger a render.
+  const wasRunning = isRunning;
   isRunning = false;
   if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
   lastFrameTime = null;
@@ -493,6 +456,7 @@ function resetAll() {
   updateContourMarkers();
   updateLegend();
   applyHighlight();
+  if (wasRunning) requestAnimationFrame(threeLoop);
 }
 
 function clamp(v, d) { return Math.max(-d, Math.min(d, v)); }
@@ -517,14 +481,6 @@ function doStep() {
 
 function allConverged() {
   return lines.every(line => states[line.key] && states[line.key].converged);
-}
-
-// True from a fresh page load or right after Reset/a new start point, until the
-// first step actually runs. Used to gate 3D click-to-move-start: once any line
-// has taken a step, a stray click while orbiting the camera should not silently
-// relocate the start point out from under an in-progress descent.
-function hasNotStarted() {
-  return lines.every(line => !states[line.key] || !states[line.key].iter);
 }
 
 function stepAndDraw() {
