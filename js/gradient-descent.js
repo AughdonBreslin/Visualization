@@ -248,6 +248,14 @@ function initThree(container) {
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.target.set(0, 0.5, 0);
+  // Keep a margin away from directly overhead/underneath. At the exact pole the
+  // camera's forward direction and its world-up reference vector become
+  // anti-parallel, so the cross product used to build its left/right basis
+  // degenerates to zero and the effective orientation gets an arbitrary
+  // numerical roll, so every raycast (click-to-move-start) lands shifted by a
+  // consistent offset instead of where the screen position actually points.
+  controls.minPolarAngle = 0.2;
+  controls.maxPolarAngle = Math.PI - 0.2;
   controls.update();
 
   new ResizeObserver(() => {
