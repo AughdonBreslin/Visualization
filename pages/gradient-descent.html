@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gradient Descent</title>
+
+  <script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../styles/system.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/article-ui.css">
+  <link rel="stylesheet" href="../styles/gradient-descent.css">
+  <link rel="stylesheet" href="../styles/section-outline.css">
+  <script src="../js/theme.js"></script>
+  <script defer src="../js/tabs.js"></script>
+  <script type="module" src="../js/gradient-descent.js"></script>
+  <script defer src="../js/favicon.js"></script>
+  <script type="module" src="../js/section-outline.js"></script>
+</head>
+<body class="ui gradient-descent has-section-outline">
+  <div class="container">
+    <header class="page-head">
+      <div class="eyebrow">// Optimization</div>
+      <h1>Gradient descent</h1>
+      <p class="lede">Compare how batch size and optimizer choice change the way a point descends a loss surface, from full-batch and stochastic gradients to momentum, AdaGrad, RMSProp, and Adam.</p>
+    </header>
+
+    <main class="article-body">
+
+      <section class="panel">
+        <h2>Sandbox</h2>
+        <p>Pick a loss surface, choose whether to compare batch size or optimizers, and watch how the pinned dimension changes the descent.</p>
+
+        <div class="tabs gd-mode-tabs" role="tablist">
+          <button type="button" class="tab" data-tab="batch">Compare batch size</button>
+          <button type="button" class="tab active" data-tab="optimizer">Compare optimizers</button>
+        </div>
+
+        <div class="gd-controls gd-controls-top">
+          <div class="gd-control-group" data-panel="batch" hidden>
+            <label class="gd-label" for="gdPinnedOptimizer">Optimizer</label>
+            <select id="gdPinnedOptimizer" class="gd-select">
+              <option value="sgd">SGD</option>
+              <option value="momentum">Momentum</option>
+              <option value="adagrad">AdaGrad</option>
+              <option value="rmsprop">RMSProp</option>
+              <option value="adam">Adam</option>
+            </select>
+          </div>
+          <div class="gd-control-group" id="gdBatchChecks" data-panel="batch" hidden>
+            <span class="gd-label">Batch sizes</span>
+            <div class="gd-checkbox-row">
+              <label class="control-row"><input class="check" type="checkbox" value="full" checked> Full-batch</label>
+              <label class="control-row"><input class="check" type="checkbox" value="mini" checked> Mini-batch</label>
+              <label class="control-row"><input class="check" type="checkbox" value="stochastic" checked> Stochastic</label>
+            </div>
+          </div>
+          <div class="gd-control-group" data-panel="optimizer">
+            <label class="gd-label" for="gdPinnedBatch">Batch size</label>
+            <select id="gdPinnedBatch" class="gd-select">
+              <option value="full">Full-batch</option>
+              <option value="mini">Mini-batch</option>
+              <option value="stochastic">Stochastic</option>
+            </select>
+          </div>
+          <div class="gd-control-group" id="gdOptimizerChecks" data-panel="optimizer">
+            <span class="gd-label">Optimizers</span>
+            <div class="gd-checkbox-row">
+              <label class="control-row"><input class="check" type="checkbox" value="sgd" checked> SGD</label>
+              <label class="control-row"><input class="check" type="checkbox" value="momentum" checked> Momentum</label>
+              <label class="control-row"><input class="check" type="checkbox" value="adagrad" checked> AdaGrad</label>
+              <label class="control-row"><input class="check" type="checkbox" value="rmsprop" checked> RMSProp</label>
+              <label class="control-row"><input class="check" type="checkbox" value="adam" checked> Adam</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="gd-controls">
+          <div class="gd-control-group">
+            <label class="gd-label" for="gdFn">Surface</label>
+            <select id="gdFn" class="gd-select">
+              <option value="elongated">Elongated bowl</option>
+              <option value="rosenbrock">Rosenbrock</option>
+              <option value="bowl">Quadratic bowl</option>
+              <option value="saddle">Saddle + valleys</option>
+            </select>
+          </div>
+          <div class="gd-control-group">
+            <label class="gd-label" for="gdLr">Learning rate</label>
+            <div class="gd-slider-row">
+              <input type="range" id="gdLr" class="gd-slider" min="-4" max="-1" step="0.05" value="-2">
+              <output id="gdLrVal" class="gd-output">0.01</output>
+            </div>
+          </div>
+          <div class="gd-control-group">
+            <label class="gd-label" for="gdSpeed">Speed</label>
+            <div class="gd-slider-row">
+              <input type="range" id="gdSpeed" class="gd-slider" min="1" max="240" step="1" value="60">
+              <output id="gdSpeedVal" class="gd-output">60 iter/s</output>
+            </div>
+          </div>
+          <div class="gd-btn-group">
+            <button id="gdAnimate" class="gd-btn gd-btn-primary" type="button">Animate</button>
+            <button id="gdStep"    class="gd-btn" type="button">Step</button>
+            <button id="gdReset"   class="gd-btn" type="button">Reset</button>
+          </div>
+        </div>
+
+        <div class="gd-viz-row">
+          <div class="gd-surface-wrap" id="gdSurface"></div>
+          <div class="gd-right-col">
+            <div class="gd-contour-wrap" id="gdContour"></div>
+            <p class="gd-contour-hint">Click anywhere on the contour map to move the start.</p>
+            <div class="gd-legend" id="gdLegend"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Convexity</h2>
+        <p>A function is convex if the line segment between any two points on its graph never dips below the graph itself: every local dip is the same dip as the global minimum.</p>
+        <div class="formula">$$f(t x + (1-t) y) \le t f(x) + (1-t) f(y), \quad t \in [0,1]$$</div>
+        <p>For a twice-differentiable function like the surfaces here, this is equivalent to the Hessian (the matrix of second derivatives) being positive semi-definite everywhere: curving upward, never downward, in every direction, at every point.
+        When a surface is convex, any local minimum gradient descent finds is automatically the global minimum, and where you start only changes how long the descent takes, never which minimum it ends at.</p>
+        <p>The elongated bowl and quadratic bowl are both convex: simple paraboloids, curving upward in every direction everywhere, with a single minimum at the origin regardless of start point.
+        Rosenbrock is not convex, its curved valley bends the wrong way along parts of its length, but it is still unimodal: only one minimum exists, at $(1, 1)$, so a non-convex surface does not by itself mean multiple competing minima.
+        The saddle surface is both non-convex and multimodal: the origin is a saddle point, curving upward along one axis and downward along the other, with two separate, equally deep minima sitting on opposite sides of it.
+        Try setting the start point above the origin versus below it on the saddle surface: the same optimizer settles into two different minima depending only on which side of the saddle it started, not on which optimizer is used.</p>
+      </section>
+
+      <section class="panel">
+        <h2>The algorithms</h2>
+
+        <h3>SGD</h3>
+        <p>At each step, SGD moves the parameters directly opposite the gradient, scaled by the learning rate $\alpha$.</p>
+        <div class="formula">$$\theta_{t+1} = \theta_t - \alpha \nabla L(\theta_t)$$</div>
+        <p>When a surface curves much more steeply in one direction than another, a single learning rate cannot serve both directions well: small enough to avoid diverging on the steep direction means far too small for efficient progress on the shallow one.
+        SGD has no way to tell the two apart, so on any such surface it bounces across the steep axis while crawling along the shallow one.
+        This same update rule is what every batch-size line in the sandbox uses when SGD is the pinned optimizer; only how noisy the gradient it receives changes.</p>
+
+        <h3>Momentum</h3>
+        <p>Momentum accumulates a velocity vector $v$ that carries the optimizer across flat regions and dampens oscillations across curved ones, fixing the bouncing SGD shows above.
+        $\beta$ (typically 0.9) controls how much of the previous velocity survives each step.</p>
+        <div class="formula">$$v_{t+1} = \beta v_t - \alpha \nabla L(\theta_t)$$</div>
+        <div class="formula">$$\theta_{t+1} = \theta_t + v_{t+1}$$</div>
+        <p>On the elongated bowl, the accumulated velocity along the long axis lets momentum accelerate where SGD is slow.
+        The overshoot into the steep walls eventually dampens, but the path oscillates more dramatically before settling.</p>
+
+        <h3>AdaGrad</h3>
+        <p>Momentum still applies the same effective step size to every parameter, so a steeply curved axis and a shallow one are still stuck sharing one learning rate.
+        AdaGrad addresses this by giving each parameter its own rate, shrinking it in proportion to the cumulative sum of squared gradients that parameter has seen so far.</p>
+        <div class="formula">$$G_t = G_{t-1} + (\nabla L(\theta_t))^2$$</div>
+        <div class="formula">$$\theta_{t+1} = \theta_t - \frac{\alpha}{\sqrt{G_t} + \epsilon} \nabla L(\theta_t)$$</div>
+        <p>Parameters with consistently large gradients get their rate shrunk quickly; parameters with small gradients keep a larger effective rate.
+        Because $G_t$ only ever grows, the effective rate keeps shrinking for the rest of the run, and on a long descent it can decay so far that progress effectively stalls.</p>
+
+        <h3>RMSProp</h3>
+        <p>RMSProp keeps AdaGrad's idea of a per-parameter rate but fixes the stall: instead of an ever-growing sum of squared gradients, it keeps an exponential moving average, so old gradients are gradually forgotten.</p>
+        <div class="formula">$$E[g^2]_t = \beta E[g^2]_{t-1} + (1-\beta)(\nabla L(\theta_t))^2$$</div>
+        <div class="formula">$$\theta_{t+1} = \theta_t - \frac{\alpha}{\sqrt{E[g^2]_t} + \epsilon} \nabla L(\theta_t)$$</div>
+        <p>Because the average can rise again if gradients grow again, RMSProp's effective rate does not monotonically decay the way AdaGrad's does, so it keeps making progress over long runs.</p>
+
+        <h3>Adam</h3>
+        <p>Adam combines momentum's directional smoothing with RMSProp's per-parameter scaling: a running estimate of both the first moment (mean gradient $m$) and the second moment (uncentered variance $v$) of the gradient.
+        The parameter update is scaled by the per-dimension gradient variance, so large gradients get smaller effective steps and small gradients get larger ones.</p>
+        <div class="formula">$$m_t = \beta_1 m_{t-1} + (1-\beta_1)\nabla L$$</div>
+        <div class="formula">$$v_t = \beta_2 v_{t-1} + (1-\beta_2)(\nabla L)^2$$</div>
+        <div class="formula">$$\theta_{t+1} = \theta_t - \alpha \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}$$</div>
+        <p>The $\hat{m}_t$ and $\hat{v}_t$ are bias-corrected estimates that account for the zero-initialization of the moment vectors at $t=0$.
+        Adam navigates elongated landscapes efficiently because the per-dimension scaling automatically compensates for the difference in curvature between axes.
+        Its effective learning rate for each parameter is approximately $\alpha$, regardless of gradient magnitude.</p>
+
+        <h3>Batch size</h3>
+        <p>Every update rule above needs a gradient to work with, and how that gradient is computed is a separate choice from which update rule consumes it.
+        Full-batch gradient descent computes the exact gradient over the entire dataset every step: the direction is precise, but one step costs a full pass over the data.
+        Stochastic gradient descent estimates the gradient from a single example: each step is cheap, but the estimate is noisy, so the path jitters.
+        Mini-batch gradient descent averages over a small batch of examples, trading some of SGD's noise for some of full-batch's cost, and is what most training in practice actually uses.</p>
+        <p>The surfaces in this sandbox are analytic functions, not real datasets, so there is nothing to literally subsample.
+        The batch-size comparison instead adds simulated Gaussian noise to the true analytic gradient, scaled down as the batch size grows ($\sigma \propto 1/\sqrt{n}$), to illustrate the effect a real batch size would have.</p>
+      </section>
+
+    </main>
+    <footer class="site-footer"><span class="credit">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></span></footer>
+  </div>
+</body>
+</html>
