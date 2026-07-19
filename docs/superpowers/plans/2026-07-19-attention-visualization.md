@@ -673,7 +673,7 @@ git commit -m "feat(attention): add SVG glyph and connector builders for the 8 p
       <section class="panel" id="step-output">
         <h2>Output</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Three vectors out, the same shape as the three vectors in — each one now a context-aware blend of the whole sequence rather than the token in isolation.</p>
+        <p>Three vectors out, the same shape as the three vectors in: each one now a context-aware blend of the whole sequence rather than the token in isolation.</p>
         <div class="callout">
           <div class="callout-label">Note</div>
           <div class="callout-body">This output is usually not the end of a transformer block on its own; in a real model it typically continues through a residual connection and a feed-forward layer, both outside the scope of this page, which focuses specifically on the attention operation itself.</div>
@@ -1236,17 +1236,28 @@ function renderQkv(container, stepId, result) {
       </div>`;
   }).join('');
   container.innerHTML = `<div class="qkv-list">${rows}</div>
-    <div class="anim-controls"><button class="anim-btn" type="button" data-role="step">step through per-token multiply-sum &#9654;</button></div>`;
+    <div class="anim-controls"><button class="anim-btn" type="button" data-role="step">step through per-token multiply-sum &#9654;</button></div>
+    <div class="formula-worked" data-role="worked"></div>`;
 
   // Step control cycles which token's row is highlighted, to focus attention on one
-  // multiply-then-sum at a time rather than showing all three at once.
+  // multiply-then-sum at a time rather than showing all three at once. The formula-worked
+  // line always mirrors whichever token is currently highlighted, so the abstract formula in
+  // this step's .formula block has a live, real-number companion to trace against.
   const btn = container.querySelector('[data-role="step"]');
+  const worked = container.querySelector('[data-role="worked"]');
   const rowsEls = Array.from(container.querySelectorAll('.qkv-row'));
-  let idx = -1;
+  const fmt = (arr) => `[${arr.map((v) => v.toFixed(2)).join(', ')}]`;
+  const showWorked = (i) => {
+    const t = result.tokens[i];
+    worked.textContent = `q_"${t}" = x_"${t}" · W_Q = ${fmt(result.embeddings[t])} · W_Q = ${fmt(result.Q[t])}`;
+  };
+  let idx = 0;
+  showWorked(idx);
   btn.addEventListener('click', () => {
     rowsEls.forEach((r) => r.classList.remove('is-active'));
     idx = (idx + 1) % rowsEls.length;
     rowsEls[idx].classList.add('is-active');
+    showWorked(idx);
   });
 }
 ```
@@ -1265,6 +1276,11 @@ Update `STEP_RENDERERS.qkv = renderQkv;`.
 .ui.attention .qkv-row.is-active { background: var(--accent-muted); }
 .ui.attention .vec-token { font-weight: 700; min-width: 44px; }
 .ui.attention .vec-values, .ui.attention .qkv-eq { color: var(--text-2); }
+.ui.attention .formula-worked {
+  font: 500 12px/1.6 var(--font-mono); color: var(--accent-link);
+  background: var(--accent-muted); border-radius: var(--radius-sm);
+  padding: 8px 12px; margin-top: 12px; word-break: break-word;
+}
 ```
 
 - [ ] **Step 4: Manually verify**
@@ -1284,15 +1300,22 @@ const { firefox } = require('playwright');
   console.log('input scene mentions "the":', inputText.includes('the'));
   console.log('input scene mentions "0.20":', inputText.includes('0.20'));
 
+  const workedInitial = await page.$eval('#step-qkv [data-role="worked"]', (el) => el.textContent);
+  console.log('qkv formula-worked mentions default token "the":', workedInitial.includes('"the"'));
+  console.log('qkv formula-worked shows real Q value 0.38:', workedInitial.includes('0.38'));
+
   await page.click('#step-qkv .anim-btn[data-role="step"]');
   const activeCount = await page.$$eval('#step-qkv .qkv-row.is-active', (els) => els.length);
+  const workedAfterClick = await page.$eval('#step-qkv [data-role="worked"]', (el) => el.textContent);
   console.log('qkv active rows after one click:', activeCount); // expect 1
+  console.log('qkv formula-worked updated after click:', workedAfterClick !== workedInitial);
   await browser.close();
 })();
 ```
 
 Expected: `input scene mentions "the": true`, `input scene mentions "0.20": true`,
-`qkv active rows after one click: 1`.
+`qkv formula-worked mentions default token "the": true`, `qkv formula-worked shows real Q value
+0.38: true`, `qkv active rows after one click: 1`, `qkv formula-worked updated after click: true`.
 
 ```bash
 kill %1
@@ -1343,11 +1366,14 @@ function buildHeatGrid(matrix, tokens, opts = {}) {
 function renderScores(container, stepId, result) {
   const grid = buildHeatGrid(result.scores, result.tokens);
   const legend = result.tokens.map((t, i) => `<span style="color:${result.tokenColors[i]}">"${t}"</span>`).join(', ');
+  const t0 = result.tokens[0];
+  const worked = `score_"${t0}","${t0}" = q_"${t0}" &middot; k_"${t0}" = ${result.scores[0][0].toFixed(2)}`;
   container.innerHTML = `
     <div class="heat-block">
       ${grid}
       <div class="heat-meta">rows = query token, columns = key token<br>tokens: ${legend}<br>score[i,j] = q&#8571; &middot; k&#8571;</div>
-    </div>`;
+    </div>
+    <div class="formula-worked">${worked}</div>`;
 }
 ```
 
@@ -1359,12 +1385,15 @@ Update `STEP_RENDERERS.scores = renderScores;`.
 function renderScale(container, stepId, result) {
   const beforeGrid = buildHeatGrid(result.scores, result.tokens, { minOpacity: 0.1, maxOpacity: 0.5 });
   const afterGrid = buildHeatGrid(result.scaled, result.tokens, { minOpacity: 0.15, maxOpacity: 0.8 });
+  const t0 = result.tokens[0];
+  const worked = `scaled_"${t0}","${t0}" = ${result.scores[0][0].toFixed(2)} / &radic;${result.d} = ${result.scaled[0][0].toFixed(2)}`;
   container.innerHTML = `
     <div class="heat-block scale-compare">
       <div><div class="heat-caption">before (&divide;1)</div>${beforeGrid}</div>
       <div class="scale-arrow">&divide;&radic;${result.d} &rarr;</div>
       <div><div class="heat-caption">after (&divide;&radic;${result.d})</div>${afterGrid}</div>
-    </div>`;
+    </div>
+    <div class="formula-worked">${worked}</div>`;
 }
 ```
 
@@ -1396,11 +1425,19 @@ const { firefox } = require('playwright');
   const scoreCells = await page.$$eval('#step-scores .heat-cell', (els) => els.length);
   const scaleCells = await page.$$eval('#step-scale .heat-cell', (els) => els.length);
   console.log('score cells:', scoreCells, 'scale cells (before+after):', scaleCells); // expect 9, 18
+
+  const scoresWorked = await page.$eval('#step-scores .formula-worked', (el) => el.textContent);
+  const scaleWorked = await page.$eval('#step-scale .formula-worked', (el) => el.textContent);
+  console.log('scores formula-worked shows real value 2.73:', scoresWorked.includes('2.73'));
+  console.log('scale formula-worked shows real values 2.73 and 1.37:', scaleWorked.includes('2.73') && scaleWorked.includes('1.37'));
   await browser.close();
 })();
 ```
 
-Expected: `score cells: 9 scale cells (before+after): 18`.
+Expected: `score cells: 9 scale cells (before+after): 18`, `scores formula-worked shows real value
+2.73: true`, `scale formula-worked shows real values 2.73 and 1.37: true` (these are the default
+`cat-sat` preset's actual score[0][0]=2.73 and scaled[0][0]=1.37 for token "the", already verified
+during planning).
 
 ```bash
 kill %1
@@ -1436,13 +1473,25 @@ git commit -m "feat(attention): render QKT score and scale scenes with a shared 
 function renderMask(container, stepId, result) {
   const isMasked = (i, j) => result.causal && j > i;
   const grid = buildHeatGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), result.tokens, { maskedCells: isMasked });
+  // The formula-worked line has no separate .formula block to pair with (this step's rule is a
+  // conditional, not a single equation), so it stands alone as the numeric instantiation of the
+  // masking rule itself: which specific cell gets masked and why, or a clear statement that
+  // nothing is masked yet.
+  const worked = result.causal
+    ? (() => {
+        const t0 = result.tokens[0];
+        const t1 = result.tokens[1];
+        return `score_"${t0}","${t1}" &rarr; &minus;&infin; (masked: j=1 &gt; i=0)`;
+      })()
+    : 'causal mask is off &mdash; no cells masked, every token can see every other token';
   container.innerHTML = `
     <div class="heat-block">
       ${grid}
       <div class="heat-meta">
         <label class="mask-toggle"><input type="checkbox" data-role="causal-toggle" ${result.causal ? 'checked' : ''}> causal mask (each token can only see itself and earlier tokens)</label>
       </div>
-    </div>`;
+    </div>
+    <div class="formula-worked">${worked}</div>`;
   const toggle = container.querySelector('[data-role="causal-toggle"]');
   toggle.addEventListener('change', () => {
     window.attentionSetCausal(toggle.checked);
@@ -1464,9 +1513,14 @@ function renderSoftmax(container, stepId, result) {
     }).join('');
     return `<div class="softmax-bar-row"><span class="vec-token" style="color:${result.tokenColors[i]}">"${ti}"</span><div class="softmax-bar">${segs}</div></div>`;
   }).join('');
+  const t0 = result.tokens[0];
+  const row0 = result.masked[0].filter((v) => v > -1e8);
+  const expSum = row0.reduce((sum, v) => sum + Math.exp(v), 0);
+  const worked = `weight_"${t0}","${t0}" = e<sup>${row0[0].toFixed(2)}</sup> / ${expSum.toFixed(2)} = ${result.weights[0][0].toFixed(2)}`;
   container.innerHTML = `
     <div class="heat-block">${grid}<div class="heat-meta">each row sums to 1.00 &mdash; the actual attention weights</div></div>
-    <div class="softmax-bars">${bars}</div>`;
+    <div class="softmax-bars">${bars}</div>
+    <div class="formula-worked">${worked}</div>`;
 }
 ```
 
