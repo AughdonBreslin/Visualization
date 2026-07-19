@@ -103,6 +103,22 @@
 .ui.attention .anim-btn:hover { border-color: var(--accent-link); color: var(--accent-link); }
 .ui.attention .anim-scrub { flex: 1; }
 
+/* --- input & qkv scenes --- */
+.ui.attention .vec-list, .ui.attention .qkv-list { display: flex; flex-direction: column; gap: 8px; }
+.ui.attention .vec-row, .ui.attention .qkv-row {
+  display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  font: 500 12.5px/1.6 var(--font-mono); color: var(--text-body);
+  padding: 4px 6px; border-radius: var(--radius-sm); transition: background 200ms var(--ease-out);
+}
+.ui.attention .qkv-row.is-active { background: var(--accent-muted); }
+.ui.attention .vec-token { font-weight: 700; min-width: 44px; }
+.ui.attention .vec-values, .ui.attention .qkv-eq { color: var(--text-2); }
+.ui.attention .formula-worked {
+  font: 500 12px/1.6 var(--font-mono); color: var(--accent-link);
+  background: var(--accent-muted); border-radius: var(--radius-sm);
+  padding: 8px 12px; margin-top: 12px; word-break: break-word;
+}
+
 @media (max-width: 640px) {
   .ui.attention .heat-grid { grid-template-columns: repeat(3, 30px); grid-template-rows: repeat(3, 30px); }
   .ui.attention .heat-cell { font-size: 10px; }
