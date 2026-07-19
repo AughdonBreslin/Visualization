@@ -59,11 +59,59 @@ function renderQkv(container, stepId, result) {
   });
 }
 
+function buildHeatGrid(matrix, tokens, opts = {}) {
+  const { minOpacity = 0.15, maxOpacity = 0.8, formatter = (v) => v.toFixed(2), maskedCells = () => false } = opts;
+  const flat = matrix.flat();
+  const min = Math.min(...flat);
+  const max = Math.max(...flat);
+  const range = max - min || 1;
+  let cells = '';
+  matrix.forEach((row, i) => {
+    row.forEach((v, j) => {
+      if (maskedCells(i, j)) {
+        cells += `<div class="heat-cell masked" data-row="${i}" data-col="${j}">&minus;&infin;</div>`;
+        return;
+      }
+      const t = (v - min) / range;
+      const opacity = (minOpacity + t * (maxOpacity - minOpacity)).toFixed(2);
+      cells += `<div class="heat-cell" data-row="${i}" data-col="${j}" style="background:rgba(var(--accent-rgb), ${opacity})">${formatter(v)}</div>`;
+    });
+  });
+  return `<div class="heat-grid">${cells}</div>`;
+}
+
+function renderScores(container, stepId, result) {
+  const grid = buildHeatGrid(result.scores, result.tokens);
+  const legend = result.tokens.map((t, i) => `<span style="color:${result.tokenColors[i]}">"${t}"</span>`).join(', ');
+  const t0 = result.tokens[0];
+  const worked = `score_"${t0}","${t0}" = q_"${t0}" &middot; k_"${t0}" = ${result.scores[0][0].toFixed(2)}`;
+  container.innerHTML = `
+    <div class="heat-block">
+      ${grid}
+      <div class="heat-meta">rows = query token, columns = key token<br>tokens: ${legend}<br>score[i,j] = q&#8571; &middot; k&#8571;</div>
+    </div>
+    <div class="formula-worked">${worked}</div>`;
+}
+
+function renderScale(container, stepId, result) {
+  const beforeGrid = buildHeatGrid(result.scores, result.tokens, { minOpacity: 0.1, maxOpacity: 0.5 });
+  const afterGrid = buildHeatGrid(result.scaled, result.tokens, { minOpacity: 0.15, maxOpacity: 0.8 });
+  const t0 = result.tokens[0];
+  const worked = `scaled_"${t0}","${t0}" = ${result.scores[0][0].toFixed(2)} / &radic;${result.d} = ${result.scaled[0][0].toFixed(2)}`;
+  container.innerHTML = `
+    <div class="heat-block scale-compare">
+      <div><div class="heat-caption">before (&divide;1)</div>${beforeGrid}</div>
+      <div class="scale-arrow">&divide;&radic;${result.d} &rarr;</div>
+      <div><div class="heat-caption">after (&divide;&radic;${result.d})</div>${afterGrid}</div>
+    </div>
+    <div class="formula-worked">${worked}</div>`;
+}
+
 const STEP_RENDERERS = {
   input: renderInput,
   qkv: renderQkv,
-  scores: renderPlaceholder,
-  scale: renderPlaceholder,
+  scores: renderScores,
+  scale: renderScale,
   mask: renderPlaceholder,
   softmax: renderPlaceholder,
   wsum: renderPlaceholder,
