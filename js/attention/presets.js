@@ -20,9 +20,9 @@ export const PRESETS = [
     label: '"dog ran fast"',
     tokens: ['dog', 'ran', 'fast'],
     embeddings: {
-      dog: [0.7, 0.2, 0.3, 0.6],
-      ran: [0.4, 0.6, 0.7, 0.1],
-      fast: [0.2, 0.3, 0.5, 0.8],
+      dog: [1.0, 0.0, 0.9, 0.0],
+      ran: [0.0, 1.0, 0.0, 0.9],
+      fast: [0.95, 0.05, 0.85, 0.05],
     },
   },
 ];
