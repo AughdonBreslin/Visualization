@@ -107,15 +107,73 @@ function renderScale(container, stepId, result) {
     <div class="formula-worked">${worked}</div>`;
 }
 
+function renderMask(container, stepId, result) {
+  const isMasked = (i, j) => result.causal && j > i;
+  const grid = buildHeatGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), result.tokens, { maskedCells: isMasked });
+  // The formula-worked line has no separate .formula block to pair with (this step's rule is a
+  // conditional, not a single equation), so it stands alone as the numeric instantiation of the
+  // masking rule itself: which specific cell gets masked and why, or a clear statement that
+  // nothing is masked yet.
+  const worked = result.causal
+    ? (() => {
+        const t0 = result.tokens[0];
+        const t1 = result.tokens[1];
+        return `score_"${t0}","${t1}" &rarr; &minus;&infin; (masked: j=1 &gt; i=0)`;
+      })()
+    : 'causal mask is off &mdash; no cells masked, every token can see every other token';
+  container.innerHTML = `
+    <div class="heat-block">
+      ${grid}
+      <div class="heat-meta">
+        <label class="mask-toggle"><input type="checkbox" data-role="causal-toggle" ${result.causal ? 'checked' : ''}> causal mask (each token can only see itself and earlier tokens)</label>
+      </div>
+    </div>
+    <div class="formula-worked">${worked}</div>`;
+  const toggle = container.querySelector('[data-role="causal-toggle"]');
+  toggle.addEventListener('change', () => {
+    window.attentionSetCausal(toggle.checked);
+  });
+}
+
+function renderSoftmax(container, stepId, result) {
+  const grid = buildHeatGrid(result.weights, result.tokens, { minOpacity: 0.15, maxOpacity: 0.85 });
+  const bars = result.tokens.map((ti, i) => {
+    const segs = result.tokens.map((tj, j) => {
+      const pct = (result.weights[i][j] * 100).toFixed(1);
+      return `<span class="softmax-seg" style="width:${pct}%; background:${result.tokenColors[j]}" title="${tj}: ${pct}%"></span>`;
+    }).join('');
+    return `<div class="softmax-bar-row"><span class="vec-token" style="color:${result.tokenColors[i]}">"${ti}"</span><div class="softmax-bar">${segs}</div></div>`;
+  }).join('');
+  const t0 = result.tokens[0];
+  const row0 = result.masked[0].filter((v) => v > -1e8);
+  const expSum = row0.reduce((sum, v) => sum + Math.exp(v), 0);
+  const worked = `weight_"${t0}","${t0}" = e<sup>${row0[0].toFixed(2)}</sup> / ${expSum.toFixed(2)} = ${result.weights[0][0].toFixed(2)}`;
+  container.innerHTML = `
+    <div class="heat-block">${grid}<div class="heat-meta">each row sums to 1.00 &mdash; the actual attention weights</div></div>
+    <div class="softmax-bars">${bars}</div>
+    <div class="formula-worked">${worked}</div>`;
+}
+
+function renderOutput(container, stepId, result) {
+  const rows = result.tokens.map((t, i) => {
+    const vec = result.output[i].map((v) => v.toFixed(2)).join(', ');
+    return `<div class="vec-row"><span class="vec-token" style="color:${result.tokenColors[i]}">"${t}"</span><span class="vec-values">[${vec}]</span></div>`;
+  }).join('');
+  const worked = `output_"${result.tokens[0]}" = weighted sum across all value vectors = [${result.output[0].map((v) => v.toFixed(2)).join(', ')}]`;
+  container.innerHTML = `
+    <div class="vec-list">${rows}</div>
+    <div class="formula-worked">${worked}</div>`;
+}
+
 const STEP_RENDERERS = {
   input: renderInput,
   qkv: renderQkv,
   scores: renderScores,
   scale: renderScale,
-  mask: renderPlaceholder,
-  softmax: renderPlaceholder,
+  mask: renderMask,
+  softmax: renderSoftmax,
   wsum: renderPlaceholder,
-  output: renderPlaceholder,
+  output: renderOutput,
 };
 
 export function renderScene(stepId, result) {

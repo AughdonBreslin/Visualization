@@ -124,6 +124,12 @@
   padding: 8px 12px; margin-top: 12px; word-break: break-word;
 }
 
+.ui.attention .mask-toggle { display: flex; align-items: center; gap: 8px; font: 500 12.5px/1.5 var(--font-sans); color: var(--text-body); cursor: pointer; }
+.ui.attention .softmax-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.ui.attention .softmax-bar-row { display: flex; align-items: center; gap: 12px; }
+.ui.attention .softmax-bar { flex: 1; height: 18px; border-radius: var(--radius-sm); overflow: hidden; display: flex; background: var(--surface); }
+.ui.attention .softmax-seg { display: block; height: 100%; opacity: .85; }
+
 @media (max-width: 640px) {
   .ui.attention .heat-grid { grid-template-columns: repeat(3, 30px); grid-template-rows: repeat(3, 30px); }
   .ui.attention .heat-cell { font-size: 10px; }
