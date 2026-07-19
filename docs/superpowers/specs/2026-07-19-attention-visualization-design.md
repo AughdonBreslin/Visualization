@@ -134,6 +134,13 @@ token). Switching presets reruns the entire pipeline live, recomputing every dow
 Numbers are hand-tuned per preset so every animation and every conceptual callout (e.g. "peak
 attention here") stays coherent — no free-form numeric editing in this phase.
 
+The preset system should be built as a thin UI layer over one generic recompute path: a preset
+is just a set of token embeddings fed into the same pipeline math every scene already runs, not
+special-cased logic per preset. A future free-form editor (or a "random"/"custom" preset slot)
+should then be addable by swapping the input widget for that recompute path, without touching
+the eight scenes' animation or layout code. This is the same forward-compatibility principle as
+the phase 2 sticky-bar swap: don't build phase 1 in a way that forecloses the obvious next step.
+
 ## Phase 2 (follow-on, not built now)
 
 Recorded here so phase 1's architecture doesn't foreclose it: the backward pass will flow through
