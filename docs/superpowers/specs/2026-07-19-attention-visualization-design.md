@@ -134,6 +134,62 @@ The animation device is specific to each operation's shape:
 - **Output**: mirrors the input embeddings visual exactly — same shape in, same shape out — the
   visual rhyme is itself part of the explanation
 
+## Per-step material (the conceptual aside content, in full)
+
+Per later steering during implementation, each step gets real teaching content, not one line —
+closer to the depth of a self-contained mini explainer than a caption. Each step's aside pairs a
+motivation paragraph (why this operation exists, what problem it solves relative to the previous
+step), a mechanism paragraph (what literally happens to the numbers, already covered above), and
+one `.callout` (the site's existing reusable component — see `styles/components.css`, used
+elsewhere e.g. `pages/fourier.html`) carrying either a "why this specific design choice" aside or
+a plain note. This is the exact copy to use, validated with the user before implementation:
+
+**1. Input embeddings** — *Motivation:* Before any attention math happens, each token needs to
+become a vector a matrix can act on. This step computes nothing about relationships between
+tokens yet; it's just the raw material every later step consumes. *Callout (Note):* Real
+transformer embeddings run hundreds or thousands of dimensions; this page uses d=4 so every
+number stays visible on screen. Nothing about the mechanism changes at higher dimension, only the
+width of every vector shown below.
+
+**2. Q/K/V projections** — *Motivation:* A raw embedding conflates everything about a token into
+one vector. Attention needs three different views: a query ("what am I looking for"), a key
+("what do I offer"), and a value ("what I actually contribute if chosen"). Splitting one vector
+into three roles via three learned matrices is what makes the next step's comparison meaningful
+instead of trivial. *Callout (Why three matrices, not one?):* If Q and K shared a matrix, every
+token's query would equal its own key, so every token would trivially attend most to itself.
+Separate projections let a token's query and key diverge.
+
+**3. QKᵀ scores** — *Motivation:* With every token holding a query and a key, comparing a query
+against a key is a similarity measure. This step performs every such comparison at once. *Callout
+(Note):* The raw score is unbounded and grows with the query/key vectors' magnitude, exactly what
+the next step exists to control.
+
+**4. Scale** — *Motivation:* Dot-product magnitude grows with dimension d; large scores push
+softmax toward near one-hot output with vanishing gradients elsewhere. *Callout (Why √d
+specifically?):* If Q and K entries have roughly unit variance, their dot product's variance
+grows proportional to d, so its standard deviation grows with √d. Dividing by √d keeps the
+score's scale roughly constant regardless of d.
+
+**5. Mask** — *Motivation:* Every step so far treats tokens symmetrically. Fine for encoding a
+complete sentence, wrong for predicting the next token; letting a model see the answer it's
+predicting makes training meaningless. *Callout (Why −∞ and not just 0?):* e⁰ = 1, so a masked
+score of 0 would still receive real attention weight. e^(−∞) = 0 exactly, the only value
+guaranteed to zero out that position.
+
+**6. Softmax** — *Motivation:* Converts raw scaled scores into an actual probability distribution
+over keys. *Callout (Note):* The exponential amplifies differences, part of why Scale matters,
+since unscaled scores would make softmax nearly one-hot almost everywhere.
+
+**7. Weighted sum** — *Motivation:* Now that there's a real probability distribution over "how
+much to listen to each token," the actual listening happens by blending. *Callout (Why value
+vectors, not the original embeddings?):* Like Q and K, V is its own learned projection, so the
+model can choose what a token contributes independent of what makes it a good match or what it's
+searching for.
+
+**8. Output** — *Motivation:* Closes the loop; same shape as the input, now context-aware.
+*Callout (Note):* Not usually the end of a transformer block; in a real model it continues
+through a residual connection and a feed-forward layer, both outside this page's scope.
+
 ## Worked example & presets
 
 One example threads through all eight scenes: 3 tokens, d=4, persistent per-token color coding
