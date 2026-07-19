@@ -217,6 +217,15 @@ both passes rather than resetting — one continuous document, not two separate 
 together. This means the phase 1 sticky-bar container should be built as a swappable region (its
 content driven by which step group is active) rather than a single hardcoded diagram.
 
+Positional encoding is also deliberately deferred to a follow-on. Real transformer input sums a
+positional encoding into each token embedding before attention (attention itself has no notion of
+sequence order without it), and this page's Input embeddings step originally set that aside to
+keep phase 1's scope to attention alone. Confirmed with the user during implementation: keep that
+scoping, but record the addition explicitly as a phase-2 candidate rather than leaving it as an
+implicit gap. A future addition would extend the Input embeddings step to show each token's raw
+embedding, its positional encoding (by position), and the sum that actually feeds Q/K/V, three
+vectors merging into one, mirroring the Q/K/V split later.
+
 ## Testing
 
 Same standard as every other page on this site: no build or test tooling, manual in-browser
