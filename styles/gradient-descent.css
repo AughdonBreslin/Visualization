@@ -206,6 +206,6 @@
 /* --- Responsive --- */
 @media (max-width: 820px) {
   .ui.gradient-descent .gd-viz-row { grid-template-columns: 1fr; }
-  .ui.gradient-descent .gd-right-col { flex-direction: row; height: auto; }
+  .ui.gradient-descent .gd-right-col { height: auto; }
   .ui.gradient-descent .gd-contour-wrap { min-height: 200px; }
 }
