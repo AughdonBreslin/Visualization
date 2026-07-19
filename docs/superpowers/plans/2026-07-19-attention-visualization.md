@@ -1483,7 +1483,7 @@ function renderMask(container, stepId, result) {
         const t1 = result.tokens[1];
         return `score_"${t0}","${t1}" &rarr; &minus;&infin; (masked: j=1 &gt; i=0)`;
       })()
-    : 'causal mask is off &mdash; no cells masked, every token can see every other token';
+    : 'causal mask is off: no cells masked, every token can see every other token';
   container.innerHTML = `
     <div class="heat-block">
       ${grid}
@@ -1518,7 +1518,7 @@ function renderSoftmax(container, stepId, result) {
   const expSum = row0.reduce((sum, v) => sum + Math.exp(v), 0);
   const worked = `weight_"${t0}","${t0}" = e<sup>${row0[0].toFixed(2)}</sup> / ${expSum.toFixed(2)} = ${result.weights[0][0].toFixed(2)}`;
   container.innerHTML = `
-    <div class="heat-block">${grid}<div class="heat-meta">each row sums to 1.00 &mdash; the actual attention weights</div></div>
+    <div class="heat-block">${grid}<div class="heat-meta">each row sums to 1.00: the actual attention weights</div></div>
     <div class="softmax-bars">${bars}</div>
     <div class="formula-worked">${worked}</div>`;
 }
@@ -1592,20 +1592,23 @@ const { firefox } = require('playwright');
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('http://localhost:8842/pages/attention.html', { waitUntil: 'networkidle' });
 
-  const outputBefore = await page.$eval('#step-output .scene-anim', (el) => el.textContent);
+  const softmaxBefore = await page.$eval('#step-softmax .scene-anim', (el) => el.textContent);
   await page.check('#step-mask [data-role="causal-toggle"]');
   await page.waitForTimeout(200);
   const maskedCellCount = await page.$$eval('#step-mask .heat-cell.masked', (els) => els.length);
-  const outputAfter = await page.$eval('#step-output .scene-anim', (el) => el.textContent);
+  const softmaxAfter = await page.$eval('#step-softmax .scene-anim', (el) => el.textContent);
 
   console.log('masked cells after enabling causal mask:', maskedCellCount); // expect 3 (upper triangle of a 3x3)
-  console.log('output text changed after toggling mask:', outputBefore !== outputAfter); // expect true
+  // softmax weights depend on the mask, so this proves the toggle triggers a real recompute
+  // reaching a scene other than mask's own, without depending on Task 9's output renderer
+  // (not built yet at this point in the plan) existing.
+  console.log('softmax scene text changed after toggling mask:', softmaxBefore !== softmaxAfter); // expect true
   console.log('errors:', JSON.stringify(errors));
   await browser.close();
 })();
 ```
 
-Expected: `masked cells after enabling causal mask: 3`, `output text changed after toggling
+Expected: `masked cells after enabling causal mask: 3`, `softmax scene text changed after toggling
 mask: true`, `errors: []`.
 
 ```bash
@@ -1666,7 +1669,7 @@ function renderOutput(container, stepId, result) {
     const vec = result.output[i].map((v) => v.toFixed(2)).join(', ');
     return `<div class="vec-row"><span class="vec-token" style="color:${result.tokenColors[i]}">"${t}"</span><span class="vec-values">[${vec}]</span></div>`;
   }).join('');
-  container.innerHTML = `<div class="vec-list">${rows}</div><p class="scene-note">same shape as the input embeddings this pipeline started from &mdash; each vector is now a blend of the whole sequence.</p>`;
+  container.innerHTML = `<div class="vec-list">${rows}</div><p class="scene-note">same shape as the input embeddings this pipeline started from: each vector is now a blend of the whole sequence.</p>`;
 }
 ```
 
