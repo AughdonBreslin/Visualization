@@ -120,7 +120,7 @@ function renderMask(container, stepId, result) {
         const t1 = result.tokens[1];
         return `score_"${t0}","${t1}" &rarr; &minus;&infin; (masked: j=1 &gt; i=0)`;
       })()
-    : 'causal mask is off &mdash; no cells masked, every token can see every other token';
+    : 'causal mask is off: no cells masked, every token can see every other token';
   container.innerHTML = `
     <div class="heat-block">
       ${grid}
@@ -149,19 +149,8 @@ function renderSoftmax(container, stepId, result) {
   const expSum = row0.reduce((sum, v) => sum + Math.exp(v), 0);
   const worked = `weight_"${t0}","${t0}" = e<sup>${row0[0].toFixed(2)}</sup> / ${expSum.toFixed(2)} = ${result.weights[0][0].toFixed(2)}`;
   container.innerHTML = `
-    <div class="heat-block">${grid}<div class="heat-meta">each row sums to 1.00 &mdash; the actual attention weights</div></div>
+    <div class="heat-block">${grid}<div class="heat-meta">each row sums to 1.00: the actual attention weights</div></div>
     <div class="softmax-bars">${bars}</div>
-    <div class="formula-worked">${worked}</div>`;
-}
-
-function renderOutput(container, stepId, result) {
-  const rows = result.tokens.map((t, i) => {
-    const vec = result.output[i].map((v) => v.toFixed(2)).join(', ');
-    return `<div class="vec-row"><span class="vec-token" style="color:${result.tokenColors[i]}">"${t}"</span><span class="vec-values">[${vec}]</span></div>`;
-  }).join('');
-  const worked = `output_"${result.tokens[0]}" = weighted sum across all value vectors = [${result.output[0].map((v) => v.toFixed(2)).join(', ')}]`;
-  container.innerHTML = `
-    <div class="vec-list">${rows}</div>
     <div class="formula-worked">${worked}</div>`;
 }
 
@@ -173,7 +162,7 @@ const STEP_RENDERERS = {
   mask: renderMask,
   softmax: renderSoftmax,
   wsum: renderPlaceholder,
-  output: renderOutput,
+  output: renderPlaceholder,
 };
 
 export function renderScene(stepId, result) {
