@@ -1,3 +1,13 @@
 // js/attention/main.js
-// Entry point stub; wired up fully in Task 4 onward.
-console.log('attention page loaded');
+import { initPipelineBar } from './pipeline.js';
+
+function init() {
+  const barEl = document.getElementById('pipeBar');
+  if (barEl) initPipelineBar(barEl);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
