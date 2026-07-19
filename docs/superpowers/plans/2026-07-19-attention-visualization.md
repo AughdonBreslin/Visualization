@@ -591,14 +591,22 @@ git commit -m "feat(attention): add SVG glyph and connector builders for the 8 p
       <section class="panel" id="step-input">
         <h2>Input embeddings</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Every token starts as a small embedding vector. This is the shared worked example that flows through every remaining step, and every token keeps the same color everywhere it appears below.</p>
+        <p>Before any attention math happens, each token needs to become a vector a matrix can act on. This step computes nothing about relationships between tokens yet: it's just the raw material every later step consumes. Each token gets a small vector; real models learn these from an embedding table (plus positional information, set aside here to keep focus on attention itself), so here they are hand-picked. Every token keeps the same color everywhere it appears below.</p>
+        <div class="callout">
+          <div class="callout-label">Note</div>
+          <div class="callout-body">Real transformer embeddings run hundreds or thousands of dimensions; this page uses d = 4 so every number stays visible on screen. Nothing about the mechanism changes at higher dimension, only the width of every vector shown below.</div>
+        </div>
         <div class="scene-anim"></div>
       </section>
 
       <section class="panel" id="step-qkv">
         <h2>Q / K / V projections</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Each embedding is multiplied by three learned weight matrices, producing a query, a key, and a value vector per token. The query asks "what am I looking for," the key answers "what do I contain," and the value is "what I'll actually contribute if attended to."</p>
+        <p>A raw embedding conflates everything about a token into one vector. Attention needs three different views of each token: a query ("what am I looking for"), a key ("what do I offer"), and a value ("what I actually contribute if chosen"). Splitting one vector into three roles, via three learned matrices, is what makes the comparison in the next step meaningful instead of trivial.</p>
+        <div class="callout">
+          <div class="callout-label">Why three matrices, not one?</div>
+          <div class="callout-body">If Q and K shared a matrix, every token's query would equal its own key, so every token would trivially attend most to itself. Separate projections let a token's query and key diverge, which is what lets it end up attending to a different token when that's more useful.</div>
+        </div>
         <div class="scene-anim"></div>
         <div class="formula">$$ q_i = x_i W_Q, \quad k_i = x_i W_K, \quad v_i = x_i W_V $$</div>
       </section>
@@ -606,7 +614,11 @@ git commit -m "feat(attention): add SVG glyph and connector builders for the 8 p
       <section class="panel" id="step-scores">
         <h2>QKᵀ scores</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Every query is dotted with every key, producing a score matrix: how relevant each token's content is to what every other token is looking for, before any normalization.</p>
+        <p>With every token holding a query and a key, comparing a query against a key is a similarity measure. This step performs every such comparison at once: how relevant each token's content is to what every other token is looking for, before any normalization.</p>
+        <div class="callout">
+          <div class="callout-label">Note</div>
+          <div class="callout-body">The raw score is unbounded, and grows with the query and key vectors' magnitude, which is exactly what the next step exists to control.</div>
+        </div>
         <div class="scene-anim"></div>
         <div class="formula">$$ \text{score}_{ij} = q_i \cdot k_j $$</div>
       </section>
@@ -615,6 +627,10 @@ git commit -m "feat(attention): add SVG glyph and connector builders for the 8 p
         <h2>Scale</h2>
         <div class="scene-hero-glyph"></div>
         <p>Every score divides by √d. Dot products grow with dimension, and large scores push softmax into a near one-hot regime with vanishing gradients almost everywhere else; dividing by √d keeps scores in a range where softmax stays sensitive to differences between them.</p>
+        <div class="callout">
+          <div class="callout-label">Why √d specifically?</div>
+          <div class="callout-body">If Q and K entries have roughly unit variance, their dot product's variance grows proportional to d, so its standard deviation grows with √d. Dividing by √d is what keeps the score's scale roughly constant regardless of how large d is.</div>
+        </div>
         <div class="scene-anim"></div>
         <div class="formula">$$ \text{scaled}_{ij} = \frac{\text{score}_{ij}}{\sqrt{d}} $$</div>
       </section>
@@ -622,7 +638,11 @@ git commit -m "feat(attention): add SVG glyph and connector builders for the 8 p
       <section class="panel" id="step-mask">
         <h2>Mask</h2>
         <div class="scene-hero-glyph"></div>
-        <p>An optional step: with a causal mask on, every score for a future position gets set to negative infinity before softmax, so those positions receive exactly zero attention weight. This is what makes a decoder-style model unable to look ahead at the token it is trying to predict.</p>
+        <p>Every step so far treats all tokens symmetrically: any token can see any other, past or future. That's fine for encoding a sentence you already have in full, but wrong for predicting the next token, since letting a model see the answer it's supposed to predict makes training meaningless. An optional causal mask enforces the one asymmetry a decoder needs: only allow looking backward, by setting every future-position score to negative infinity before softmax.</p>
+        <div class="callout">
+          <div class="callout-label">Why &minus;&infin; and not just 0?</div>
+          <div class="callout-body">e<sup>0</sup> = 1, so a masked score of literal 0 would still receive real, nonzero attention weight after softmax, same as any other position with a score of 0. e<sup>&minus;&infin;</sup> = 0 exactly, the only value guaranteed to zero out that position's contribution regardless of the other scores in the row.</div>
+        </div>
         <div class="scene-anim"></div>
       </section>
 
@@ -630,6 +650,10 @@ git commit -m "feat(attention): add SVG glyph and connector builders for the 8 p
         <h2>Softmax</h2>
         <div class="scene-hero-glyph"></div>
         <p>Each row exponentiates and normalizes into a probability distribution over keys: the actual attention weights, always summing to one per query token.</p>
+        <div class="callout">
+          <div class="callout-label">Note</div>
+          <div class="callout-body">The exponential is what makes softmax amplify differences: a score only slightly larger than its neighbors can end up with a much larger share of attention weight after exponentiating, part of why the Scale step matters, since unscaled scores would make softmax nearly one-hot almost everywhere.</div>
+        </div>
         <div class="scene-anim"></div>
         <div class="formula">$$ \text{weight}_{ij} = \frac{e^{\text{scaled}_{ij}}}{\sum_k e^{\text{scaled}_{ik}}} $$</div>
       </section>
@@ -637,7 +661,11 @@ git commit -m "feat(attention): add SVG glyph and connector builders for the 8 p
       <section class="panel" id="step-wsum">
         <h2>Weighted sum</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Each token's output is the attention-weighted combination of every value vector: mostly its highest-weighted neighbors, a little of everything else.</p>
+        <p>Now that there is a legitimate probability distribution over how much to listen to each token, the actual listening happens by blending: each token's output is the attention-weighted combination of every value vector, mostly its highest-weighted neighbors, a little of everything else.</p>
+        <div class="callout">
+          <div class="callout-label">Why value vectors, not the original embeddings?</div>
+          <div class="callout-body">Like Q and K, V is its own learned projection, so the model can choose what a token actually contributes to others independent of what makes that token a good match (its key) or what it's searching for (its query).</div>
+        </div>
         <div class="scene-anim"></div>
         <div class="formula">$$ o_i = \sum_j \text{weight}_{ij} \, v_j $$</div>
       </section>
@@ -646,6 +674,10 @@ git commit -m "feat(attention): add SVG glyph and connector builders for the 8 p
         <h2>Output</h2>
         <div class="scene-hero-glyph"></div>
         <p>Three vectors out, the same shape as the three vectors in — each one now a context-aware blend of the whole sequence rather than the token in isolation.</p>
+        <div class="callout">
+          <div class="callout-label">Note</div>
+          <div class="callout-body">This output is usually not the end of a transformer block on its own; in a real model it typically continues through a residual connection and a feed-forward layer, both outside the scope of this page, which focuses specifically on the attention operation itself.</div>
+        </div>
         <div class="scene-anim"></div>
       </section>
 
