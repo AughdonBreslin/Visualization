@@ -57,14 +57,24 @@ from the second mockup.
 ## Architecture
 
 Follows the existing article-page archetype exactly (same shell every other page uses):
-`pages/attention.html`, `js/attention.js`, `styles/attention.css`, wired into `index.html` as
-entry 10 and linked from the section rail. No new shared infrastructure or framework — matches
-the pattern of every other page (`gradient-descent.js`, `manifold_isomap.js`, etc.): a dedicated,
-self-contained JS file per page, no build step.
+`pages/attention.html`, `styles/attention.css`, wired into `index.html` as entry 10. Given this
+page's size, its JS follows the `js/manifold/` precedent (an ES-module directory) rather than
+`gradient-descent.js`'s single-file pattern: `js/attention/` holds `math.js` (pure step
+computations, no DOM — the only part of this codebase's frontend that is unit-testable in the
+ordinary sense), `glyphs.js` (SVG glyph and connector builders), `pipeline.js` (the sticky bar and
+the shared open-node behavior), `scenes.js` (per-step scene rendering and animation), `presets.js`
+(preset data and the picker), and `main.js` (the page's entry point, mirroring the try/catch init
+block every other page's script uses). No new shared infrastructure or build step.
 
-The departure from other pages: instead of generic prose sections, the rail's numbered entries
-map one-to-one to the eight pipeline steps (`01 Overview`, `02 Input embeddings`, ... `09
-Output`), and the pipeline diagram itself — not the rail — is the primary way users navigate.
+The rail is the site's existing `js/section-outline.js` component, unmodified — it already
+auto-discovers `<section class="panel">` blocks with an `h2`/`h3` heading and builds a numbered,
+scrollspy-highlighted rail from them, which is exactly the "slim secondary list of the same
+steps" the design calls for. Each of the eight step scenes is one such `.panel`; the hero/intro
+above the sticky bar is plain content, not a panel, so it is not numbered (matching the validated
+mockup: eight numbered rail entries, `01`-`08`, one per step — not nine). `attention/pipeline.js`
+adds one delegated click listener for `.section-outline-list a[data-target]` clicks so a rail
+click triggers the same pulse-and-scroll-and-glow the pipeline bar does, layered on top of
+section-outline.js's own (unmodified) scroll-and-highlight behavior rather than replacing it.
 
 ## The pipeline bar (primary navigation)
 
