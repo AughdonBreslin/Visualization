@@ -1646,10 +1646,13 @@ function renderWsum(container, stepId, result) {
     </div>`;
   }).join('');
   const out = result.output[focusIdx].map((v) => v.toFixed(2)).join(', ');
+  const sumTerms = result.tokens.map((tj, j) => `${result.weights[focusIdx][j].toFixed(2)}&middot;v_"${tj}"`).join(' + ');
+  const worked = `o_"${focusToken}" = ${sumTerms} = [${out}]`;
   container.innerHTML = `
     <p class="scene-note">showing the output for <span class="vec-token" style="color:${result.tokenColors[focusIdx]}">"${focusToken}"</span> (row opacity = attention weight on that value)</p>
     <div class="wsum-list">${rows}</div>
-    <div class="wsum-result">= [${out}]</div>`;
+    <div class="wsum-result">= [${out}]</div>
+    <div class="formula-worked">${worked}</div>`;
 }
 ```
 
@@ -1697,12 +1700,15 @@ const { firefox } = require('playwright');
   const wsumRows = await page.$$eval('#step-wsum .wsum-row', (els) => els.length);
   const outputRows = await page.$$eval('#step-output .vec-row', (els) => els.length);
   console.log('wsum rows:', wsumRows, 'output rows:', outputRows); // expect 3, 3
+  const wsumWorked = await page.$eval('#step-wsum .formula-worked', (el) => el.textContent);
+  console.log('wsum formula-worked mentions focus token "cat":', wsumWorked.includes('"cat"'));
   console.log('errors:', JSON.stringify(errors));
   await browser.close();
 })();
 ```
 
-Expected: `wsum rows: 3 output rows: 3`, `errors: []`.
+Expected: `wsum rows: 3 output rows: 3`, `wsum formula-worked mentions focus token "cat": true`,
+`errors: []`.
 
 ```bash
 kill %1
