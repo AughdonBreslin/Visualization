@@ -18,21 +18,16 @@ function maxAbs(arr) {
   return Math.max(...arr.map(Math.abs), 0.01);
 }
 
-// 0 = dim cool blue, 0.5 = green, 1 = hot red-orange. Interpolating through a midpoint keeps
-// mid-range magnitudes visually distinct instead of muddying into a single blue<->red blend.
+// A single hue (the site's own accent blue-violet), climbing only in saturation and lightness
+// with magnitude. A blue-green-red sweep reads as noise once many cells render at once (e.g.
+// QKV's four full matrices); one hue keeps every step's heat bars and grids calm and consistent
+// while still making low vs. high magnitude easy to tell apart at a glance.
 function heatColor(t) {
   t = Math.max(0, Math.min(1, t));
-  const stops = [
-    { p: 0, h: 224, s: 42, l: 28 },
-    { p: 0.5, h: 130, s: 45, l: 40 },
-    { p: 1, h: 8, s: 82, l: 54 },
-  ];
-  const [a, b] = t > 0.5 ? [stops[1], stops[2]] : [stops[0], stops[1]];
-  const localT = a.p === 0.5 ? (t - 0.5) / 0.5 : t / 0.5;
-  const h = a.h + (b.h - a.h) * localT;
-  const s = a.s + (b.s - a.s) * localT;
-  const l = a.l + (b.l - a.l) * localT;
-  return `hsl(${h.toFixed(0)}, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
+  const h = 233;
+  const s = 22 + t * 50;
+  const l = 14 + t * 40;
+  return `hsl(${h}, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
 }
 
 // A vector rendered as one row per dimension: a fixed-width, bracket-framed 0-1 heat-filled
