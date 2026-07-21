@@ -199,24 +199,28 @@
    row (and eventually one per row) as width runs out - a plain flex-wrap gives us both the
    desktop "side by side" layout and the small-window "stacked" fallback from one rule. */
 .ui.attention .heatbar-block-row { display: flex; flex-wrap: wrap; gap: 10px 22px; }
-/* One bracket frame around the whole stack (matrix-notation style: [ row / row / row ]),
-   not one pair per row -- drawn with borders on ::before/::after rather than stretched glyph
-   characters, so the frame stays crisp at any stack height. */
-.ui.attention .heatbar-list { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 3px 8px; }
+/* One bracket frame around the whole row (matrix-notation style: [ box box box box ]),
+   not one pair per box -- drawn with borders on ::before/::after rather than stretched glyph
+   characters, so the frame stays crisp at any row width. Boxes sit side by side (temperature ->
+   fill color, value printed inside) rather than stacked bars, echoing the same heat-cell look
+   already used for full matrices, just for a single row. */
+.ui.attention .heatbar-list { position: relative; display: flex; flex-direction: row; align-items: flex-end; gap: 3px; padding: 3px 8px; }
 .ui.attention .heatbar-list::before, .ui.attention .heatbar-list::after {
   content: ''; position: absolute; top: 1px; bottom: 1px; width: 5px;
   border: 1.5px solid var(--hairline-strong);
 }
 .ui.attention .heatbar-list::before { left: 0; border-right: none; }
 .ui.attention .heatbar-list::after { right: 0; border-left: none; }
-.ui.attention .heatbar-row { display: flex; align-items: center; gap: 6px; }
-.ui.attention .heatbar-row.dim { opacity: .35; }
-.ui.attention .heatbar-label { flex: none; font: 700 10.5px/1 var(--font-mono); color: var(--text-muted); min-width: 26px; }
-.ui.attention .heatbar-track { flex: none; position: relative; width: 64px; height: 13px; border-radius: 2px; background: var(--surface); overflow: hidden; }
-.ui.attention .heatbar-fill { position: absolute; inset: 0; border-radius: 1px; transition: width 300ms var(--ease-out), background 300ms var(--ease-out); }
-.ui.attention .heatbar-val { flex: none; font: 600 10.5px/1 var(--font-mono); color: var(--text-2); text-align: right; min-width: 34px; }
+.ui.attention .heatbox-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.ui.attention .heatbox-label { font: 700 8px/1 var(--font-mono); color: var(--text-muted); }
+.ui.attention .heatbox-cell {
+  flex: none; width: 34px; height: 26px; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font: 600 9.5px/1 var(--font-mono); color: #fff;
+  transition: background 300ms var(--ease-out);
+}
 @media (max-width: 480px) {
-  .ui.attention .heatbar-track { width: 48px; }
+  .ui.attention .heatbox-cell { width: 28px; height: 24px; font-size: 8.5px; }
 }
 
 /* --- heat-colored matrix grid: the matrix primitive, same heat scale as the bars --- */

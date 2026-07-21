@@ -31,27 +31,21 @@ function heatColor(t) {
   return `hsl(${h}, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
 }
 
-// A vector rendered as one row per dimension: a fixed-width, bracket-framed 0-1 heat-filled
-// track (magnitude relative to this vector's own largest entry) plus the raw signed value
-// printed alongside it. Heat color and fill length redundantly encode the same magnitude on
-// purpose. No row label by default -- a dimension index (d0, d1, ...) is noise for a plain
-// embedding/Q/K/V display where no particular dimension is being singled out; pass opts.labels
-// only when a row genuinely identifies something (a token, a specific highlighted dimension).
-// dimExcept, if given, keeps only that one dimension at full opacity (used in "slice" stages to
-// show one component still belongs to the full vector without erasing the rest).
+// A vector rendered as one box per dimension, side by side in a single bracket-framed row: each
+// box's fill color is its "temperature" (magnitude relative to this vector's own largest entry),
+// with the raw signed value printed inside it. No label above a box by default -- a dimension
+// index (d0, d1, ...) is noise for a plain embedding/Q/K/V display where no particular dimension
+// is being singled out; pass opts.labels only when a box genuinely identifies something (a
+// token, e.g. Softmax's slice row, which is indexed by key token rather than by dimension).
 function heatBarList(values, opts = {}) {
   const m = maxAbs(values);
-  const dimExcept = opts.dimExcept;
   const labels = opts.labels;
   return values.map((v, i) => {
     const t = Math.abs(v) / m;
-    const pct = (t * 100).toFixed(0);
-    const isDim = dimExcept !== undefined && i !== dimExcept;
-    const labelHtml = labels ? `<div class="heatbar-label">${labels[i]}</div>` : '';
-    return `<div class="heatbar-row ${isDim ? 'dim' : ''}">
+    const labelHtml = labels ? `<div class="heatbox-label">${labels[i]}</div>` : '';
+    return `<div class="heatbox-wrap">
       ${labelHtml}
-      <div class="heatbar-track"><div class="heatbar-fill" style="width:${pct}%; background:${heatColor(t)}"></div></div>
-      <div class="heatbar-val">${v.toFixed(2)}</div>
+      <div class="heatbox-cell" style="background:${heatColor(t)}">${v.toFixed(2)}</div>
     </div>`;
   }).join('');
 }
