@@ -210,7 +210,7 @@ function renderQkv(container, stepId, result) {
   const stage3 = stageCard(
     '03: TRANSFORM',
     'The same multiply, every token at once',
-    `The same multiply happens for every token, not just &quot;${t0}&quot;: each row of <code>X</code> goes through <code>W_Q</code>, <code>W_K</code>, and <code>W_V</code> the same way. Below are the full <code>Q</code>, <code>K</code>, and <code>V</code> matrices this produces; the highlighted &quot;${t0}&quot; row in each is exactly the $q_{\\text{${t0}}}$, $k_{\\text{${t0}}}$, and $v_{\\text{${t0}}}$ vectors from stage 2.`,
+    `Each token in <code>X</code> goes through <code>W_Q</code>, <code>W_K</code>, and <code>W_V</code>, producing the full <code>Q</code>, <code>K</code>, <code>V</code> matrices below.`,
     `<div class="heatbar-block-row">
        <div class="qkv-storage-block"><div class="heatbar-block-title">Q</div>${heatMatrixGrid(qMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
        <div class="qkv-storage-block"><div class="heatbar-block-title">K</div>${heatMatrixGrid(kMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
