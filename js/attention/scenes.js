@@ -140,7 +140,7 @@ function renderInput(container, stepId, result) {
   const stage1 = stageCard(
     '01: STORAGE',
     'The three embeddings',
-    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. Stacked together, the ${result.tokens.length} embeddings below form <code>X</code>, the matrix the rest of this pipeline operates on.`,
+    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. Stacked together, the ${result.tokens.length} embeddings below form $X$, the matrix the rest of this pipeline operates on.`,
     storageBody,
     `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`
   );
@@ -172,22 +172,22 @@ function renderQkv(container, stepId, result) {
   const stage1 = stageCard(
     '01: STORAGE',
     'The full data at rest',
-    `<code>X</code> below stacks all ${result.tokens.length} embeddings, one row per token. The three matrices on the right are the actual <code>W_Q</code>, <code>W_K</code>, and <code>W_V</code> this model learned: <code>X</code> gets multiplied by each of them independently, producing a query, a key, and a value.`,
+    `$X$ below stacks all ${result.tokens.length} embeddings, one row per token. The three matrices on the right are the actual $W_Q$, $W_K$, and $W_V$ this model learned: $X$ gets multiplied by each of them independently, producing a query, a key, and a value.`,
     `<div class="qkv-storage-row">
-       <div class="qkv-storage-block"><div class="heatbar-block-title">X: one row per token</div>${heatMatrixGrid(xMatrix, { rowLabels: result.tokens })}</div>
+       <div class="qkv-storage-block"><div class="heatbar-block-title">$X$: one row per token</div>${heatMatrixGrid(xMatrix, { rowLabels: result.tokens })}</div>
        ${qkvFanoutSVG()}
        <div class="qkv-storage-outputs">
-         <div class="qkv-storage-block"><div class="heatbar-block-title">W_Q</div>${heatMatrixGrid(WEIGHTS.WQ)}</div>
-         <div class="qkv-storage-block"><div class="heatbar-block-title">W_K</div>${heatMatrixGrid(WEIGHTS.WK)}</div>
-         <div class="qkv-storage-block"><div class="heatbar-block-title">W_V</div>${heatMatrixGrid(WEIGHTS.WV)}</div>
+         <div class="qkv-storage-block"><div class="heatbar-block-title">$W_Q$</div>${heatMatrixGrid(WEIGHTS.WQ)}</div>
+         <div class="qkv-storage-block"><div class="heatbar-block-title">$W_K$</div>${heatMatrixGrid(WEIGHTS.WK)}</div>
+         <div class="qkv-storage-block"><div class="heatbar-block-title">$W_V$</div>${heatMatrixGrid(WEIGHTS.WV)}</div>
        </div>
      </div>`,
-    `one shared X, three independent multiplications`
+    `one shared $X$, three independent multiplications`
   );
   const stage2 = stageCard(
     '02: SLICE',
     'One token, three projections',
-    `Take one token's embedding, $x_{\\text{${t0}}}$, and multiply it by all three matrices at once: <code>x &middot; W_Q</code> gives its query, <code>x &middot; W_K</code> gives its key, <code>x &middot; W_V</code> gives its value, all independently and in parallel off the same input vector.`,
+    `Take one token's embedding, $x_{\\text{${t0}}}$, and multiply it by all three matrices at once: $x \\cdot W_Q$ gives its query, $x \\cdot W_K$ gives its key, $x \\cdot W_V$ gives its value, all independently and in parallel off the same input vector.`,
     `<div class="formula">$$ q_i = x_i W_Q, \\quad k_i = x_i W_K, \\quad v_i = x_i W_V $$</div>
      <div class="heatbar-block-row">
        ${labeledVecBlock(`$q_{\\text{${t0}}}$`, result.Q[t0])}
@@ -199,11 +199,11 @@ function renderQkv(container, stepId, result) {
   const stage3 = stageCard(
     '03: TRANSFORM',
     'The same multiply, every token at once',
-    `Each token in <code>X</code> goes through <code>W_Q</code>, <code>W_K</code>, and <code>W_V</code>, producing the full <code>Q</code>, <code>K</code>, <code>V</code> matrices below.`,
+    `Each token in $X$ goes through $W_Q$, $W_K$, and $W_V$, producing the full $Q$, $K$, $V$ matrices below.`,
     `<div class="heatbar-block-row">
-       <div class="qkv-storage-block"><div class="heatbar-block-title">Q</div>${heatMatrixGrid(qMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
-       <div class="qkv-storage-block"><div class="heatbar-block-title">K</div>${heatMatrixGrid(kMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
-       <div class="qkv-storage-block"><div class="heatbar-block-title">V</div>${heatMatrixGrid(vMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
+       <div class="qkv-storage-block"><div class="heatbar-block-title">$Q$</div>${heatMatrixGrid(qMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
+       <div class="qkv-storage-block"><div class="heatbar-block-title">$K$</div>${heatMatrixGrid(kMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
+       <div class="qkv-storage-block"><div class="heatbar-block-title">$V$</div>${heatMatrixGrid(vMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
      </div>`,
     `${result.tokens.length} tokens &times; 3 matrices, all produced by the same multiply shown in stage 2`
   );
@@ -211,7 +211,7 @@ function renderQkv(container, stepId, result) {
     '04: RELATED RESEARCH',
     'Why three matrices, not one?',
     null,
-    `<p class="concept-box">If Q and K shared a matrix, every token's query would equal its own key, forcing every attention pattern to be symmetric (token A attends to B exactly as much as B attends to A) and collapsing the asking and answering roles into one. A 2026 study, <a href="https://arxiv.org/abs/2606.04032" target="_blank" rel="noopener">Do Transformers Need Three Projections? Systematic Study of QKV Variants</a>, tested this directly: tying Q and K broke attention's directionality and hurt quality, while tying K and V instead held up, cutting the KV cache in half for only a &tilde;3% perplexity increase. The asymmetry makes sense: a key (&quot;how to be found&quot;) and a value (&quot;what to contribute&quot;) can share a representational space without conflict, but a token's query and key must stay free to diverge, or it could only ever attend to itself.</p>`
+    `<p class="concept-box">If $Q$ and $K$ shared a matrix, every token's query would equal its own key, forcing every attention pattern to be symmetric (token A attends to B exactly as much as B attends to A) and collapsing the asking and answering roles into one. A 2026 study, <a href="https://arxiv.org/abs/2606.04032" target="_blank" rel="noopener">Do Transformers Need Three Projections? Systematic Study of QKV Variants</a>, tested this directly: tying $Q$ and $K$ broke attention's directionality and hurt quality, while tying $K$ and $V$ instead held up, cutting the KV cache in half for only a &tilde;3% perplexity increase. The asymmetry makes sense: a key (&quot;how to be found&quot;) and a value (&quot;what to contribute&quot;) can share a representational space without conflict, but a token's query and key must stay free to diverge, or it could only ever attend to itself.</p>`
   );
   container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 }
@@ -221,17 +221,17 @@ function renderScores(container, stepId, result) {
   const stage1 = stageCard(
     '01: STORAGE',
     'Every query, every key',
-    `The previous step already produced a query vector and a key vector for <b>every</b> token, not just &quot;${t0}&quot;. <code>Q</code> below stacks all ${result.tokens.length} query vectors, one row per token; <code>K</code> stacks all ${result.tokens.length} key vectors the same way.`,
-    `<div><div class="heatbar-block-title">Q: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.Q[t]), { hiRow: 0, rowLabels: result.tokens })}</div>
-     <div><div class="heatbar-block-title">K: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.K[t]), { hiRow: 0, rowLabels: result.tokens })}</div>`,
+    `The previous step already produced a query vector and a key vector for <b>every</b> token, not just &quot;${t0}&quot;. $Q$ below stacks all ${result.tokens.length} query vectors, one row per token; $K$ stacks all ${result.tokens.length} key vectors the same way.`,
+    `<div><div class="heatbar-block-title">$Q$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.Q[t]), { hiRow: 0, rowLabels: result.tokens })}</div>
+     <div><div class="heatbar-block-title">$K$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.K[t]), { hiRow: 0, rowLabels: result.tokens })}</div>`,
     `${result.tokens.length} queries &times; ${result.tokens.length} keys = ${result.tokens.length * result.tokens.length} comparisons still to come`
   );
   const stage2 = stageCard(
     '02: SLICE',
     'One query, one key',
-    `To fill in exactly one cell of the score grid, where query &quot;${t0}&quot; meets key &quot;${t0}&quot;, row 0 column 0, we only need <b>one</b> row from Q and <b>one</b> row from K, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
-    `<div><div class="heatbar-block-title">q &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.Q[t0])}</div></div>
-     <div><div class="heatbar-block-title">k &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.K[t0])}</div></div>`,
+    `To fill in exactly one cell of the score grid, where query &quot;${t0}&quot; meets key &quot;${t0}&quot;, row 0 column 0, we only need <b>one</b> row from $Q$ and <b>one</b> row from $K$, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
+    `<div><div class="heatbar-block-title">$q_{\\text{${t0}}}$</div><div class="heatbar-list">${heatBarList(result.Q[t0])}</div></div>
+     <div><div class="heatbar-block-title">$k_{\\text{${t0}}}$</div><div class="heatbar-list">${heatBarList(result.K[t0])}</div></div>`,
     `this pair lands in score grid cell [0,0]`
   );
   const n = result.tokens.length;
@@ -413,7 +413,7 @@ function renderWsum(container, stepId, result) {
     'Every attention weight, every value',
     `Softmax already produced a full row of weights for every query token; the Q/K/V projection step already produced a value vector for every token. Both are just collected here, nothing new computed yet.`,
     `<div><div class="heatbar-block-title">attention weights</div>${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div>
-     <div><div class="heatbar-block-title">V: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
+     <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
     `every row of weights will blend the same ${result.tokens.length} value vectors, just with different weights`
   );
   const stage2 = stageCard(

@@ -47,21 +47,21 @@
       <section class="panel" id="step-qkv">
         <h2>Q / K / V projections</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Attention breaks down the information it needs from a token into three separate views: a query ("what am I looking for"), a key ("what do I offer"), and a value ("what I actually contribute if chosen"). This model trains a W_Q, a W_K, and a W_V, each used to construct that view for every token it encounters: the same three matrices multiply every token, in every sentence, nothing looked up per word the way the embedding table is. These matrices are what the next two steps put to work: Q and K get compared against each other to decide how much attention each token pays to every other, while V supplies the content that gets blended together once those weights are known. If Q and K shared a weight matrix, every token's query would equal its own key, and every token would trivially attend most to itself; separate, independently learned projections let a token's query and key diverge instead, which is what lets a token end up attending to a different token when that's more useful.</p>
+        <p>Attention breaks down the information it needs from a token into three separate views: a query ("what am I looking for"), a key ("what do I offer"), and a value ("what I actually contribute if chosen"). This model trains a $W_Q$, a $W_K$, and a $W_V$, each used to construct that view for every token it encounters: the same three matrices multiply every token, in every sentence, nothing looked up per word the way the embedding table is. These matrices are what the next two steps put to work: $Q$ and $K$ get compared against each other to decide how much attention each token pays to every other, while $V$ supplies the content that gets blended together once those weights are known. If $Q$ and $K$ shared a weight matrix, every token's query would equal its own key, and every token would trivially attend most to itself; separate, independently learned projections let a token's query and key diverge instead, which is what lets a token end up attending to a different token when that's more useful.</p>
         <div class="scene-anim"></div>
       </section>
 
       <section class="panel" id="step-scores">
         <h2>QKᵀ scores</h2>
         <div class="scene-hero-glyph"></div>
-        <p>With every token holding a query and a key, comparing a query against a key is a similarity measure: this step performs every such comparison at once, how relevant each token's content is to what every other token is looking for, before any normalization. A large dot product means q and k point in a similar direction: loosely, "what this token is looking for" closely matches "what that token offers." Every cell of the grid is the result of the exact same multiply-then-sum, just for a different query/key pair each time. The raw score is unbounded, and grows with the query and key vectors' magnitude, which is exactly what the next step (Scale) exists to control.</p>
+        <p>With every token holding a query and a key, comparing a query against a key is a similarity measure: this step performs every such comparison at once, how relevant each token's content is to what every other token is looking for, before any normalization. A large dot product means $q$ and $k$ point in a similar direction: loosely, "what this token is looking for" closely matches "what that token offers." Every cell of the grid is the result of the exact same multiply-then-sum, just for a different query/key pair each time. The raw score is unbounded, and grows with the query and key vectors' magnitude, which is exactly what the next step (Scale) exists to control.</p>
         <div class="scene-anim"></div>
       </section>
 
       <section class="panel" id="step-scale">
         <h2>Scale</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Every score divides by √d before moving on. Dot-product magnitude grows with the number of dimensions being summed, d: if Q and K entries have roughly unit variance, the dot product's own variance grows proportional to d, so its standard deviation grows with √d. Dividing by √d is exactly what keeps a score's scale roughly constant no matter how large d is chosen to be; without it, larger d would push softmax into a near one-hot regime with vanishing gradients almost everywhere else, leaving little for training to work with.</p>
+        <p>Every score divides by √d before moving on. Dot-product magnitude grows with the number of dimensions being summed, d: if $Q$ and $K$ entries have roughly unit variance, the dot product's own variance grows proportional to d, so its standard deviation grows with √d. Dividing by √d is exactly what keeps a score's scale roughly constant no matter how large d is chosen to be; without it, larger d would push softmax into a near one-hot regime with vanishing gradients almost everywhere else, leaving little for training to work with.</p>
         <div class="scene-anim"></div>
       </section>
 
@@ -82,7 +82,7 @@
       <section class="panel" id="step-wsum">
         <h2>Weighted sum</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Now that there is a legitimate probability distribution over how much to listen to each token, the actual listening happens by blending: each token's output is the attention-weighted combination of every value vector, mostly its highest-weighted neighbors, a little of everything else. Like Q and K, V is its own learned projection, so the model can choose what a token actually contributes to others independent of what makes it a good match (its key) or what it's searching for (its query). A token can be highly relevant (a large attention weight) while contributing very little of any one particular feature, or the reverse, because relevance and content are computed by two entirely separate weight matrices.</p>
+        <p>Now that there is a legitimate probability distribution over how much to listen to each token, the actual listening happens by blending: each token's output is the attention-weighted combination of every value vector, mostly its highest-weighted neighbors, a little of everything else. Like $Q$ and $K$, $V$ is its own learned projection, so the model can choose what a token actually contributes to others independent of what makes it a good match (its key) or what it's searching for (its query). A token can be highly relevant (a large attention weight) while contributing very little of any one particular feature, or the reverse, because relevance and content are computed by two entirely separate weight matrices.</p>
         <div class="scene-anim"></div>
       </section>
 
