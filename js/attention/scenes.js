@@ -118,8 +118,8 @@ function probBar(tokens, weights, tokenColors, rowLabel) {
   return `<div class="propbar-row">${rowLabelHtml}<div class="propbar">${segs}</div></div>`;
 }
 
-function stageCard(n, title, proseHtml, bodyHtml, noteHtml) {
-  return `<div class="stage">
+function stageCard(n, title, proseHtml, bodyHtml, noteHtml, extraClass = '') {
+  return `<div class="stage${extraClass ? ` ${extraClass}` : ''}">
     <div class="stage-connector"></div>
     <div class="stage-n">${n}</div>
     <div class="stage-title">${title}</div>
@@ -158,13 +158,25 @@ function renderInput(container, stepId, result) {
 function renderQkv(container, stepId, result) {
   const t0 = result.tokens[0];
   const wqRow0 = WEIGHTS.WQ[0];
+  const xMatrix = result.tokens.map((t) => result.embeddings[t]);
+  const qMatrix = result.tokens.map((t) => result.Q[t]);
+  const kMatrix = result.tokens.map((t) => result.K[t]);
+  const vMatrix = result.tokens.map((t) => result.V[t]);
   const stage1 = stageCard(
     '01: STORAGE',
     'The full data at rest',
-    `Every token's embedding gets multiplied by three learned weight matrices, producing a query, a key, and a value vector. Below is the embedding for &quot;${t0}&quot; and the query vector it produces: the full output of this step, for one token.`,
-    `<div><div class="heatbar-block-title">x &quot;${t0}&quot; (input)</div><div class="heatbar-list">${heatBarList(result.embeddings[t0])}</div></div>
-     <div><div class="heatbar-block-title">q &quot;${t0}&quot; (output)</div><div class="heatbar-list">${heatBarList(result.Q[t0])}</div></div>`,
-    `1 embedding in, 1 query vector out, per token`
+    `Every token's embedding gets multiplied by three learned weight matrices, producing a query, a key, and a value vector for each one. <code>X</code> below stacks all ${result.tokens.length} embeddings, one row per token; <code>Q</code>, <code>K</code>, <code>V</code> stack the resulting projections the same way.`,
+    `<div class="qkv-storage-row">
+       <div class="qkv-storage-block"><div class="heatbar-block-title">X: one row per token</div>${heatMatrixGrid(xMatrix, { rowLabels: result.tokens })}</div>
+       <div class="qkv-storage-arrow">&rarr;</div>
+       <div class="qkv-storage-outputs">
+         <div class="qkv-storage-block"><div class="heatbar-block-title">Q = X &middot; W_Q</div>${heatMatrixGrid(qMatrix, { rowLabels: result.tokens })}</div>
+         <div class="qkv-storage-block"><div class="heatbar-block-title">K = X &middot; W_K</div>${heatMatrixGrid(kMatrix, { rowLabels: result.tokens })}</div>
+         <div class="qkv-storage-block"><div class="heatbar-block-title">V = X &middot; W_V</div>${heatMatrixGrid(vMatrix, { rowLabels: result.tokens })}</div>
+       </div>
+     </div>`,
+    `${result.tokens.length} embeddings in, ${result.tokens.length} query/key/value vectors out, all at once`,
+    'stage-wide'
   );
   const stage2 = stageCard(
     '02: SLICE',
