@@ -136,11 +136,7 @@ function filmstrip(stages) {
 // ---- per-step renderers ----------------------------------------------------------------------
 
 function renderInput(container, stepId, result) {
-  const storageBody = result.tokens.map((t) => `
-    <div>
-      <div class="heatbar-block-title">x &quot;${t}&quot;</div>
-      <div class="heatbar-list">${heatBarList(result.embeddings[t])}</div>
-    </div>`).join('');
+  const storageBody = result.tokens.map((t) => labeledVecBlock(`&quot;${t}&quot;`, result.embeddings[t])).join('');
   const stage1 = stageCard(
     '01: STORAGE',
     'The three embeddings',
@@ -380,14 +376,24 @@ function renderSoftmax(container, stepId, result) {
   container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 }
 
-// A value vector scaled by its attention weight: the vector's own heat-bar-list, wrapped in a
-// block whose opacity is driven by the weight, so a barely-attended token visibly fades instead
-// of just being one more identical-looking row in the list.
-function weightedVecBlock(token, weight, vec) {
-  return `<div style="opacity:${(0.3 + weight * 0.7).toFixed(2)}">
-    <div class="heatbar-block-title">&quot;${token}&quot; &times; ${weight.toFixed(2)}</div>
-    <div class="heatbar-list">${heatBarList(vec)}</div>
+// A vector with its label (a token, usually) placed beside it rather than on its own line above
+// it, so a stack of several vectors (e.g. every token's embedding) doesn't spend a whole extra
+// line of vertical space per vector just to name it.
+function labeledVecBlock(label, values, opts = {}) {
+  const style = opts.style ? ` style="${opts.style}"` : '';
+  return `<div class="heatbar-block"${style}>
+    <div class="heatbar-block-label">${label}</div>
+    <div class="heatbar-list">${heatBarList(values, opts)}</div>
   </div>`;
+}
+
+// A value vector scaled by its attention weight: labeledVecBlock with the label naming the
+// weight, and the whole block's opacity driven by that weight, so a barely-attended token
+// visibly fades instead of just being one more identical-looking row in the list.
+function weightedVecBlock(token, weight, vec) {
+  return labeledVecBlock(`&quot;${token}&quot; &times; ${weight.toFixed(2)}`, vec, {
+    style: `opacity:${(0.3 + weight * 0.7).toFixed(2)}`,
+  });
 }
 
 function renderWsum(container, stepId, result) {
@@ -425,11 +431,7 @@ function renderWsum(container, stepId, result) {
 }
 
 function renderOutput(container, stepId, result) {
-  const storageBody = result.tokens.map((t, i) => `
-    <div>
-      <div class="heatbar-block-title">output &quot;${t}&quot;</div>
-      <div class="heatbar-list">${heatBarList(result.output[i])}</div>
-    </div>`).join('');
+  const storageBody = result.tokens.map((t, i) => labeledVecBlock(`&quot;${t}&quot;`, result.output[i])).join('');
   const stage1 = stageCard(
     '01: STORAGE',
     'Three vectors out, same shape as three vectors in',
