@@ -221,15 +221,15 @@ function renderScores(container, stepId, result) {
   const stage1 = stageCard(
     '01: STORAGE',
     'Every query, every key',
-    `The previous step already produced a query vector and a key vector for every token, not just &quot;${t0}&quot;. $Q$ below stacks all ${result.tokens.length} query vectors, one row per token; $K$ stacks all ${result.tokens.length} key vectors the same way.`,
+    `The previous step already produced a query vector and a key vector for every token. $Q$ below stacks all the query vectors, one row per token; $K$ stacks all the key vectors the same way.`,
     `<div><div class="heatbar-block-title">$Q$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.Q[t]), { hiRow: 0, rowLabels: result.tokens })}</div>
      <div><div class="heatbar-block-title">$K$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.K[t]), { hiRow: 0, rowLabels: result.tokens })}</div>`,
-    `${result.tokens.length} queries &times; ${result.tokens.length} keys = ${result.tokens.length * result.tokens.length} comparisons still to come`
+    `every query paired with every key, comparisons still to come`
   );
   const stage2 = stageCard(
     '02: SLICE',
     'One query, one key',
-    `To fill in exactly one cell of the score grid, where query &quot;${t0}&quot; meets key &quot;${t0}&quot;, row 0 column 0, we only need one row from $Q$ and one row from $K$, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
+    `To fill in exactly one cell of the score grid, where the first token's query meets the first token's key, row 0 column 0, we only need one row from $Q$ and one row from $K$, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
     `<div><div class="heatbar-block-title">$q_{\\text{${t0}}}$</div><div class="heatbar-list">${heatBarList(result.Q[t0])}</div></div>
      <div><div class="heatbar-block-title">$k_{\\text{${t0}}}$</div><div class="heatbar-list">${heatBarList(result.K[t0])}</div></div>`,
     `this pair lands in score grid cell [0,0]`
@@ -240,9 +240,9 @@ function renderScores(container, stepId, result) {
   const stage3 = stageCard(
     '03: TRANSFORM',
     'Fill in the grid, one comparison at a time',
-    `Every cell repeats the same operation: pair up one query row and one key row by position, multiply each pair, add the results. That's a dot product, the standard way to measure how aligned two vectors are. Click below to watch all ${n * n} cells compute at once.`,
+    `Every cell repeats the same operation: pair up one query row and one key row by position, multiply each pair, add the results. That's a dot product, the standard way to measure how aligned two vectors are. Click below to watch all cells compute at once.`,
     `<div class="scale-shrink-wrap"><div data-role="sweep-grid">${blankGrid}</div></div>
-     <div class="anim-controls"><button class="anim-btn" type="button" data-role="sweep-btn">&#9654; compute all ${n * n} cells</button></div>
+     <div class="anim-controls"><button class="anim-btn" type="button" data-role="sweep-btn">&#9654; compute all cells</button></div>
      <div class="stage-note" data-role="sweep-worked" style="display:none">${cellWorked}</div>
      <div class="formula">$$ \\text{score}_{ij} = q_i \\cdot k_j $$</div>`
   );
