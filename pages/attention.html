@@ -47,7 +47,7 @@
       <section class="panel" id="step-qkv">
         <h2>Q / K / V projections</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Attention breaks down the information it needs from a token into three separate views: a query ("what am I looking for"), a key ("what do I offer"), and a value ("what I actually contribute if chosen"). $W_Q$, $W_K$, and $W_V$ come from training, and are applied to each input token to build its $Q$, $K$, and $V$. These matrices are what the next two steps put to work: $Q$ and $K$ get compared against each other to decide how much attention each token pays to every other, while $V$ supplies the content that gets blended together once those weights are known.</p>
+        <p>Attention breaks down the information it needs from a token into three separate views: a query ("what am I looking for"), a key ("what do I offer"), and a value ("what I actually contribute if chosen"). In a trained model, a pronoun like "he" might develop a query seeking a singular masculine referent, while a noun like "man" offers a key that matches it, connecting the pronoun back to what it refers to; the same mechanism just as easily learns other kinds of relationships, like syntax, position, or topic, depending on whatever the task rewards. $W_Q$, $W_K$, and $W_V$ come from training, and are applied to each input token to build its $Q$, $K$, and $V$. These matrices are what the next two steps put to work: $Q$ and $K$ get compared against each other to decide how much attention each token pays to every other, while $V$ supplies the content that gets blended together once those weights are known.</p>
         <div class="scene-anim"></div>
       </section>
 
