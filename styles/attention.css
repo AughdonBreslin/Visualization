@@ -21,7 +21,7 @@
   background: rgba(12, 12, 13, 0.92);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--hairline);
-  margin: 24px 0 0;
+  margin: 24px 0 22px;
 }
 /* The bar renders ~94px tall, which dwarfs the site-wide 16px scroll offset that
    section-outline.js sets inline (via --outline-scroll-offset) on every .panel - without this
