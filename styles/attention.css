@@ -162,6 +162,10 @@
 /* A stage that needs the full filmstrip width (e.g. QKV's storage stage, which shows X mapping
    to three full output matrices at once - too much to lay out legibly in one half-width slide). */
 .ui.attention .stage.stage-wide { flex-basis: 100%; }
+/* Input/Output's filmstrip is down to a single stage now that CONCEPT lives in the intro
+   paragraph instead - without this, a lone stage still claims only half the row's width,
+   leaving an empty half with nothing to pair it with. */
+.ui.attention .filmstrip .stage:only-child { flex-basis: 100%; }
 @media (max-width: 680px) { .ui.attention .stage { flex-basis: 100%; } }
 
 /* --- QKV storage: X fans out into W_Q/W_K/W_V, all as full matrices, wrapping to stacked on

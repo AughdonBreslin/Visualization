@@ -40,48 +40,56 @@
       <section class="panel" id="step-input">
         <h2>Input embeddings</h2>
         <div class="scene-hero-glyph"></div>
+        <p>For an input to a trained model, the sentence is first broken into tokens, and each token needs to become a vector a matrix can act on. Embeddings live in a lookup table $E$, one row per vocabulary word: real ones run hundreds or thousands of dimensions, so a token can encode many independent aspects of itself at once (syntax, sense, tone, and whatever else training finds useful) instead of collapsing them into a handful of numbers. Stack the rows this sentence's tokens actually use and you get $X$: not a separate object from $E$, just the handful of its rows this particular sentence selects. Training treats every entry of $E$ as a learnable parameter: after each prediction, backpropagation nudges the rows used in that sentence a little, $E \leftarrow E - \eta \dfrac{\partial \mathcal{L}}{\partial E}$, so tokens used in similar ways drift toward similar vectors over many examples. For this walkthrough the tokens and values are hand-picked instead, with positional information set aside to keep focus on attention itself; every token keeps the same color everywhere it appears below. See the planned Phase 3 for the training loop worked through in full.</p>
         <div class="scene-anim"></div>
       </section>
 
       <section class="panel" id="step-qkv">
         <h2>Q / K / V projections</h2>
         <div class="scene-hero-glyph"></div>
+        <p>A raw embedding conflates everything about a token into one vector. Attention needs three different views of it: a query ("what am I looking for"), a key ("what do I offer"), and a value ("what I actually contribute if chosen"). Within this model there exists exactly one W_Q, one W_K, and one W_V: the same three matrices multiply every token, in every sentence, nothing looked up per word the way the embedding table is. If Q and K shared a weight matrix, every token's query would equal its own key, and every token would trivially attend most to itself; separate, independently learned projections let a token's query and key diverge, which is what lets it end up attending to a different token when that's more useful, and is what makes the comparison in the next step meaningful instead of trivial.</p>
         <div class="scene-anim"></div>
       </section>
 
       <section class="panel" id="step-scores">
         <h2>QKᵀ scores</h2>
         <div class="scene-hero-glyph"></div>
+        <p>With every token holding a query and a key, comparing a query against a key is a similarity measure: this step performs every such comparison at once, how relevant each token's content is to what every other token is looking for, before any normalization. A large dot product means q and k point in a similar direction: loosely, "what this token is looking for" closely matches "what that token offers." Every cell of the grid is the result of the exact same multiply-then-sum, just for a different query/key pair each time. The raw score is unbounded, and grows with the query and key vectors' magnitude, which is exactly what the next step (Scale) exists to control.</p>
         <div class="scene-anim"></div>
       </section>
 
       <section class="panel" id="step-scale">
         <h2>Scale</h2>
         <div class="scene-hero-glyph"></div>
+        <p>Every score divides by √d before moving on. Dot-product magnitude grows with the number of dimensions being summed, d: if Q and K entries have roughly unit variance, the dot product's own variance grows proportional to d, so its standard deviation grows with √d. Dividing by √d is exactly what keeps a score's scale roughly constant no matter how large d is chosen to be; without it, larger d would push softmax into a near one-hot regime with vanishing gradients almost everywhere else, leaving little for training to work with.</p>
         <div class="scene-anim"></div>
       </section>
 
       <section class="panel" id="step-mask">
         <h2>Mask</h2>
         <div class="scene-hero-glyph"></div>
+        <p>Every step so far treats all tokens symmetrically: any token can see any other, past or future. That's fine for encoding a sentence you already have in full, but wrong for predicting the next token, since letting a model see the answer it's supposed to predict makes training meaningless. An optional causal mask enforces the one asymmetry a decoder needs: only allow looking backward, by setting every future-position score to negative infinity before softmax. e<sup>0</sup> = 1, so a masked score of literal 0 would still receive real, nonzero attention weight after softmax, same as any other position with a score of 0; e<sup>&minus;&infin;</sup> = 0 exactly, the only value guaranteed to zero out that position's contribution regardless of the other scores in the row.</p>
         <div class="scene-anim"></div>
       </section>
 
       <section class="panel" id="step-softmax">
         <h2>Softmax</h2>
         <div class="scene-hero-glyph"></div>
+        <p>Each row exponentiates and normalizes into a probability distribution over keys: the actual attention weights, always summing to one per query token. The exponential is what makes softmax amplify differences: a score only slightly larger than its neighbors can end up with a much larger share of the final weight, once the gap has been stretched by exponentiating. This is part of why the Scale step mattered earlier: unscaled scores would make softmax nearly one-hot almost everywhere, leaving no useful gradient for training to work with.</p>
         <div class="scene-anim"></div>
       </section>
 
       <section class="panel" id="step-wsum">
         <h2>Weighted sum</h2>
         <div class="scene-hero-glyph"></div>
+        <p>Now that there is a legitimate probability distribution over how much to listen to each token, the actual listening happens by blending: each token's output is the attention-weighted combination of every value vector, mostly its highest-weighted neighbors, a little of everything else. Like Q and K, V is its own learned projection, so the model can choose what a token actually contributes to others independent of what makes it a good match (its key) or what it's searching for (its query). A token can be highly relevant (a large attention weight) while contributing very little of any one particular feature, or the reverse, because relevance and content are computed by two entirely separate weight matrices.</p>
         <div class="scene-anim"></div>
       </section>
 
       <section class="panel" id="step-output">
         <h2>Output</h2>
         <div class="scene-hero-glyph"></div>
+        <p>Three vectors out, the same shape as the three vectors in: each one now a context-aware blend of the whole sequence rather than the token in isolation. This output isn't usually the end of a transformer block on its own; in a real model it typically continues through a residual connection and a feed-forward layer, both outside the scope of this page, which focuses specifically on the attention operation itself. Everything shown on this page so far has been inference: one forward pass through a single attention head, using weight matrices that are already fixed. The planned Phase 2 would compute how those weights should change for this example; a further Phase 3 would show them actually being learned.</p>
         <div class="scene-anim"></div>
       </section>
 
