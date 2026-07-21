@@ -191,8 +191,7 @@ function renderQkv(container, stepId, result) {
          <div class="qkv-storage-block"><div class="heatbar-block-title">W_V</div>${heatMatrixGrid(WEIGHTS.WV)}</div>
        </div>
      </div>`,
-    `one shared X, three independent multiplications`,
-    'stage-wide'
+    `one shared X, three independent multiplications`
   );
   const stage2 = stageCard(
     '02: SLICE',
