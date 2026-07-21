@@ -143,17 +143,17 @@ function renderInput(container, stepId, result) {
     .map((t) => labeledVecBlock(`&quot;${t}&quot;`, result.embeddings[t]))
     .join('')}</div>`;
   const stage1 = stageCard(
-    '01: STORAGE',
+    '01: CONCEPT',
+    'Where these numbers come from',
+    null,
+    `<p class="concept-box">For an input to a trained model, the sentence is first broken into tokens, and each token needs to become a vector a matrix can act on. Embeddings live in a lookup table $E$, one row per vocabulary word: real ones run hundreds or thousands of dimensions, so a token can encode many independent aspects of itself at once (syntax, sense, tone, and whatever else training finds useful) instead of collapsing them into a handful of numbers. Stack the rows this sentence's tokens actually use and you get $X$: not a separate object from $E$, just the handful of its rows this particular sentence selects. Training treats every entry of $E$ as a learnable parameter: after each prediction, backpropagation nudges the rows used in that sentence a little, $E \\leftarrow E - \\eta \\dfrac{\\partial \\mathcal{L}}{\\partial E}$, so tokens used in similar ways drift toward similar vectors over many examples. For this walkthrough the tokens and values are hand-picked instead, with positional information set aside to keep focus on attention itself; every token keeps the same color everywhere it appears below. See the planned Phase 3 for the training loop worked through in full.</p>`
+  );
+  const stage2 = stageCard(
+    '02: STORAGE',
     'The three embeddings',
     `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. Stacked together, the ${result.tokens.length} embeddings below form <code>X</code>, the matrix the rest of this pipeline operates on.`,
     storageBody,
     `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`
-  );
-  const stage2 = stageCard(
-    '02: CONCEPT',
-    'Where these numbers come from',
-    null,
-    `<p class="concept-box">Embeddings live in a lookup table $E$, one row per vocabulary word; a token's vector is just its row. Stack the rows this sentence's tokens actually use and you get $X$: not a separate object from $E$, just the handful of its rows this particular sentence selects. Training treats every entry of $E$ as a learnable parameter: after each prediction, backpropagation nudges the rows used in that sentence a little, $E \\leftarrow E - \\eta \\dfrac{\\partial \\mathcal{L}}{\\partial E}$, so tokens used in similar ways drift toward similar vectors over many examples. See the planned Phase 3 for this training loop worked through in full.</p>`
   );
   container.innerHTML = filmstrip([stage1, stage2]);
 }
@@ -181,7 +181,13 @@ function renderQkv(container, stepId, result) {
   const kMatrix = result.tokens.map((t) => result.K[t]);
   const vMatrix = result.tokens.map((t) => result.V[t]);
   const stage1 = stageCard(
-    '01: STORAGE',
+    '01: CONCEPT',
+    'Three separate projections',
+    null,
+    `<p class="concept-box">A raw embedding conflates everything about a token into one vector. Attention needs three different views of it: a <b>query</b> (&quot;what am I looking for&quot;), a <b>key</b> (&quot;what do I offer&quot;), and a <b>value</b> (&quot;what I actually contribute if chosen&quot;). Within this model there exists exactly one W_Q, one W_K, and one W_V: the same three matrices multiply every token, in every sentence, nothing looked up per word the way the embedding table is. If Q and K shared a weight matrix, every token's query would equal its own key, and every token would trivially attend most to itself; separate, independently learned projections let a token's query and key diverge, which is what lets it end up attending to a <i style="font-style:normal">different</i> token when that's more useful, and is what makes the comparison in the next step meaningful instead of trivial.</p>`
+  );
+  const stage2 = stageCard(
+    '02: STORAGE',
     'The full data at rest',
     `<code>X</code> below stacks all ${result.tokens.length} embeddings, one row per token. The three matrices on the right are the actual <code>W_Q</code>, <code>W_K</code>, and <code>W_V</code> this model learned: <code>X</code> gets multiplied by each of them independently, producing a query, a key, and a value.`,
     `<div class="qkv-storage-row">
@@ -195,8 +201,8 @@ function renderQkv(container, stepId, result) {
      </div>`,
     `one shared X, three independent multiplications`
   );
-  const stage2 = stageCard(
-    '02: SLICE',
+  const stage3 = stageCard(
+    '03: SLICE',
     'One token, three projections',
     `Take one token's embedding, $x_{\\text{${t0}}}$, and multiply it by all three matrices at once: <code>x &middot; W_Q</code> gives its query, <code>x &middot; W_K</code> gives its key, <code>x &middot; W_V</code> gives its value, all independently and in parallel off the same input vector.`,
     `<div class="formula">$$ q_i = x_i W_Q, \\quad k_i = x_i W_K, \\quad v_i = x_i W_V $$</div>
@@ -207,8 +213,8 @@ function renderQkv(container, stepId, result) {
      </div>`,
     `one input vector, three separate matrix multiplies, three separate outputs`
   );
-  const stage3 = stageCard(
-    '03: TRANSFORM',
+  const stage4 = stageCard(
+    '04: TRANSFORM',
     'The same multiply, every token at once',
     `Each token in <code>X</code> goes through <code>W_Q</code>, <code>W_K</code>, and <code>W_V</code>, producing the full <code>Q</code>, <code>K</code>, <code>V</code> matrices below.`,
     `<div class="heatbar-block-row">
@@ -216,13 +222,7 @@ function renderQkv(container, stepId, result) {
        <div class="qkv-storage-block"><div class="heatbar-block-title">K</div>${heatMatrixGrid(kMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
        <div class="qkv-storage-block"><div class="heatbar-block-title">V</div>${heatMatrixGrid(vMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
      </div>`,
-    `${result.tokens.length} tokens &times; 3 matrices, all produced by the same multiply shown in stage 2`
-  );
-  const stage4 = stageCard(
-    '04: CONCEPT',
-    'Three separate projections',
-    null,
-    `<p class="concept-box">A raw embedding conflates everything about a token into one vector. Attention needs three different views of it: a <b>query</b> (&quot;what am I looking for&quot;), a <b>key</b> (&quot;what do I offer&quot;), and a <b>value</b> (&quot;what I actually contribute if chosen&quot;). If Q and K shared a weight matrix, every token's query would equal its own key, and every token would trivially attend most to itself. Separate, independently learned projections let a token's query and key diverge, which is what lets it end up attending to a <i style="font-style:normal">different</i> token when that's more useful.</p>`
+    `${result.tokens.length} tokens &times; 3 matrices, all produced by the same multiply shown in stage 3`
   );
   const stage5 = stageCard(
     '05: RELATED RESEARCH',
@@ -235,8 +235,14 @@ function renderQkv(container, stepId, result) {
 
 function renderScores(container, stepId, result) {
   const t0 = result.tokens[0];
+  const stage0 = stageCard(
+    '01: CONCEPT',
+    'A dot product measures match',
+    null,
+    `<p class="concept-box">With every token holding a query and a key, comparing a query against a key is a similarity measure: this step performs every such comparison at once, how relevant each token's content is to what every other token is looking for, before any normalization. A large dot product means q and k point in a similar direction: loosely, &quot;what this token is looking for&quot; closely matches &quot;what that token offers.&quot; Every cell of the grid is the result of the exact same multiply-then-sum, just for a different query/key pair each time. The raw score is unbounded, and grows with the query and key vectors' magnitude, which is exactly what the next step (Scale) exists to control.</p>`
+  );
   const stage1 = stageCard(
-    '01: STORAGE',
+    '02: STORAGE',
     'Every query, every key',
     `The previous step already produced a query vector and a key vector for <b>every</b> token, not just &quot;${t0}&quot;. <code>Q</code> below stacks all ${result.tokens.length} query vectors, one row per token; <code>K</code> stacks all ${result.tokens.length} key vectors the same way.`,
     `<div><div class="heatbar-block-title">Q: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.Q[t]), { hiRow: 0, rowLabels: result.tokens })}</div>
@@ -244,7 +250,7 @@ function renderScores(container, stepId, result) {
     `${result.tokens.length} queries &times; ${result.tokens.length} keys = ${result.tokens.length * result.tokens.length} comparisons still to come`
   );
   const stage2 = stageCard(
-    '02: SLICE',
+    '03: SLICE',
     'One query, one key',
     `To fill in exactly one cell of the score grid, where query &quot;${t0}&quot; meets key &quot;${t0}&quot;, row 0 column 0, we only need <b>one</b> row from Q and <b>one</b> row from K, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
     `<div><div class="heatbar-block-title">q &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.Q[t0])}</div></div>
@@ -255,7 +261,7 @@ function renderScores(container, stepId, result) {
   const blankGrid = `<div class="mgrid-wrap"><div class="mgrid-rowlabels">${result.tokens.map((t) => `<div class="mgrid-rowlabel" style="color:var(--text-muted)">${t}</div>`).join('')}</div><div class="mgrid g${n}x${n}">${result.tokens.map(() => result.tokens.map(() => '<div class="mcell pending">?</div>').join('')).join('')}</div></div>`;
   const cellWorked = `score[&quot;${t0}&quot;,&quot;${t0}&quot;] = q &middot; k = ${result.Q[t0].map((qv, j) => `${qv.toFixed(2)}&times;${result.K[t0][j].toFixed(2)}`).join(' + ')} = ${result.scores[0][0].toFixed(2)}`;
   const stage3 = stageCard(
-    '03: TRANSFORM',
+    '04: TRANSFORM',
     'Fill in the grid, one comparison at a time',
     `Every cell repeats the same operation: pair up one query row and one key row by position, multiply each pair, add the results. That's a <b>dot product</b>, the standard way to measure how aligned two vectors are. Click below to watch all ${n * n} cells compute at once.`,
     `<div class="scale-shrink-wrap"><div data-role="sweep-grid">${blankGrid}</div></div>
@@ -263,13 +269,7 @@ function renderScores(container, stepId, result) {
      <div class="stage-note" data-role="sweep-worked" style="display:none">${cellWorked}</div>
      <div class="formula">$$ \\text{score}_{ij} = q_i \\cdot k_j $$</div>`
   );
-  const stage4 = stageCard(
-    '04: CONCEPT',
-    'A dot product measures match',
-    null,
-    `<p class="concept-box">A large dot product means q and k point in a similar direction: loosely, &quot;what this token is looking for&quot; closely matches &quot;what that token offers.&quot; Every cell of the grid is the result of the exact same multiply-then-sum you just watched fill in, just for a different query/key pair each time.</p>`
-  );
-  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
+  container.innerHTML = filmstrip([stage0, stage1, stage2, stage3]);
 
   // The grid starts blank ("?" in every cell) and fills in all at once on click, each cell
   // fading in with a staggered delay -- a single grid materializing, not nine separate reveals
@@ -292,37 +292,36 @@ function renderScores(container, stepId, result) {
 function renderScale(container, stepId, result) {
   const t0 = result.tokens[0];
   const before = result.scores[0][0];
-  const after = result.scaled[0][0];
   const sqrtD = Math.sqrt(result.d);
+  const stage0 = stageCard(
+    '01: CONCEPT',
+    'Keeps softmax from saturating',
+    null,
+    `<p class="concept-box">Every score divides by &radic;d before moving on. Dot-product magnitude grows with the number of dimensions being summed, d: if Q and K entries have roughly unit variance, the dot product's own variance grows proportional to d, so its standard deviation grows with &radic;d. Dividing by &radic;d is exactly what keeps a score's scale roughly constant no matter how large d is chosen to be; without it, larger d would push softmax into a near one-hot regime with vanishing gradients almost everywhere else, leaving little for training to work with.</p>`
+  );
   const stage1 = stageCard(
-    '01: STORAGE',
+    '02: STORAGE',
     'The full score matrix',
     `Every score computed in the previous step is about to divide by &radic;${result.d}. Here's the whole grid before that happens.`,
     heatMatrixGrid(result.scores, { rowLabels: result.tokens }),
     `${result.tokens.length * result.tokens.length} cells, all about to shrink by the same factor`
   );
   const stage2 = stageCard(
-    '02: SLICE',
+    '03: SLICE',
     'One cell, before scaling',
     `Focus on the cell where query &quot;${t0}&quot; meets key &quot;${t0}&quot;. Before scaling it's ${before.toFixed(2)}; every other cell scales the exact same way, independently.`,
     `<div class="sum-result" style="margin-bottom:10px">before: ${before.toFixed(3)}</div>`,
     `this is score grid cell [0,0], the same cell used in the previous step's worked example`
   );
   const stage3 = stageCard(
-    '03: TRANSFORM',
+    '04: TRANSFORM',
     'Watch the whole grid shrink',
     `d = ${result.d} here, so &radic;d = ${sqrtD.toFixed(2)}. Every cell in the grid divides by that same number at once, not one at a time. Click below to watch it happen.`,
     `<div class="scale-shrink-wrap"><div class="scale-shrink-grid" data-role="shrink-grid">${heatMatrixGrid(result.scores, { rowLabels: result.tokens })}</div></div>
      <div class="anim-controls"><button class="anim-btn" type="button" data-role="shrink-btn">&#9654; divide every cell by &radic;${result.d}</button></div>
      <div class="formula">$$ \\text{scaled}_{ij} = \\frac{\\text{score}_{ij}}{\\sqrt{d}} $$</div>`
   );
-  const stage4 = stageCard(
-    '04: CONCEPT',
-    'Keeps softmax from saturating',
-    null,
-    `<p class="concept-box">Dot-product magnitude grows with the number of dimensions being summed, d. If Q and K entries have roughly unit variance, the dot product's own variance grows proportional to d, so its standard deviation grows with &radic;d. Dividing by &radic;d is exactly what keeps a score's scale roughly constant no matter how large d is chosen to be; without it, larger d would make every softmax in the next steps saturate toward a near one-hot output, with vanishing gradients almost everywhere else.</p>`
-  );
-  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
+  container.innerHTML = filmstrip([stage0, stage1, stage2, stage3]);
 
   // The shrink button toggles between the pre- and post-scale grid: the CSS transform on
   // .scale-shrink-grid animates the visual size change, while the innerHTML swap (heat color +
@@ -345,8 +344,14 @@ function renderMask(container, stepId, result) {
   const t1 = result.tokens.length > 1 ? result.tokens[1] : t0;
   const cellValue = result.scaled[0][Math.min(1, result.tokens.length - 1)];
   const toggleHtml = `<label class="mask-toggle"><input type="checkbox" data-role="causal-toggle" ${result.causal ? 'checked' : ''}> causal mask on (each token can only see itself and earlier tokens)</label>`;
+  const stage0 = stageCard(
+    '01: CONCEPT',
+    '&minus;&infin;, not 0',
+    null,
+    `<p class="concept-box">Every step so far treats all tokens symmetrically: any token can see any other, past or future. That's fine for encoding a sentence you already have in full, but wrong for predicting the next token, since letting a model see the answer it's supposed to predict makes training meaningless. An optional causal mask enforces the one asymmetry a decoder needs: only allow looking backward, by setting every future-position score to negative infinity before softmax. e<sup>0</sup> = 1, so a masked score of literal 0 would still receive real, nonzero attention weight after softmax, same as any other position with a score of 0; e<sup>&minus;&infin;</sup> = 0 exactly, the only value guaranteed to zero out that position's contribution regardless of the other scores in the row.</p>`
+  );
   const stage1 = stageCard(
-    '01: STORAGE',
+    '02: STORAGE',
     'The full scaled score matrix',
     `With the toggle above set to <b>${result.causal ? 'on' : 'off'}</b>, this is the current state of every score after scaling.`,
     heatMatrixGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), {
@@ -356,26 +361,20 @@ function renderMask(container, stepId, result) {
     `toggle above changes this grid live`
   );
   const stage2 = stageCard(
-    '02: SLICE',
+    '03: SLICE',
     'One future position',
     `Focus on the cell where query &quot;${t0}&quot; meets key &quot;${t1}&quot;, where column index 1 is greater than row index 0, so under a causal mask this key comes <b>after</b> this query in the sequence.`,
     `<div class="sum-result" style="margin-bottom:10px">scaled value here: ${cellValue.toFixed(2)}</div>`,
     `j=1 &gt; i=0, so this cell is a future position relative to the query`
   );
   const stage3 = stageCard(
-    '03: TRANSFORM',
+    '04: TRANSFORM',
     'If masked, force it to &minus;&infin;',
     `The rule is a simple condition, not a formula: for every cell where the key's position (j) is later than the query's position (i), replace the scaled value with negative infinity before softmax runs. Every other cell is left untouched.`,
     `<div class="mult-row"><span class="mult-dimlabel">rule</span><span class="mult-chip" style="color:var(--accent-link)">j &gt; i ?</span><span class="mult-eq">&rarr;</span><span class="mult-prod">&minus;&infin;</span></div>
      <div class="mult-row"><span class="mult-dimlabel">else</span><span class="mult-chip" style="color:var(--accent-link)">j &le; i ?</span><span class="mult-eq">&rarr;</span><span class="mult-prod">unchanged</span></div>`
   );
-  const stage4 = stageCard(
-    '04: CONCEPT',
-    '&minus;&infin;, not 0',
-    null,
-    `<p class="concept-box">Every step so far treats tokens symmetrically: any token can see any other, past or future. That's fine for encoding a complete sentence, wrong for predicting the next token, since letting a model see the answer it's predicting makes training meaningless. e<sup>0</sup> = 1, so a masked score of literal 0 would still receive real, nonzero attention weight after softmax, the same as any other position scoring 0. e<sup>&minus;&infin;</sup> = 0 exactly: the only value guaranteed to zero out a position's contribution regardless of what the other scores in its row happen to be.</p>`
-  );
-  container.innerHTML = toggleHtml + filmstrip([stage1, stage2, stage3, stage4]);
+  container.innerHTML = toggleHtml + filmstrip([stage0, stage1, stage2, stage3]);
   const toggle = container.querySelector('[data-role="causal-toggle"]');
   toggle.addEventListener('change', () => {
     window.attentionSetCausal(toggle.checked);
@@ -388,8 +387,15 @@ function renderSoftmax(container, stepId, result) {
   const rowTokens = result.tokens.filter((_, j) => result.masked[0][j] > -1e8);
   const exps = row0.map((v) => Math.exp(v));
   const expSum = exps.reduce((a, b) => a + b, 0);
+  const allBars = result.tokens.map((ti, i) => probBar(result.tokens, result.weights[i], result.tokenColors, `&quot;${ti}&quot;`)).join('');
+  const stage0 = stageCard(
+    '01: CONCEPT',
+    'Exponentiate before normalizing',
+    `Each row exponentiates and normalizes into a probability distribution over keys: the actual attention weights, always summing to one per query token. The exponential is what makes softmax amplify differences: a score only slightly larger than its neighbors can end up with a much larger share of the final weight, once the gap has been stretched by exponentiating. This is part of why the Scale step mattered earlier: unscaled scores would make softmax nearly one-hot almost everywhere, leaving no useful gradient for training to work with.`,
+    `<div class="heatbar-block-title">every row becomes its own distribution</div>${allBars}`
+  );
   const stage1 = stageCard(
-    '01: STORAGE',
+    '02: STORAGE',
     'The full scaled (and possibly masked) matrix',
     `Softmax runs on whatever this matrix looks like after scaling and masking, the same numbers the previous two steps produced.`,
     heatMatrixGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), {
@@ -400,7 +406,7 @@ function renderSoftmax(container, stepId, result) {
     `softmax processes one full row at a time, never a single cell`
   );
   const stage2 = stageCard(
-    '02: SLICE',
+    '03: SLICE',
     'One full row',
     `Unlike the previous steps, softmax can't be sliced down to a single cell: normalizing means every value in a row depends on every other value in that same row. So the smallest meaningful slice is the whole row for query &quot;${t0}&quot;.`,
     `<div class="heatbar-block-title">scaled row for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(row0, { labels: rowTokens })}</div>`,
@@ -409,20 +415,13 @@ function renderSoftmax(container, stepId, result) {
   const expRows = row0.map((v, i) => `<div class="mult-row"><span class="mult-dimlabel">${rowTokens[i]}</span><span class="mult-chip" style="color:var(--accent-link)">${v.toFixed(2)}</span><span class="mult-eq">&rarr; e^</span><span class="mult-prod">${exps[i].toFixed(2)}</span></div>`).join('');
   const rowColors = rowTokens.map((t) => result.tokenColors[result.tokens.indexOf(t)]);
   const stage3 = stageCard(
-    '03: TRANSFORM',
+    '04: TRANSFORM',
     'Exponentiate, then normalize',
     `Two steps, not one: first exponentiate every value in the row, which makes everything positive and stretches the gaps between them. Then divide each exponentiated value by their sum, so the row splits into the proportions shown below, adding up to exactly 1.00.`,
     `${expRows}<div class="sum-arrow">&darr; divide each by the sum (${expSum.toFixed(2)})</div>${probBar(rowTokens, exps.map((e) => e / expSum), rowColors)}
      <div class="formula">$$ \\text{weight}_{ij} = \\frac{e^{\\text{scaled}_{ij}}}{\\sum_k e^{\\text{scaled}_{ik}}} $$</div>`
   );
-  const allBars = result.tokens.map((ti, i) => probBar(result.tokens, result.weights[i], result.tokenColors, `&quot;${ti}&quot;`)).join('');
-  const stage4 = stageCard(
-    '04: CONCEPT',
-    'Exponentiate before normalizing',
-    `The exponential is what makes softmax amplify differences: a score only slightly larger than its neighbors can end up with a much larger share of the final weight, once the gap has been stretched by exponentiating. This is part of why the Scale step mattered earlier: unscaled scores would make softmax nearly one-hot almost everywhere, leaving no useful gradient for training to work with.`,
-    `<div class="heatbar-block-title">every row becomes its own distribution</div>${allBars}`
-  );
-  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
+  container.innerHTML = filmstrip([stage0, stage1, stage2, stage3]);
 }
 
 // A vector with its label (a token, usually) placed beside it rather than on its own line above
@@ -449,8 +448,14 @@ function renderWsum(container, stepId, result) {
   const focusIdx = Math.min(1, result.tokens.length - 1);
   const t0 = result.tokens[focusIdx];
   const rowWeights = result.weights[focusIdx];
+  const stage0 = stageCard(
+    '01: CONCEPT',
+    'Value vectors carry the content',
+    null,
+    `<p class="concept-box">Now that there is a legitimate probability distribution over how much to listen to each token, the actual listening happens by blending: each token's output is the attention-weighted combination of every value vector, mostly its highest-weighted neighbors, a little of everything else. Like Q and K, V is its own learned projection, so the model can choose what a token actually contributes to others independent of what makes it a good match (its key) or what it's searching for (its query). A token can be highly relevant (a large attention weight) while contributing very little of any one particular feature, or the reverse, because relevance and content are computed by two entirely separate weight matrices.</p>`
+  );
   const stage1 = stageCard(
-    '01: STORAGE',
+    '02: STORAGE',
     'Every attention weight, every value',
     `Softmax already produced a full row of weights for every query token; the Q/K/V projection step already produced a value vector for every token. Both are just collected here, nothing new computed yet.`,
     `<div><div class="heatbar-block-title">attention weights</div>${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div>
@@ -458,42 +463,36 @@ function renderWsum(container, stepId, result) {
     `every row of weights will blend the same ${result.tokens.length} value vectors, just with different weights`
   );
   const stage2 = stageCard(
-    '02: SLICE',
+    '03: SLICE',
     'One query token&#39;s weights',
     `Focus on the attention weights for &quot;${t0}&quot;, highlighted above: ${rowWeights.map((w, j) => `${(w * 100).toFixed(0)}% on &quot;${result.tokens[j]}&quot;`).join(', ')}. Each value vector below is shown at an opacity matching its weight, so the one &quot;${t0}&quot; is attending to most is the most visible.`,
     result.tokens.map((t, j) => weightedVecBlock(t, rowWeights[j], result.V[t])).join(''),
     `these weights are the same ones computed in the Softmax step, always summing to 1.00`
   );
   const stage3 = stageCard(
-    '03: TRANSFORM',
+    '04: TRANSFORM',
     'Scale each value vector, then add them',
     `Multiply each value vector by its own weight (a scalar times a vector, not a dot product), then add the ${result.tokens.length} resulting vectors together, position by position. That sum is the output for &quot;${t0}&quot;.`,
     `<div class="sum-arrow">&darr; add ${result.tokens.length} weighted vectors</div><div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>
      <div class="formula">$$ o_i = \\sum_j \\text{weight}_{ij} \\, v_j $$</div>`
   );
-  const stage4 = stageCard(
-    '04: CONCEPT',
-    'Value vectors carry the content',
-    null,
-    `<p class="concept-box">Like Q and K, V is its own learned projection, so the model can choose what a token actually contributes to others independent of what makes it a good match (its key) or what it's searching for (its query). A token can be highly relevant (a large attention weight) while contributing very little of any one particular feature, or the reverse, because relevance and content are computed by two entirely separate weight matrices.</p>`
-  );
-  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
+  container.innerHTML = filmstrip([stage0, stage1, stage2, stage3]);
 }
 
 function renderOutput(container, stepId, result) {
   const storageBody = result.tokens.map((t, i) => labeledVecBlock(`&quot;${t}&quot;`, result.output[i])).join('');
   const stage1 = stageCard(
-    '01: STORAGE',
+    '01: CONCEPT',
+    'Not usually the end of the line',
+    null,
+    `<p class="concept-box">Three vectors out, the same shape as the three vectors in: each one now a context-aware blend of the whole sequence rather than the token in isolation. This output isn't usually the end of a transformer block on its own; in a real model it typically continues through a residual connection and a feed-forward layer, both outside the scope of this page, which focuses specifically on the attention operation itself. Everything shown on this page so far has been inference: one forward pass through a single attention head, using weight matrices that are already fixed. The planned Phase 2 would compute how those weights should change for this example; a further Phase 3 would show them actually being learned.</p>`
+  );
+  const stage2 = stageCard(
+    '02: STORAGE',
     'Three vectors out, same shape as three vectors in',
     `Every output vector here is exactly ${result.d} numbers, the same width as the embeddings this pipeline started from. Nothing about the shape changed; what changed is that each vector is now a blend of the whole sequence rather than the token in isolation.`,
     storageBody,
     `compare this to the Input embeddings step: same shape, different content`
-  );
-  const stage2 = stageCard(
-    '02: CONCEPT',
-    'Not usually the end of the line',
-    null,
-    `<p class="concept-box">This output isn't usually the end of a transformer block on its own; in a real model it typically continues through a residual connection and a feed-forward layer, both outside the scope of this page, which focuses specifically on the attention operation itself. Everything shown on this page so far has been inference: one forward pass through a single attention head, using weight matrices that are already fixed. The planned Phase 2 would compute how those weights should change for this example; a further Phase 3 would show them actually being learned.</p>`
   );
   container.innerHTML = filmstrip([stage1, stage2]);
 }
