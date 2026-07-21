@@ -21,9 +21,10 @@ walkthrough with granular, scrubbable arithmetic animation.
 Out of scope for this spec:
 - Multi-head attention (splitting/concatenating heads). Confirmed out of scope entirely — the
   page stays single-head throughout.
-- The backward pass / backpropagation through attention. This is a deliberate phase 2, tracked
-  as a follow-on spec once phase 1 ships. Section "Phase 2" below records the architectural
-  decisions already made so phase 1 doesn't paint itself into a corner.
+- The backward pass / backpropagation through attention, and training (the weight matrices
+  actually being learned). Two deliberate follow-on phases, tracked as separate future specs once
+  phase 1 ships. Section "Future phases" below records the architectural decisions already made
+  so phase 1 doesn't paint itself into a corner.
 - Free-form numeric editing of the worked example. Phase 1 ships a small set of curated presets;
   free-form editing is a possible future enhancement, not committed to here.
 
@@ -207,24 +208,58 @@ should then be addable by swapping the input widget for that recompute path, wit
 the eight scenes' animation or layout code. This is the same forward-compatibility principle as
 the phase 2 sticky-bar swap: don't build phase 1 in a way that forecloses the obvious next step.
 
-## Phase 2 (follow-on, not built now)
+## Future phases (follow-on, not built now)
 
-Recorded here so phase 1's architecture doesn't foreclose it: the backward pass will flow through
-the same eight steps in reverse, with its own gradient-flow visuals. The sticky pipeline bar swaps
-from the forward-pipeline glyphs to a backward-pipeline rendering at the point in the scroll where
-backprop content begins, while the slim rail keeps incrementing step numbers continuously across
-both passes rather than resetting — one continuous document, not two separate pages glued
-together. This means the phase 1 sticky-bar container should be built as a swappable region (its
-content driven by which step group is active) rather than a single hardcoded diagram.
+Confirmed with the user during implementation: phase 1, as built and as it continues to be built,
+is inference only. Every one of the eight steps shows what happens to one input as it flows
+through a single attention head using weight matrices (`W_Q`, `W_K`, `W_V`) that are already
+fixed — hand-picked for this toy example rather than learned, but treated exactly as if the model
+had already been trained. Nothing in phase 1 trains anything or shows weights changing. Two
+distinct follow-on phases extend past that boundary, recorded now so phase 1's architecture
+doesn't foreclose either one.
 
-Positional encoding is also deliberately deferred to a follow-on. Real transformer input sums a
-positional encoding into each token embedding before attention (attention itself has no notion of
-sequence order without it), and this page's Input embeddings step originally set that aside to
-keep phase 1's scope to attention alone. Confirmed with the user during implementation: keep that
-scoping, but record the addition explicitly as a phase-2 candidate rather than leaving it as an
-implicit gap. A future addition would extend the Input embeddings step to show each token's raw
-embedding, its positional encoding (by position), and the sum that actually feeds Q/K/V, three
-vectors merging into one, mirroring the Q/K/V split later.
+### Phase 2: the backward pass (backprop)
+
+For the one worked example already on the page, compute how much each weight *should* change:
+the gradient of a loss with respect to `W_Q`, `W_K`, `W_V` (and every intermediate value along
+the way — scores, scaled scores, softmax weights). This flows through the same eight steps in
+reverse, with its own gradient-flow visuals. It is a diagnostic on top of the existing fixed
+weights, not training: it computes a gradient, it does not apply one.
+
+The sticky pipeline bar swaps from the forward-pipeline glyphs to a backward-pipeline rendering
+at the point in the scroll where backprop content begins, while the slim rail keeps incrementing
+step numbers continuously across both passes rather than resetting — one continuous document, not
+two separate pages glued together. This means the phase 1 sticky-bar container should be built as
+a swappable region (its content driven by which step group is active) rather than a single
+hardcoded diagram.
+
+Positional encoding is also deferred to this phase rather than phase 1. Real transformer input
+sums a positional encoding into each token embedding before attention (attention itself has no
+notion of sequence order without it); phase 1's Input embeddings step sets that aside to keep its
+scope to attention alone. A future addition would extend that step to show each token's raw
+embedding, its positional encoding (by position), and the sum that actually feeds Q/K/V — three
+vectors merging into one, mirroring the Q/K/V split later in the pipeline.
+
+### Phase 3: training
+
+Confirmed with the user: a genuinely further phase, larger than phase 2, showing where `W_Q`,
+`W_K`, and `W_V` actually come from — not one gradient computation, but the weights visibly
+converging from random initial values to something like the fixed values phase 1 uses throughout,
+via repeated forward and backward passes over training data. This needs, at minimum: a loss
+function, more than one training example (a small synthetic dataset, not just the single "the cat
+sat" worked example), an iteration loop (the weights change every step), and a visualization of
+that change over time (e.g. a loss curve, and the weight matrices' heatmaps visibly shifting
+across iterations rather than sitting static).
+
+One open design question, not resolved here: attention is not normally trained in isolation. In a
+real transformer, attention sits inside a larger model trained end-to-end on a task like
+next-token prediction, and it receives its gradient from that larger task's loss, not from a loss
+defined on attention's output directly. Giving this page's single attention head something to
+train against will need either a small synthetic pretext task with a defined loss on the
+attention output, or a tiny toy downstream layer (e.g. a linear classifier) stacked on top of the
+attention output, whose loss backpropagates through attention into `W_Q`/`W_K`/`W_V`. Deciding
+between those (or another approach) is phase 3's own design work, to happen when phase 3 is
+actually brainstormed, not assumed here.
 
 ## Testing
 
