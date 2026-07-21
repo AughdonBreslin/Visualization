@@ -126,6 +126,10 @@
    just to name it. */
 .ui.attention .heatbar-block { display: flex; align-items: center; gap: 10px; }
 .ui.attention .heatbar-block-label { flex: none; font: 700 11px/1 var(--font-mono); color: var(--text-2); min-width: 40px; }
+/* Several labeled vectors (e.g. one per token): side by side while they fit, wrapping to a new
+   row (and eventually one per row) as width runs out - a plain flex-wrap gives us both the
+   desktop "side by side" layout and the small-window "stacked" fallback from one rule. */
+.ui.attention .heatbar-block-row { display: flex; flex-wrap: wrap; gap: 10px 22px; }
 /* One bracket frame around the whole stack (matrix-notation style: [ row / row / row ]),
    not one pair per row -- drawn with borders on ::before/::after rather than stretched glyph
    characters, so the frame stays crisp at any stack height. */

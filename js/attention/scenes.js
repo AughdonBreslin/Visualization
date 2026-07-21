@@ -136,11 +136,13 @@ function filmstrip(stages) {
 // ---- per-step renderers ----------------------------------------------------------------------
 
 function renderInput(container, stepId, result) {
-  const storageBody = result.tokens.map((t) => labeledVecBlock(`&quot;${t}&quot;`, result.embeddings[t])).join('');
+  const storageBody = `<div class="heatbar-block-row">${result.tokens
+    .map((t) => labeledVecBlock(`&quot;${t}&quot;`, result.embeddings[t]))
+    .join('')}</div>`;
   const stage1 = stageCard(
     '01: STORAGE',
     'The three embeddings',
-    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. These numbers were picked by hand for this toy example; a real trained model would have learned them from data.`,
+    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>.`,
     storageBody,
     `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`
   );
@@ -148,7 +150,7 @@ function renderInput(container, stepId, result) {
     '02: CONCEPT',
     'Where these numbers come from',
     null,
-    `<p class="concept-box">In a real transformer, embeddings are one of the things training learns: every token in the vocabulary gets its own vector, nudged during training until tokens used in similar ways end up with similar vectors. This page uses d = ${result.d} so every number stays visible on screen; a real model typically uses hundreds or thousands of dimensions, but nothing about the mechanism changes at that scale, only the width of every vector shown on this page. The rest of this page shows what happens to these numbers once a model already has them; see the planned Phase 3 for how training would actually produce them.</p>`
+    `<p class="concept-box">Embeddings live in a lookup table $E$, one row per vocabulary word; a token's vector is just its row. Training treats every entry of $E$ as a learnable parameter: after each prediction, backpropagation nudges the rows used in that sentence a little, $E \\leftarrow E - \\eta \\dfrac{\\partial \\mathcal{L}}{\\partial E}$, so tokens used in similar ways drift toward similar vectors over many examples. See the planned Phase 3 for this training loop worked through in full.</p>`
   );
   container.innerHTML = filmstrip([stage1, stage2]);
 }

@@ -40,10 +40,10 @@
       <section class="panel" id="step-input">
         <h2>Input embeddings</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Before any attention math happens, each token needs to become a vector a matrix can act on. This step computes nothing about relationships between tokens yet: it's just the raw material every later step consumes. Each token gets a small vector; real models learn these from an embedding table (plus positional information, set aside here to keep focus on attention itself), so here they are hand-picked. Every token keeps the same color everywhere it appears below.</p>
+        <p>For an input to a trained model, the sentence is first broken into tokens, and each token needs to become a vector a matrix can act on. For this walkthrough the tokens and their values are hand-picked, but a real model would learn them from an embedding table, plus positional information set aside here to keep focus on attention itself. Every token keeps the same color everywhere it appears below.</p>
         <div class="callout">
           <div class="callout-label">Note</div>
-          <div class="callout-body">Real transformer embeddings run hundreds or thousands of dimensions; this page uses d = 4 so every number stays visible on screen. Nothing about the mechanism changes at higher dimension, only the width of every vector shown below.</div>
+          <div class="callout-body">Real transformer embeddings run hundreds or thousands of dimensions, so a token can encode many independent aspects of itself at once (syntax, sense, tone, and whatever else training finds useful) instead of collapsing them all into a handful of numbers.</div>
         </div>
         <div class="scene-anim"></div>
       </section>

@@ -3,6 +3,7 @@ import { initPipelineBar } from './pipeline.js';
 import { renderAllScenes } from './scenes.js';
 import { computePipeline } from './math.js';
 import { PRESETS, WEIGHTS, TOKEN_COLORS } from './presets.js';
+import { typesetMath } from './mathjax.js';
 
 let currentPreset = PRESETS[0];
 let currentCausal = false;
@@ -12,6 +13,9 @@ function buildAndRenderAll() {
   result.tokenColors = TOKEN_COLORS;
   renderAllScenes(result);
   updatePickerActiveState();
+  // Some concept-stage prose is real MathJax notation ($...$), injected after MathJax's own
+  // initial pass over the static page, so it needs an explicit re-typeset every render.
+  typesetMath(document.querySelector('.article-body'));
 }
 
 // The mask scene's checkbox toggles causal masking, which changes weights and output
