@@ -140,7 +140,7 @@ function renderInput(container, stepId, result) {
   const stage1 = stageCard(
     '01: STORAGE',
     'The three embeddings',
-    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. Stacked together, the ${result.tokens.length} embeddings below form $X$, the matrix the rest of this pipeline operates on.`,
+    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. Stacked together, the embeddings below form $X$, the matrix the rest of this pipeline operates on.`,
     storageBody,
     `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`
   );
@@ -172,7 +172,7 @@ function renderQkv(container, stepId, result) {
   const stage1 = stageCard(
     '01: STORAGE',
     'The full data at rest',
-    `$X$ below stacks all ${result.tokens.length} embeddings, one row per token. The three matrices on the right are the actual $W_Q$, $W_K$, and $W_V$ this model learned: $X$ gets multiplied by each of them independently, producing a query, a key, and a value.`,
+    `$X$ below stacks all the embeddings, one row per token. The three matrices on the right are the actual $W_Q$, $W_K$, and $W_V$ this model learned: $X$ gets multiplied by each of them independently, producing a query, a key, and a value.`,
     `<div class="qkv-storage-row">
        <div class="qkv-storage-block"><div class="heatbar-block-title">$X$: one row per token</div>${heatMatrixGrid(xMatrix, { rowLabels: result.tokens })}</div>
        ${qkvFanoutSVG()}
