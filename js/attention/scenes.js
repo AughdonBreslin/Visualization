@@ -240,7 +240,7 @@ function renderScale(container, stepId, result) {
   );
   const stage4 = stageCard(
     '04: CONCEPT',
-    'Divide by &radic;d',
+    'Keeps softmax from saturating',
     null,
     `<p class="concept-box">Dot-product magnitude grows with the number of dimensions being summed, d. If Q and K entries have roughly unit variance, the dot product's own variance grows proportional to d, so its standard deviation grows with &radic;d. Dividing by &radic;d is exactly what keeps a score's scale roughly constant no matter how large d is chosen to be; without it, larger d would make every softmax in the next steps saturate toward a near one-hot output, with vanishing gradients almost everywhere else.</p>`
   );
