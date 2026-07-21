@@ -108,12 +108,41 @@
    (snapping one stage at a time, same as the site's own .tabs strip in components.css, which
    this copies the hidden-scrollbar convention from). Half width by default - two stages visible
    at once, matching the old 2-col grid's density - or full width via .stage-wide. --- */
+.ui.attention .filmstrip-wrap { position: relative; }
 .ui.attention .filmstrip {
   display: flex; gap: 14px; align-items: stretch;
   overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
-  scrollbar-width: none; padding-bottom: 2px;
+  scrollbar-width: none; padding-bottom: 2px; cursor: grab;
 }
 .ui.attention .filmstrip::-webkit-scrollbar { display: none; }
+.ui.attention .filmstrip.is-dragging { cursor: grabbing; user-select: none; }
+/* Prev/next: invisible until the wrap is hovered, so they don't compete with the stage content
+   for attention when the user isn't actively navigating. */
+.ui.attention .filmstrip-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+  width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--hairline-strong);
+  background: rgba(12, 12, 13, 0.88); backdrop-filter: blur(4px); color: var(--text-2);
+  font-size: 16px; line-height: 1; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; opacity: 0; pointer-events: none;
+  transition: opacity 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.ui.attention .filmstrip-wrap:hover .filmstrip-arrow { opacity: 1; pointer-events: auto; }
+.ui.attention .filmstrip-arrow:hover { border-color: var(--accent-link); color: var(--accent-link); }
+.ui.attention .filmstrip-arrow.is-disabled { opacity: 0 !important; pointer-events: none !important; }
+.ui.attention .filmstrip-arrow-prev { left: -15px; }
+.ui.attention .filmstrip-arrow-next { right: -15px; }
+/* No overflow (e.g. Input/Output's 2 stages fit exactly): nothing to navigate to, so the whole
+   nav layer disappears rather than showing controls that do nothing. */
+.ui.attention .filmstrip-wrap.no-scroll .filmstrip-arrow,
+.ui.attention .filmstrip-wrap.no-scroll .filmstrip-dots { display: none; }
+.ui.attention .filmstrip-dots { display: flex; justify-content: center; gap: 7px; margin-top: 12px; }
+.ui.attention .filmstrip-dot {
+  width: 6px; height: 6px; padding: 0; border: none; border-radius: 50%;
+  background: var(--hairline-strong); cursor: pointer;
+  transition: background 160ms var(--ease-out), transform 160ms var(--ease-out);
+}
+.ui.attention .filmstrip-dot:hover { background: var(--text-muted); }
+.ui.attention .filmstrip-dot.is-current { background: var(--accent-link); transform: scale(1.4); }
 .ui.attention .stage {
   box-sizing: border-box; min-width: 0; flex: 0 0 calc(50% - 7px); scroll-snap-align: start;
   background: #08080a; border: 1px solid var(--hairline); border-radius: var(--radius-lg);

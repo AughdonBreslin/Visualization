@@ -4,6 +4,7 @@ import { renderAllScenes } from './scenes.js';
 import { computePipeline } from './math.js';
 import { PRESETS, WEIGHTS, TOKEN_COLORS } from './presets.js';
 import { typesetMath } from './mathjax.js';
+import { initFilmstrips } from './filmstrip.js';
 
 let currentPreset = PRESETS[0];
 let currentCausal = false;
@@ -16,6 +17,9 @@ function buildAndRenderAll() {
   // Some concept-stage prose is real MathJax notation ($...$), injected after MathJax's own
   // initial pass over the static page, so it needs an explicit re-typeset every render.
   typesetMath(document.querySelector('.article-body'));
+  // renderAllScenes rebuilds every filmstrip's DOM from scratch, so its arrows/dots/drag
+  // handling needs rewiring every time too.
+  initFilmstrips();
 }
 
 // The mask scene's checkbox toggles causal masking, which changes weights and output

@@ -125,7 +125,15 @@ function stageCard(n, title, proseHtml, bodyHtml, noteHtml, extraClass = '') {
 }
 
 function filmstrip(stages) {
-  return `<div class="filmstrip">${stages.join('')}</div>`;
+  const dots = stages
+    .map((_, i) => `<button type="button" class="filmstrip-dot" data-role="fs-dot" data-index="${i}" aria-label="Go to stage ${i + 1} of ${stages.length}"></button>`)
+    .join('');
+  return `<div class="filmstrip-wrap" data-role="filmstrip-wrap">
+    <div class="filmstrip" data-role="filmstrip">${stages.join('')}</div>
+    <button type="button" class="filmstrip-arrow filmstrip-arrow-prev" data-role="fs-prev" aria-label="Previous stage">&#8249;</button>
+    <button type="button" class="filmstrip-arrow filmstrip-arrow-next" data-role="fs-next" aria-label="Next stage">&#8250;</button>
+    <div class="filmstrip-dots" data-role="fs-dots">${dots}</div>
+  </div>`;
 }
 
 // ---- per-step renderers ----------------------------------------------------------------------
