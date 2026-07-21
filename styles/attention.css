@@ -115,7 +115,11 @@
   scrollbar-width: none; padding-bottom: 2px; cursor: grab;
 }
 .ui.attention .filmstrip::-webkit-scrollbar { display: none; }
-.ui.attention .filmstrip.is-dragging { cursor: grabbing; user-select: none; }
+/* scroll-snap-type: none while dragging - otherwise the browser's own snap machinery fights
+   the direct scrollLeft writes happening every frame, and the drag feels sticky/stuttery
+   instead of a plain 1:1 pull. Re-enabled the instant the drag ends, so the release's
+   scrollToStage() still gets a clean smooth snap into place. */
+.ui.attention .filmstrip.is-dragging { cursor: grabbing; user-select: none; scroll-snap-type: none; }
 /* Prev/next: invisible until the wrap is hovered, so they don't compete with the stage content
    for attention when the user isn't actively navigating. */
 .ui.attention .filmstrip-arrow {
