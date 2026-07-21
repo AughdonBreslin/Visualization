@@ -105,6 +105,19 @@ function multBreakdown(a, b, resultLabel, resultValue) {
   return `<div class="mult-list">${rows}</div><div class="sum-arrow">&darr; add the ${a.length} products</div><div class="sum-result">${resultLabel} = ${resultValue}</div>`;
 }
 
+// A single bar split into proportional, token-colored segments -- the distribution primitive,
+// used only by Softmax, where "these numbers become proportions of a whole that sum to 1" is
+// the entire point of the step and is best shown as a bar splitting into parts, not more bars
+// or grids.
+function probBar(tokens, weights, tokenColors, rowLabel) {
+  const segs = tokens.map((t, j) => {
+    const pct = weights[j] * 100;
+    return `<div class="propbar-seg" style="width:${pct.toFixed(2)}%; background:${tokenColors[j]}" title="${t}: ${pct.toFixed(1)}%">${pct >= 12 ? `<span class="propbar-label">${pct.toFixed(0)}%</span>` : ''}</div>`;
+  }).join('');
+  const rowLabelHtml = rowLabel ? `<div class="propbar-rowlabel">${rowLabel}</div>` : '';
+  return `<div class="propbar-row">${rowLabelHtml}<div class="propbar">${segs}</div></div>`;
+}
+
 function stageCard(n, title, proseHtml, bodyHtml, noteHtml) {
   return `<div class="stage">
     <div class="stage-connector"></div>
@@ -196,48 +209,68 @@ function renderScores(container, stepId, result) {
      <div><div class="heatbar-block-title">k &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.K[t0])}</div></div>`,
     `this pair lands in score grid cell [0,0]`
   );
+  const n = result.tokens.length;
+  const blankGrid = `<div class="mgrid-wrap"><div class="mgrid-rowlabels">${result.tokens.map((t) => `<div class="mgrid-rowlabel" style="color:var(--text-muted)">${t}</div>`).join('')}</div><div class="mgrid g${n}x${n}">${result.tokens.map(() => result.tokens.map(() => '<div class="mcell pending">?</div>').join('')).join('')}</div></div>`;
+  const cellWorked = `score[&quot;${t0}&quot;,&quot;${t0}&quot;] = q &middot; k = ${result.Q[t0].map((qv, j) => `${qv.toFixed(2)}&times;${result.K[t0][j].toFixed(2)}`).join(' + ')} = ${result.scores[0][0].toFixed(2)}`;
   const stage3 = stageCard(
     '03: TRANSFORM',
-    'Multiply position by position, then sum',
-    `Same operation as the projection step's transform stage, just applied to two vectors that both came from projections. This total is called a <b>dot product</b>, the standard way to measure how aligned two vectors are.`,
-    multBreakdown(result.Q[t0], result.K[t0], 'score', result.scores[0][0].toFixed(2))
+    'Fill in the grid, one comparison at a time',
+    `Every cell repeats the same operation: pair up one query row and one key row by position, multiply each pair, add the results. That's a <b>dot product</b>, the standard way to measure how aligned two vectors are. Click below to watch all ${n * n} cells compute at once.`,
+    `<div class="scale-shrink-wrap"><div data-role="sweep-grid">${blankGrid}</div></div>
+     <div class="anim-controls"><button class="anim-btn" type="button" data-role="sweep-btn">&#9654; compute all ${n * n} cells</button></div>
+     <div class="stage-note" data-role="sweep-worked" style="display:none">${cellWorked}</div>`
   );
   const stage4 = stageCard(
     '04: CONCEPT',
     'A dot product measures match',
     null,
-    `<p class="concept-box">A large dot product means q and k point in a similar direction: loosely, &quot;what this token is looking for&quot; closely matches &quot;what that token offers.&quot; Every cell of the grid below is the result of this exact same multiply-then-sum, just for a different query/key pair. The highlighted cell is the one you just watched get computed; the other ${result.tokens.length * result.tokens.length - 1} were produced by repeating stages 2-3 for every other pairing.</p>
-     ${heatMatrixGrid(result.scores, { hiCell: [0, 0], rowLabels: result.tokens })}`
+    `<p class="concept-box">A large dot product means q and k point in a similar direction: loosely, &quot;what this token is looking for&quot; closely matches &quot;what that token offers.&quot; Every cell of the grid is the result of the exact same multiply-then-sum you just watched fill in, just for a different query/key pair each time.</p>`
   );
   container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
+
+  // The grid starts blank ("?" in every cell) and fills in all at once on click, each cell
+  // fading in with a staggered delay -- a single grid materializing, not nine separate reveals
+  // to click through, and visually distinct from Scale's shrink and QKV's static breakdown.
+  const sweepGrid = container.querySelector('[data-role="sweep-grid"]');
+  const sweepBtn = container.querySelector('[data-role="sweep-btn"]');
+  const sweepWorked = container.querySelector('[data-role="sweep-worked"]');
+  sweepBtn.addEventListener('click', () => {
+    sweepGrid.innerHTML = heatMatrixGrid(result.scores, { rowLabels: result.tokens });
+    sweepGrid.querySelectorAll('.mcell').forEach((cell, idx) => {
+      cell.style.animationDelay = `${idx * 55}ms`;
+      cell.classList.add('cell-fade-in');
+    });
+    sweepWorked.style.display = '';
+    sweepBtn.disabled = true;
+    sweepBtn.textContent = 'all cells computed';
+  });
 }
 
 function renderScale(container, stepId, result) {
   const t0 = result.tokens[0];
   const before = result.scores[0][0];
   const after = result.scaled[0][0];
+  const sqrtD = Math.sqrt(result.d);
   const stage1 = stageCard(
     '01: STORAGE',
-    'The full score matrix, before and after',
-    `Every score computed in the previous step divides by &radic;${result.d}. Below is the whole grid on both sides of that division.`,
-    `<div><div class="heatbar-block-title">before</div>${heatMatrixGrid(result.scores, { rowLabels: result.tokens })}</div>
-     <div><div class="heatbar-block-title">after &divide; &radic;${result.d}</div>${heatMatrixGrid(result.scaled, { rowLabels: result.tokens })}</div>`,
-    `same shape in, same shape out; every cell just gets smaller`
+    'The full score matrix',
+    `Every score computed in the previous step is about to divide by &radic;${result.d}. Here's the whole grid before that happens.`,
+    heatMatrixGrid(result.scores, { rowLabels: result.tokens }),
+    `${result.tokens.length * result.tokens.length} cells, all about to shrink by the same factor`
   );
   const stage2 = stageCard(
     '02: SLICE',
-    'One cell, before and after',
-    `Focus on the cell where query &quot;${t0}&quot; meets key &quot;${t0}&quot;. Before scaling it was ${before.toFixed(2)}; every other cell scales the exact same way, independently.`,
+    'One cell, before scaling',
+    `Focus on the cell where query &quot;${t0}&quot; meets key &quot;${t0}&quot;. Before scaling it's ${before.toFixed(2)}; every other cell scales the exact same way, independently.`,
     `<div class="sum-result" style="margin-bottom:10px">before: ${before.toFixed(3)}</div>`,
     `this is score grid cell [0,0], the same cell used in the previous step's worked example`
   );
   const stage3 = stageCard(
     '03: TRANSFORM',
-    'Divide by &radic;d',
-    `d = ${result.d} here, so &radic;d = ${Math.sqrt(result.d).toFixed(2)}. Divide the cell's value by that number.`,
-    `<div class="mult-row"><span class="mult-chip" style="color:var(--accent-link)">${before.toFixed(3)}</span><span class="mult-eq">&divide;</span><span class="mult-chip" style="color:#ffd97a">${Math.sqrt(result.d).toFixed(2)}</span><span class="mult-eq">=</span><span class="mult-prod">${after.toFixed(3)}</span></div>
-     <div class="sum-arrow">&nbsp;</div>
-     <div class="sum-result">scaled = ${after.toFixed(2)}</div>`
+    'Watch the whole grid shrink',
+    `d = ${result.d} here, so &radic;d = ${sqrtD.toFixed(2)}. Every cell in the grid divides by that same number at once, not one at a time. Click below to watch it happen.`,
+    `<div class="scale-shrink-wrap"><div class="scale-shrink-grid" data-role="shrink-grid">${heatMatrixGrid(result.scores, { rowLabels: result.tokens })}</div></div>
+     <div class="anim-controls"><button class="anim-btn" type="button" data-role="shrink-btn">&#9654; divide every cell by &radic;${result.d}</button></div>`
   );
   const stage4 = stageCard(
     '04: CONCEPT',
@@ -246,6 +279,21 @@ function renderScale(container, stepId, result) {
     `<p class="concept-box">Dot-product magnitude grows with the number of dimensions being summed, d. If Q and K entries have roughly unit variance, the dot product's own variance grows proportional to d, so its standard deviation grows with &radic;d. Dividing by &radic;d is exactly what keeps a score's scale roughly constant no matter how large d is chosen to be; without it, larger d would make every softmax in the next steps saturate toward a near one-hot output, with vanishing gradients almost everywhere else.</p>`
   );
   container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
+
+  // The shrink button toggles between the pre- and post-scale grid: the CSS transform on
+  // .scale-shrink-grid animates the visual size change, while the innerHTML swap (heat color +
+  // printed value) happens instantly underneath it, together reading as "the grid shrinks."
+  const shrinkGrid = container.querySelector('[data-role="shrink-grid"]');
+  const shrinkBtn = container.querySelector('[data-role="shrink-btn"]');
+  let shrunk = false;
+  shrinkBtn.addEventListener('click', () => {
+    shrunk = !shrunk;
+    shrinkGrid.classList.toggle('shrunk', shrunk);
+    shrinkGrid.innerHTML = heatMatrixGrid(shrunk ? result.scaled : result.scores, { rowLabels: result.tokens });
+    shrinkBtn.innerHTML = shrunk
+      ? '&#9664; show before scaling'
+      : `&#9654; divide every cell by &radic;${result.d}`;
+  });
 }
 
 function renderMask(container, stepId, result) {
@@ -315,17 +363,19 @@ function renderSoftmax(container, stepId, result) {
     `${row0.length} value${row0.length === 1 ? '' : 's'} in this row (masked cells are excluded, they're already headed to 0)`
   );
   const expRows = row0.map((v, i) => `<div class="mult-row"><span class="mult-dimlabel">${rowTokens[i]}</span><span class="mult-chip" style="color:var(--accent-link)">${v.toFixed(2)}</span><span class="mult-eq">&rarr; e^</span><span class="mult-prod">${exps[i].toFixed(2)}</span></div>`).join('');
+  const rowColors = rowTokens.map((t) => result.tokenColors[result.tokens.indexOf(t)]);
   const stage3 = stageCard(
     '03: TRANSFORM',
     'Exponentiate, then normalize',
-    `Two steps, not one: first exponentiate every value in the row, which makes everything positive and stretches the gaps between them. Then divide each exponentiated value by their sum, so the row adds up to exactly 1.00.`,
-    `${expRows}<div class="sum-arrow">&darr; divide each by the sum (${expSum.toFixed(2)})</div><div class="sum-result">weight for &quot;${t0}&quot; &rarr; &quot;${t0}&quot; = ${result.weights[0][0].toFixed(2)}</div>`
+    `Two steps, not one: first exponentiate every value in the row, which makes everything positive and stretches the gaps between them. Then divide each exponentiated value by their sum, so the row splits into the proportions shown below, adding up to exactly 1.00.`,
+    `${expRows}<div class="sum-arrow">&darr; divide each by the sum (${expSum.toFixed(2)})</div>${probBar(rowTokens, exps.map((e) => e / expSum), rowColors)}`
   );
+  const allBars = result.tokens.map((ti, i) => probBar(result.tokens, result.weights[i], result.tokenColors, `&quot;${ti}&quot;`)).join('');
   const stage4 = stageCard(
     '04: CONCEPT',
     'Exponentiate before normalizing',
-    null,
-    `<p class="concept-box">The exponential is what makes softmax amplify differences: a score only slightly larger than its neighbors can end up with a much larger share of the final weight, once the gap has been stretched by exponentiating. This is part of why the Scale step mattered earlier: unscaled scores would make softmax nearly one-hot almost everywhere, leaving no useful gradient for training to work with.</p>`
+    `The exponential is what makes softmax amplify differences: a score only slightly larger than its neighbors can end up with a much larger share of the final weight, once the gap has been stretched by exponentiating. This is part of why the Scale step mattered earlier: unscaled scores would make softmax nearly one-hot almost everywhere, leaving no useful gradient for training to work with.`,
+    `<div class="heatbar-block-title">every row becomes its own distribution</div>${allBars}`
   );
   container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 }

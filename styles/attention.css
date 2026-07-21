@@ -150,6 +150,35 @@
 
 .ui.attention .mask-toggle { display: flex; align-items: center; gap: 8px; font: 500 12.5px/1.5 var(--font-sans); color: var(--text-body); cursor: pointer; margin-bottom: 16px; }
 
+.ui.attention .anim-controls { margin-top: 14px; }
+.ui.attention .anim-btn {
+  font: 600 11px/1 var(--font-mono); color: var(--text-2);
+  border: 1px solid var(--hairline); background: transparent;
+  border-radius: var(--radius-sm); padding: 7px 12px; cursor: pointer;
+}
+.ui.attention .anim-btn:hover:not(:disabled) { border-color: var(--accent-link); color: var(--accent-link); }
+.ui.attention .anim-btn:disabled { color: var(--text-muted); cursor: default; opacity: .7; }
+.ui.attention .mcell.pending { background: var(--surface) !important; color: var(--text-muted); border: 1px dashed var(--hairline-strong); }
+@keyframes attn-cell-fade-in {
+  0% { opacity: 0; transform: scale(.7); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.ui.attention .mcell.cell-fade-in { animation: attn-cell-fade-in 260ms var(--ease-out) backwards; }
+
+/* --- shrink transform: Scale only. The grid visibly gets smaller when divided, instead of a
+   static before/after pair of grids. --- */
+.ui.attention .scale-shrink-wrap { padding: 4px; }
+.ui.attention .scale-shrink-grid { display: inline-block; transform-origin: top left; transition: transform 500ms var(--ease-out); }
+.ui.attention .scale-shrink-grid.shrunk { transform: scale(0.82); }
+
+/* --- proportion bar: the distribution primitive, Softmax only. One bar splitting into
+   token-colored segments sized by weight, not another grid of numbers. --- */
+.ui.attention .propbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.ui.attention .propbar-rowlabel { flex: none; font: 700 10.5px/1 var(--font-mono); color: var(--text-muted); min-width: 34px; }
+.ui.attention .propbar { flex: 1; display: flex; height: 22px; border-radius: 3px; overflow: hidden; background: var(--surface); }
+.ui.attention .propbar-seg { display: flex; align-items: center; justify-content: center; min-width: 2px; opacity: .88; transition: width 300ms var(--ease-out); }
+.ui.attention .propbar-label { font: 700 10px/1 var(--font-mono); color: #0c0c0d; text-shadow: 0 1px 0 rgba(255,255,255,.2); }
+
 @media (max-width: 640px) {
   .ui.attention .mgrid.g4x4 { grid-template-columns: repeat(4, 20px); grid-template-rows: repeat(4, 20px); }
   .ui.attention .mgrid.g3x4 { grid-template-columns: repeat(4, 22px); grid-template-rows: repeat(3, 22px); }
