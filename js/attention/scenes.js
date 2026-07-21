@@ -145,7 +145,7 @@ function renderInput(container, stepId, result) {
   const stage1 = stageCard(
     '01: STORAGE',
     'The three embeddings',
-    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>.`,
+    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. Stacked together, the ${result.tokens.length} embeddings below form <code>X</code>, the matrix the rest of this pipeline operates on.`,
     storageBody,
     `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`
   );
@@ -153,7 +153,7 @@ function renderInput(container, stepId, result) {
     '02: CONCEPT',
     'Where these numbers come from',
     null,
-    `<p class="concept-box">Embeddings live in a lookup table $E$, one row per vocabulary word; a token's vector is just its row. Training treats every entry of $E$ as a learnable parameter: after each prediction, backpropagation nudges the rows used in that sentence a little, $E \\leftarrow E - \\eta \\dfrac{\\partial \\mathcal{L}}{\\partial E}$, so tokens used in similar ways drift toward similar vectors over many examples. See the planned Phase 3 for this training loop worked through in full.</p>`
+    `<p class="concept-box">Embeddings live in a lookup table $E$, one row per vocabulary word; a token's vector is just its row. Stack the rows this sentence's tokens actually use and you get $X$: not a separate object from $E$, just the handful of its rows this particular sentence selects. Training treats every entry of $E$ as a learnable parameter: after each prediction, backpropagation nudges the rows used in that sentence a little, $E \\leftarrow E - \\eta \\dfrac{\\partial \\mathcal{L}}{\\partial E}$, so tokens used in similar ways drift toward similar vectors over many examples. See the planned Phase 3 for this training loop worked through in full.</p>`
   );
   container.innerHTML = filmstrip([stage1, stage2]);
 }
@@ -168,7 +168,7 @@ function renderQkv(container, stepId, result) {
   const stage1 = stageCard(
     '01: STORAGE',
     'The full data at rest',
-    `Every token's embedding gets multiplied by three learned weight matrices, producing a query, a key, and a value vector for each one. <code>X</code> below stacks all ${result.tokens.length} embeddings, one row per token; <code>Q</code>, <code>K</code>, <code>V</code> stack the resulting projections the same way.`,
+    `Every token's embedding gets multiplied by three learned weight matrices, producing a query, a key, and a value vector for each one. <code>X</code> below stacks all ${result.tokens.length} embeddings, one row per token; <code>Q</code>, <code>K</code>, <code>V</code> stack the resulting projections the same way. <code>W_Q</code>, <code>W_K</code>, and <code>W_V</code> are each a single ${result.d}&times;${result.d} matrix, the same one for every token in every sentence: nothing here is looked up per word the way <code>E</code> is, it's an ordinary linear transformation applied identically to whatever vector comes in.`,
     `<div class="qkv-storage-row">
        <div class="qkv-storage-block"><div class="heatbar-block-title">X: one row per token</div>${heatMatrixGrid(xMatrix, { rowLabels: result.tokens })}</div>
        <div class="qkv-storage-arrow">&rarr;</div>
