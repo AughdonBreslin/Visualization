@@ -198,7 +198,7 @@ function renderQkv(container, stepId, result) {
   const stage2 = stageCard(
     '02: SLICE',
     'One token, three projections',
-    `Take one token's embedding, $x_{\\text{${t0}}}$, and multiply it by all three matrices at once: <code>x &middot; W_Q</code> gives its query, <code>x &middot; W_K</code> gives its key, <code>x &middot; W_V</code> gives its value, all independently and in parallel off the same input vector. In <code>q_i = x_iW_Q</code>, <code>i</code> is the token's row; here it's the row for &quot;${t0}&quot;, so the outputs are written $q_{\\text{${t0}}}$, $k_{\\text{${t0}}}$, and $v_{\\text{${t0}}}$: what this token is asking for, what it offers when another token asks, and what it actually hands over once chosen.`,
+    `Take one token's embedding, $x_{\\text{${t0}}}$, and multiply it by all three matrices at once: <code>x &middot; W_Q</code> gives its query, <code>x &middot; W_K</code> gives its key, <code>x &middot; W_V</code> gives its value, all independently and in parallel off the same input vector. The three results, $q_{\\text{${t0}}}$, $k_{\\text{${t0}}}$, and $v_{\\text{${t0}}}$, are what this token is asking for, what it offers when another token asks, and what it actually hands over once chosen.`,
     `<div class="formula">$$ q_i = x_i W_Q, \\quad k_i = x_i W_K, \\quad v_i = x_i W_V $$</div>
      <div class="heatbar-block-row">
        ${labeledVecBlock(`$q_{\\text{${t0}}}$`, result.Q[t0])}
