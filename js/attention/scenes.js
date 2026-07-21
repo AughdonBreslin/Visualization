@@ -176,7 +176,6 @@ function qkvFanoutSVG() {
 
 function renderQkv(container, stepId, result) {
   const t0 = result.tokens[0];
-  const wqRow0 = WEIGHTS.WQ[0];
   const xMatrix = result.tokens.map((t) => result.embeddings[t]);
   const qMatrix = result.tokens.map((t) => result.Q[t]);
   const kMatrix = result.tokens.map((t) => result.K[t]);
@@ -199,26 +198,25 @@ function renderQkv(container, stepId, result) {
   const stage2 = stageCard(
     '02: SLICE',
     'One token, three projections',
-    `Take one token's embedding, <code>x &quot;${t0}&quot;</code>, and multiply it by all three matrices at once: <code>x &middot; W_Q</code> gives its query, <code>x &middot; W_K</code> gives its key, <code>x &middot; W_V</code> gives its value, all independently and in parallel off the same input vector. Each multiply reshapes the embedding into a role-specific view: <code>q &quot;${t0}&quot;</code> is what this token is asking for, <code>k &quot;${t0}&quot;</code> is what it offers when another token asks, and <code>v &quot;${t0}&quot;</code> is what it actually hands over once chosen.`,
+    `Take one token's embedding, $x_{\\text{${t0}}}$, and multiply it by all three matrices at once: <code>x &middot; W_Q</code> gives its query, <code>x &middot; W_K</code> gives its key, <code>x &middot; W_V</code> gives its value, all independently and in parallel off the same input vector. In <code>q_i = x_iW_Q</code>, <code>i</code> is the token's row; here it's the row for &quot;${t0}&quot;, so the outputs are written $q_{\\text{${t0}}}$, $k_{\\text{${t0}}}$, and $v_{\\text{${t0}}}$: what this token is asking for, what it offers when another token asks, and what it actually hands over once chosen.`,
     `<div class="formula">$$ q_i = x_i W_Q, \\quad k_i = x_i W_K, \\quad v_i = x_i W_V $$</div>
      <div class="heatbar-block-row">
-       ${labeledVecBlock(`q &quot;${t0}&quot;`, result.Q[t0])}
-       ${labeledVecBlock(`k &quot;${t0}&quot;`, result.K[t0])}
-       ${labeledVecBlock(`v &quot;${t0}&quot;`, result.V[t0])}
+       ${labeledVecBlock(`$q_{\\text{${t0}}}$`, result.Q[t0])}
+       ${labeledVecBlock(`$k_{\\text{${t0}}}$`, result.K[t0])}
+       ${labeledVecBlock(`$v_{\\text{${t0}}}$`, result.V[t0])}
      </div>`,
     `one input vector, three separate matrix multiplies, three separate outputs`
   );
   const stage3 = stageCard(
     '03: TRANSFORM',
-    'Multiply position by position, then sum',
-    `This is exactly how one number of the query vector gets computed: <code>q&#8320;</code>, the first entry of <code>q &quot;${t0}&quot;</code> from stage 2. Pair up <code>x</code> with the row of W_Q responsible for that output position, multiply each pair, then add all ${result.d} products together. That sum <b>is</b> q&#8320;: one coordinate of &quot;${t0}&quot;'s query, produced the same way as every other number in Q, K, and V.`,
-    `${multBreakdown(result.embeddings[t0], wqRow0, 'q₀', result.Q[t0][0].toFixed(2))}
-     <div class="heatbar-block-title" style="margin-top:8px">applied at scale: Q, K, V</div>
-     <div class="qkv-storage-outputs">
-       <div class="qkv-storage-block"><div class="heatbar-block-title">Q</div>${heatMatrixGrid(qMatrix, { rowLabels: result.tokens })}</div>
-       <div class="qkv-storage-block"><div class="heatbar-block-title">K</div>${heatMatrixGrid(kMatrix, { rowLabels: result.tokens })}</div>
-       <div class="qkv-storage-block"><div class="heatbar-block-title">V</div>${heatMatrixGrid(vMatrix, { rowLabels: result.tokens })}</div>
-     </div>`
+    'The same multiply, every token at once',
+    `The same multiply happens for every token, not just &quot;${t0}&quot;: each row of <code>X</code> goes through <code>W_Q</code>, <code>W_K</code>, and <code>W_V</code> the same way. Below are the full <code>Q</code>, <code>K</code>, and <code>V</code> matrices this produces; the highlighted &quot;${t0}&quot; row in each is exactly the $q_{\\text{${t0}}}$, $k_{\\text{${t0}}}$, and $v_{\\text{${t0}}}$ vectors from stage 2.`,
+    `<div class="heatbar-block-row">
+       <div class="qkv-storage-block"><div class="heatbar-block-title">Q</div>${heatMatrixGrid(qMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
+       <div class="qkv-storage-block"><div class="heatbar-block-title">K</div>${heatMatrixGrid(kMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
+       <div class="qkv-storage-block"><div class="heatbar-block-title">V</div>${heatMatrixGrid(vMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
+     </div>`,
+    `${result.tokens.length} tokens &times; 3 matrices, all produced by the same multiply shown in stage 2`
   );
   const stage4 = stageCard(
     '04: CONCEPT',
