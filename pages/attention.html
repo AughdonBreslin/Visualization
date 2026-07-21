@@ -68,7 +68,6 @@
           <div class="callout-body">The raw score is unbounded, and grows with the query and key vectors' magnitude, which is exactly what the next step exists to control.</div>
         </div>
         <div class="scene-anim"></div>
-        <div class="formula">$$ \text{score}_{ij} = q_i \cdot k_j $$</div>
       </section>
 
       <section class="panel" id="step-scale">
@@ -80,7 +79,6 @@
           <div class="callout-body">If Q and K entries have roughly unit variance, their dot product's variance grows proportional to d, so its standard deviation grows with √d. Dividing by √d is what keeps the score's scale roughly constant regardless of how large d is.</div>
         </div>
         <div class="scene-anim"></div>
-        <div class="formula">$$ \text{scaled}_{ij} = \frac{\text{score}_{ij}}{\sqrt{d}} $$</div>
       </section>
 
       <section class="panel" id="step-mask">
@@ -103,7 +101,6 @@
           <div class="callout-body">The exponential is what makes softmax amplify differences: a score only slightly larger than its neighbors can end up with a much larger share of attention weight after exponentiating, part of why the Scale step matters, since unscaled scores would make softmax nearly one-hot almost everywhere.</div>
         </div>
         <div class="scene-anim"></div>
-        <div class="formula">$$ \text{weight}_{ij} = \frac{e^{\text{scaled}_{ij}}}{\sum_k e^{\text{scaled}_{ik}}} $$</div>
       </section>
 
       <section class="panel" id="step-wsum">
@@ -115,7 +112,6 @@
           <div class="callout-body">Like Q and K, V is its own learned projection, so the model can choose what a token actually contributes to others independent of what makes that token a good match (its key) or what it's searching for (its query).</div>
         </div>
         <div class="scene-anim"></div>
-        <div class="formula">$$ o_i = \sum_j \text{weight}_{ij} \, v_j $$</div>
       </section>
 
       <section class="panel" id="step-output">

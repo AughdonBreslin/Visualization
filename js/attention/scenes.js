@@ -248,7 +248,8 @@ function renderScores(container, stepId, result) {
     `Every cell repeats the same operation: pair up one query row and one key row by position, multiply each pair, add the results. That's a <b>dot product</b>, the standard way to measure how aligned two vectors are. Click below to watch all ${n * n} cells compute at once.`,
     `<div class="scale-shrink-wrap"><div data-role="sweep-grid">${blankGrid}</div></div>
      <div class="anim-controls"><button class="anim-btn" type="button" data-role="sweep-btn">&#9654; compute all ${n * n} cells</button></div>
-     <div class="stage-note" data-role="sweep-worked" style="display:none">${cellWorked}</div>`
+     <div class="stage-note" data-role="sweep-worked" style="display:none">${cellWorked}</div>
+     <div class="formula">$$ \\text{score}_{ij} = q_i \\cdot k_j $$</div>`
   );
   const stage4 = stageCard(
     '04: CONCEPT',
@@ -300,7 +301,8 @@ function renderScale(container, stepId, result) {
     'Watch the whole grid shrink',
     `d = ${result.d} here, so &radic;d = ${sqrtD.toFixed(2)}. Every cell in the grid divides by that same number at once, not one at a time. Click below to watch it happen.`,
     `<div class="scale-shrink-wrap"><div class="scale-shrink-grid" data-role="shrink-grid">${heatMatrixGrid(result.scores, { rowLabels: result.tokens })}</div></div>
-     <div class="anim-controls"><button class="anim-btn" type="button" data-role="shrink-btn">&#9654; divide every cell by &radic;${result.d}</button></div>`
+     <div class="anim-controls"><button class="anim-btn" type="button" data-role="shrink-btn">&#9654; divide every cell by &radic;${result.d}</button></div>
+     <div class="formula">$$ \\text{scaled}_{ij} = \\frac{\\text{score}_{ij}}{\\sqrt{d}} $$</div>`
   );
   const stage4 = stageCard(
     '04: CONCEPT',
@@ -398,7 +400,8 @@ function renderSoftmax(container, stepId, result) {
     '03: TRANSFORM',
     'Exponentiate, then normalize',
     `Two steps, not one: first exponentiate every value in the row, which makes everything positive and stretches the gaps between them. Then divide each exponentiated value by their sum, so the row splits into the proportions shown below, adding up to exactly 1.00.`,
-    `${expRows}<div class="sum-arrow">&darr; divide each by the sum (${expSum.toFixed(2)})</div>${probBar(rowTokens, exps.map((e) => e / expSum), rowColors)}`
+    `${expRows}<div class="sum-arrow">&darr; divide each by the sum (${expSum.toFixed(2)})</div>${probBar(rowTokens, exps.map((e) => e / expSum), rowColors)}
+     <div class="formula">$$ \\text{weight}_{ij} = \\frac{e^{\\text{scaled}_{ij}}}{\\sum_k e^{\\text{scaled}_{ik}}} $$</div>`
   );
   const allBars = result.tokens.map((ti, i) => probBar(result.tokens, result.weights[i], result.tokenColors, `&quot;${ti}&quot;`)).join('');
   const stage4 = stageCard(
@@ -453,7 +456,8 @@ function renderWsum(container, stepId, result) {
     '03: TRANSFORM',
     'Scale each value vector, then add them',
     `Multiply each value vector by its own weight (a scalar times a vector, not a dot product), then add the ${result.tokens.length} resulting vectors together, position by position. That sum is the output for &quot;${t0}&quot;.`,
-    `<div class="sum-arrow">&darr; add ${result.tokens.length} weighted vectors</div><div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>`
+    `<div class="sum-arrow">&darr; add ${result.tokens.length} weighted vectors</div><div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>
+     <div class="formula">$$ o_i = \\sum_j \\text{weight}_{ij} \\, v_j $$</div>`
   );
   const stage4 = stageCard(
     '04: CONCEPT',
