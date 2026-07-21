@@ -75,14 +75,18 @@
 .ui.attention .pipe-node.current .pipe-node-label { color: var(--accent-link); }
 
 /* --- per-step scenes --- */
+/* Floated so the intro paragraph that follows wraps around it instead of starting fresh below a
+   full-width block - the glyph is small and the paragraph is now the step's only prose, so there
+   is width to spare beside it. */
 .ui.attention .scene-hero-glyph {
+  float: left;
   width: 76px;
   height: 76px;
   padding: 12px;
   border: 1px solid var(--surface-strong-border);
   background: var(--surface-strong);
   border-radius: var(--radius-lg);
-  margin-bottom: 14px;
+  margin: 2px 16px 10px 0;
   transition: box-shadow 200ms var(--ease-out);
 }
 .ui.attention .scene-hero-glyph svg { width: 100%; height: 100%; overflow: visible; }
@@ -94,6 +98,7 @@
 .ui.attention .scene-hero-glyph.just-arrived { animation: attn-arrive-glow 900ms var(--ease-out); border-color: rgba(var(--accent-rgb), .5); }
 
 .ui.attention .scene-anim {
+  clear: both;
   background: #08080a;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
