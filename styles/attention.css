@@ -23,6 +23,13 @@
   border-bottom: 1px solid var(--hairline);
   margin: 24px 0 0;
 }
+/* The bar renders ~94px tall, which dwarfs the site-wide 16px scroll offset that
+   section-outline.js sets inline (via --outline-scroll-offset) on every .panel - without this
+   override, jumping to a step (pipeline bar click, rail click, or a plain #hash link) leaves the
+   bar covering the top ~40px of the section, including its heading. Overriding the custom
+   property (rather than scroll-margin-top directly) is required: section-outline.js's inline
+   style always wins specificity over any stylesheet rule, but it reads through this variable. */
+.ui.attention { --outline-scroll-offset: 120px; }
 .ui.attention .pipe-bar {
   position: relative;
   max-width: var(--container-default);
