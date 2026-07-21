@@ -101,26 +101,6 @@
   margin: 16px 0;
 }
 
-/* A wider informational panel for content that belongs below the slides rather than as a
-   narrow margin note - shares .scene-anim's box treatment (dark card, matching border/radius)
-   instead of the shared .callout component's 60ch line-length cap, which reads as mostly empty
-   space once a callout-style note is promoted to its own full-width block like this. */
-.ui.attention .step-info {
-  background: #08080a;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-md);
-  padding: 18px 20px;
-  margin: 16px 0;
-}
-.ui.attention .step-info-label {
-  font: 600 10.5px/1 var(--font-sans);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--accent-link);
-  margin-bottom: 8px;
-}
-.ui.attention .step-info-body { font: 400 13.5px/1.6 var(--font-sans); color: var(--text-body); }
-
 /* --- filmstrip: the shared storage/slice/transform/concept stage pattern, used by every
    step except Output (still a placeholder) and Weighted sum (not yet built). A horizontal
    scroll-snap strip rather than a wrapping grid: a 4-stage step would otherwise wrap to two

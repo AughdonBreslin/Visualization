@@ -218,7 +218,13 @@ function renderQkv(container, stepId, result) {
     null,
     `<p class="concept-box">A raw embedding conflates everything about a token into one vector. Attention needs three different views of it: a <b>query</b> (&quot;what am I looking for&quot;), a <b>key</b> (&quot;what do I offer&quot;), and a <b>value</b> (&quot;what I actually contribute if chosen&quot;). If Q and K shared a weight matrix, every token's query would equal its own key, and every token would trivially attend most to itself. Separate, independently learned projections let a token's query and key diverge, which is what lets it end up attending to a <i style="font-style:normal">different</i> token when that's more useful.</p>`
   );
-  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
+  const stage5 = stageCard(
+    '05: RELATED RESEARCH',
+    'Why three matrices, not one?',
+    null,
+    `<p class="concept-box">If Q and K shared a matrix, every token's query would equal its own key, forcing every attention pattern to be symmetric (token A attends to B exactly as much as B attends to A) and collapsing the asking and answering roles into one. A 2026 study, <a href="https://arxiv.org/abs/2606.04032" target="_blank" rel="noopener">Do Transformers Need Three Projections? Systematic Study of QKV Variants</a>, tested this directly: tying Q and K broke attention's directionality and hurt quality, while tying K and V instead held up, cutting the KV cache in half for only a &tilde;3% perplexity increase. The asymmetry makes sense: a key (&quot;how to be found&quot;) and a value (&quot;what to contribute&quot;) can share a representational space without conflict, but a token's query and key must stay free to diverge, or it could only ever attend to itself.</p>`
+  );
+  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4, stage5]);
 }
 
 function renderScores(container, stepId, result) {
