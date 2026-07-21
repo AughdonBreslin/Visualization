@@ -329,6 +329,72 @@ function renderSoftmax(container, stepId, result) {
   container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 }
 
+// A value vector scaled by its attention weight: the vector's own heat-bar-list, wrapped in a
+// block whose opacity is driven by the weight, so a barely-attended token visibly fades instead
+// of just being one more identical-looking row in the list.
+function weightedVecBlock(token, weight, vec) {
+  return `<div style="opacity:${(0.3 + weight * 0.7).toFixed(2)}">
+    <div class="heatbar-block-title">&quot;${token}&quot; &times; ${weight.toFixed(2)}</div>
+    <div class="heatbar-list">${heatBarList(vec)}</div>
+  </div>`;
+}
+
+function renderWsum(container, stepId, result) {
+  const focusIdx = Math.min(1, result.tokens.length - 1);
+  const t0 = result.tokens[focusIdx];
+  const rowWeights = result.weights[focusIdx];
+  const stage1 = stageCard(
+    '01: STORAGE',
+    'Every attention weight, every value',
+    `Softmax already produced a full row of weights for every query token; the Q/K/V projection step already produced a value vector for every token. Both are just collected here, nothing new computed yet.`,
+    `<div><div class="heatbar-block-title">attention weights</div>${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div>
+     <div><div class="heatbar-block-title">V: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
+    `every row of weights will blend the same ${result.tokens.length} value vectors, just with different weights`
+  );
+  const stage2 = stageCard(
+    '02: SLICE',
+    'One query token&#39;s weights',
+    `Focus on the attention weights for &quot;${t0}&quot;, highlighted above: ${rowWeights.map((w, j) => `${(w * 100).toFixed(0)}% on &quot;${result.tokens[j]}&quot;`).join(', ')}. Each value vector below is shown at an opacity matching its weight, so the one &quot;${t0}&quot; is attending to most is the most visible.`,
+    result.tokens.map((t, j) => weightedVecBlock(t, rowWeights[j], result.V[t])).join(''),
+    `these weights are the same ones computed in the Softmax step, always summing to 1.00`
+  );
+  const stage3 = stageCard(
+    '03: TRANSFORM',
+    'Scale each value vector, then add them',
+    `Multiply each value vector by its own weight (a scalar times a vector, not a dot product), then add the ${result.tokens.length} resulting vectors together, position by position. That sum is the output for &quot;${t0}&quot;.`,
+    `<div class="sum-arrow">&darr; add ${result.tokens.length} weighted vectors</div><div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>`
+  );
+  const stage4 = stageCard(
+    '04: CONCEPT',
+    'Value vectors carry the content',
+    null,
+    `<p class="concept-box">Like Q and K, V is its own learned projection, so the model can choose what a token actually contributes to others independent of what makes it a good match (its key) or what it's searching for (its query). A token can be highly relevant (a large attention weight) while contributing very little of any one particular feature, or the reverse, because relevance and content are computed by two entirely separate weight matrices.</p>`
+  );
+  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
+}
+
+function renderOutput(container, stepId, result) {
+  const storageBody = result.tokens.map((t, i) => `
+    <div>
+      <div class="heatbar-block-title">output &quot;${t}&quot;</div>
+      <div class="heatbar-list">${heatBarList(result.output[i])}</div>
+    </div>`).join('');
+  const stage1 = stageCard(
+    '01: STORAGE',
+    'Three vectors out, same shape as three vectors in',
+    `Every output vector here is exactly ${result.d} numbers, the same width as the embeddings this pipeline started from. Nothing about the shape changed; what changed is that each vector is now a blend of the whole sequence rather than the token in isolation.`,
+    storageBody,
+    `compare this to the Input embeddings step: same shape, different content`
+  );
+  const stage2 = stageCard(
+    '02: CONCEPT',
+    'Not usually the end of the line',
+    null,
+    `<p class="concept-box">This output isn't usually the end of a transformer block on its own; in a real model it typically continues through a residual connection and a feed-forward layer, both outside the scope of this page, which focuses specifically on the attention operation itself. Everything shown on this page so far has been inference: one forward pass through a single attention head, using weight matrices that are already fixed. The planned Phase 2 would compute how those weights should change for this example; a further Phase 3 would show them actually being learned.</p>`
+  );
+  container.innerHTML = filmstrip([stage1, stage2]);
+}
+
 const STEP_RENDERERS = {
   input: renderInput,
   qkv: renderQkv,
@@ -336,8 +402,8 @@ const STEP_RENDERERS = {
   scale: renderScale,
   mask: renderMask,
   softmax: renderSoftmax,
-  wsum: renderPlaceholder,
-  output: renderPlaceholder,
+  wsum: renderWsum,
+  output: renderOutput,
 };
 
 export function renderScene(stepId, result) {
