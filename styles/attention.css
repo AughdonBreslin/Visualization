@@ -102,12 +102,21 @@
 }
 
 /* --- filmstrip: the shared storage/slice/transform/concept stage pattern, used by every
-   step except Output (still a placeholder) and Weighted sum (not yet built). Two columns by
-   default: the article content column (~950px) isn't wide enough for four comfortably. --- */
-.ui.attention .filmstrip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
-@media (max-width: 680px) { .ui.attention .filmstrip { grid-template-columns: minmax(0, 1fr); } }
+   step except Output (still a placeholder) and Weighted sum (not yet built). A horizontal
+   scroll-snap strip rather than a wrapping grid: a 4-stage step would otherwise wrap to two
+   rows and double its vertical footprint, so instead stages sit in one row and slide into view
+   (snapping one stage at a time, same as the site's own .tabs strip in components.css, which
+   this copies the hidden-scrollbar convention from). Half width by default - two stages visible
+   at once, matching the old 2-col grid's density - or full width via .stage-wide. --- */
+.ui.attention .filmstrip {
+  display: flex; gap: 14px; align-items: stretch;
+  overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
+  scrollbar-width: none; padding-bottom: 2px;
+}
+.ui.attention .filmstrip::-webkit-scrollbar { display: none; }
 .ui.attention .stage {
-  min-width: 0; background: #08080a; border: 1px solid var(--hairline); border-radius: var(--radius-lg);
+  box-sizing: border-box; min-width: 0; flex: 0 0 calc(50% - 7px); scroll-snap-align: start;
+  background: #08080a; border: 1px solid var(--hairline); border-radius: var(--radius-lg);
   padding: 18px; display: flex; flex-direction: column; position: relative;
 }
 .ui.attention .stage-n { font: 700 10px/1 var(--font-mono); color: var(--accent-link); letter-spacing: .05em; margin-bottom: 4px; }
@@ -118,8 +127,9 @@
 .ui.attention .stage-body { min-width: 0; flex: 1; display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
 .ui.attention .stage-note { font: 500 11px/1.5 var(--font-mono); color: var(--text-muted); margin-top: 12px; }
 /* A stage that needs the full filmstrip width (e.g. QKV's storage stage, which shows X mapping
-   to three full output matrices at once - too much to lay out legibly in one 2-col half). */
-.ui.attention .stage.stage-wide { grid-column: 1 / -1; }
+   to three full output matrices at once - too much to lay out legibly in one half-width slide). */
+.ui.attention .stage.stage-wide { flex-basis: 100%; }
+@media (max-width: 680px) { .ui.attention .stage { flex-basis: 100%; } }
 
 /* --- QKV storage: X -> Q/K/V, all as full matrices, wrapping to stacked on narrow widths --- */
 .ui.attention .qkv-storage-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
