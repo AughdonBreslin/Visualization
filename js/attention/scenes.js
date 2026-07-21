@@ -202,7 +202,8 @@ function renderQkv(container, stepId, result) {
        ${labeledVecBlock(`q &quot;${t0}&quot;`, result.Q[t0])}
        ${labeledVecBlock(`k &quot;${t0}&quot;`, result.K[t0])}
        ${labeledVecBlock(`v &quot;${t0}&quot;`, result.V[t0])}
-     </div>`,
+     </div>
+     <div class="formula">$$ q_i = x_i W_Q, \\quad k_i = x_i W_K, \\quad v_i = x_i W_V $$</div>`,
     `one input vector, three separate matrix multiplies, three separate outputs`
   );
   const stage3 = stageCard(

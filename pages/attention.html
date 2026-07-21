@@ -52,12 +52,11 @@
         <h2>Q / K / V projections</h2>
         <div class="scene-hero-glyph"></div>
         <p>A raw embedding conflates everything about a token into one vector. Attention needs three different views of each token: a query ("what am I looking for"), a key ("what do I offer"), and a value ("what I actually contribute if chosen"). Within this model there exists exactly one W_Q, one W_K, and one W_V: the same three matrices multiply every token, in every sentence, nothing looked up per word the way the embedding table is. Splitting one vector into three roles this way is what makes the comparison in the next step meaningful instead of trivial.</p>
-        <div class="callout">
-          <div class="callout-label">Why three matrices, not one?</div>
-          <div class="callout-body">If Q and K shared a matrix, every token's query would equal its own key, forcing every attention pattern to be symmetric (token A attends to B exactly as much as B attends to A) and collapsing the asking and answering roles into one. A 2026 study, <a href="https://arxiv.org/abs/2606.04032" target="_blank" rel="noopener">Do Transformers Need Three Projections? Systematic Study of QKV Variants</a>, tested this directly: tying Q and K broke attention's directionality and hurt quality, while tying K and V instead held up, cutting the KV cache in half for only a &tilde;3% perplexity increase. The asymmetry makes sense: a key ("how to be found") and a value ("what to contribute") can share a representational space without conflict, but a token's query and key must stay free to diverge, or it could only ever attend to itself.</div>
-        </div>
         <div class="scene-anim"></div>
-        <div class="formula">$$ q_i = x_i W_Q, \quad k_i = x_i W_K, \quad v_i = x_i W_V $$</div>
+        <div class="step-info">
+          <div class="step-info-label">Why three matrices, not one?</div>
+          <div class="step-info-body">If Q and K shared a matrix, every token's query would equal its own key, forcing every attention pattern to be symmetric (token A attends to B exactly as much as B attends to A) and collapsing the asking and answering roles into one. A 2026 study, <a href="https://arxiv.org/abs/2606.04032" target="_blank" rel="noopener">Do Transformers Need Three Projections? Systematic Study of QKV Variants</a>, tested this directly: tying Q and K broke attention's directionality and hurt quality, while tying K and V instead held up, cutting the KV cache in half for only a &tilde;3% perplexity increase. The asymmetry makes sense: a key ("how to be found") and a value ("what to contribute") can share a representational space without conflict, but a token's query and key must stay free to diverge, or it could only ever attend to itself.</div>
+        </div>
       </section>
 
       <section class="panel" id="step-scores">
