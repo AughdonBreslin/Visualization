@@ -54,7 +54,7 @@ function heatBarList(values, opts = {}) {
     const labelHtml = labels ? `<div class="heatbar-label">${labels[i]}</div>` : '';
     return `<div class="heatbar-row ${isDim ? 'dim' : ''}">
       ${labelHtml}
-      <span class="heatbar-bracket">[</span><div class="heatbar-track"><div class="heatbar-fill" style="width:${pct}%; background:${heatColor(t)}"></div></div><span class="heatbar-bracket">]</span>
+      <div class="heatbar-track"><div class="heatbar-fill" style="width:${pct}%; background:${heatColor(t)}"></div></div>
       <div class="heatbar-val">${v.toFixed(2)}</div>
     </div>`;
   }).join('');
