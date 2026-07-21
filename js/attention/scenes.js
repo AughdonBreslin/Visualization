@@ -241,10 +241,10 @@ function renderScores(container, stepId, result) {
     '03: TRANSFORM',
     'Fill in the grid, one comparison at a time',
     `Every cell repeats the same operation: pair up one query row and one key row by position, multiply each pair, add the results. That's a dot product, the standard way to measure how aligned two vectors are. Click below to watch all cells compute at once.`,
-    `<div class="scale-shrink-wrap"><div data-role="sweep-grid">${blankGrid}</div></div>
+    `<div class="formula">$$ \\text{score}_{ij} = q_i \\cdot k_j $$</div>
+     <div class="scale-shrink-wrap"><div data-role="sweep-grid">${blankGrid}</div></div>
      <div class="anim-controls"><button class="anim-btn" type="button" data-role="sweep-btn">&#9654; compute all cells</button></div>
-     <div class="stage-note" data-role="sweep-worked" style="display:none">${cellWorked}</div>
-     <div class="formula">$$ \\text{score}_{ij} = q_i \\cdot k_j $$</div>`
+     <div class="stage-note" data-role="sweep-worked" style="display:none">${cellWorked}</div>`
   );
   container.innerHTML = filmstrip([stage1, stage2, stage3]);
 
