@@ -162,37 +162,37 @@ function renderQkv(container, stepId, result) {
   const t0 = result.tokens[0];
   const wqRow0 = WEIGHTS.WQ[0];
   const xMatrix = result.tokens.map((t) => result.embeddings[t]);
-  const qMatrix = result.tokens.map((t) => result.Q[t]);
-  const kMatrix = result.tokens.map((t) => result.K[t]);
-  const vMatrix = result.tokens.map((t) => result.V[t]);
   const stage1 = stageCard(
     '01: STORAGE',
     'The full data at rest',
-    `Every token's embedding gets multiplied by three learned weight matrices, producing a query, a key, and a value vector for each one. <code>X</code> below stacks all ${result.tokens.length} embeddings, one row per token; <code>Q</code>, <code>K</code>, <code>V</code> stack the resulting projections the same way. <code>W_Q</code>, <code>W_K</code>, and <code>W_V</code> are each a single ${result.d}&times;${result.d} matrix, the same one for every token in every sentence: nothing here is looked up per word the way <code>E</code> is, it's an ordinary linear transformation applied identically to whatever vector comes in.`,
+    `Every token's embedding gets multiplied by three learned weight matrices, producing a query, a key, and a value vector for each one. <code>X</code> below stacks all ${result.tokens.length} embeddings, one row per token. <code>W_Q</code>, <code>W_K</code>, and <code>W_V</code> are the three matrices that do the multiplying: each is a single ${result.d}&times;${result.d} matrix, the same one for every token in every sentence, nothing here looked up per word the way <code>E</code> is.`,
     `<div class="qkv-storage-row">
        <div class="qkv-storage-block"><div class="heatbar-block-title">X: one row per token</div>${heatMatrixGrid(xMatrix, { rowLabels: result.tokens })}</div>
-       <div class="qkv-storage-arrow">&rarr;</div>
        <div class="qkv-storage-outputs">
-         <div class="qkv-storage-block"><div class="heatbar-block-title">Q = X &middot; W_Q</div>${heatMatrixGrid(qMatrix, { rowLabels: result.tokens })}</div>
-         <div class="qkv-storage-block"><div class="heatbar-block-title">K = X &middot; W_K</div>${heatMatrixGrid(kMatrix, { rowLabels: result.tokens })}</div>
-         <div class="qkv-storage-block"><div class="heatbar-block-title">V = X &middot; W_V</div>${heatMatrixGrid(vMatrix, { rowLabels: result.tokens })}</div>
+         <div class="qkv-storage-block"><div class="heatbar-block-title">W_Q</div>${heatMatrixGrid(WEIGHTS.WQ)}</div>
+         <div class="qkv-storage-block"><div class="heatbar-block-title">W_K</div>${heatMatrixGrid(WEIGHTS.WK)}</div>
+         <div class="qkv-storage-block"><div class="heatbar-block-title">W_V</div>${heatMatrixGrid(WEIGHTS.WV)}</div>
        </div>
      </div>`,
-    `${result.tokens.length} embeddings in, ${result.tokens.length} query/key/value vectors out, all at once`,
+    `${result.tokens.length} embeddings, plus the 3 weight matrices every one of them will be multiplied by`,
     'stage-wide'
   );
   const stage2 = stageCard(
     '02: SLICE',
-    'Focus on one output number',
-    `We're computing just one number: the first entry of the query vector, <code>q&#8320;</code> = ${result.Q[t0][0].toFixed(2)}. Producing it only needs the embedding on the left and one row of the weight matrix W_Q on the right, specifically the row responsible for output dimension 0.`,
-    `<div><div class="heatbar-block-title">x &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.embeddings[t0])}</div></div>
-     <div><div class="heatbar-block-title">W_Q, row 0 only</div><div class="heatbar-list">${heatBarList(wqRow0)}</div></div>`,
-    `every other row of W_Q would produce a different output dimension (q&#8321;, q&#8322;, q&#8323;) and plays no part in this one`
+    'One token, three projections',
+    `Take one token's embedding, <code>x &quot;${t0}&quot;</code>, and multiply it by all three matrices at once: <code>x &middot; W_Q</code> gives its query, <code>x &middot; W_K</code> gives its key, <code>x &middot; W_V</code> gives its value. All three happen independently and in parallel off the same input vector: producing the key doesn't need the query first, and neither one is looked up inside the other's matrix. The actual comparison between tokens happens later, in the next step, when every query is measured against every key.`,
+    `<div class="heatbar-block-row">
+       ${labeledVecBlock(`x &quot;${t0}&quot;`, result.embeddings[t0])}
+       ${labeledVecBlock(`q &quot;${t0}&quot;`, result.Q[t0])}
+       ${labeledVecBlock(`k &quot;${t0}&quot;`, result.K[t0])}
+       ${labeledVecBlock(`v &quot;${t0}&quot;`, result.V[t0])}
+     </div>`,
+    `one input vector, three separate matrix multiplies, three separate outputs`
   );
   const stage3 = stageCard(
     '03: TRANSFORM',
     'Multiply position by position, then sum',
-    `Pair up <code>x</code> and the row of W_Q from stage 2 by position, multiply each pair, then add all ${result.d} products together. That sum <b>is</b> q&#8320;, and nothing more happens to it.`,
+    `Zoom into exactly one entry of the query vector from stage 2: <code>q&#8320;</code>, the first number in <code>q &quot;${t0}&quot;</code>. Pair up <code>x</code> with the row of W_Q responsible for that output position, multiply each pair, then add all ${result.d} products together. That sum <b>is</b> q&#8320;, and nothing more happens to it.`,
     multBreakdown(result.embeddings[t0], wqRow0, 'q₀', result.Q[t0][0].toFixed(2))
   );
   const stage4 = stageCard(
