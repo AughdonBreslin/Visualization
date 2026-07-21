@@ -1,134 +1,288 @@
 // js/attention/scenes.js
-// Renders each step's hero glyph and worked-example animation. renderScene's per-step branches
-// start as placeholders here and are filled in one step at a time by Tasks 6-9; the dispatch
-// structure itself does not change after this task.
+// Renders each step's hero glyph and worked-example animation, using a shared "storage / slice /
+// transform / concept" filmstrip pattern (not every step uses all four stages: Input has nothing
+// to transform, so it only uses two). Every value shown comes from the live PipelineResult, never
+// a hardcoded number.
 
 import { glyphSVG } from './glyphs.js';
 import { STEPS } from './pipeline.js';
+import { WEIGHTS } from './presets.js';
 
 function renderPlaceholder(container, stepId) {
   container.innerHTML = `<p style="font:500 12px/1.6 var(--font-mono); color:var(--text-muted); margin:0;">step "${stepId}" animation not yet implemented</p>`;
 }
 
-function renderInput(container, stepId, result) {
-  const rows = result.tokens.map((t, i) => {
-    const vec = result.embeddings[t].map((v) => v.toFixed(2)).join(', ');
-    return `<div class="vec-row"><span class="vec-token" style="color:${result.tokenColors[i]}">"${t}"</span><span class="vec-values">[${vec}]</span></div>`;
+// ---- shared visual primitives --------------------------------------------------------------
+
+function maxAbs(arr) {
+  return Math.max(...arr.map(Math.abs), 0.01);
+}
+
+// 0 = dim cool blue, 0.5 = green, 1 = hot red-orange. Interpolating through a midpoint keeps
+// mid-range magnitudes visually distinct instead of muddying into a single blue<->red blend.
+function heatColor(t) {
+  t = Math.max(0, Math.min(1, t));
+  const stops = [
+    { p: 0, h: 224, s: 42, l: 28 },
+    { p: 0.5, h: 130, s: 45, l: 40 },
+    { p: 1, h: 8, s: 82, l: 54 },
+  ];
+  const [a, b] = t > 0.5 ? [stops[1], stops[2]] : [stops[0], stops[1]];
+  const localT = a.p === 0.5 ? (t - 0.5) / 0.5 : t / 0.5;
+  const h = a.h + (b.h - a.h) * localT;
+  const s = a.s + (b.s - a.s) * localT;
+  const l = a.l + (b.l - a.l) * localT;
+  return `hsl(${h.toFixed(0)}, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
+}
+
+// A vector rendered as one row per dimension: a 0-1 heat-filled track (magnitude relative to
+// this vector's own largest entry) plus the raw signed value printed alongside it. Heat color
+// and fill length redundantly encode the same magnitude on purpose. dimExcept, if given, keeps
+// only that one dimension at full opacity (used in "slice" stages to show one component still
+// belongs to the full vector without erasing the rest).
+function heatBarList(values, opts = {}) {
+  const m = maxAbs(values);
+  const dimExcept = opts.dimExcept;
+  // labels defaults to dimension indices (d0, d1, ...), which is correct for every embedding /
+  // Q / K / V vector this function renders. The one exception is a row of the score/weight
+  // matrix, which is indexed by key token, not dimension -- callers pass opts.labels there.
+  const labels = opts.labels;
+  return values.map((v, i) => {
+    const t = Math.abs(v) / m;
+    const pct = (t * 100).toFixed(0);
+    const isDim = dimExcept !== undefined && i !== dimExcept;
+    return `<div class="heatbar-row ${isDim ? 'dim' : ''}">
+      <div class="heatbar-label">${labels ? labels[i] : 'd' + i}</div>
+      <div class="heatbar-track"><div class="heatbar-fill" style="width:${pct}%; background:${heatColor(t)}"></div></div>
+      <div class="heatbar-val">${v.toFixed(2)}</div>
+    </div>`;
   }).join('');
-  container.innerHTML = `<div class="vec-list">${rows}</div>`;
+}
+
+// A matrix rendered as a heat-colored grid, same heat scale as heatBarList, with optional row
+// labels (token names or "row N") and highlighting. maskedCells(i, j) marks a cell as masked
+// (rendered as a flat "-inf" cell instead of a heat-colored number).
+function heatMatrixGrid(matrix, opts = {}) {
+  const flat = matrix.flat();
+  const m = maxAbs(flat);
+  const hiRow = opts.hiRow;
+  const hiCell = opts.hiCell;
+  const maskedCells = opts.maskedCells || (() => false);
+  const cols = matrix[0].length;
+  const cellsHtml = matrix.map((row, i) => row.map((v, j) => {
+    if (maskedCells(i, j)) {
+      return `<div class="mcell masked" data-row="${i}" data-col="${j}">&minus;&infin;</div>`;
+    }
+    const t = Math.abs(v) / m;
+    const isHi = hiCell ? (hiCell[0] === i && hiCell[1] === j) : hiRow === i;
+    const isDim = (hiRow !== undefined && hiRow !== i) || (hiCell && hiCell[0] !== i);
+    return `<div class="mcell ${isHi ? 'hi' : ''} ${isDim && !isHi ? 'dim' : ''}" data-row="${i}" data-col="${j}" style="background:${heatColor(t)}">${v.toFixed(1)}</div>`;
+  }).join('')).join('');
+  const activeRow = hiCell ? hiCell[0] : hiRow;
+  const rowLabelsHtml = opts.rowLabels
+    ? `<div class="mgrid-rowlabels">${opts.rowLabels.map((l, i) => `<div class="mgrid-rowlabel" style="color:${i === activeRow ? 'var(--accent-link)' : 'var(--text-muted)'}">${l}</div>`).join('')}</div>`
+    : '';
+  return `<div class="mgrid-wrap">${rowLabelsHtml}<div class="mgrid g${matrix.length}x${cols}">${cellsHtml}</div></div>`;
+}
+
+// The "multiply position by position, then sum" breakdown shared by every dot-product-shaped
+// transform (Q/K/V projection, QKT scores). Not reused by Scale/Mask/Softmax, whose transforms
+// are a single elementwise operation rather than a multiply-and-reduce.
+function multBreakdown(a, b, resultLabel, resultValue) {
+  const rows = a.map((av, i) => {
+    const bv = b[i];
+    const prod = (av * bv).toFixed(3);
+    return `<div class="mult-row">
+      <span class="mult-dimlabel">d${i}</span>
+      <span class="mult-chip" style="color:var(--accent-link)">${av.toFixed(2)}</span>
+      <span class="mult-eq">&times;</span>
+      <span class="mult-chip" style="color:#ffd97a">${bv.toFixed(2)}</span>
+      <span class="mult-eq">=</span>
+      <span class="mult-prod">${prod}</span>
+    </div>`;
+  }).join('');
+  return `<div class="mult-list">${rows}</div><div class="sum-arrow">&darr; add the ${a.length} products</div><div class="sum-result">${resultLabel} = ${resultValue}</div>`;
+}
+
+function stageCard(n, title, proseHtml, bodyHtml, noteHtml) {
+  return `<div class="stage">
+    <div class="stage-connector"></div>
+    <div class="stage-n">${n}</div>
+    <div class="stage-title">${title}</div>
+    ${proseHtml ? `<p class="stage-prose">${proseHtml}</p>` : ''}
+    <div class="stage-body">${bodyHtml}</div>
+    ${noteHtml ? `<div class="stage-note">${noteHtml}</div>` : ''}
+  </div>`;
+}
+
+function filmstrip(stages) {
+  return `<div class="filmstrip">${stages.join('')}</div>`;
+}
+
+// ---- per-step renderers ----------------------------------------------------------------------
+
+function renderInput(container, stepId, result) {
+  const storageBody = result.tokens.map((t) => `
+    <div>
+      <div class="heatbar-block-title">x &quot;${t}&quot;</div>
+      <div class="heatbar-list">${heatBarList(result.embeddings[t])}</div>
+    </div>`).join('');
+  const stage1 = stageCard(
+    '01: STORAGE',
+    'The three embeddings',
+    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. These numbers were picked by hand for this toy example; a real trained model would have learned them from data.`,
+    storageBody,
+    `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`
+  );
+  const stage2 = stageCard(
+    '02: CONCEPT',
+    'Where these numbers come from',
+    null,
+    `<p class="concept-box">In a real transformer, embeddings are one of the things training learns: every token in the vocabulary gets its own vector, nudged during training until tokens used in similar ways end up with similar vectors. This page uses d = ${result.d} so every number stays visible on screen; a real model typically uses hundreds or thousands of dimensions, but nothing about the mechanism changes at that scale, only the width of every vector shown on this page. The rest of this page shows what happens to these numbers once a model already has them; see the planned Phase 3 for how training would actually produce them.</p>`
+  );
+  container.innerHTML = filmstrip([stage1, stage2]);
 }
 
 function renderQkv(container, stepId, result) {
-  const rows = result.tokens.map((t, i) => {
-    const x = result.embeddings[t].map((v) => v.toFixed(2)).join(', ');
-    const q = result.Q[t].map((v) => v.toFixed(2)).join(', ');
-    const k = result.K[t].map((v) => v.toFixed(2)).join(', ');
-    const v = result.V[t].map((v) => v.toFixed(2)).join(', ');
-    return `
-      <div class="qkv-row">
-        <span class="vec-token" style="color:${result.tokenColors[i]}">"${t}"</span>
-        <span class="qkv-eq">x=[${x}]</span>
-        <span class="qkv-eq">q=[${q}]</span>
-        <span class="qkv-eq">k=[${k}]</span>
-        <span class="qkv-eq">v=[${v}]</span>
-      </div>`;
-  }).join('');
-  container.innerHTML = `<div class="qkv-list">${rows}</div>
-    <div class="anim-controls"><button class="anim-btn" type="button" data-role="step">step through per-token multiply-sum &#9654;</button></div>
-    <div class="formula-worked" data-role="worked"></div>`;
-
-  // Step control cycles which token's row is highlighted, to focus attention on one
-  // multiply-then-sum at a time rather than showing all three at once. The formula-worked
-  // line always mirrors whichever token is currently highlighted, so the abstract formula in
-  // this step's .formula block has a live, real-number companion to trace against.
-  const btn = container.querySelector('[data-role="step"]');
-  const worked = container.querySelector('[data-role="worked"]');
-  const rowsEls = Array.from(container.querySelectorAll('.qkv-row'));
-  const fmt = (arr) => `[${arr.map((v) => v.toFixed(2)).join(', ')}]`;
-  const showWorked = (i) => {
-    const t = result.tokens[i];
-    worked.textContent = `q_"${t}" = x_"${t}" · W_Q = ${fmt(result.embeddings[t])} · W_Q = ${fmt(result.Q[t])}`;
-  };
-  let idx = 0;
-  showWorked(idx);
-  btn.addEventListener('click', () => {
-    rowsEls.forEach((r) => r.classList.remove('is-active'));
-    idx = (idx + 1) % rowsEls.length;
-    rowsEls[idx].classList.add('is-active');
-    showWorked(idx);
-  });
-}
-
-function buildHeatGrid(matrix, tokens, opts = {}) {
-  const { minOpacity = 0.15, maxOpacity = 0.8, formatter = (v) => v.toFixed(2), maskedCells = () => false } = opts;
-  const flat = matrix.flat();
-  const min = Math.min(...flat);
-  const max = Math.max(...flat);
-  const range = max - min || 1;
-  let cells = '';
-  matrix.forEach((row, i) => {
-    row.forEach((v, j) => {
-      if (maskedCells(i, j)) {
-        cells += `<div class="heat-cell masked" data-row="${i}" data-col="${j}">&minus;&infin;</div>`;
-        return;
-      }
-      const t = (v - min) / range;
-      const opacity = (minOpacity + t * (maxOpacity - minOpacity)).toFixed(2);
-      cells += `<div class="heat-cell" data-row="${i}" data-col="${j}" style="background:rgba(var(--accent-rgb), ${opacity})">${formatter(v)}</div>`;
-    });
-  });
-  return `<div class="heat-grid">${cells}</div>`;
+  const t0 = result.tokens[0];
+  const wqRow0 = WEIGHTS.WQ[0];
+  const stage1 = stageCard(
+    '01: STORAGE',
+    'The full data at rest',
+    `Every token's embedding gets multiplied by three learned weight matrices, producing a query, a key, and a value vector. Below is the embedding for &quot;${t0}&quot; and the query vector it produces: the full output of this step, for one token.`,
+    `<div><div class="heatbar-block-title">x &quot;${t0}&quot; (input)</div><div class="heatbar-list">${heatBarList(result.embeddings[t0])}</div></div>
+     <div><div class="heatbar-block-title">q &quot;${t0}&quot; (output)</div><div class="heatbar-list">${heatBarList(result.Q[t0])}</div></div>`,
+    `1 embedding in, 1 query vector out, per token`
+  );
+  const stage2 = stageCard(
+    '02: SLICE',
+    'Focus on one output number',
+    `We're computing just one number: the first entry of the query vector, <code>q&#8320;</code> = ${result.Q[t0][0].toFixed(2)}. Producing it only needs the embedding on the left and one row of the weight matrix W_Q on the right, specifically the row responsible for output dimension 0.`,
+    `<div><div class="heatbar-block-title">x &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.embeddings[t0])}</div></div>
+     <div><div class="heatbar-block-title">W_Q, row 0 only</div><div class="heatbar-list">${heatBarList(wqRow0)}</div></div>`,
+    `every other row of W_Q would produce a different output dimension (q&#8321;, q&#8322;, q&#8323;) and plays no part in this one`
+  );
+  const stage3 = stageCard(
+    '03: TRANSFORM',
+    'Multiply position by position, then sum',
+    `Pair up <code>x</code> and the row of W_Q from stage 2 by position, multiply each pair, then add all ${result.d} products together. That sum <b>is</b> q&#8320;, and nothing more happens to it.`,
+    multBreakdown(result.embeddings[t0], wqRow0, 'q₀', result.Q[t0][0].toFixed(2))
+  );
+  const stage4 = stageCard(
+    '04: CONCEPT',
+    'Three separate projections',
+    null,
+    `<p class="concept-box">A raw embedding conflates everything about a token into one vector. Attention needs three different views of it: a <b>query</b> (&quot;what am I looking for&quot;), a <b>key</b> (&quot;what do I offer&quot;), and a <b>value</b> (&quot;what I actually contribute if chosen&quot;). If Q and K shared a weight matrix, every token's query would equal its own key, and every token would trivially attend most to itself. Separate, independently learned projections let a token's query and key diverge, which is what lets it end up attending to a <i style="font-style:normal">different</i> token when that's more useful.</p>`
+  );
+  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 }
 
 function renderScores(container, stepId, result) {
-  const grid = buildHeatGrid(result.scores, result.tokens);
-  const legend = result.tokens.map((t, i) => `<span style="color:${result.tokenColors[i]}">"${t}"</span>`).join(', ');
   const t0 = result.tokens[0];
-  const worked = `score_"${t0}","${t0}" = q_"${t0}" &middot; k_"${t0}" = ${result.scores[0][0].toFixed(2)}`;
-  container.innerHTML = `
-    <div class="heat-block">
-      ${grid}
-      <div class="heat-meta">rows = query token, columns = key token<br>tokens: ${legend}<br>score[i,j] = q&#8571; &middot; k&#8571;</div>
-    </div>
-    <div class="formula-worked">${worked}</div>`;
+  const stage1 = stageCard(
+    '01: STORAGE',
+    'Every query, every key',
+    `The previous step already produced a query vector and a key vector for <b>every</b> token, not just &quot;${t0}&quot;. <code>Q</code> below stacks all ${result.tokens.length} query vectors, one row per token; <code>K</code> stacks all ${result.tokens.length} key vectors the same way.`,
+    `<div><div class="heatbar-block-title">Q: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.Q[t]), { hiRow: 0, rowLabels: result.tokens })}</div>
+     <div><div class="heatbar-block-title">K: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.K[t]), { hiRow: 0, rowLabels: result.tokens })}</div>`,
+    `${result.tokens.length} queries &times; ${result.tokens.length} keys = ${result.tokens.length * result.tokens.length} comparisons still to come`
+  );
+  const stage2 = stageCard(
+    '02: SLICE',
+    'One query, one key',
+    `To fill in exactly one cell of the score grid, where query &quot;${t0}&quot; meets key &quot;${t0}&quot;, row 0 column 0, we only need <b>one</b> row from Q and <b>one</b> row from K, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
+    `<div><div class="heatbar-block-title">q &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.Q[t0])}</div></div>
+     <div><div class="heatbar-block-title">k &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.K[t0])}</div></div>`,
+    `this pair lands in score grid cell [0,0]`
+  );
+  const stage3 = stageCard(
+    '03: TRANSFORM',
+    'Multiply position by position, then sum',
+    `Same operation as the projection step's transform stage, just applied to two vectors that both came from projections. This total is called a <b>dot product</b>, the standard way to measure how aligned two vectors are.`,
+    multBreakdown(result.Q[t0], result.K[t0], 'score', result.scores[0][0].toFixed(2))
+  );
+  const stage4 = stageCard(
+    '04: CONCEPT',
+    'A dot product measures match',
+    null,
+    `<p class="concept-box">A large dot product means q and k point in a similar direction: loosely, &quot;what this token is looking for&quot; closely matches &quot;what that token offers.&quot; Every cell of the grid below is the result of this exact same multiply-then-sum, just for a different query/key pair. The highlighted cell is the one you just watched get computed; the other ${result.tokens.length * result.tokens.length - 1} were produced by repeating stages 2-3 for every other pairing.</p>
+     ${heatMatrixGrid(result.scores, { hiCell: [0, 0], rowLabels: result.tokens })}`
+  );
+  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 }
 
 function renderScale(container, stepId, result) {
-  const beforeGrid = buildHeatGrid(result.scores, result.tokens, { minOpacity: 0.1, maxOpacity: 0.5 });
-  const afterGrid = buildHeatGrid(result.scaled, result.tokens, { minOpacity: 0.15, maxOpacity: 0.8 });
   const t0 = result.tokens[0];
-  const worked = `scaled_"${t0}","${t0}" = ${result.scores[0][0].toFixed(2)} / &radic;${result.d} = ${result.scaled[0][0].toFixed(2)}`;
-  container.innerHTML = `
-    <div class="heat-block scale-compare">
-      <div><div class="heat-caption">before (&divide;1)</div>${beforeGrid}</div>
-      <div class="scale-arrow">&divide;&radic;${result.d} &rarr;</div>
-      <div><div class="heat-caption">after (&divide;&radic;${result.d})</div>${afterGrid}</div>
-    </div>
-    <div class="formula-worked">${worked}</div>`;
+  const before = result.scores[0][0];
+  const after = result.scaled[0][0];
+  const stage1 = stageCard(
+    '01: STORAGE',
+    'The full score matrix, before and after',
+    `Every score computed in the previous step divides by &radic;${result.d}. Below is the whole grid on both sides of that division.`,
+    `<div><div class="heatbar-block-title">before</div>${heatMatrixGrid(result.scores, { rowLabels: result.tokens })}</div>
+     <div><div class="heatbar-block-title">after &divide; &radic;${result.d}</div>${heatMatrixGrid(result.scaled, { rowLabels: result.tokens })}</div>`,
+    `same shape in, same shape out; every cell just gets smaller`
+  );
+  const stage2 = stageCard(
+    '02: SLICE',
+    'One cell, before and after',
+    `Focus on the cell where query &quot;${t0}&quot; meets key &quot;${t0}&quot;. Before scaling it was ${before.toFixed(2)}; every other cell scales the exact same way, independently.`,
+    `<div class="sum-result" style="margin-bottom:10px">before: ${before.toFixed(3)}</div>`,
+    `this is score grid cell [0,0], the same cell used in the previous step's worked example`
+  );
+  const stage3 = stageCard(
+    '03: TRANSFORM',
+    'Divide by &radic;d',
+    `d = ${result.d} here, so &radic;d = ${Math.sqrt(result.d).toFixed(2)}. Divide the cell's value by that number.`,
+    `<div class="mult-row"><span class="mult-chip" style="color:var(--accent-link)">${before.toFixed(3)}</span><span class="mult-eq">&divide;</span><span class="mult-chip" style="color:#ffd97a">${Math.sqrt(result.d).toFixed(2)}</span><span class="mult-eq">=</span><span class="mult-prod">${after.toFixed(3)}</span></div>
+     <div class="sum-arrow">&nbsp;</div>
+     <div class="sum-result">scaled = ${after.toFixed(2)}</div>`
+  );
+  const stage4 = stageCard(
+    '04: CONCEPT',
+    'Divide by &radic;d',
+    null,
+    `<p class="concept-box">Dot-product magnitude grows with the number of dimensions being summed, d. If Q and K entries have roughly unit variance, the dot product's own variance grows proportional to d, so its standard deviation grows with &radic;d. Dividing by &radic;d is exactly what keeps a score's scale roughly constant no matter how large d is chosen to be; without it, larger d would make every softmax in the next steps saturate toward a near one-hot output, with vanishing gradients almost everywhere else.</p>`
+  );
+  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 }
 
 function renderMask(container, stepId, result) {
-  const isMasked = (i, j) => result.causal && j > i;
-  const grid = buildHeatGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), result.tokens, { maskedCells: isMasked });
-  // The formula-worked line has no separate .formula block to pair with (this step's rule is a
-  // conditional, not a single equation), so it stands alone as the numeric instantiation of the
-  // masking rule itself: which specific cell gets masked and why, or a clear statement that
-  // nothing is masked yet.
-  const worked = result.causal
-    ? (() => {
-        const t0 = result.tokens[0];
-        const t1 = result.tokens[1];
-        return `score_"${t0}","${t1}" &rarr; &minus;&infin; (masked: j=1 &gt; i=0)`;
-      })()
-    : 'causal mask is off: no cells masked, every token can see every other token';
-  container.innerHTML = `
-    <div class="heat-block">
-      ${grid}
-      <div class="heat-meta">
-        <label class="mask-toggle"><input type="checkbox" data-role="causal-toggle" ${result.causal ? 'checked' : ''}> causal mask (each token can only see itself and earlier tokens)</label>
-      </div>
-    </div>
-    <div class="formula-worked">${worked}</div>`;
+  const t0 = result.tokens[0];
+  const t1 = result.tokens.length > 1 ? result.tokens[1] : t0;
+  const cellValue = result.scaled[0][Math.min(1, result.tokens.length - 1)];
+  const toggleHtml = `<label class="mask-toggle"><input type="checkbox" data-role="causal-toggle" ${result.causal ? 'checked' : ''}> causal mask on (each token can only see itself and earlier tokens)</label>`;
+  const stage1 = stageCard(
+    '01: STORAGE',
+    'The full scaled score matrix',
+    `With the toggle above set to <b>${result.causal ? 'on' : 'off'}</b>, this is the current state of every score after scaling.`,
+    heatMatrixGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), {
+      rowLabels: result.tokens,
+      maskedCells: (i, j) => result.causal && j > i,
+    }),
+    `toggle above changes this grid live`
+  );
+  const stage2 = stageCard(
+    '02: SLICE',
+    'One future position',
+    `Focus on the cell where query &quot;${t0}&quot; meets key &quot;${t1}&quot;, where column index 1 is greater than row index 0, so under a causal mask this key comes <b>after</b> this query in the sequence.`,
+    `<div class="sum-result" style="margin-bottom:10px">scaled value here: ${cellValue.toFixed(2)}</div>`,
+    `j=1 &gt; i=0, so this cell is a future position relative to the query`
+  );
+  const stage3 = stageCard(
+    '03: TRANSFORM',
+    'If masked, force it to &minus;&infin;',
+    `The rule is a simple condition, not a formula: for every cell where the key's position (j) is later than the query's position (i), replace the scaled value with negative infinity before softmax runs. Every other cell is left untouched.`,
+    `<div class="mult-row"><span class="mult-dimlabel">rule</span><span class="mult-chip" style="color:var(--accent-link)">j &gt; i ?</span><span class="mult-eq">&rarr;</span><span class="mult-prod">&minus;&infin;</span></div>
+     <div class="mult-row"><span class="mult-dimlabel">else</span><span class="mult-chip" style="color:var(--accent-link)">j &le; i ?</span><span class="mult-eq">&rarr;</span><span class="mult-prod">unchanged</span></div>`
+  );
+  const stage4 = stageCard(
+    '04: CONCEPT',
+    '&minus;&infin;, not 0',
+    null,
+    `<p class="concept-box">Every step so far treats tokens symmetrically: any token can see any other, past or future. That's fine for encoding a complete sentence, wrong for predicting the next token, since letting a model see the answer it's predicting makes training meaningless. e<sup>0</sup> = 1, so a masked score of literal 0 would still receive real, nonzero attention weight after softmax, the same as any other position scoring 0. e<sup>&minus;&infin;</sup> = 0 exactly: the only value guaranteed to zero out a position's contribution regardless of what the other scores in its row happen to be.</p>`
+  );
+  container.innerHTML = toggleHtml + filmstrip([stage1, stage2, stage3, stage4]);
   const toggle = container.querySelector('[data-role="causal-toggle"]');
   toggle.addEventListener('change', () => {
     window.attentionSetCausal(toggle.checked);
@@ -136,22 +290,43 @@ function renderMask(container, stepId, result) {
 }
 
 function renderSoftmax(container, stepId, result) {
-  const grid = buildHeatGrid(result.weights, result.tokens, { minOpacity: 0.15, maxOpacity: 0.85 });
-  const bars = result.tokens.map((ti, i) => {
-    const segs = result.tokens.map((tj, j) => {
-      const pct = (result.weights[i][j] * 100).toFixed(1);
-      return `<span class="softmax-seg" style="width:${pct}%; background:${result.tokenColors[j]}" title="${tj}: ${pct}%"></span>`;
-    }).join('');
-    return `<div class="softmax-bar-row"><span class="vec-token" style="color:${result.tokenColors[i]}">"${ti}"</span><div class="softmax-bar">${segs}</div></div>`;
-  }).join('');
   const t0 = result.tokens[0];
   const row0 = result.masked[0].filter((v) => v > -1e8);
-  const expSum = row0.reduce((sum, v) => sum + Math.exp(v), 0);
-  const worked = `weight_"${t0}","${t0}" = e<sup>${row0[0].toFixed(2)}</sup> / ${expSum.toFixed(2)} = ${result.weights[0][0].toFixed(2)}`;
-  container.innerHTML = `
-    <div class="heat-block">${grid}<div class="heat-meta">each row sums to 1.00: the actual attention weights</div></div>
-    <div class="softmax-bars">${bars}</div>
-    <div class="formula-worked">${worked}</div>`;
+  const rowTokens = result.tokens.filter((_, j) => result.masked[0][j] > -1e8);
+  const exps = row0.map((v) => Math.exp(v));
+  const expSum = exps.reduce((a, b) => a + b, 0);
+  const stage1 = stageCard(
+    '01: STORAGE',
+    'The full scaled (and possibly masked) matrix',
+    `Softmax runs on whatever this matrix looks like after scaling and masking, the same numbers the previous two steps produced.`,
+    heatMatrixGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), {
+      rowLabels: result.tokens,
+      hiRow: 0,
+      maskedCells: (i, j) => result.causal && j > i,
+    }),
+    `softmax processes one full row at a time, never a single cell`
+  );
+  const stage2 = stageCard(
+    '02: SLICE',
+    'One full row',
+    `Unlike the previous steps, softmax can't be sliced down to a single cell: normalizing means every value in a row depends on every other value in that same row. So the smallest meaningful slice is the whole row for query &quot;${t0}&quot;.`,
+    `<div class="heatbar-block-title">scaled row for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(row0, { labels: rowTokens })}</div>`,
+    `${row0.length} value${row0.length === 1 ? '' : 's'} in this row (masked cells are excluded, they're already headed to 0)`
+  );
+  const expRows = row0.map((v, i) => `<div class="mult-row"><span class="mult-dimlabel">${rowTokens[i]}</span><span class="mult-chip" style="color:var(--accent-link)">${v.toFixed(2)}</span><span class="mult-eq">&rarr; e^</span><span class="mult-prod">${exps[i].toFixed(2)}</span></div>`).join('');
+  const stage3 = stageCard(
+    '03: TRANSFORM',
+    'Exponentiate, then normalize',
+    `Two steps, not one: first exponentiate every value in the row, which makes everything positive and stretches the gaps between them. Then divide each exponentiated value by their sum, so the row adds up to exactly 1.00.`,
+    `${expRows}<div class="sum-arrow">&darr; divide each by the sum (${expSum.toFixed(2)})</div><div class="sum-result">weight for &quot;${t0}&quot; &rarr; &quot;${t0}&quot; = ${result.weights[0][0].toFixed(2)}</div>`
+  );
+  const stage4 = stageCard(
+    '04: CONCEPT',
+    'Exponentiate before normalizing',
+    null,
+    `<p class="concept-box">The exponential is what makes softmax amplify differences: a score only slightly larger than its neighbors can end up with a much larger share of the final weight, once the gap has been stretched by exponentiating. This is part of why the Scale step mattered earlier: unscaled scores would make softmax nearly one-hot almost everywhere, leaving no useful gradient for training to work with.</p>`
+  );
+  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 }
 
 const STEP_RENDERERS = {

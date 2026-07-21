@@ -86,51 +86,68 @@
   margin: 16px 0;
 }
 
-/* --- heat-grid (shared by scores / scale / mask / softmax scenes) --- */
-.ui.attention .heat-block { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
-.ui.attention .heat-meta { font-size: 12.5px; color: var(--text-body); line-height: 1.7; }
-.ui.attention .heat-caption { font: 600 9px/1.3 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
-.ui.attention .scale-compare { align-items: center; }
-.ui.attention .scale-arrow { font: 600 13px/1 var(--font-mono); color: var(--accent-link); }
-.ui.attention .heat-grid { display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); gap: 4px; }
-.ui.attention .heat-cell {
+/* --- filmstrip: the shared storage/slice/transform/concept stage pattern, used by every
+   step except Output (still a placeholder) and Weighted sum (not yet built). Two columns by
+   default: the article content column (~950px) isn't wide enough for four comfortably. --- */
+.ui.attention .filmstrip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
+@media (max-width: 680px) { .ui.attention .filmstrip { grid-template-columns: minmax(0, 1fr); } }
+.ui.attention .stage {
+  min-width: 0; background: #08080a; border: 1px solid var(--hairline); border-radius: var(--radius-lg);
+  padding: 18px; display: flex; flex-direction: column; position: relative;
+}
+.ui.attention .stage-n { font: 700 10px/1 var(--font-mono); color: var(--accent-link); letter-spacing: .05em; margin-bottom: 4px; }
+.ui.attention .stage-title { font: 700 14px/1.3 var(--font-sans); color: var(--text); margin-bottom: 10px; }
+.ui.attention .stage-prose { font: 400 12.5px/1.65 var(--font-sans); color: var(--text-body); margin: 0 0 14px; }
+.ui.attention .stage-prose b { color: var(--text-2); font-weight: 600; }
+.ui.attention .stage-prose code { font: 600 11.5px/1 var(--font-mono); color: var(--accent-link); background: var(--surface); padding: 1px 4px; border-radius: 3px; }
+.ui.attention .stage-body { min-width: 0; flex: 1; display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
+.ui.attention .stage-note { font: 500 11px/1.5 var(--font-mono); color: var(--text-muted); margin-top: 12px; }
+
+/* --- heat-bar list: the vector primitive (magnitude via color + fill length, 0-1 within
+   this vector's own max) --- */
+.ui.attention .heatbar-block-title { font: 600 9px/1.3 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+.ui.attention .heatbar-list { display: flex; flex-direction: column; gap: 7px; }
+.ui.attention .heatbar-row { display: grid; grid-template-columns: minmax(24px, auto) 1fr 44px; align-items: center; gap: 10px; }
+.ui.attention .heatbar-row.dim { opacity: .35; }
+.ui.attention .heatbar-label { font: 700 10.5px/1 var(--font-mono); color: var(--text-muted); }
+.ui.attention .heatbar-track { position: relative; height: 15px; border-radius: 3px; background: var(--surface); border: 1px solid var(--hairline); overflow: hidden; }
+.ui.attention .heatbar-fill { position: absolute; inset: 0; border-radius: 2px; transition: width 300ms var(--ease-out), background 300ms var(--ease-out); }
+.ui.attention .heatbar-val { font: 600 10.5px/1 var(--font-mono); color: var(--text-2); text-align: right; }
+
+/* --- heat-colored matrix grid: the matrix primitive, same heat scale as the bars --- */
+.ui.attention .mgrid-wrap { display: flex; gap: 6px; }
+.ui.attention .mgrid-rowlabels { display: flex; flex-direction: column; justify-content: space-around; padding: 1px 0; }
+.ui.attention .mgrid-rowlabel { font: 700 9px/1 var(--font-mono); height: 26px; display: flex; align-items: center; }
+.ui.attention .mgrid { display: grid; gap: 2px; }
+.ui.attention .mgrid.g4x4 { grid-template-columns: repeat(4, 24px); grid-template-rows: repeat(4, 24px); }
+.ui.attention .mgrid.g3x4 { grid-template-columns: repeat(4, 28px); grid-template-rows: repeat(3, 28px); }
+.ui.attention .mgrid.g3x3 { grid-template-columns: repeat(3, 28px); grid-template-rows: repeat(3, 28px); }
+.ui.attention .mcell {
   display: flex; align-items: center; justify-content: center;
-  font: 600 12px/1.3 var(--font-mono); border-radius: 4px; color: #fff;
-  transition: background 300ms var(--ease-out), opacity 300ms var(--ease-out);
+  font: 600 8px/1 var(--font-mono); color: #fff; border-radius: 2px;
+  transition: box-shadow 200ms var(--ease-out), background 300ms var(--ease-out);
 }
-.ui.attention .heat-cell.masked { background: var(--surface) !important; color: var(--text-muted); }
-.ui.attention .anim-controls { display: flex; gap: 8px; margin-top: 14px; align-items: center; }
-.ui.attention .anim-btn {
-  font: 600 11px/1 var(--font-mono); color: var(--text-2);
-  border: 1px solid var(--hairline); background: transparent;
-  border-radius: var(--radius-sm); padding: 6px 10px; cursor: pointer;
-}
-.ui.attention .anim-btn:hover { border-color: var(--accent-link); color: var(--accent-link); }
-.ui.attention .anim-scrub { flex: 1; }
+.ui.attention .mcell.hi { box-shadow: 0 0 0 1.5px var(--accent-link); }
+.ui.attention .mcell.dim { opacity: .3; }
+.ui.attention .mcell.masked { background: var(--surface) !important; color: var(--text-muted); }
 
-/* --- input & qkv scenes --- */
-.ui.attention .vec-list, .ui.attention .qkv-list { display: flex; flex-direction: column; gap: 8px; }
-.ui.attention .vec-row, .ui.attention .qkv-row {
-  display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
-  font: 500 12.5px/1.6 var(--font-mono); color: var(--text-body);
-  padding: 4px 6px; border-radius: var(--radius-sm); transition: background 200ms var(--ease-out);
-}
-.ui.attention .qkv-row.is-active { background: var(--accent-muted); }
-.ui.attention .vec-token { font-weight: 700; min-width: 44px; }
-.ui.attention .vec-values, .ui.attention .qkv-eq { color: var(--text-2); }
-.ui.attention .formula-worked {
-  font: 500 12px/1.6 var(--font-mono); color: var(--accent-link);
-  background: var(--accent-muted); border-radius: var(--radius-sm);
-  padding: 8px 12px; margin-top: 12px; word-break: break-word;
-}
+/* --- multiply/sum transform breakdown --- */
+.ui.attention .mult-list { display: flex; flex-direction: column; gap: 7px; }
+.ui.attention .mult-row { display: flex; align-items: center; gap: 6px; font: 600 11px/1 var(--font-mono); }
+.ui.attention .mult-chip { padding: 4px 7px; border-radius: 4px; background: var(--surface); border: 1px solid var(--hairline); font: 600 11px/1 var(--font-mono); min-width: 40px; text-align: center; }
+.ui.attention .mult-eq { color: var(--text-muted); font-size: 12px; }
+.ui.attention .mult-prod { color: var(--text-2); font-weight: 700; min-width: 46px; }
+.ui.attention .mult-dimlabel { font: 600 9px/1 var(--font-mono); color: var(--text-muted); width: 26px; }
+.ui.attention .sum-arrow { font: 700 13px/1 var(--font-mono); color: var(--text-muted); margin: 6px 0; text-align: center; }
+.ui.attention .sum-result { font: 700 15px/1 var(--font-mono); color: var(--accent-link); background: var(--accent-muted); padding: 9px 14px; border-radius: var(--radius-sm); text-align: center; }
 
-.ui.attention .mask-toggle { display: flex; align-items: center; gap: 8px; font: 500 12.5px/1.5 var(--font-sans); color: var(--text-body); cursor: pointer; }
-.ui.attention .softmax-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
-.ui.attention .softmax-bar-row { display: flex; align-items: center; gap: 12px; }
-.ui.attention .softmax-bar { flex: 1; height: 18px; border-radius: var(--radius-sm); overflow: hidden; display: flex; background: var(--surface); }
-.ui.attention .softmax-seg { display: block; height: 100%; opacity: .85; }
+.ui.attention .concept-box { font: 400 12.5px/1.65 var(--font-sans); color: var(--text-body); margin: 0; }
+.ui.attention .concept-box b { color: var(--text-2); font-weight: 600; }
+
+.ui.attention .mask-toggle { display: flex; align-items: center; gap: 8px; font: 500 12.5px/1.5 var(--font-sans); color: var(--text-body); cursor: pointer; margin-bottom: 16px; }
 
 @media (max-width: 640px) {
-  .ui.attention .heat-grid { grid-template-columns: repeat(3, 30px); grid-template-rows: repeat(3, 30px); }
-  .ui.attention .heat-cell { font-size: 10px; }
+  .ui.attention .mgrid.g4x4 { grid-template-columns: repeat(4, 20px); grid-template-rows: repeat(4, 20px); }
+  .ui.attention .mgrid.g3x4 { grid-template-columns: repeat(4, 22px); grid-template-rows: repeat(3, 22px); }
+  .ui.attention .mgrid.g3x3 { grid-template-columns: repeat(3, 22px); grid-template-rows: repeat(3, 22px); }
 }
