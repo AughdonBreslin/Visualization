@@ -164,10 +164,19 @@
 .ui.attention .stage.stage-wide { flex-basis: 100%; }
 @media (max-width: 680px) { .ui.attention .stage { flex-basis: 100%; } }
 
-/* --- QKV storage: X -> Q/K/V, all as full matrices, wrapping to stacked on narrow widths --- */
-.ui.attention .qkv-storage-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-.ui.attention .qkv-storage-outputs { display: flex; gap: 18px; flex-wrap: wrap; }
-.ui.attention .qkv-storage-arrow { flex: none; font-size: 20px; color: var(--text-muted); }
+/* --- QKV storage: X fans out into W_Q/W_K/W_V, all as full matrices, wrapping to stacked on
+   narrow widths --- */
+.ui.attention .qkv-storage-row { display: flex; align-items: stretch; gap: 4px; flex-wrap: wrap; }
+.ui.attention .qkv-storage-block { display: flex; flex-direction: column; justify-content: center; }
+.ui.attention .qkv-storage-outputs { display: flex; flex-direction: column; gap: 14px; justify-content: space-between; }
+.ui.attention .qkv-fanout { flex: 0 0 70px; width: 70px; min-height: 160px; align-self: stretch; }
+@media (max-width: 560px) {
+  /* The fan-out's geometry assumes X and the W-column sit side by side; once there's no room
+     for that, drop the connector and stack the two sections cleanly instead of letting them
+     squeeze into a too-narrow row and overlap. */
+  .ui.attention .qkv-fanout { display: none; }
+  .ui.attention .qkv-storage-row { flex-direction: column; }
+}
 
 /* --- heat-bar list: the vector primitive (magnitude via color + fill length, 0-1 within
    this vector's own max) --- */

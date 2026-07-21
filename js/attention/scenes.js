@@ -158,6 +158,22 @@ function renderInput(container, stepId, result) {
   container.innerHTML = filmstrip([stage1, stage2]);
 }
 
+// X fans out into three independent multiplications at once: one line in, three lines out,
+// landing on W_Q/W_K/W_V stacked to the right. Scales up the same one-box-three-lines motif
+// already used for this step's own hero glyph (js/attention/glyphs.js's svgQkv), just with real
+// matrices instead of abstract dots. Lines only, no text or circles: preserveAspectRatio="none"
+// (needed so this stretches to match the W-column's real, dynamic height) distorts any glyph or
+// curve into a visibly skewed shape, but a straight line under non-uniform scaling is still a
+// straight line, just at a different angle - so it's the one shape that tolerates this cleanly.
+function qkvFanoutSVG() {
+  return `<svg class="qkv-fanout" viewBox="0 0 70 220" preserveAspectRatio="none">
+    <line x1="0" y1="110" x2="16" y2="110" stroke="var(--hairline-strong)" stroke-width="2"/>
+    <line x1="16" y1="110" x2="54" y2="24" stroke="var(--hairline-strong)" stroke-width="1.6"/>
+    <line x1="16" y1="110" x2="54" y2="110" stroke="var(--hairline-strong)" stroke-width="1.6"/>
+    <line x1="16" y1="110" x2="54" y2="196" stroke="var(--hairline-strong)" stroke-width="1.6"/>
+  </svg>`;
+}
+
 function renderQkv(container, stepId, result) {
   const t0 = result.tokens[0];
   const wqRow0 = WEIGHTS.WQ[0];
@@ -165,16 +181,17 @@ function renderQkv(container, stepId, result) {
   const stage1 = stageCard(
     '01: STORAGE',
     'The full data at rest',
-    `Every token's embedding gets multiplied by three learned weight matrices, producing a query, a key, and a value vector for each one. <code>X</code> below stacks all ${result.tokens.length} embeddings, one row per token. <code>W_Q</code>, <code>W_K</code>, and <code>W_V</code> are the three matrices that do the multiplying: each is a single ${result.d}&times;${result.d} matrix, the same one for every token in every sentence, nothing here looked up per word the way <code>E</code> is.`,
+    `<code>X</code> below stacks all ${result.tokens.length} embeddings, one row per token. The three matrices on the right are the actual <code>W_Q</code>, <code>W_K</code>, and <code>W_V</code> this model learned: <code>X</code> gets multiplied by each of them independently, producing a query, a key, and a value.`,
     `<div class="qkv-storage-row">
        <div class="qkv-storage-block"><div class="heatbar-block-title">X: one row per token</div>${heatMatrixGrid(xMatrix, { rowLabels: result.tokens })}</div>
+       ${qkvFanoutSVG()}
        <div class="qkv-storage-outputs">
          <div class="qkv-storage-block"><div class="heatbar-block-title">W_Q</div>${heatMatrixGrid(WEIGHTS.WQ)}</div>
          <div class="qkv-storage-block"><div class="heatbar-block-title">W_K</div>${heatMatrixGrid(WEIGHTS.WK)}</div>
          <div class="qkv-storage-block"><div class="heatbar-block-title">W_V</div>${heatMatrixGrid(WEIGHTS.WV)}</div>
        </div>
      </div>`,
-    `${result.tokens.length} embeddings, plus the 3 weight matrices every one of them will be multiplied by`,
+    `one shared X, three independent multiplications`,
     'stage-wide'
   );
   const stage2 = stageCard(
