@@ -178,6 +178,9 @@ function renderQkv(container, stepId, result) {
   const t0 = result.tokens[0];
   const wqRow0 = WEIGHTS.WQ[0];
   const xMatrix = result.tokens.map((t) => result.embeddings[t]);
+  const qMatrix = result.tokens.map((t) => result.Q[t]);
+  const kMatrix = result.tokens.map((t) => result.K[t]);
+  const vMatrix = result.tokens.map((t) => result.V[t]);
   const stage1 = stageCard(
     '01: STORAGE',
     'The full data at rest',
@@ -196,21 +199,26 @@ function renderQkv(container, stepId, result) {
   const stage2 = stageCard(
     '02: SLICE',
     'One token, three projections',
-    `Take one token's embedding, <code>x &quot;${t0}&quot;</code>, and multiply it by all three matrices at once: <code>x &middot; W_Q</code> gives its query, <code>x &middot; W_K</code> gives its key, <code>x &middot; W_V</code> gives its value. All three happen independently and in parallel off the same input vector: producing the key doesn't need the query first, and neither one is looked up inside the other's matrix. The actual comparison between tokens happens later, in the next step, when every query is measured against every key.`,
-    `<div class="heatbar-block-row">
-       ${labeledVecBlock(`x &quot;${t0}&quot;`, result.embeddings[t0])}
+    `Take one token's embedding, <code>x &quot;${t0}&quot;</code>, and multiply it by all three matrices at once: <code>x &middot; W_Q</code> gives its query, <code>x &middot; W_K</code> gives its key, <code>x &middot; W_V</code> gives its value, all independently and in parallel off the same input vector. Each multiply reshapes the embedding into a role-specific view: <code>q &quot;${t0}&quot;</code> is what this token is asking for, <code>k &quot;${t0}&quot;</code> is what it offers when another token asks, and <code>v &quot;${t0}&quot;</code> is what it actually hands over once chosen.`,
+    `<div class="formula">$$ q_i = x_i W_Q, \\quad k_i = x_i W_K, \\quad v_i = x_i W_V $$</div>
+     <div class="heatbar-block-row">
        ${labeledVecBlock(`q &quot;${t0}&quot;`, result.Q[t0])}
        ${labeledVecBlock(`k &quot;${t0}&quot;`, result.K[t0])}
        ${labeledVecBlock(`v &quot;${t0}&quot;`, result.V[t0])}
-     </div>
-     <div class="formula">$$ q_i = x_i W_Q, \\quad k_i = x_i W_K, \\quad v_i = x_i W_V $$</div>`,
+     </div>`,
     `one input vector, three separate matrix multiplies, three separate outputs`
   );
   const stage3 = stageCard(
     '03: TRANSFORM',
     'Multiply position by position, then sum',
-    `Zoom into exactly one entry of the query vector from stage 2: <code>q&#8320;</code>, the first number in <code>q &quot;${t0}&quot;</code>. Pair up <code>x</code> with the row of W_Q responsible for that output position, multiply each pair, then add all ${result.d} products together. That sum <b>is</b> q&#8320;, and nothing more happens to it.`,
-    multBreakdown(result.embeddings[t0], wqRow0, 'q₀', result.Q[t0][0].toFixed(2))
+    `This is exactly how one number of the query vector gets computed: <code>q&#8320;</code>, the first entry of <code>q &quot;${t0}&quot;</code> from stage 2. Pair up <code>x</code> with the row of W_Q responsible for that output position, multiply each pair, then add all ${result.d} products together. That sum <b>is</b> q&#8320;: one coordinate of &quot;${t0}&quot;'s query, produced the same way as every other number in Q, K, and V.`,
+    `${multBreakdown(result.embeddings[t0], wqRow0, 'q₀', result.Q[t0][0].toFixed(2))}
+     <div class="heatbar-block-title" style="margin-top:8px">applied at scale: Q, K, V</div>
+     <div class="qkv-storage-outputs">
+       <div class="qkv-storage-block"><div class="heatbar-block-title">Q</div>${heatMatrixGrid(qMatrix, { rowLabels: result.tokens })}</div>
+       <div class="qkv-storage-block"><div class="heatbar-block-title">K</div>${heatMatrixGrid(kMatrix, { rowLabels: result.tokens })}</div>
+       <div class="qkv-storage-block"><div class="heatbar-block-title">V</div>${heatMatrixGrid(vMatrix, { rowLabels: result.tokens })}</div>
+     </div>`
   );
   const stage4 = stageCard(
     '04: CONCEPT',
