@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Attention</title>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../styles/system.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/article-ui.css">
+  <link rel="stylesheet" href="../styles/attention.css">
+  <link rel="stylesheet" href="../styles/section-outline.css">
+  <script src="../js/theme.js"></script>
+  <script type="module" src="../js/attention/main.js"></script>
+  <script defer src="../js/favicon.js"></script>
+  <script type="module" src="../js/section-outline.js"></script>
+</head>
+<body class="ui attention has-section-outline">
+  <div class="container">
+    <header class="page-head">
+      <div class="eyebrow">// Machine learning</div>
+      <h1>Attention</h1>
+      <p class="lede">Single-head scaled dot-product attention, worked end to end: click any step in the pipeline below, or just scroll, to see exactly what happens to the numbers at that stage.</p>
+      <div class="preset-picker" id="presetPicker"></div>
+    </header>
+
+    <div class="pipe-bar-outer" id="pipeBarOuter">
+      <div class="pipe-bar" id="pipeBar"></div>
+    </div>
+
+    <main class="article-body">
+
+      <section class="panel" id="step-input">
+        <h2>Input embeddings</h2>
+        <div class="scene-hero-glyph"></div>
+        <p>For an input to a trained model, the sentence is first broken into tokens, and each token needs to become a vector a matrix can act on. Embeddings live in a lookup table $E$, one row per vocabulary word: real ones run hundreds or thousands of dimensions per token, so a token can encode many independent aspects of itself at once (syntax, sense, tone, and whatever else training finds useful) instead of trying to collapse those aspects into only a handful of numbers. The tokens extracted from this sentence become $X$, where $X \subset E$: not a separate object, just the handful of $E$'s rows this particular sentence selects. Training treats every entry of $E$ as a learnable parameter: after each prediction, backpropagation nudges the rows used in that sentence a little, $E \leftarrow E - \eta \dfrac{\partial \mathcal{L}}{\partial E}$, so tokens used in similar ways drift toward similar vectors over many examples. For this walkthrough the tokens and values are hand-picked instead, with positional information set aside to keep focus on attention itself; every token keeps the same color everywhere it appears below. See the planned Phase 3 for the training loop worked through in full.</p>
+        <div class="scene-anim"></div>
+      </section>
+
+      <section class="panel" id="step-qkv">
+        <h2>Q / K / V projections</h2>
+        <div class="scene-hero-glyph"></div>
+        <p>Attention breaks down the information it needs from a token into three separate views: a query ("what am I looking for"), a key ("what do I offer"), and a value ("what I actually contribute if chosen"). $W_Q$, $W_K$, and $W_V$ come from training, and are applied to each input token to build its $Q$, $K$, and $V$. These matrices are what the next two steps put to work: $Q$ and $K$ get compared against each other to decide how much attention each token pays to every other, while $V$ supplies the content that gets blended together once those weights are known.</p>
+        <div class="scene-anim"></div>
+      </section>
+
+      <section class="panel" id="step-scores">
+        <h2>QKᵀ scores</h2>
+        <div class="scene-hero-glyph"></div>
+        <p>With every token holding a query and a key, comparing a query against a key is a similarity measure: this step performs every such comparison at once, how relevant each token's content is to what every other token is looking for, before any normalization. A large dot product means $q$ and $k$ point in a similar direction: loosely, "what this token is looking for" closely matches "what that token offers." In a trained model, a pronoun like "he" might develop a query seeking a singular masculine referent, while a noun like "man" offers a key that matches it, connecting the pronoun back to what it refers to; the same mechanism just as easily learns other kinds of relationships, like syntax, position, or topic, depending on whatever the task rewards. Every cell of the grid is the result of the exact same multiply-then-sum, just for a different query/key pair each time.</p>
+        <div class="scene-anim"></div>
+      </section>
+
+      <section class="panel" id="step-mask">
+        <h2>Mask</h2>
+        <div class="scene-hero-glyph"></div>
+        <p>Every step so far treats all tokens symmetrically: any token can see any other, past or future. That's fine for encoding a sentence you already have in full, but wrong for predicting the next token, since letting a model see the answer it's supposed to predict makes training meaningless. An optional causal mask enforces the one asymmetry a decoder needs: only allow looking backward, by setting every future-position score to negative infinity before softmax. Use &minus;&infin; since softmax exponentiates these values: masking to 0 would yield e<sup>0</sup> = 1, a real attention weight, while e<sup>&minus;&infin;</sup> = 0, as desired.</p>
+        <div class="scene-anim"></div>
+      </section>
+
+      <section class="panel" id="step-softmax">
+        <h2>Softmax</h2>
+        <div class="scene-hero-glyph"></div>
+        <p>We get the actual attention weights by softmaxing the $QK^T$ scores: exponentiate each entry, then divide it by the sum of the exponentiated entries in its row. Without the earlier scaling step, the larger score differences would push softmax to nearly zero out every entry but the largest, collapsing each row into a one-hot vector with no useful gradient for training.</p>
+        <div class="scene-anim"></div>
+      </section>
+
+      <section class="panel" id="step-wsum">
+        <h2>Weighted sum</h2>
+        <div class="scene-hero-glyph"></div>
+        <p>Each token's output blends every value vector, weighted by the attention weights just computed. Most of the blend comes from its highest-weighted neighbors, with a smaller share from everything else. Like $Q$ and $K$, $V$ is its own learned projection, so the model chooses what a token contributes to others separately from what makes it a good match or what it's searching for. A token can be highly relevant while contributing very little of any one feature, or the reverse, since relevance and content come from two entirely separate weight matrices.</p>
+        <div class="scene-anim"></div>
+      </section>
+
+      <section class="panel" id="step-output">
+        <h2>Output</h2>
+        <div class="scene-hero-glyph"></div>
+        <p>Each token's vector is no longer that token in isolation; it's a blend of the whole sequence weighted by relevance. The token's vector output is now context-aware: it represents the token as used in this specific context rather than one fixed meaning.</p>
+        <p>A real model repeats this operation many times over, several attention heads running in parallel per layer, each free to learn a different kind of relationship, with the results feeding into further stacked layers. This builds richer, more context-dependent representations than the last. It becomes hard to interpret single dimensions of the output vector as human-readable features, because the meaning lives in the pattern across the whole vector.</p>
+        <p>From here, this output would continue through a residual connection and a feed-forward layer before reaching the next block, where it would be used to refine the representation further and, eventually, to help predict the next token in the sequence.</p>
+        <div class="scene-anim"></div>
+      </section>
+
+    </main>
+    <footer class="site-footer"><span class="credit">Created by <a href="https://linkedin.com/in/aughdon/">Aughdon Breslin</a></span></footer>
+  </div>
+</body>
+</html>

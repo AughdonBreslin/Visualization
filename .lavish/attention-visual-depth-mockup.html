@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attention page: visual depth mockup v2</title>
+<style>
+  :root {
+    --bg: #0c0c0d; --text: #fafafa; --text-2: #cfd1d8; --text-body: #8b8d96; --text-muted: #5d5f68;
+    --hairline: rgba(255,255,255,0.08); --hairline-strong: rgba(255,255,255,0.22);
+    --surface: rgba(255,255,255,0.04); --surface-strong: #141418; --surface-strong-border: rgba(255,255,255,0.10);
+    --accent: #6b7cff; --accent-rgb: 107,124,255; --accent-muted: rgba(107,124,255,0.14); --accent-link: #9aa6ff;
+    --radius-sm: 6px; --radius-md: 8px; --radius-lg: 10px; --radius-xl: 12px;
+    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+    --ease: cubic-bezier(0,0,0.2,1);
+  }
+  * { box-sizing: border-box; min-width: 0; }
+  html, body { background: var(--bg); color: var(--text-2); font-family: var(--font-sans); margin: 0; }
+  body { padding: 40px 24px 80px; }
+  .wrap { max-width: 1480px; margin: 0 auto; }
+  .eyebrow { font: 600 11px/1.3 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent-link); margin-bottom: 10px; }
+  h1 { font-size: 27px; line-height: 1.3; letter-spacing: -0.02em; color: var(--text); margin: 0 0 10px; }
+  .lede { font-size: 14.5px; line-height: 1.65; color: var(--text-body); max-width: 82ch; margin: 0 0 8px; }
+  .lede b { color: var(--text-2); font-weight: 600; }
+  .revision-note { font: 500 12px/1.6 var(--font-mono); color: var(--accent-link); background: var(--accent-muted); border-left: 2px solid var(--accent); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 10px 14px; max-width: 82ch; margin: 14px 0 4px; }
+
+  section.demo { margin-top: 46px; padding-top: 36px; border-top: 1px solid var(--hairline); }
+  section.demo:first-of-type { border-top: none; }
+  .demo-eyebrow { font: 600 10px/1.3 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+  .demo-title { font: 700 22px/1.3 var(--font-sans); color: var(--text); margin-bottom: 6px; }
+  .demo-desc { font-size: 13.5px; line-height: 1.6; color: var(--text-body); max-width: 78ch; margin: 0 0 22px; }
+
+  .filmstrip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
+  @media (max-width: 1300px) { .filmstrip { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+  @media (max-width: 640px) { .filmstrip { grid-template-columns: minmax(0, 1fr); } }
+  .stage { min-width: 0; background: #08080a; border: 1px solid var(--hairline); border-radius: var(--radius-lg); padding: 18px; display: flex; flex-direction: column; position: relative; transition: border-color 240ms var(--ease), box-shadow 240ms var(--ease); }
+  .stage.pulsed { border-color: rgba(var(--accent-rgb), .6); box-shadow: 0 0 0 1px rgba(var(--accent-rgb), .3), 0 0 20px rgba(var(--accent-rgb), .15); }
+  .stage-n { font: 700 10px/1 var(--font-mono); color: var(--accent-link); letter-spacing: .05em; margin-bottom: 4px; }
+  .stage-title { font: 700 14px/1.3 var(--font-sans); color: var(--text); margin-bottom: 10px; }
+  .stage-prose { font: 400 12.5px/1.65 var(--font-sans); color: var(--text-body); margin: 0 0 14px; }
+  .stage-prose b { color: var(--text-2); font-weight: 600; }
+  .stage-prose code { font: 600 11.5px/1 var(--font-mono); color: var(--accent-link); background: var(--surface); padding: 1px 4px; border-radius: 3px; }
+  .stage-body { min-width: 0; flex: 1; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 14px; }
+  .stage-note { font: 500 11px/1.5 var(--font-mono); color: var(--text-muted); margin-top: 12px; }
+  .stage-connector { position: absolute; top: 50%; right: -18px; width: 16px; height: 1px; background: var(--hairline-strong); z-index: 2; }
+  .stage-connector::after { content: ''; position: absolute; right: 0; top: -3px; border: 3px solid transparent; border-left-color: var(--hairline-strong); }
+  @media (max-width: 1300px) { .stage-connector { display: none; } }
+
+  .play-row { display: flex; align-items: center; gap: 10px; margin-top: 18px; }
+  .play-btn { font: 700 11px/1 var(--font-mono); color: var(--bg); background: var(--accent); border: none; border-radius: var(--radius-sm); padding: 8px 14px; cursor: pointer; }
+  .play-btn:hover { filter: brightness(1.08); }
+  .play-hint { font: 500 10.5px/1.4 var(--font-mono); color: var(--text-muted); }
+
+  /* ---- heat-bar list: the vector primitive. Each dimension is its own labeled row: a
+     0-1 heat-filled track (dim/cool = small magnitude, bright/hot = large magnitude,
+     normalized against this vector's own largest entry) plus the raw signed value. Heat
+     color and fill length redundantly encode the same magnitude on purpose, so the two
+     reinforce each other instead of asking the reader to decode bar height alone. */
+  .heatbar-block-title { font: 600 9px/1.3 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+  .heatbar-list { display: flex; flex-direction: column; gap: 7px; }
+  .heatbar-row { display: grid; grid-template-columns: 30px 1fr 44px; align-items: center; gap: 10px; }
+  .heatbar-row.dim { opacity: .35; }
+  .heatbar-label { font: 700 10.5px/1 var(--font-mono); color: var(--text-muted); }
+  .heatbar-track { position: relative; height: 15px; border-radius: 3px; background: var(--surface); border: 1px solid var(--hairline); overflow: hidden; }
+  .heatbar-fill { position: absolute; inset: 0; border-radius: 2px; transition: width 300ms var(--ease), background 300ms var(--ease); }
+  .heatbar-val { font: 600 10.5px/1 var(--font-mono); color: var(--text-2); text-align: right; }
+
+  /* ---- small heatmap grid (matrix-as-storage primitive, same heat scale as the bars) ---- */
+  .mgrid-wrap { display: flex; gap: 6px; }
+  .mgrid-rowlabels { display: flex; flex-direction: column; justify-content: space-around; padding: 1px 0; }
+  .mgrid-rowlabel { font: 700 9px/1 var(--font-mono); color: var(--text-muted); height: 26px; display: flex; align-items: center; }
+  .mgrid { display: grid; gap: 2px; }
+  .mgrid.g4x4 { grid-template-columns: repeat(4, 24px); grid-template-rows: repeat(4, 24px); }
+  .mgrid.g3x4 { grid-template-columns: repeat(4, 28px); grid-template-rows: repeat(3, 28px); }
+  .mgrid.g3x3 { grid-template-columns: repeat(3, 28px); grid-template-rows: repeat(3, 28px); }
+  .mcell { display: flex; align-items: center; justify-content: center; font: 600 8px/1 var(--font-mono); color: #fff; border-radius: 2px; transition: box-shadow 200ms var(--ease); }
+  .mcell.hi { box-shadow: 0 0 0 1.5px var(--accent-link); }
+  .mcell.dim { opacity: .3; }
+
+  /* ---- multiply/sum transform visual ---- */
+  .mult-list { display: flex; flex-direction: column; gap: 7px; }
+  .mult-row { display: flex; align-items: center; gap: 6px; font: 600 11px/1 var(--font-mono); }
+  .mult-chip { padding: 4px 7px; border-radius: 4px; background: var(--surface); border: 1px solid var(--hairline); font: 600 11px/1 var(--font-mono); min-width: 40px; text-align: center; }
+  .mult-eq { color: var(--text-muted); font-size: 12px; }
+  .mult-prod { color: var(--text-2); font-weight: 700; min-width: 46px; }
+  .mult-dimlabel { font: 600 9px/1 var(--font-mono); color: var(--text-muted); width: 18px; }
+  .sum-arrow { font: 700 14px/1 var(--font-mono); color: var(--text-muted); margin: 6px 0; text-align: center; }
+  .sum-result { font: 700 16px/1 var(--font-mono); color: var(--accent-link); background: var(--accent-muted); padding: 10px 14px; border-radius: var(--radius-sm); text-align: center; }
+
+  .concept-box { font: 400 12.5px/1.65 var(--font-sans); color: var(--text-body); }
+  .concept-box b { color: var(--text-2); font-weight: 600; }
+  .concept-icon { font-size: 20px; margin-bottom: 8px; opacity: .8; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">// DistCharts: richer per-step visual pattern (revision 2)</div>
+  <h1>Storage → slice → transform → concept</h1>
+  <p class="lede">Same 4-stage pattern as before, revised so every number visibly answers <b>&quot;what is this&quot;</b> and <b>&quot;how did it get here&quot;</b>, not just <b>&quot;here it is.&quot;</b> Every value below is still real, computed from the actual worked example (token &quot;the&quot;, preset &quot;the cat sat&quot;).</p>
+  <p class="revision-note">Changed from the first pass: vectors are now stacked heat-filled bars (0-1 magnitude, not bipolar height), and every stage carries real prose explaining the number, not just a mono label. This reads more verbose than the site's usual restrained style on purpose — trim once the underlying explanation is confirmed clear.</p>
+
+  <section class="demo" id="demo-qkv">
+    <div class="demo-eyebrow">Vector transform</div>
+    <div class="demo-title">Q / K / V projection: computing q₀ for &quot;the&quot;</div>
+    <p class="demo-desc">A single embedding vector, multiplied by one row of a weight matrix, produces one output number. Zooming from the full matrix down to one row down to one multiply-and-sum is the same zoom every projection in this page uses.</p>
+
+    <div class="filmstrip" id="qkv-stages">
+      <div class="stage" data-stage="0">
+        <div class="stage-connector"></div>
+        <div class="stage-n">01: STORAGE</div>
+        <div class="stage-title">The full data at rest</div>
+        <p class="stage-prose">Every token in this example starts as a 4-number vector called an <b>embedding</b>. The vector below is the embedding for the token &quot;the&quot; — these 4 numbers were picked by hand for this toy example; a real trained model would have learned them from data. Below it is <code>W_Q</code>, a 4×4 matrix of weights. It's one of three such matrices attention learns (the others are <code>W_K</code> and <code>W_V</code>) — this one's specific job is turning any token's embedding into that token's <b>query</b> vector.</p>
+        <div class="stage-body">
+          <div>
+            <div class="heatbar-block-title">x &quot;the&quot; — the raw embedding (d=4)</div>
+            <div class="heatbar-list" id="qkv-x-bars"></div>
+          </div>
+          <div>
+            <div class="heatbar-block-title">W_Q — 4×4 learned weight matrix</div>
+            <div class="mgrid-wrap"><div class="mgrid-rowlabels" id="qkv-wq-rowlabels"></div><div class="mgrid g4x4" id="qkv-wq-grid"></div></div>
+          </div>
+        </div>
+        <div class="stage-note">1 vector + 1 matrix, both stored in full</div>
+      </div>
+
+      <div class="stage" data-stage="1">
+        <div class="stage-connector"></div>
+        <div class="stage-n">02: SLICE</div>
+        <div class="stage-title">Pull out row 0 of W_Q</div>
+        <p class="stage-prose">We're computing just one number: the first entry of the query vector, <b>q₀</b>. Producing q₀ needs only <b>one</b> of W_Q's four rows — row 0, highlighted below. The other three rows (dimmed) would each produce a different output number (q₁, q₂, q₃) and play no part here. <code>x</code> is unchanged from stage 1, placed here so it lines up directly against the row it's about to combine with.</p>
+        <div class="stage-body">
+          <div>
+            <div class="heatbar-block-title">x &quot;the&quot; (same as stage 1)</div>
+            <div class="heatbar-list" id="qkv-x-bars-2"></div>
+          </div>
+          <div>
+            <div class="heatbar-block-title">W_Q, row 0 only</div>
+            <div class="heatbar-list" id="qkv-row-bars"></div>
+          </div>
+        </div>
+        <div class="stage-note">row i of W_Q always produces output dimension i</div>
+      </div>
+
+      <div class="stage" data-stage="2">
+        <div class="stage-connector"></div>
+        <div class="stage-n">03: TRANSFORM</div>
+        <div class="stage-title">Multiply position by position, then sum</div>
+        <p class="stage-prose">Pair up <code>x</code> and the row from stage 2 by position: x's 1st number with the row's 1st, x's 2nd with the row's 2nd, and so on. Multiply each pair, then add all four products together. That sum <b>is</b> q₀ — nothing more happens to it.</p>
+        <div class="stage-body">
+          <div class="mult-list" id="qkv-mult-list"></div>
+          <div class="sum-arrow">↓ add the 4 products</div>
+          <div class="sum-result" id="qkv-sum-result"></div>
+        </div>
+      </div>
+
+      <div class="stage" data-stage="3">
+        <div class="stage-n">04: CONCEPT</div>
+        <div class="stage-title">What this means</div>
+        <div class="stage-body">
+          <div>
+            <div class="concept-icon">◎</div>
+            <p class="concept-box">Each output dimension is its own learned blend of <b>every</b> input dimension — nothing in x is ignored, and nothing in the output comes from just one input number. Row 0 of W_Q, in effect, asks: <b>&quot;how much does each of this token's 4 embedding features contribute to query-dimension 0?&quot;</b> Rows 1-3 ask the same question for dimensions 1, 2, and 3. Repeating this whole stage for every row of W_Q, then separately for W_K and W_V, is exactly how the full q, k, and v vectors get built.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="play-row"><button class="play-btn" data-target="qkv-stages">▶ play staged animation</button><span class="play-hint">or just read left to right</span></div>
+  </section>
+
+  <section class="demo" id="demo-scores">
+    <div class="demo-eyebrow">Matrix formation</div>
+    <div class="demo-title">QKᵀ scores: computing score[&quot;the&quot;,&quot;the&quot;]</div>
+    <p class="demo-desc">Two full matrices of vectors, one row from each pulled out and compared, landing in one cell of a brand new matrix. The full QKᵀ step repeats this nine times, once per query/key pair.</p>
+
+    <div class="filmstrip" id="scores-stages">
+      <div class="stage" data-stage="0">
+        <div class="stage-connector"></div>
+        <div class="stage-n">01: STORAGE</div>
+        <div class="stage-title">Every query, every key</div>
+        <p class="stage-prose">The previous step (Q/K/V projection) already produced a query vector and a key vector for <b>every</b> token, not just &quot;the&quot;. <code>Q</code> below stacks all three query vectors, one row per token; <code>K</code> stacks all three key vectors the same way. Both are just the outputs of that earlier step, collected together — nothing new is computed on this stage.</p>
+        <div class="stage-body">
+          <div>
+            <div class="heatbar-block-title">Q — one row per token (3×4)</div>
+            <div class="mgrid-wrap"><div class="mgrid-rowlabels" id="scores-q-rowlabels"></div><div class="mgrid g3x4" id="scores-q-grid"></div></div>
+          </div>
+          <div>
+            <div class="heatbar-block-title">K — one row per token (3×4)</div>
+            <div class="mgrid-wrap"><div class="mgrid-rowlabels" id="scores-k-rowlabels"></div><div class="mgrid g3x4" id="scores-k-grid"></div></div>
+          </div>
+        </div>
+        <div class="stage-note">3 queries × 3 keys = 9 comparisons still to come</div>
+      </div>
+
+      <div class="stage" data-stage="1">
+        <div class="stage-connector"></div>
+        <div class="stage-n">02: SLICE</div>
+        <div class="stage-title">One query, one key</div>
+        <p class="stage-prose">To fill in exactly one cell of the score grid — the cell where query &quot;the&quot; meets key &quot;the&quot;, i.e. row 0, column 0 — we only need <b>one</b> row from Q and <b>one</b> row from K, both highlighted above. Every other row of Q or K belongs to a different cell of the grid and isn't used for this particular number.</p>
+        <div class="stage-body">
+          <div>
+            <div class="heatbar-block-title">q &quot;the&quot; — row 0 of Q</div>
+            <div class="heatbar-list" id="scores-q-bars"></div>
+          </div>
+          <div>
+            <div class="heatbar-block-title">k &quot;the&quot; — row 0 of K</div>
+            <div class="heatbar-list" id="scores-k-bars"></div>
+          </div>
+        </div>
+        <div class="stage-note">this pair lands in score grid cell [0,0]</div>
+      </div>
+
+      <div class="stage" data-stage="2">
+        <div class="stage-n">03: TRANSFORM</div>
+        <div class="stage-title">Multiply position by position, then sum</div>
+        <div class="stage-connector"></div>
+        <p class="stage-prose">Same operation as the projection step's transform stage, just applied to two vectors that both came from projections rather than a vector and a matrix row: multiply q and k position by position, then add the four products. This total is called a <b>dot product</b>, and it's the standard way to measure how &quot;aligned&quot; two vectors are.</p>
+        <div class="stage-body">
+          <div class="mult-list" id="scores-mult-list"></div>
+          <div class="sum-arrow">↓ add the 4 products</div>
+          <div class="sum-result" id="scores-sum-result"></div>
+        </div>
+      </div>
+
+      <div class="stage" data-stage="3">
+        <div class="stage-n">04: CONCEPT</div>
+        <div class="stage-title">What this means</div>
+        <div class="stage-body">
+          <div>
+            <div class="concept-icon">▦</div>
+            <p class="concept-box">A large dot product means q and k point in a similar direction — loosely, &quot;what this token is looking for&quot; closely matches &quot;what that token offers.&quot; Every cell of the grid below is the result of this exact same multiply-then-sum, just for a different query/key pair. The highlighted cell is the one you just watched get computed; the other eight were produced by repeating stages 2-3 for every other pairing.</p>
+            <div class="mgrid-wrap" style="margin-top:12px"><div class="mgrid-rowlabels" id="scores-result-rowlabels"></div><div class="mgrid g3x3" id="scores-result-grid"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="play-row"><button class="play-btn" data-target="scores-stages">▶ play staged animation</button><span class="play-hint">or just read left to right</span></div>
+  </section>
+
+</div>
+
+<script>
+// ---- real, verified numbers (cat-sat preset, token "the", from js/attention/presets.js + math.js) ----
+const TOKENS = ['the', 'cat', 'sat'];
+const x_the = [0.2, 0.8, 0.1, 0.4];
+const W_Q = [
+  [1.5, 0.0, 0.8, 0.0],
+  [0.0, 1.6, 0.0, 0.6],
+  [0.8, 0.0, 1.5, 0.0],
+  [0.0, 0.6, 0.0, 1.6],
+];
+const wq_row0 = W_Q[0];
+const q_the = [0.38, 1.52, 0.31, 1.12];
+const k_the = [0.52, 1.18, 0.26, 0.59];
+const Q_all = { the: q_the, cat: [0.63, 0.12, 0.57, 0.20], sat: [0.39, 0.34, 0.49, 0.22] };
+const K_all = { the: k_the, cat: [0.37, 0.13, 0.27, 0.18], sat: [0.17, 0.23, 0.34, 0.16] };
+const score_grid = [
+  [2.73, 2.07, 2.37],
+  [2.09, 4.33, 3.50],
+  [2.39, 3.49, 3.37],
+];
+
+function maxAbs(arr) { return Math.max(...arr.map(Math.abs), 0.01); }
+
+// heat scale: 0 = dim cool blue, 1 = bright hot red-orange, interpolated through green
+// at the midpoint so intermediate magnitudes are visually distinguishable, not just a
+// blue<->red blend that muddies in the middle.
+function heatColor(t) {
+  t = Math.max(0, Math.min(1, t));
+  const stops = [
+    { p: 0, h: 224, s: 42, l: 28 },
+    { p: 0.5, h: 130, s: 45, l: 40 },
+    { p: 1, h: 8, s: 82, l: 54 },
+  ];
+  let a = stops[0], b = stops[1];
+  if (t > 0.5) { a = stops[1]; b = stops[2]; }
+  const localT = a.p === 0.5 ? (t - 0.5) / 0.5 : t / 0.5;
+  const h = a.h + (b.h - a.h) * localT;
+  const s = a.s + (b.s - a.s) * localT;
+  const l = a.l + (b.l - a.l) * localT;
+  return `hsl(${h.toFixed(0)}, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
+}
+
+function heatBarList(container, values, opts = {}) {
+  const m = maxAbs(values);
+  const dimIdx = opts.dimExcept; // if set, only this index is NOT dimmed
+  container.innerHTML = values.map((v, i) => {
+    const t = Math.abs(v) / m;
+    const pct = (t * 100).toFixed(0);
+    const isDim = dimIdx !== undefined && i !== dimIdx;
+    return `<div class="heatbar-row ${isDim ? 'dim' : ''}">
+      <div class="heatbar-label">d${i}</div>
+      <div class="heatbar-track"><div class="heatbar-fill" style="width:${pct}%; background:${heatColor(t)}"></div></div>
+      <div class="heatbar-val">${v.toFixed(2)}</div>
+    </div>`;
+  }).join('');
+}
+
+function matrixGrid(container, matrix, opts = {}) {
+  const flat = matrix.flat();
+  const m = maxAbs(flat);
+  const hiRow = opts.hiRow;
+  const hiCell = opts.hiCell;
+  container.innerHTML = matrix.map((row, i) => row.map((v, j) => {
+    const t = Math.abs(v) / m;
+    const isHi = hiCell ? (hiCell[0] === i && hiCell[1] === j) : (hiRow === i);
+    const isDim = (hiRow !== undefined && hiRow !== i) || (hiCell && !(hiCell[0] === i));
+    return `<div class="mcell ${isHi ? 'hi' : ''} ${isDim && !isHi ? 'dim' : ''}" style="background:${heatColor(t)}">${v.toFixed(1)}</div>`;
+  }).join('')).join('');
+}
+
+function rowLabels(container, labels, hiIdx) {
+  container.innerHTML = labels.map((l, i) => `<div class="mgrid-rowlabel" style="color:${i === hiIdx ? 'var(--accent-link)' : 'var(--text-muted)'}">${l}</div>`).join('');
+}
+
+function multList(container, a, b) {
+  container.innerHTML = a.map((av, i) => {
+    const bv = b[i];
+    const prod = (av * bv).toFixed(3);
+    return `<div class="mult-row">
+      <span class="mult-dimlabel">d${i}</span>
+      <span class="mult-chip" style="color:var(--accent-link)">${av.toFixed(2)}</span>
+      <span class="mult-eq">×</span>
+      <span class="mult-chip" style="color:#ffd97a">${bv.toFixed(2)}</span>
+      <span class="mult-eq">=</span>
+      <span class="mult-prod">${prod}</span>
+    </div>`;
+  }).join('');
+}
+
+// --- QKV demo ---
+heatBarList(document.getElementById('qkv-x-bars'), x_the);
+heatBarList(document.getElementById('qkv-x-bars-2'), x_the);
+heatBarList(document.getElementById('qkv-row-bars'), wq_row0);
+matrixGrid(document.getElementById('qkv-wq-grid'), W_Q, { hiRow: 0 });
+rowLabels(document.getElementById('qkv-wq-rowlabels'), ['row 0', 'row 1', 'row 2', 'row 3'], 0);
+multList(document.getElementById('qkv-mult-list'), x_the, wq_row0);
+document.getElementById('qkv-sum-result').textContent = `q₀ = ${q_the[0].toFixed(2)}`;
+
+// --- Scores demo ---
+matrixGrid(document.getElementById('scores-q-grid'), [Q_all.the, Q_all.cat, Q_all.sat], { hiRow: 0 });
+matrixGrid(document.getElementById('scores-k-grid'), [K_all.the, K_all.cat, K_all.sat], { hiRow: 0 });
+rowLabels(document.getElementById('scores-q-rowlabels'), TOKENS, 0);
+rowLabels(document.getElementById('scores-k-rowlabels'), TOKENS, 0);
+heatBarList(document.getElementById('scores-q-bars'), q_the);
+heatBarList(document.getElementById('scores-k-bars'), k_the);
+multList(document.getElementById('scores-mult-list'), q_the, k_the);
+document.getElementById('scores-sum-result').textContent = `score = ${score_grid[0][0].toFixed(2)}`;
+matrixGrid(document.getElementById('scores-result-grid'), score_grid, { hiCell: [0, 0] });
+rowLabels(document.getElementById('scores-result-rowlabels'), TOKENS, 0);
+
+// --- play button: pulses each stage in sequence ---
+document.querySelectorAll('.play-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const stripId = btn.dataset.target;
+    const stages = Array.from(document.querySelectorAll(`#${stripId} .stage`));
+    stages.forEach((s) => s.classList.remove('pulsed'));
+    stages.forEach((s, i) => {
+      setTimeout(() => {
+        stages.forEach((s2) => s2.classList.remove('pulsed'));
+        s.classList.add('pulsed');
+        if (i === stages.length - 1) setTimeout(() => s.classList.remove('pulsed'), 900);
+      }, i * 900);
+    });
+  });
+});
+</script>
+</body>
+</html>

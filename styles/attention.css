@@ -1,0 +1,307 @@
+/* styles/attention.css
+ * Attention page: sticky pipeline bar (primary nav), per-step scenes, worked-example visuals.
+ * Loaded after tokens/system/components/article-ui, same order as every other page's stylesheet.
+ */
+
+.ui.attention .preset-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.ui.attention .preset-btn {
+  font: 600 12px/1 var(--font-mono); color: var(--text-2);
+  border: 1px solid var(--hairline); background: transparent;
+  border-radius: var(--radius-pill); padding: 7px 14px; cursor: pointer;
+  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out), background 160ms var(--ease-out);
+}
+.ui.attention .preset-btn:hover { border-color: var(--accent-link); color: var(--accent-link); }
+.ui.attention .preset-btn.is-active { background: var(--accent-muted); border-color: var(--accent); color: var(--accent-link); }
+
+/* --- sticky pipeline bar --- */
+.ui.attention .pipe-bar-outer {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(12, 12, 13, 0.92);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--hairline);
+  margin: 24px 0 22px;
+}
+/* The bar renders ~94px tall, which dwarfs the site-wide 16px scroll offset that
+   section-outline.js sets inline (via --outline-scroll-offset) on every .panel - without this
+   override, jumping to a step (pipeline bar click, rail click, or a plain #hash link) leaves the
+   bar covering the top ~40px of the section, including its heading. Overriding the custom
+   property (rather than scroll-margin-top directly) is required: section-outline.js's inline
+   style always wins specificity over any stylesheet rule, but it reads through this variable. */
+.ui.attention { --outline-scroll-offset: 120px; }
+.ui.attention .pipe-bar {
+  position: relative;
+  max-width: var(--container-default);
+  margin: 0 auto;
+  padding: 12px 24px 8px;
+}
+.ui.attention .pipe-svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ui.attention .pipe-row { position: relative; display: flex; justify-content: space-between; }
+.ui.attention .pipe-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 50px;
+  padding: 2px 0;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+.ui.attention .pipe-node svg { display: block; overflow: visible; transition: transform 260ms var(--ease-out); }
+.ui.attention .pipe-node-label {
+  font: 600 7.5px/1.3 var(--font-mono);
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+  transition: color 160ms var(--ease-out);
+}
+.ui.attention .pipe-node .node-box { transition: filter 160ms var(--ease-out), stroke 160ms var(--ease-out); }
+.ui.attention .pipe-node:hover .node-box { stroke: var(--accent-link); }
+.ui.attention .pipe-node.pulse svg { transform: scale(1.3); }
+.ui.attention .pipe-node.pulse .node-box { stroke: var(--accent); filter: drop-shadow(0 0 8px rgba(var(--accent-rgb), .8)); }
+.ui.attention .pipe-node.current .node-box { stroke: var(--accent); }
+.ui.attention .pipe-node.current .pipe-node-label { color: var(--accent-link); }
+
+/* --- per-step scenes --- */
+/* Floated so the intro paragraph that follows wraps around it instead of starting fresh below a
+   full-width block - the glyph is small and the paragraph is now the step's only prose, so there
+   is width to spare beside it. */
+.ui.attention .scene-hero-glyph {
+  float: left;
+  width: 76px;
+  height: 76px;
+  padding: 12px;
+  border: 1px solid var(--surface-strong-border);
+  background: var(--surface-strong);
+  border-radius: var(--radius-lg);
+  margin: 2px 16px 10px 0;
+  transition: box-shadow 200ms var(--ease-out);
+}
+.ui.attention .scene-hero-glyph svg { width: 100%; height: 100%; overflow: visible; }
+@keyframes attn-arrive-glow {
+  0% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); transform: scale(1); }
+  30% { box-shadow: 0 0 0 8px rgba(var(--accent-rgb), .35); transform: scale(1.05); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); transform: scale(1); }
+}
+.ui.attention .scene-hero-glyph.just-arrived { animation: attn-arrive-glow 900ms var(--ease-out); border-color: rgba(var(--accent-rgb), .5); }
+
+.ui.attention .scene-anim {
+  clear: both;
+  background: #08080a;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin: 16px 0;
+}
+
+/* --- filmstrip: the shared storage/slice/transform/concept stage pattern, used by every
+   step except Output (still a placeholder) and Weighted sum (not yet built). A horizontal
+   scroll-snap strip rather than a wrapping grid: a 4-stage step would otherwise wrap to two
+   rows and double its vertical footprint, so instead stages sit in one row and slide into view
+   (snapping one stage at a time, same as the site's own .tabs strip in components.css, which
+   this copies the hidden-scrollbar convention from). Half width by default - two stages visible
+   at once, matching the old 2-col grid's density - or full width via .stage-wide. --- */
+.ui.attention .filmstrip-wrap { position: relative; }
+.ui.attention .filmstrip {
+  display: flex; gap: 14px; align-items: stretch;
+  overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
+  scrollbar-width: none; padding-bottom: 2px; cursor: grab;
+}
+.ui.attention .filmstrip::-webkit-scrollbar { display: none; }
+/* scroll-snap-type: none while dragging - otherwise the browser's own snap machinery fights
+   the direct scrollLeft writes happening every frame, and the drag feels sticky/stuttery
+   instead of a plain 1:1 pull. Re-enabled the instant the drag ends, so the release's
+   scrollToStage() still gets a clean smooth snap into place. */
+.ui.attention .filmstrip.is-dragging { cursor: grabbing; user-select: none; scroll-snap-type: none; }
+/* Prev/next: invisible until the wrap is hovered, so they don't compete with the stage content
+   for attention when the user isn't actively navigating. */
+.ui.attention .filmstrip-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+  width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--hairline-strong);
+  background: rgba(12, 12, 13, 0.88); backdrop-filter: blur(4px); color: var(--text-2);
+  font-size: 16px; line-height: 1; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; opacity: 0; pointer-events: none;
+  transition: opacity 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.ui.attention .filmstrip-wrap:hover .filmstrip-arrow { opacity: 1; pointer-events: auto; }
+.ui.attention .filmstrip-arrow:hover { border-color: var(--accent-link); color: var(--accent-link); }
+.ui.attention .filmstrip-arrow.is-disabled { opacity: 0 !important; pointer-events: none !important; }
+.ui.attention .filmstrip-arrow-prev { left: -15px; }
+.ui.attention .filmstrip-arrow-next { right: -15px; }
+/* No overflow (e.g. Input/Output's 2 stages fit exactly): nothing to navigate to, so the whole
+   nav layer disappears rather than showing controls that do nothing. */
+.ui.attention .filmstrip-wrap.no-scroll .filmstrip-arrow,
+.ui.attention .filmstrip-wrap.no-scroll .filmstrip-dots { display: none; }
+.ui.attention .filmstrip-dots { display: flex; justify-content: center; gap: 7px; margin-top: 12px; }
+.ui.attention .filmstrip-dot {
+  width: 6px; height: 6px; padding: 0; border: none; border-radius: 50%;
+  background: var(--hairline-strong); cursor: pointer;
+  transition: background 160ms var(--ease-out), transform 160ms var(--ease-out);
+}
+.ui.attention .filmstrip-dot:hover { background: var(--text-muted); }
+.ui.attention .filmstrip-dot.is-current { background: var(--accent-link); transform: scale(1.4); }
+.ui.attention .stage {
+  box-sizing: border-box; min-width: 0; flex: 0 0 calc(50% - 7px); scroll-snap-align: start;
+  background: #08080a; border: 1px solid var(--hairline); border-radius: var(--radius-lg);
+  padding: 18px; display: flex; flex-direction: column; position: relative;
+}
+.ui.attention .stage-n { font: 700 10px/1 var(--font-mono); color: var(--accent-link); letter-spacing: .05em; margin-bottom: 4px; }
+.ui.attention .stage-title { font: 700 14px/1.3 var(--font-sans); color: var(--text); margin-bottom: 10px; }
+.ui.attention .stage-prose { font: 400 12.5px/1.65 var(--font-sans); color: var(--text-body); margin: 0 0 14px; }
+.ui.attention .stage-prose b { color: var(--text-2); font-weight: 600; }
+.ui.attention .stage-prose code { font: 600 11.5px/1 var(--font-mono); color: var(--accent-link); background: var(--surface); padding: 1px 4px; border-radius: 3px; }
+.ui.attention .stage-body { min-width: 0; flex: 1; display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
+.ui.attention .stage-note { font: 500 11px/1.5 var(--font-mono); color: var(--text-muted); margin-top: 12px; }
+/* A stage that needs the full filmstrip width (e.g. QKV's storage stage, which shows X mapping
+   to three full output matrices at once - too much to lay out legibly in one half-width slide). */
+.ui.attention .stage.stage-wide { flex-basis: 100%; }
+/* Input/Output's filmstrip is down to a single stage now that CONCEPT lives in the intro
+   paragraph instead - without this, a lone stage still claims only half the row's width,
+   leaving an empty half with nothing to pair it with. */
+.ui.attention .filmstrip .stage:only-child { flex-basis: 100%; }
+@media (max-width: 680px) { .ui.attention .stage { flex-basis: 100%; } }
+
+/* --- QKV storage: X fans out into W_Q/W_K/W_V, all as full matrices, wrapping to stacked on
+   narrow widths --- */
+.ui.attention .qkv-storage-row { display: flex; align-items: stretch; gap: 4px; flex-wrap: wrap; }
+.ui.attention .qkv-storage-block { display: flex; flex-direction: column; justify-content: center; }
+.ui.attention .qkv-storage-outputs { display: flex; flex-direction: column; gap: 14px; justify-content: space-between; }
+.ui.attention .qkv-fanout { flex: 0 0 70px; width: 70px; min-height: 160px; align-self: stretch; }
+@media (max-width: 560px) {
+  /* The fan-out's geometry assumes X and the W-column sit side by side; once there's no room
+     for that, drop the connector and stack the two sections cleanly instead of letting them
+     squeeze into a too-narrow row and overlap. */
+  .ui.attention .qkv-fanout { display: none; }
+  .ui.attention .qkv-storage-row { flex-direction: column; }
+}
+
+/* --- heat-bar list: the vector primitive (magnitude via color + fill length, 0-1 within
+   this vector's own max) --- */
+.ui.attention .heatbar-block-title { font: 600 9px/1.3 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+/* A labeled vector: the label (usually a token) sits beside the bracket-framed stack, not on
+   its own line above it, so a column of several vectors doesn't spend an extra line per vector
+   just to name it. */
+.ui.attention .heatbar-block { display: flex; align-items: center; gap: 10px; }
+.ui.attention .heatbar-block-label { flex: none; font: 700 11px/1 var(--font-mono); color: var(--text-2); min-width: 40px; }
+/* Several labeled vectors (e.g. one per token): side by side while they fit, wrapping to a new
+   row (and eventually one per row) as width runs out - a plain flex-wrap gives us both the
+   desktop "side by side" layout and the small-window "stacked" fallback from one rule. */
+.ui.attention .heatbar-block-row { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+/* Softmax's before/arrow/after row: side by side while there's room for all three; below that,
+   flex-direction switches to column (not wrap) so each piece gets its own full-width line
+   instead of the arrow awkwardly floating beside whichever matrix still fit next to it. */
+.ui.attention .softmax-row { display: flex; align-items: center; gap: 20px; }
+@media (max-width: 640px) {
+  .ui.attention .softmax-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+}
+/* Wsum's scaled-vector addition: one labeled vector per row, stacked vertically with a "+"
+   between each pair, reading top to bottom like a written-out sum. */
+.ui.attention .wsum-stack { display: flex; flex-direction: column; gap: 4px; }
+.ui.attention .wsum-plus { font: 700 13px/1 var(--font-mono); color: var(--text-muted); padding-left: 2px; }
+.ui.attention .wsum-term { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.ui.attention .wsum-term-label { flex: none; font: 700 13.5px/1.3 var(--font-sans); color: var(--text-2); min-width: 92px; }
+.ui.attention .wsum-term-arrow { flex: none; font: 700 15px/1 var(--font-mono); color: var(--text-muted); }
+.ui.attention .wsum-term .heatbox-cell { animation: attn-cell-fade-in 260ms var(--ease-out) backwards; }
+/* Shared by every clickable matrix (Wsum's attention-weights grid, Scores' Q and K grids):
+   picking a row feeds the selection through to later stages. */
+.ui.attention .attn-row-select .mcell,
+.ui.attention .attn-row-select .mgrid-rowlabel { cursor: pointer; }
+.ui.attention .attn-row-select .mcell:hover,
+.ui.attention .attn-row-select .mgrid-rowlabel:hover { filter: brightness(1.35); }
+/* Marks the score-grid cell that 02/03 currently walk through, before it has a real value. */
+.ui.attention .mcell.pending.selected { border-color: var(--accent-link); box-shadow: 0 0 0 1.5px var(--accent-link); }
+/* One bracket frame around the whole row (matrix-notation style: [ box box box box ]),
+   not one pair per box -- drawn with borders on ::before/::after rather than stretched glyph
+   characters, so the frame stays crisp at any row width. Boxes sit side by side (temperature ->
+   fill color, value printed inside) rather than stacked bars, echoing the same heat-cell look
+   already used for full matrices, just for a single row. */
+.ui.attention .heatbar-list { position: relative; display: inline-flex; flex-direction: row; align-items: flex-end; align-self: flex-start; gap: 3px; padding: 3px 8px; }
+.ui.attention .heatbar-list::before, .ui.attention .heatbar-list::after {
+  content: ''; position: absolute; top: 1px; bottom: 1px; width: 5px;
+  border: 1.5px solid var(--hairline-strong);
+}
+.ui.attention .heatbar-list::before { left: 0; border-right: none; }
+.ui.attention .heatbar-list::after { right: 0; border-left: none; }
+.ui.attention .heatbox-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.ui.attention .heatbox-label { font: 700 8px/1 var(--font-mono); color: var(--text-muted); }
+.ui.attention .heatbox-cell {
+  flex: none; width: 34px; height: 26px; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font: 600 9.5px/1 var(--font-mono); color: #fff;
+  transition: background 300ms var(--ease-out);
+}
+@media (max-width: 480px) {
+  .ui.attention .heatbox-cell { width: 28px; height: 24px; font-size: 8.5px; }
+}
+
+/* --- heat-colored matrix grid: the matrix primitive, same heat scale as the bars --- */
+.ui.attention .mgrid-wrap { display: flex; gap: 6px; }
+.ui.attention .mgrid-rowlabels { display: flex; flex-direction: column; justify-content: space-around; padding: 1px 0; }
+.ui.attention .mgrid-rowlabel { font: 700 10px/1 var(--font-mono); height: 32px; display: flex; align-items: center; }
+.ui.attention .mgrid { display: grid; gap: 3px; }
+.ui.attention .mgrid.g4x4 { grid-template-columns: repeat(4, 30px); grid-template-rows: repeat(4, 30px); }
+.ui.attention .mgrid.g3x4 { grid-template-columns: repeat(4, 35px); grid-template-rows: repeat(3, 35px); }
+.ui.attention .mgrid.g3x3 { grid-template-columns: repeat(3, 35px); grid-template-rows: repeat(3, 35px); }
+.ui.attention .mcell {
+  display: flex; align-items: center; justify-content: center;
+  font: 600 10.5px/1 var(--font-mono); color: #fff; border-radius: 3px;
+  transition: box-shadow 200ms var(--ease-out), background 300ms var(--ease-out);
+}
+.ui.attention .mcell.hi { box-shadow: 0 0 0 1.5px var(--accent-link); }
+.ui.attention .mcell.dim { opacity: .3; }
+.ui.attention .mcell.masked { background: var(--surface) !important; color: var(--text-muted); }
+
+/* --- multiply/sum transform breakdown --- */
+.ui.attention .mult-list { display: flex; flex-direction: column; gap: 7px; }
+.ui.attention .mult-row { display: flex; align-items: center; gap: 6px; font: 600 11px/1 var(--font-mono); }
+.ui.attention .mult-chip { padding: 4px 7px; border-radius: 4px; background: var(--surface); border: 1px solid var(--hairline); font: 600 11px/1 var(--font-mono); min-width: 40px; text-align: center; }
+.ui.attention .mult-eq { color: var(--text-muted); font-size: 12px; }
+.ui.attention .mult-prod { color: var(--text-2); font-weight: 700; min-width: 46px; }
+.ui.attention .mult-dimlabel { font: 600 9px/1 var(--font-mono); color: var(--text-muted); width: 26px; }
+.ui.attention .sum-arrow { font: 700 13px/1 var(--font-mono); color: var(--text-muted); margin: 6px 0; text-align: center; }
+.ui.attention .sum-result { font: 700 15px/1 var(--font-mono); color: var(--accent-link); background: var(--accent-muted); padding: 9px 14px; border-radius: var(--radius-sm); text-align: center; }
+
+.ui.attention .calc-line { font: 500 12px/1.6 var(--font-mono); color: var(--text-muted); margin-top: 12px; }
+.ui.attention .calc-line b { color: var(--accent-link); font-weight: 700; }
+
+.ui.attention .concept-box { font: 400 12.5px/1.65 var(--font-sans); color: var(--text-body); margin: 0; }
+.ui.attention .concept-box b { color: var(--text-2); font-weight: 600; }
+
+.ui.attention .mask-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
+.ui.attention .mask-toggle { display: flex; align-items: center; gap: 8px; font: 500 12.5px/1.5 var(--font-sans); color: var(--text-body); cursor: pointer; }
+
+.ui.attention .anim-controls { margin-top: 14px; }
+.ui.attention .anim-btn {
+  font: 600 11px/1 var(--font-mono); color: var(--text-2);
+  border: 1px solid var(--hairline); background: transparent;
+  border-radius: var(--radius-sm); padding: 7px 12px; cursor: pointer;
+}
+.ui.attention .anim-btn:hover:not(:disabled) { border-color: var(--accent-link); color: var(--accent-link); }
+.ui.attention .anim-btn:disabled { color: var(--text-muted); cursor: default; opacity: .7; }
+.ui.attention .mcell.pending { background: var(--surface) !important; color: var(--text-muted); border: 1px dashed var(--hairline-strong); }
+@keyframes attn-cell-fade-in {
+  0% { opacity: 0; transform: scale(.7); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.ui.attention .mcell.cell-fade-in { animation: attn-cell-fade-in 260ms var(--ease-out) backwards; }
+
+.ui.attention .scale-shrink-wrap { padding: 4px; }
+
+@media (max-width: 640px) {
+  .ui.attention .mgrid.g4x4 { grid-template-columns: repeat(4, 25px); grid-template-rows: repeat(4, 25px); }
+  .ui.attention .mgrid.g3x4 { grid-template-columns: repeat(4, 27px); grid-template-rows: repeat(3, 27px); }
+  .ui.attention .mgrid.g3x3 { grid-template-columns: repeat(3, 27px); grid-template-rows: repeat(3, 27px); }
+  .ui.attention .mcell { font-size: 9px; }
+}
