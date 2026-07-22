@@ -129,7 +129,8 @@ function renderInput(container, stepId, result) {
     'The three embeddings',
     `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. Stacked together, the embeddings below form $X$, the matrix the rest of this pipeline operates on.`,
     storageBody,
-    `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`
+    `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`,
+    'stage-wide'
   );
   const stage2 = stageCard(
     '02: CONCEPT',
@@ -143,7 +144,9 @@ function renderInput(container, stepId, result) {
        <div class="scale-stat"><div class="scale-stat-label">vocabulary</div><div class="scale-stat-value">${result.tokens.length} whole words here. Real models tokenize into tens to a few hundred thousand subword pieces instead.</div></div>
        <div class="scale-stat"><div class="scale-stat-label">parameters</div><div class="scale-stat-value">${3 * result.d * result.d} numbers here (three ${result.d}&times;${result.d} weight matrices). Real models run from millions up to hundreds of billions of parameters.</div></div>
        <div class="scale-stat"><div class="scale-stat-label">position</div><div class="scale-stat-value">Left out here to keep focus on attention itself. Real models always add positional information (sinusoidal, learned, or rotary/ALiBi-style schemes), since attention alone has no sense of token order.</div></div>
-     </div>`
+     </div>`,
+    undefined,
+    'stage-wide'
   );
   container.innerHTML = filmstrip([stage1, stage2]);
 }
