@@ -320,36 +320,18 @@ function renderWsum(container, stepId, result) {
   const focusIdx = Math.min(1, result.tokens.length - 1);
   const t0 = result.tokens[focusIdx];
   const rowWeights = result.weights[focusIdx];
+  const scaledVecs = result.tokens.map((t, j) => result.V[t].map((v) => v * rowWeights[j]));
   const stage1 = stageCard(
-    '01: STORAGE',
-    'Every attention weight, every value',
-    `Take the softmaxed weights from $QK^T$, and $V$ from the initial projections.`,
-    `<div><div class="heatbar-block-title">attention weights</div>${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div>
-     <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
-    `every row of weights will blend the same ${result.tokens.length} value vectors, just with different weights`
-  );
-  const j0 = 0;
-  const w0 = rowWeights[j0];
-  const v0 = result.V[result.tokens[j0]];
-  const scaled0 = v0.map((v) => v * w0);
-  const stage2 = stageCard(
-    '02: SLICE',
-    'Scale one value vector by its weight',
-    `The actual operation is a scalar times a vector: take one key token's value vector and multiply every entry by that token's attention weight. Here's &quot;${result.tokens[j0]}&quot;, weighted by ${w0.toFixed(2)}.`,
-    `<div class="formula">$$ \\text{weight}_{ij} \\, v_j $$</div>
-     <div class="mult-list">${v0.map((v, i) => `<div class="mult-row"><span class="mult-dimlabel">d${i}</span><span class="mult-chip" style="color:var(--accent-link)">${w0.toFixed(2)}</span><span class="mult-eq">&times;</span><span class="mult-chip" style="color:#ffd97a">${v.toFixed(2)}</span><span class="mult-eq">=</span><span class="mult-prod">${scaled0[i].toFixed(2)}</span></div>`).join('')}</div>
-     <div class="sum-arrow">&darr; scaled vector</div>
-     <div><div class="heatbar-block-title">&quot;${result.tokens[j0]}&quot; &times; ${w0.toFixed(2)}</div><div class="heatbar-list">${heatBarList(scaled0)}</div></div>`,
-    `this scaled vector is one of ${result.tokens.length} that get added together to build the output for &quot;${t0}&quot;`
-  );
-  const stage3 = stageCard(
-    '03: TRANSFORM',
+    '01: TRANSFORM',
     'Scale every value vector, then add them',
-    `Mass apply that same scaling: one weight times each row of $V$. Add all ${result.tokens.length} results together, position by position, to get the output for &quot;${t0}&quot;.`,
+    `Each value vector is scaled by its own attention weight, then every scaled vector is added together, position by position, to build the output for one token. Here's the full process for &quot;${t0}&quot;.`,
     `<div class="formula">$$ o_i = \\sum_j \\text{weight}_{ij} \\, v_j $$</div>
-     <div class="sum-arrow">&darr; add ${result.tokens.length} scaled vectors</div><div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>`
+     <div class="heatbar-block-row">${result.tokens.map((t, j) => labeledVecBlock(`&quot;${t}&quot; &times; ${rowWeights[j].toFixed(2)}`, scaledVecs[j])).join('')}</div>
+     <div class="sum-arrow">&darr; add ${result.tokens.length} scaled vectors</div>
+     <div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>`,
+    `every row of weights blends the same ${result.tokens.length} value vectors, just with different weights`
   );
-  container.innerHTML = filmstrip([stage1, stage2, stage3]);
+  container.innerHTML = filmstrip([stage1]);
 }
 
 function renderOutput(container, stepId, result) {
