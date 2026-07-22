@@ -281,12 +281,9 @@ function renderScores(container, stepId, result) {
 }
 
 function renderMask(container, stepId, result) {
-  const t0 = result.tokens[0];
-  const t1 = result.tokens.length > 1 ? result.tokens[1] : t0;
-  const cellValue = result.scaled[0][Math.min(1, result.tokens.length - 1)];
   const toggleHtml = `<label class="mask-toggle"><input type="checkbox" data-role="causal-toggle" ${result.causal ? 'checked' : ''}> causal mask on (each token can only see itself and earlier tokens)</label>`;
   const stage1 = stageCard(
-    '01: STORAGE',
+    '01: TRANSFORM',
     'The full scaled score matrix',
     `With the toggle above set to <b>${result.causal ? 'on' : 'off'}</b>, this is the current state of every score after scaling.`,
     heatMatrixGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), {
@@ -295,21 +292,7 @@ function renderMask(container, stepId, result) {
     }),
     `toggle above changes this grid live`
   );
-  const stage2 = stageCard(
-    '02: SLICE',
-    'One future position',
-    `Focus on the cell where query &quot;${t0}&quot; meets key &quot;${t1}&quot;, where column index 1 is greater than row index 0, so under a causal mask this key comes <b>after</b> this query in the sequence.`,
-    `<div class="sum-result" style="margin-bottom:10px">scaled value here: ${cellValue.toFixed(2)}</div>`,
-    `j=1 &gt; i=0, so this cell is a future position relative to the query`
-  );
-  const stage3 = stageCard(
-    '03: TRANSFORM',
-    'If masked, force it to &minus;&infin;',
-    `The rule is a simple condition, not a formula: for every cell where the key's position (j) is later than the query's position (i), replace the scaled value with negative infinity before softmax runs. Every other cell is left untouched.`,
-    `<div class="mult-row"><span class="mult-dimlabel">rule</span><span class="mult-chip" style="color:var(--accent-link)">j &gt; i ?</span><span class="mult-eq">&rarr;</span><span class="mult-prod">&minus;&infin;</span></div>
-     <div class="mult-row"><span class="mult-dimlabel">else</span><span class="mult-chip" style="color:var(--accent-link)">j &le; i ?</span><span class="mult-eq">&rarr;</span><span class="mult-prod">unchanged</span></div>`
-  );
-  container.innerHTML = toggleHtml + filmstrip([stage1, stage2, stage3]);
+  container.innerHTML = toggleHtml + filmstrip([stage1]);
   const toggle = container.querySelector('[data-role="causal-toggle"]');
   toggle.addEventListener('change', () => {
     window.attentionSetCausal(toggle.checked);
