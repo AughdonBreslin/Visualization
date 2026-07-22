@@ -232,7 +232,7 @@ function renderScores(container, stepId, result) {
     `To fill in exactly one cell of the score grid, where the first token's query meets the first token's key, row 0 column 0, we only need one row from $Q$ and one row from $K$, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
     `<div><div class="heatbar-block-title">$q_{\\text{${t0}}}$</div><div class="heatbar-list">${heatBarList(result.Q[t0])}</div></div>
      <div><div class="heatbar-block-title">$k_{\\text{${t0}}}$</div><div class="heatbar-list">${heatBarList(result.K[t0])}</div></div>
-     ${multBreakdown(result.Q[t0], result.K[t0], 'score', result.scores[0][0].toFixed(2))}`,
+     <div class="calc-line">${result.Q[t0].map((qv, j) => `${qv.toFixed(2)}&times;${result.K[t0][j].toFixed(2)}`).join(' + ')} = <b>${result.scores[0][0].toFixed(2)}</b></div>`,
     `this pair lands in score grid cell [0,0]: that's a dot product, the standard way to measure how aligned two vectors are`
   );
   const n = result.tokens.length;
