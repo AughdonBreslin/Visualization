@@ -159,7 +159,7 @@ function renderQkv(container, stepId, result) {
   const vMatrix = result.tokens.map((t) => result.V[t]);
   const stage1 = stageCard(
     '01: STORAGE',
-    'The full data at rest',
+    'X and the weights',
     `$X$ below stacks all the embeddings, one row per token. The three matrices on the right are the actual $W_Q$, $W_K$, and $W_V$ this model learned: $X$ gets multiplied by each of them independently, producing a query, a key, and a value. Click a row in $X$ to pick which token the next two stages walk through.`,
     `<div class="qkv-storage-row">
        <div class="qkv-storage-block"><div class="heatbar-block-title">$X$: one row per token</div><div class="attn-row-select" data-role="qkv-x-grid">${heatMatrixGrid(xMatrix, { rowLabels: result.tokens, hiRow: focusIdx })}</div></div>
@@ -174,7 +174,7 @@ function renderQkv(container, stepId, result) {
   );
   const stage2 = stageCard(
     '02: SLICE',
-    'One token, three projections',
+    'Taking projections',
     `Take one token's embedding, $x_{\\text{${t0}}}$, and multiply it by all three matrices at once: $x \\cdot W_Q$ gives its query, $x \\cdot W_K$ gives its key, $x \\cdot W_V$ gives its value, all independently and in parallel off the same input vector.`,
     `<div class="formula">$$ q_i = x_i W_Q, \\quad k_i = x_i W_K, \\quad v_i = x_i W_V $$</div>
      <div class="heatbar-block-row">
@@ -186,7 +186,7 @@ function renderQkv(container, stepId, result) {
   );
   const stage3 = stageCard(
     '03: TRANSFORM',
-    'The same multiply, every token at once',
+    'Applying to the full matrices',
     `Each token in $X$ goes through $W_Q$, $W_K$, and $W_V$, producing the full $Q$, $K$, $V$ matrices below.`,
     `<div class="heatbar-block-row">
        <div class="qkv-storage-block"><div class="heatbar-block-title">$Q$</div>${heatMatrixGrid(qMatrix, { rowLabels: result.tokens, hiRow: focusIdx })}</div>
@@ -219,7 +219,7 @@ function renderScores(container, stepId, result) {
   const tK = result.tokens[kIdx];
   const stage1 = stageCard(
     '01: STORAGE',
-    'Every query, every key',
+    'Q and K',
     `The previous step already produced a query vector and a key vector for every token. $Q$ below stacks all the query vectors, one row per token; $K$ stacks all the key vectors the same way. Click a row in either to pick which query and key the next two stages walk through.`,
     `<div><div class="heatbar-block-title">$Q$: one row per token</div><div class="attn-row-select" data-role="scores-q-grid">${heatMatrixGrid(result.tokens.map((t) => result.Q[t]), { hiRow: qIdx, rowLabels: result.tokens })}</div></div>
      <div><div class="heatbar-block-title">$K$: one row per token</div><div class="attn-row-select" data-role="scores-k-grid">${heatMatrixGrid(result.tokens.map((t) => result.K[t]), { hiRow: kIdx, rowLabels: result.tokens })}</div></div>`,
@@ -227,7 +227,7 @@ function renderScores(container, stepId, result) {
   );
   const stage2 = stageCard(
     '02: SLICE',
-    'One query, one key',
+    'Initial scoring',
     `To fill in exactly one cell of the score grid, where &quot;${tQ}&quot;'s query meets &quot;${tK}&quot;'s key, row ${qIdx} column ${kIdx}, we only need one row from $Q$ and one row from $K$, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
     `<div><div class="heatbar-block-title">$q_{\\text{${tQ}}}$</div><div class="heatbar-list">${heatBarList(result.Q[tQ])}</div></div>
      <div><div class="heatbar-block-title">$k_{\\text{${tK}}}$</div><div class="heatbar-list">${heatBarList(result.K[tK])}</div></div>
@@ -238,7 +238,7 @@ function renderScores(container, stepId, result) {
   const blankGrid = `<div class="mgrid-wrap"><div class="mgrid-rowlabels">${result.tokens.map((t) => `<div class="mgrid-rowlabel" style="color:var(--text-muted)">${t}</div>`).join('')}</div><div class="mgrid g${n}x${n}">${result.tokens.map((_, i) => result.tokens.map((_, j) => `<div class="mcell pending${i === qIdx && j === kIdx ? ' selected' : ''}">?</div>`).join('')).join('')}</div></div>`;
   const stage3 = stageCard(
     '03: TRANSFORM',
-    'Fill in the grid, one comparison at a time',
+    'Apply to all combinations',
     `Every cell repeats the same operation: pair up one query row and one key row by position, multiply each pair, add the results. Click below to watch all cells compute at once.`,
     `<div class="formula">$$ \\text{score}_{ij} = q_i \\cdot k_j $$</div>
      <div class="scale-shrink-wrap"><div data-role="sweep-grid">${blankGrid}</div></div>
@@ -306,7 +306,7 @@ function renderMask(container, stepId, result) {
   const toggleHtml = `<label class="mask-toggle"><input type="checkbox" data-role="causal-toggle" ${result.causal ? 'checked' : ''}> causal mask on (each token can only see itself and earlier tokens)</label>`;
   const stage1 = stageCard(
     '01: TRANSFORM',
-    'The full scaled score matrix',
+    'Toggle visibility of future words',
     `With the causal toggle set to <b>${result.causal ? 'on' : 'off'}</b>, this is the current state of every score after scaling.`,
     `<div class="mask-row">${heatMatrixGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), {
       rowLabels: result.tokens,
@@ -370,7 +370,7 @@ function renderWsum(container, stepId, result) {
   const scaledVecs = result.tokens.map((t, j) => result.V[t].map((v) => v * rowWeights[j]));
   const stage1 = stageCard(
     '01: STORAGE',
-    'Every attention weight, every value',
+    'Attention weights and V',
     `Take the softmaxed weights from $QK^T$, and $V$ from the initial projections.`,
     `<div><div class="heatbar-block-title">attention weights</div><div class="attn-row-select" data-role="wsum-weights-grid">${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div></div>
      <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
@@ -381,7 +381,7 @@ function renderWsum(container, stepId, result) {
     .join('<div class="wsum-plus">+</div>');
   const stage2 = stageCard(
     '02: TRANSFORM',
-    'Scale every value vector, then add them',
+    'Paying attention to other tokens',
     `Each value vector is scaled by its own attention weight, then every scaled vector is added together, position by position, to build the output for one token. Here's the full process for &quot;${t0}&quot;.`,
     `<div class="formula">$$ o_i = \\sum_j \\text{weight}_{ij} \\, v_j $$</div>
      <div class="wsum-stack">${stackedHtml}</div>
@@ -404,7 +404,7 @@ function renderOutput(container, stepId, result) {
   const storageBody = result.tokens.map((t, i) => labeledVecBlock(`&quot;${t}&quot;`, result.output[i])).join('');
   const stage1 = stageCard(
     '01: STORAGE',
-    'Same shape as the input, different content',
+    'Context-aware representations',
     `Every output vector has exactly the same shape as the input, but now each vector carries a more context-aware representation, picked up from the rest of the sequence.`,
     storageBody,
     `compare this to the Input embeddings step: same shape, different content`
