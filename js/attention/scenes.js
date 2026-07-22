@@ -252,35 +252,31 @@ function renderScores(container, stepId, result) {
     'Shrink every cell by √d',
     `The raw score grows with $d$, the number of dimensions summed, so every score divides by $\\sqrt{d}$ to keep its scale roughly constant; $d = ${result.d}$ here, so $\\sqrt{d} = ${sqrtD.toFixed(2)}$.`,
     `<div class="formula">$$ \\text{scaled}_{ij} = \\frac{\\text{score}_{ij}}{\\sqrt{d}} $$</div>
-     <div class="scale-shrink-wrap"><div class="scale-shrink-grid" data-role="shrink-grid">${heatMatrixGrid(result.scores, { rowLabels: result.tokens })}</div></div>
-     <div class="anim-controls"><button class="anim-btn" type="button" data-role="shrink-btn">&#9654; normalize</button></div>`
+     <div class="scale-shrink-wrap"><div data-role="scale-grid">${blankGrid}</div></div>`
   );
   container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 
   // The grid starts blank ("?" in every cell) and fills in all at once on click, each cell
   // fading in with a staggered delay -- a single grid materializing, not nine separate reveals
   // to click through, and visually distinct from Scale's shrink and QKV's static breakdown.
+  // The same click also fills in stage4's grid with the scaled values, since scaling is just
+  // that same score grid divided by sqrt(d) -- one click computes both.
   const sweepGrid = container.querySelector('[data-role="sweep-grid"]');
   const sweepBtn = container.querySelector('[data-role="sweep-btn"]');
+  const scaleGrid = container.querySelector('[data-role="scale-grid"]');
   sweepBtn.addEventListener('click', () => {
     sweepGrid.innerHTML = heatMatrixGrid(result.scores, { rowLabels: result.tokens });
     sweepGrid.querySelectorAll('.mcell').forEach((cell, idx) => {
       cell.style.animationDelay = `${idx * 55}ms`;
       cell.classList.add('cell-fade-in');
     });
+    scaleGrid.innerHTML = heatMatrixGrid(result.scaled, { rowLabels: result.tokens });
+    scaleGrid.querySelectorAll('.mcell').forEach((cell, idx) => {
+      cell.style.animationDelay = `${idx * 55}ms`;
+      cell.classList.add('cell-fade-in');
+    });
     sweepBtn.disabled = true;
     sweepBtn.textContent = 'all cells computed';
-  });
-
-  // The normalize button toggles the grid's values between raw scores and scores divided by
-  // sqrt(d), in place -- no size change, just the printed numbers and heat color updating.
-  const shrinkGrid = container.querySelector('[data-role="shrink-grid"]');
-  const shrinkBtn = container.querySelector('[data-role="shrink-btn"]');
-  let shrunk = false;
-  shrinkBtn.addEventListener('click', () => {
-    shrunk = !shrunk;
-    shrinkGrid.innerHTML = heatMatrixGrid(shrunk ? result.scaled : result.scores, { rowLabels: result.tokens });
-    shrinkBtn.innerHTML = shrunk ? '&#9664; show raw scores' : '&#9654; normalize';
   });
 }
 
