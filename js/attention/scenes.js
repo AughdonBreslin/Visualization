@@ -232,7 +232,7 @@ function renderScores(container, stepId, result) {
     `To fill in exactly one cell of the score grid, where the first token's query meets the first token's key, row 0 column 0, we only need one row from $Q$ and one row from $K$, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
     `<div><div class="heatbar-block-title">$q_{\\text{${t0}}}$</div><div class="heatbar-list">${heatBarList(result.Q[t0])}</div></div>
      <div><div class="heatbar-block-title">$k_{\\text{${t0}}}$</div><div class="heatbar-list">${heatBarList(result.K[t0])}</div></div>`,
-    `this pair lands in score grid cell [0,0]`
+    `this pair lands in score grid cell [0,0]: that's a dot product, the standard way to measure how aligned two vectors are`
   );
   const n = result.tokens.length;
   const blankGrid = `<div class="mgrid-wrap"><div class="mgrid-rowlabels">${result.tokens.map((t) => `<div class="mgrid-rowlabel" style="color:var(--text-muted)">${t}</div>`).join('')}</div><div class="mgrid g${n}x${n}">${result.tokens.map(() => result.tokens.map(() => '<div class="mcell pending">?</div>').join('')).join('')}</div></div>`;
@@ -240,11 +240,12 @@ function renderScores(container, stepId, result) {
   const stage3 = stageCard(
     '03: TRANSFORM',
     'Fill in the grid, one comparison at a time',
-    `Every cell repeats the same operation: pair up one query row and one key row by position, multiply each pair, add the results. That's a dot product, the standard way to measure how aligned two vectors are. Click below to watch all cells compute at once.`,
+    `Every cell repeats the same operation: pair up one query row and one key row by position, multiply each pair, add the results. Click below to watch all cells compute at once.`,
     `<div class="formula">$$ \\text{score}_{ij} = q_i \\cdot k_j $$</div>
      <div class="scale-shrink-wrap"><div data-role="sweep-grid">${blankGrid}</div></div>
      <div class="anim-controls"><button class="anim-btn" type="button" data-role="sweep-btn">&#9654; compute all cells</button></div>
-     <div class="stage-note" data-role="sweep-worked" style="display:none">${cellWorked}</div>`
+     <div class="stage-note" data-role="sweep-worked" style="display:none">${cellWorked}</div>`,
+    `repeat for all combinations of tokens to fill out the grid`
   );
   container.innerHTML = filmstrip([stage1, stage2, stage3]);
 
