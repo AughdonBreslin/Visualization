@@ -120,20 +120,55 @@ function filmstrip(stages) {
 
 // ---- per-step renderers ----------------------------------------------------------------------
 
+// Scans for the first two positions sharing an identical raw embedding -- i.e. a repeated
+// word. Position-agnostic on purpose: only the "dog-chased-cat" preset has one, but this
+// function makes no assumption about which preset is active, so the other two presets fall
+// back to showing the general addition with no repeat comparison.
+function findRepeatedPositions(embeddings) {
+  for (let i = 0; i < embeddings.length; i++) {
+    for (let j = i + 1; j < embeddings.length; j++) {
+      if (embeddings[i].every((v, k) => v === embeddings[j][k])) return [i, j];
+    }
+  }
+  return null;
+}
+
 function renderInput(container, stepId, result) {
   const storageBody = `<div class="heatbar-block-row">${result.tokens
-    .map((t) => labeledVecBlock(`&quot;${t}&quot;`, result.embeddings[t]))
+    .map((t, i) => labeledVecBlock(`&quot;${t}&quot;`, result.embeddings[i]))
     .join('')}</div>`;
   const stage1 = stageCard(
     '01: STORAGE',
     'The three embeddings',
-    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. Stacked together, the embeddings below form $X$, the matrix the rest of this pipeline operates on.`,
+    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. Stacked together, the embeddings below form $E$, the raw lookup-table rows this sentence selects, before anything else happens to them.`,
     storageBody,
     `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`,
     'stage-wide'
   );
+  const repeat = findRepeatedPositions(result.embeddings);
+  const repeatHtml = repeat
+    ? `<div class="heatbar-block-row">
+         ${labeledVecBlock(`$X_{${repeat[0]}}$ (&quot;${result.tokens[repeat[0]]}&quot;)`, result.X[repeat[0]])}
+         ${labeledVecBlock(`$X_{${repeat[1]}}$ (&quot;${result.tokens[repeat[1]]}&quot;)`, result.X[repeat[1]])}
+       </div>`
+    : '';
+  const repeatNote = repeat
+    ? `&quot;${result.tokens[repeat[0]]}&quot; appears at both position ${repeat[0]} and position ${repeat[1]} with an identical raw embedding; their final $X$ rows differ only because of position`
+    : `every position gets the same treatment, whether or not a word repeats`;
   const stage2 = stageCard(
-    '02: CONCEPT',
+    '02: TRANSFORM',
+    'Adding position',
+    `Every embedding is scaled by $\\sqrt{d}$, then a positional encoding is added, so the model can tell tokens apart by where they sit and not just what they are.`,
+    `<div class="formula">$$ X_i = \\sqrt{d}\\,E_i + PE(i) $$</div>
+     <div class="formula">$$ PE(i)_{2k} = \\sin\\!\\left(\\frac{i}{10000^{2k/d}}\\right), \\quad PE(i)_{2k+1} = \\cos\\!\\left(\\frac{i}{10000^{2k/d}}\\right) $$</div>
+     ${repeatHtml}
+     <div class="heatbar-block-title">$X$: every position, after scaling and adding position</div>
+     ${heatMatrixGrid(result.X, { rowLabels: result.tokens })}`,
+    repeatNote,
+    'stage-wide'
+  );
+  const stage3 = stageCard(
+    '03: CONCEPT',
     'True attention head scale',
     null,
     `<div class="scale-stats">
@@ -143,12 +178,18 @@ function renderInput(container, stepId, result) {
        <div class="scale-stat"><div class="scale-stat-label">sequence length</div><div class="scale-stat-value">${result.tokens.length} tokens here. Real context windows run from the low thousands historically up to hundreds of thousands or millions of tokens in current long-context models.</div></div>
        <div class="scale-stat"><div class="scale-stat-label">vocabulary</div><div class="scale-stat-value">${result.tokens.length} whole words here. Real models tokenize into tens to a few hundred thousand subword pieces instead.</div></div>
        <div class="scale-stat"><div class="scale-stat-label">parameters</div><div class="scale-stat-value">${3 * result.d * result.d} numbers here (three ${result.d}&times;${result.d} weight matrices). Real models run from millions up to hundreds of billions of parameters.</div></div>
-       <div class="scale-stat"><div class="scale-stat-label">position</div><div class="scale-stat-value">Left out here to keep focus on attention itself. Real models always add positional information (sinusoidal, learned, or rotary/ALiBi-style schemes), since attention alone has no sense of token order.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">position</div><div class="scale-stat-value">Added here via sinusoidal positional encoding, computed exactly rather than learned. Real models add position the same way, or with a learned, rotary, or ALiBi-style variant instead.</div></div>
      </div>`,
     undefined,
     'stage-wide'
   );
-  container.innerHTML = filmstrip([stage1, stage2]);
+  const stage4 = stageCard(
+    '04: RELATED RESEARCH',
+    'A rotation instead of an addition',
+    null,
+    `<p class="concept-box">The additive encoding above is the original approach, but it isn't what most current large language models use. <a href="https://arxiv.org/abs/2104.09864" target="_blank" rel="noopener">RoFormer: Enhanced Transformer with Rotary Position Embedding</a> (Su et al., 2021) introduced an alternative, RoPE, which rotates $Q$ and $K$ by an angle proportional to position instead of adding anything to the embedding. Rotating two vectors and then taking their dot product depends only on the angle between them, so every attention score ends up depending on relative distance rather than absolute position, structurally, not just in practice; that property, plus leaving vector magnitude untouched, is why RoPE is what LLaMA, GPT-NeoX, PaLM, and Falcon actually use instead of additive encoding. A third option, ALiBi, skips rotating $Q$/$K$ altogether and instead adds a distance-based penalty directly to the raw scores before softmax, the same place the causal mask already operates, just as a smooth decay instead of a hard cutoff.</p>`
+  );
+  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 }
 
 // X fans out into three independent multiplications at once: one line in, three lines out,
