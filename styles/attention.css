@@ -273,11 +273,8 @@
 }
 .ui.attention .mcell.cell-fade-in { animation: attn-cell-fade-in 260ms var(--ease-out) backwards; }
 
-/* --- shrink transform: Scale only. The grid visibly gets smaller when divided, instead of a
-   static before/after pair of grids. --- */
 .ui.attention .scale-shrink-wrap { padding: 4px; }
-.ui.attention .scale-shrink-grid { display: inline-block; transform-origin: top left; transition: transform 500ms var(--ease-out); }
-.ui.attention .scale-shrink-grid.shrunk { transform: scale(0.82); }
+.ui.attention .scale-shrink-grid { display: inline-block; }
 
 /* --- proportion bar: the distribution primitive, Softmax only. One bar splitting into
    token-colored segments sized by weight, not another grid of numbers. --- */

@@ -250,10 +250,10 @@ function renderScores(container, stepId, result) {
   const stage4 = stageCard(
     '04: SCALE',
     'Shrink every cell by √d',
-    `The raw score grows with $d$, the number of dimensions summed, so every score divides by $\\sqrt{d}$ to keep its scale roughly constant; $d = ${result.d}$ here, so $\\sqrt{d} = ${sqrtD.toFixed(2)}$. Click below to watch it happen.`,
-    `<div class="scale-shrink-wrap"><div class="scale-shrink-grid" data-role="shrink-grid">${heatMatrixGrid(result.scores, { rowLabels: result.tokens })}</div></div>
-     <div class="anim-controls"><button class="anim-btn" type="button" data-role="shrink-btn">&#9654; divide every cell by &radic;${result.d}</button></div>
-     <div class="formula">$$ \\text{scaled}_{ij} = \\frac{\\text{score}_{ij}}{\\sqrt{d}} $$</div>`
+    `The raw score grows with $d$, the number of dimensions summed, so every score divides by $\\sqrt{d}$ to keep its scale roughly constant; $d = ${result.d}$ here, so $\\sqrt{d} = ${sqrtD.toFixed(2)}$.`,
+    `<div class="formula">$$ \\text{scaled}_{ij} = \\frac{\\text{score}_{ij}}{\\sqrt{d}} $$</div>
+     <div class="scale-shrink-wrap"><div class="scale-shrink-grid" data-role="shrink-grid">${heatMatrixGrid(result.scores, { rowLabels: result.tokens })}</div></div>
+     <div class="anim-controls"><button class="anim-btn" type="button" data-role="shrink-btn">&#9654; normalize</button></div>`
   );
   container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 
@@ -272,19 +272,15 @@ function renderScores(container, stepId, result) {
     sweepBtn.textContent = 'all cells computed';
   });
 
-  // The shrink button toggles between the pre- and post-scale grid: the CSS transform on
-  // .scale-shrink-grid animates the visual size change, while the innerHTML swap (heat color +
-  // printed value) happens instantly underneath it, together reading as "the grid shrinks."
+  // The normalize button toggles the grid's values between raw scores and scores divided by
+  // sqrt(d), in place -- no size change, just the printed numbers and heat color updating.
   const shrinkGrid = container.querySelector('[data-role="shrink-grid"]');
   const shrinkBtn = container.querySelector('[data-role="shrink-btn"]');
   let shrunk = false;
   shrinkBtn.addEventListener('click', () => {
     shrunk = !shrunk;
-    shrinkGrid.classList.toggle('shrunk', shrunk);
     shrinkGrid.innerHTML = heatMatrixGrid(shrunk ? result.scaled : result.scores, { rowLabels: result.tokens });
-    shrinkBtn.innerHTML = shrunk
-      ? '&#9664; show before scaling'
-      : `&#9654; divide every cell by &radic;${result.d}`;
+    shrinkBtn.innerHTML = shrunk ? '&#9664; show raw scores' : '&#9654; normalize';
   });
 }
 
