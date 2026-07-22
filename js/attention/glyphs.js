@@ -3,7 +3,7 @@
 // every function here takes plain data in and returns a markup string, so it is testable with
 // plain Node asserts (string/shape checks) without a browser.
 
-export const STEP_IDS = ['input', 'qkv', 'scores', 'scale', 'mask', 'softmax', 'wsum', 'output'];
+export const STEP_IDS = ['input', 'qkv', 'scores', 'mask', 'softmax', 'wsum', 'output'];
 
 const DEFAULT_TOK = ['#7c8fff', '#e0b341', '#4fd1a5'];
 
@@ -42,14 +42,6 @@ function svgScores() {
   const cells = gridCells(SCORE_VALS, 10, 2, 4, 4, (v) => (0.15 + v * 0.65).toFixed(2));
   return `<svg viewBox="0 0 40 40"><g class="node-box">${cells}
     <rect x="2" y="2" width="36" height="36" rx="4" fill="none" stroke="var(--text-muted)" stroke-width="1.4"/></g></svg>`;
-}
-
-function svgScale() {
-  const cells = gridCells(SCORE_VALS, 7, 2, 7, 2, (v) => (0.1 + v * 0.4).toFixed(2));
-  return `<svg viewBox="0 0 40 44">
-    <g class="node-box">${cells}<rect x="6" y="0" width="28" height="28" rx="3" fill="none" stroke="var(--text-muted)" stroke-width="1.3"/></g>
-    <text x="20" y="40" font-size="9" font-family="var(--font-mono)" fill="var(--text-muted)" text-anchor="middle">&#247;&#8730;d</text>
-  </svg>`;
 }
 
 function svgMask() {
@@ -115,7 +107,6 @@ const BUILDERS = {
   input: svgInput,
   qkv: svgQkv,
   scores: svgScores,
-  scale: svgScale,
   mask: svgMask,
   softmax: svgSoftmax,
   wsum: svgWsum,

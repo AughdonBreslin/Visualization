@@ -58,13 +58,6 @@
         <div class="scene-anim"></div>
       </section>
 
-      <section class="panel" id="step-scale">
-        <h2>Scale</h2>
-        <div class="scene-hero-glyph"></div>
-        <p>The raw score is unbounded, and grows with the query and key vectors' magnitude. Every score divides by $\sqrt{d}$ to control that: dot-product magnitude grows with the number of dimensions being summed, $d$, so if $Q$ and $K$ entries have roughly unit variance, the dot product's own variance grows proportional to $d$, and its standard deviation grows with $\sqrt{d}$. Dividing by $\sqrt{d}$ is exactly what keeps a score's scale roughly constant no matter how large $d$ is chosen to be; without it, larger $d$ would push softmax into a near one-hot regime with vanishing gradients almost everywhere else, leaving little for training to work with.</p>
-        <div class="scene-anim"></div>
-      </section>
-
       <section class="panel" id="step-mask">
         <h2>Mask</h2>
         <div class="scene-hero-glyph"></div>
@@ -75,7 +68,7 @@
       <section class="panel" id="step-softmax">
         <h2>Softmax</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Each row exponentiates and normalizes into a probability distribution over keys: the actual attention weights, always summing to one per query token. The exponential is what makes softmax amplify differences: a score only slightly larger than its neighbors can end up with a much larger share of the final weight, once the gap has been stretched by exponentiating. This is part of why the Scale step mattered earlier: unscaled scores would make softmax nearly one-hot almost everywhere, leaving no useful gradient for training to work with.</p>
+        <p>Each row exponentiates and normalizes into a probability distribution over keys: the actual attention weights, always summing to one per query token. The exponential is what makes softmax amplify differences: a score only slightly larger than its neighbors can end up with a much larger share of the final weight, once the gap has been stretched by exponentiating. This is part of why scaling mattered earlier: unscaled scores would make softmax nearly one-hot almost everywhere, leaving no useful gradient for training to work with.</p>
         <div class="scene-anim"></div>
       </section>
 

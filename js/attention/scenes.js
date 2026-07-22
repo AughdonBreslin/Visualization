@@ -237,64 +237,40 @@ function renderScores(container, stepId, result) {
   );
   const n = result.tokens.length;
   const blankGrid = `<div class="mgrid-wrap"><div class="mgrid-rowlabels">${result.tokens.map((t) => `<div class="mgrid-rowlabel" style="color:var(--text-muted)">${t}</div>`).join('')}</div><div class="mgrid g${n}x${n}">${result.tokens.map(() => result.tokens.map(() => '<div class="mcell pending">?</div>').join('')).join('')}</div></div>`;
-  const cellWorked = `score[&quot;${t0}&quot;,&quot;${t0}&quot;] = q &middot; k = ${result.Q[t0].map((qv, j) => `${qv.toFixed(2)}&times;${result.K[t0][j].toFixed(2)}`).join(' + ')} = ${result.scores[0][0].toFixed(2)}`;
   const stage3 = stageCard(
     '03: TRANSFORM',
     'Fill in the grid, one comparison at a time',
     `Every cell repeats the same operation: pair up one query row and one key row by position, multiply each pair, add the results. Click below to watch all cells compute at once.`,
     `<div class="formula">$$ \\text{score}_{ij} = q_i \\cdot k_j $$</div>
      <div class="scale-shrink-wrap"><div data-role="sweep-grid">${blankGrid}</div></div>
-     <div class="anim-controls"><button class="anim-btn" type="button" data-role="sweep-btn">&#9654; compute all cells</button></div>
-     <div class="stage-note" data-role="sweep-worked" style="display:none">${cellWorked}</div>`,
+     <div class="anim-controls"><button class="anim-btn" type="button" data-role="sweep-btn">&#9654; compute all cells</button></div>`,
     `repeat for all combinations of tokens to fill out the grid`
   );
-  container.innerHTML = filmstrip([stage1, stage2, stage3]);
+  const sqrtD = Math.sqrt(result.d);
+  const stage4 = stageCard(
+    '04: SCALE',
+    'Shrink every cell by √d',
+    `The raw score grows with $d$, the number of dimensions summed, so every score divides by $\\sqrt{d}$ to keep its scale roughly constant; $d = ${result.d}$ here, so $\\sqrt{d} = ${sqrtD.toFixed(2)}$. Click below to watch it happen.`,
+    `<div class="scale-shrink-wrap"><div class="scale-shrink-grid" data-role="shrink-grid">${heatMatrixGrid(result.scores, { rowLabels: result.tokens })}</div></div>
+     <div class="anim-controls"><button class="anim-btn" type="button" data-role="shrink-btn">&#9654; divide every cell by &radic;${result.d}</button></div>
+     <div class="formula">$$ \\text{scaled}_{ij} = \\frac{\\text{score}_{ij}}{\\sqrt{d}} $$</div>`
+  );
+  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 
   // The grid starts blank ("?" in every cell) and fills in all at once on click, each cell
   // fading in with a staggered delay -- a single grid materializing, not nine separate reveals
   // to click through, and visually distinct from Scale's shrink and QKV's static breakdown.
   const sweepGrid = container.querySelector('[data-role="sweep-grid"]');
   const sweepBtn = container.querySelector('[data-role="sweep-btn"]');
-  const sweepWorked = container.querySelector('[data-role="sweep-worked"]');
   sweepBtn.addEventListener('click', () => {
     sweepGrid.innerHTML = heatMatrixGrid(result.scores, { rowLabels: result.tokens });
     sweepGrid.querySelectorAll('.mcell').forEach((cell, idx) => {
       cell.style.animationDelay = `${idx * 55}ms`;
       cell.classList.add('cell-fade-in');
     });
-    sweepWorked.style.display = '';
     sweepBtn.disabled = true;
     sweepBtn.textContent = 'all cells computed';
   });
-}
-
-function renderScale(container, stepId, result) {
-  const t0 = result.tokens[0];
-  const before = result.scores[0][0];
-  const sqrtD = Math.sqrt(result.d);
-  const stage1 = stageCard(
-    '01: STORAGE',
-    'The full score matrix',
-    `Every score computed in the previous step is about to divide by &radic;${result.d}. Here's the whole grid before that happens.`,
-    heatMatrixGrid(result.scores, { rowLabels: result.tokens }),
-    `${result.tokens.length * result.tokens.length} cells, all about to shrink by the same factor`
-  );
-  const stage2 = stageCard(
-    '02: SLICE',
-    'One cell, before scaling',
-    `Focus on the cell where query &quot;${t0}&quot; meets key &quot;${t0}&quot;. Before scaling it's ${before.toFixed(2)}; every other cell scales the exact same way, independently.`,
-    `<div class="sum-result" style="margin-bottom:10px">before: ${before.toFixed(3)}</div>`,
-    `this is score grid cell [0,0], the same cell used in the previous step's worked example`
-  );
-  const stage3 = stageCard(
-    '03: TRANSFORM',
-    'Watch the whole grid shrink',
-    `$d = ${result.d}$ here, so $\\sqrt{d} = ${sqrtD.toFixed(2)}$. Every cell in the grid divides by that same number at once, not one at a time. Click below to watch it happen.`,
-    `<div class="scale-shrink-wrap"><div class="scale-shrink-grid" data-role="shrink-grid">${heatMatrixGrid(result.scores, { rowLabels: result.tokens })}</div></div>
-     <div class="anim-controls"><button class="anim-btn" type="button" data-role="shrink-btn">&#9654; divide every cell by &radic;${result.d}</button></div>
-     <div class="formula">$$ \\text{scaled}_{ij} = \\frac{\\text{score}_{ij}}{\\sqrt{d}} $$</div>`
-  );
-  container.innerHTML = filmstrip([stage1, stage2, stage3]);
 
   // The shrink button toggles between the pre- and post-scale grid: the CSS transform on
   // .scale-shrink-grid animates the visual size change, while the innerHTML swap (heat color +
@@ -451,7 +427,6 @@ const STEP_RENDERERS = {
   input: renderInput,
   qkv: renderQkv,
   scores: renderScores,
-  scale: renderScale,
   mask: renderMask,
   softmax: renderSoftmax,
   wsum: renderWsum,

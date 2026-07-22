@@ -10,7 +10,6 @@ export const STEPS = [
   { id: 'input', label: 'Input' },
   { id: 'qkv', label: 'Q / K / V' },
   { id: 'scores', label: 'QKᵀ' },
-  { id: 'scale', label: 'Scale' },
   { id: 'mask', label: 'Mask' },
   { id: 'softmax', label: 'Softmax' },
   { id: 'wsum', label: 'W. sum' },
