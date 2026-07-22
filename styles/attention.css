@@ -199,6 +199,13 @@
    row (and eventually one per row) as width runs out - a plain flex-wrap gives us both the
    desktop "side by side" layout and the small-window "stacked" fallback from one rule. */
 .ui.attention .heatbar-block-row { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+/* Softmax's before/arrow/after row: side by side while there's room for all three; below that,
+   flex-direction switches to column (not wrap) so each piece gets its own full-width line
+   instead of the arrow awkwardly floating beside whichever matrix still fit next to it. */
+.ui.attention .softmax-row { display: flex; align-items: center; gap: 20px; }
+@media (max-width: 640px) {
+  .ui.attention .softmax-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+}
 /* One bracket frame around the whole row (matrix-notation style: [ box box box box ]),
    not one pair per box -- drawn with borders on ::before/::after rather than stretched glyph
    characters, so the frame stays crisp at any row width. Boxes sit side by side (temperature ->
