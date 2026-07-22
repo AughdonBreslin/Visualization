@@ -204,7 +204,7 @@
    characters, so the frame stays crisp at any row width. Boxes sit side by side (temperature ->
    fill color, value printed inside) rather than stacked bars, echoing the same heat-cell look
    already used for full matrices, just for a single row. */
-.ui.attention .heatbar-list { position: relative; display: flex; flex-direction: row; align-items: flex-end; gap: 3px; padding: 3px 8px; }
+.ui.attention .heatbar-list { position: relative; display: inline-flex; flex-direction: row; align-items: flex-end; align-self: flex-start; gap: 3px; padding: 3px 8px; }
 .ui.attention .heatbar-list::before, .ui.attention .heatbar-list::after {
   content: ''; position: absolute; top: 1px; bottom: 1px; width: 5px;
   border: 1.5px solid var(--hairline-strong);
