@@ -210,6 +210,16 @@
    between each pair, reading top to bottom like a written-out sum. */
 .ui.attention .wsum-stack { display: flex; flex-direction: column; gap: 4px; }
 .ui.attention .wsum-plus { font: 700 13px/1 var(--font-mono); color: var(--text-muted); padding-left: 2px; }
+.ui.attention .wsum-term { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.ui.attention .wsum-term-label { flex: none; font: 700 13.5px/1.3 var(--font-sans); color: var(--text-2); min-width: 92px; }
+.ui.attention .wsum-term-arrow { flex: none; font: 700 15px/1 var(--font-mono); color: var(--text-muted); }
+.ui.attention .wsum-term .heatbox-cell { animation: attn-cell-fade-in 260ms var(--ease-out) backwards; }
+/* The attention-weights matrix in Wsum's 01 is clickable: picking a row (query token) drives
+   which token's full computation 02 walks through. */
+.ui.attention [data-role="wsum-weights-grid"] .mcell,
+.ui.attention [data-role="wsum-weights-grid"] .mgrid-rowlabel { cursor: pointer; }
+.ui.attention [data-role="wsum-weights-grid"] .mcell:hover,
+.ui.attention [data-role="wsum-weights-grid"] .mgrid-rowlabel:hover { filter: brightness(1.35); }
 /* One bracket frame around the whole row (matrix-notation style: [ box box box box ]),
    not one pair per box -- drawn with borders on ::before/::after rather than stretched glyph
    characters, so the frame stays crisp at any row width. Boxes sit side by side (temperature ->

@@ -8,10 +8,12 @@ import { initFilmstrips } from './filmstrip.js';
 
 let currentPreset = PRESETS[0];
 let currentCausal = false;
+let currentWsumFocus = 0;
 
 function buildAndRenderAll() {
   const result = computePipeline(currentPreset.tokens, currentPreset.embeddings, WEIGHTS, { causal: currentCausal });
   result.tokenColors = TOKEN_COLORS;
+  result.wsumFocus = currentWsumFocus;
   renderAllScenes(result);
   updatePickerActiveState();
   // Some concept-stage prose is real MathJax notation ($...$), injected after MathJax's own
@@ -28,6 +30,14 @@ function buildAndRenderAll() {
 // on main.js (scenes.js only ever receives a PipelineResult, it never triggers recomputation).
 window.attentionSetCausal = function setCausal(causal) {
   currentCausal = causal;
+  buildAndRenderAll();
+};
+
+// The weighted-sum scene's attention-weights matrix is clickable: picking a different row
+// (query token) changes which token's full computation the TRANSFORM stage walks through.
+// Same window-exposed pattern as attentionSetCausal, for the same reason.
+window.attentionSetWsumFocus = function setWsumFocus(idx) {
+  currentWsumFocus = idx;
   buildAndRenderAll();
 };
 
@@ -51,6 +61,7 @@ function initPresetPicker() {
     const preset = PRESETS.find((p) => p.id === btn.dataset.presetId);
     if (!preset) return;
     currentPreset = preset;
+    currentWsumFocus = 0;
     buildAndRenderAll();
   });
 }

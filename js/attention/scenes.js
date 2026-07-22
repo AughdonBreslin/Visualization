@@ -71,7 +71,7 @@ function heatMatrixGrid(matrix, opts = {}) {
   }).join('')).join('');
   const activeRow = hiCell ? hiCell[0] : hiRow;
   const rowLabelsHtml = opts.rowLabels
-    ? `<div class="mgrid-rowlabels">${opts.rowLabels.map((l, i) => `<div class="mgrid-rowlabel" style="color:${i === activeRow ? 'var(--accent-link)' : 'var(--text-muted)'}">${l}</div>`).join('')}</div>`
+    ? `<div class="mgrid-rowlabels">${opts.rowLabels.map((l, i) => `<div class="mgrid-rowlabel" data-row="${i}" style="color:${i === activeRow ? 'var(--accent-link)' : 'var(--text-muted)'}">${l}</div>`).join('')}</div>`
     : '';
   return `<div class="mgrid-wrap">${rowLabelsHtml}<div class="mgrid g${matrix.length}x${cols}">${cellsHtml}</div></div>`;
 }
@@ -316,8 +316,20 @@ function labeledVecBlock(label, values, opts = {}) {
   </div>`;
 }
 
+// One term of the weighted sum: a token's value vector scaled by the query's attention weight
+// on it. Labeled as v_token (real LaTeX, not just the bare token) so it's unambiguous this is
+// the value vector, not the token itself; an explicit arrow separates "the scaling" from "the
+// resulting vector" instead of placing them side by side with nothing marking the transition.
+function wsumTermBlock(token, weight, vec) {
+  return `<div class="wsum-term">
+    <div class="wsum-term-label">${weight.toFixed(2)} &times; $v_{\\text{${token}}}$</div>
+    <div class="wsum-term-arrow">&rarr;</div>
+    <div class="heatbar-list">${heatBarList(vec)}</div>
+  </div>`;
+}
+
 function renderWsum(container, stepId, result) {
-  const focusIdx = Math.min(1, result.tokens.length - 1);
+  const focusIdx = Math.min(result.wsumFocus ?? 0, result.tokens.length - 1);
   const t0 = result.tokens[focusIdx];
   const rowWeights = result.weights[focusIdx];
   const scaledVecs = result.tokens.map((t, j) => result.V[t].map((v) => v * rowWeights[j]));
@@ -325,12 +337,12 @@ function renderWsum(container, stepId, result) {
     '01: STORAGE',
     'Every attention weight, every value',
     `Take the softmaxed weights from $QK^T$, and $V$ from the initial projections.`,
-    `<div><div class="heatbar-block-title">attention weights</div>${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div>
+    `<div><div class="heatbar-block-title">attention weights</div><div data-role="wsum-weights-grid">${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div></div>
      <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
-    `every row of weights will blend the same ${result.tokens.length} value vectors, just with different weights`
+    `click any row of weights above to see its full computation worked out in 02`
   );
   const stackedHtml = result.tokens
-    .map((t, j) => labeledVecBlock(`&quot;${t}&quot; &times; ${rowWeights[j].toFixed(2)}`, scaledVecs[j]))
+    .map((t, j) => wsumTermBlock(t, rowWeights[j], scaledVecs[j]))
     .join('<div class="wsum-plus">+</div>');
   const stage2 = stageCard(
     '02: TRANSFORM',
@@ -343,6 +355,14 @@ function renderWsum(container, stepId, result) {
     `same shape as every value vector, since it's a sum of them`
   );
   container.innerHTML = filmstrip([stage1, stage2]);
+
+  const weightsGrid = container.querySelector('[data-role="wsum-weights-grid"]');
+  weightsGrid.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-row]');
+    if (!target) return;
+    const idx = parseInt(target.dataset.row, 10);
+    if (!Number.isNaN(idx) && window.attentionSetWsumFocus) window.attentionSetWsumFocus(idx);
+  });
 }
 
 function renderOutput(container, stepId, result) {
