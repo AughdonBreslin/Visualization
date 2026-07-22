@@ -61,7 +61,7 @@
       <section class="panel" id="step-mask">
         <h2>Mask</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Every step so far treats all tokens symmetrically: any token can see any other, past or future. That's fine for encoding a sentence you already have in full, but wrong for predicting the next token, since letting a model see the answer it's supposed to predict makes training meaningless. An optional causal mask enforces the one asymmetry a decoder needs: only allow looking backward, by setting every future-position score to negative infinity before softmax. e<sup>0</sup> = 1, so a masked score of literal 0 would still receive real, nonzero attention weight after softmax, same as any other position with a score of 0; e<sup>&minus;&infin;</sup> = 0 exactly, the only value guaranteed to zero out that position's contribution regardless of the other scores in the row.</p>
+        <p>Every step so far treats all tokens symmetrically: any token can see any other, past or future. That's fine for encoding a sentence you already have in full, but wrong for predicting the next token, since letting a model see the answer it's supposed to predict makes training meaningless. An optional causal mask enforces the one asymmetry a decoder needs: only allow looking backward, by setting every future-position score to negative infinity before softmax. Use &minus;&infin; since softmax exponentiates these values: masking to 0 would yield e<sup>0</sup> = 1, a real attention weight, while e<sup>&minus;&infin;</sup> = 0, as desired.</p>
         <div class="scene-anim"></div>
       </section>
 
