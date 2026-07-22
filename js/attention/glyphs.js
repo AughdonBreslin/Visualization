@@ -134,10 +134,10 @@ export function connectorsSVG(count, opts = {}) {
   // at the horizontal midpoint, which is a quadratic curve in disguise: mathematically a single
   // smooth hump, never the S-shaped pinch two independently-offset control points can produce.
   const midY = height * 0.444;
-  const archHeight = height * 0.22;
+  const archHeight = height * 0.12;
   for (let i = 0; i < xs.length - 1; i++) {
-    const x1 = xs[i] + 20;
-    const x2 = xs[i + 1] - 24;
+    const x1 = xs[i] + 28;
+    const x2 = xs[i + 1] - 32;
     const archY = i % 2 === 0 ? midY - archHeight : midY + archHeight;
     const cx = (x1 + x2) / 2;
     out += `<path d="M${x1} ${midY} C ${cx} ${archY}, ${cx} ${archY}, ${x2} ${midY}" fill="none" stroke="var(--text-muted)" stroke-width="1.3" marker-end="url(#attn-arrowhead)"/>`;
