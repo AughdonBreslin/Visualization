@@ -297,10 +297,10 @@ function renderSoftmax(container, stepId, result) {
          rowLabels: result.tokens,
          maskedCells: (i, j) => result.causal && j > i,
        })}</div>
-       <div class="sum-arrow" style="margin:0">&rarr; softmax</div>
+       <div class="sum-arrow" style="margin:0">&rarr;</div>
        <div><div class="heatbar-block-title">after softmax: the attention weights</div>${heatMatrixGrid(result.weights, { rowLabels: result.tokens })}</div>
      </div>`,
-    `every row sums to exactly 1.00`
+    `softmax ensures every row sums to exactly 1.00, a clean probability distribution over keys`
   );
   container.innerHTML = filmstrip([stage1]);
 }
