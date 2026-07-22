@@ -170,10 +170,10 @@ function qkvFanoutSVG() {
 function renderQkv(container, stepId, result) {
   const focusIdx = Math.min(result.qkvFocus ?? 0, result.tokens.length - 1);
   const t0 = result.tokens[focusIdx];
-  const xMatrix = result.tokens.map((t) => result.embeddings[t]);
-  const qMatrix = result.tokens.map((t) => result.Q[t]);
-  const kMatrix = result.tokens.map((t) => result.K[t]);
-  const vMatrix = result.tokens.map((t) => result.V[t]);
+  const xMatrix = result.X;
+  const qMatrix = result.Q;
+  const kMatrix = result.K;
+  const vMatrix = result.V;
   const stage1 = stageCard(
     '01: STORAGE',
     'X and the weights',
@@ -195,9 +195,9 @@ function renderQkv(container, stepId, result) {
     `Take one token's embedding, $x_{\\text{${t0}}}$, and multiply it by all three matrices at once: $x \\cdot W_Q$ gives its query, $x \\cdot W_K$ gives its key, $x \\cdot W_V$ gives its value, all independently and in parallel off the same input vector.`,
     `<div class="formula">$$ q_i = x_i W_Q, \\quad k_i = x_i W_K, \\quad v_i = x_i W_V $$</div>
      <div class="heatbar-block-row">
-       ${labeledVecBlock(`$q_{\\text{${t0}}}$`, result.Q[t0])}
-       ${labeledVecBlock(`$k_{\\text{${t0}}}$`, result.K[t0])}
-       ${labeledVecBlock(`$v_{\\text{${t0}}}$`, result.V[t0])}
+       ${labeledVecBlock(`$q_{\\text{${t0}}}$`, result.Q[focusIdx])}
+       ${labeledVecBlock(`$k_{\\text{${t0}}}$`, result.K[focusIdx])}
+       ${labeledVecBlock(`$v_{\\text{${t0}}}$`, result.V[focusIdx])}
      </div>`,
     `one input vector, three separate matrix multiplies, three separate outputs`
   );
@@ -238,17 +238,17 @@ function renderScores(container, stepId, result) {
     '01: STORAGE',
     'Q and K',
     `The previous step already produced a query vector and a key vector for every token. $Q$ below stacks all the query vectors, one row per token; $K$ stacks all the key vectors the same way. Click a row in either to pick which query and key the next two stages walk through.`,
-    `<div><div class="heatbar-block-title">$Q$: one row per token</div><div class="attn-row-select" data-role="scores-q-grid">${heatMatrixGrid(result.tokens.map((t) => result.Q[t]), { hiRow: qIdx, rowLabels: result.tokens })}</div></div>
-     <div><div class="heatbar-block-title">$K$: one row per token</div><div class="attn-row-select" data-role="scores-k-grid">${heatMatrixGrid(result.tokens.map((t) => result.K[t]), { hiRow: kIdx, rowLabels: result.tokens })}</div></div>`,
+    `<div><div class="heatbar-block-title">$Q$: one row per token</div><div class="attn-row-select" data-role="scores-q-grid">${heatMatrixGrid(result.Q, { hiRow: qIdx, rowLabels: result.tokens })}</div></div>
+     <div><div class="heatbar-block-title">$K$: one row per token</div><div class="attn-row-select" data-role="scores-k-grid">${heatMatrixGrid(result.K, { hiRow: kIdx, rowLabels: result.tokens })}</div></div>`,
     `every query paired with every key, comparisons still to come`
   );
   const stage2 = stageCard(
     '02: SLICE',
     'Initial scoring',
     `To fill in exactly one cell of the score grid, where &quot;${tQ}&quot;'s query meets &quot;${tK}&quot;'s key, row ${qIdx} column ${kIdx}, we only need one row from $Q$ and one row from $K$, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
-    `<div><div class="heatbar-block-title">$q_{\\text{${tQ}}}$</div><div class="heatbar-list">${heatBarList(result.Q[tQ])}</div></div>
-     <div><div class="heatbar-block-title">$k_{\\text{${tK}}}$</div><div class="heatbar-list">${heatBarList(result.K[tK])}</div></div>
-     <div class="calc-line">${result.Q[tQ].map((qv, j) => `${qv.toFixed(2)}&times;${result.K[tK][j].toFixed(2)}`).join(' + ')} = <b>${result.scores[qIdx][kIdx].toFixed(2)}</b></div>`,
+    `<div><div class="heatbar-block-title">$q_{\\text{${tQ}}}$</div><div class="heatbar-list">${heatBarList(result.Q[qIdx])}</div></div>
+     <div><div class="heatbar-block-title">$k_{\\text{${tK}}}$</div><div class="heatbar-list">${heatBarList(result.K[kIdx])}</div></div>
+     <div class="calc-line">${result.Q[qIdx].map((qv, j) => `${qv.toFixed(2)}&times;${result.K[kIdx][j].toFixed(2)}`).join(' + ')} = <b>${result.scores[qIdx][kIdx].toFixed(2)}</b></div>`,
     `this pair lands in score grid cell [${qIdx},${kIdx}]: that's a dot product, the standard way to measure how aligned two vectors are`
   );
   const n = result.tokens.length;
@@ -384,13 +384,13 @@ function renderWsum(container, stepId, result) {
   const focusIdx = Math.min(result.wsumFocus ?? 0, result.tokens.length - 1);
   const t0 = result.tokens[focusIdx];
   const rowWeights = result.weights[focusIdx];
-  const scaledVecs = result.tokens.map((t, j) => result.V[t].map((v) => v * rowWeights[j]));
+  const scaledVecs = result.V.map((v, j) => v.map((vk) => vk * rowWeights[j]));
   const stage1 = stageCard(
     '01: STORAGE',
     'Attention weights and V',
     `Take the softmaxed weights from $QK^T$, and $V$ from the initial projections.`,
     `<div><div class="heatbar-block-title">attention weights</div><div class="attn-row-select" data-role="wsum-weights-grid">${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div></div>
-     <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
+     <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.V, { rowLabels: result.tokens })}</div>`,
     `click any row of weights above to see its full computation worked out in 02`
   );
   const stackedHtml = result.tokens
