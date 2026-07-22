@@ -285,12 +285,12 @@ function renderMask(container, stepId, result) {
   const stage1 = stageCard(
     '01: TRANSFORM',
     'The full scaled score matrix',
-    `With the toggle below set to <b>${result.causal ? 'on' : 'off'}</b>, this is the current state of every score after scaling.`,
-    `${toggleHtml}${heatMatrixGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), {
+    `With the causal toggle set to <b>${result.causal ? 'on' : 'off'}</b>, this is the current state of every score after scaling.`,
+    `<div class="mask-row">${heatMatrixGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), {
       rowLabels: result.tokens,
       maskedCells: (i, j) => result.causal && j > i,
-    })}`,
-    `toggle above changes this grid live`
+    })}${toggleHtml}</div>`,
+    `the toggle changes this grid live`
   );
   container.innerHTML = filmstrip([stage1]);
   const toggle = container.querySelector('[data-role="causal-toggle"]');
