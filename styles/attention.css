@@ -206,6 +206,10 @@
 @media (max-width: 640px) {
   .ui.attention .softmax-row { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
+/* Wsum's scaled-vector addition: one labeled vector per row, stacked vertically with a "+"
+   between each pair, reading top to bottom like a written-out sum. */
+.ui.attention .wsum-stack { display: flex; flex-direction: column; gap: 4px; }
+.ui.attention .wsum-plus { font: 700 13px/1 var(--font-mono); color: var(--text-muted); padding-left: 2px; }
 /* One bracket frame around the whole row (matrix-notation style: [ box box box box ]),
    not one pair per box -- drawn with borders on ::before/::after rather than stretched glyph
    characters, so the frame stays crisp at any row width. Boxes sit side by side (temperature ->

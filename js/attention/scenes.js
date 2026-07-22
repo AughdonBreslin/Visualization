@@ -322,16 +322,27 @@ function renderWsum(container, stepId, result) {
   const rowWeights = result.weights[focusIdx];
   const scaledVecs = result.tokens.map((t, j) => result.V[t].map((v) => v * rowWeights[j]));
   const stage1 = stageCard(
-    '01: TRANSFORM',
+    '01: STORAGE',
+    'Every attention weight, every value',
+    `Take the softmaxed weights from $QK^T$, and $V$ from the initial projections.`,
+    `<div><div class="heatbar-block-title">attention weights</div>${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div>
+     <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
+    `every row of weights will blend the same ${result.tokens.length} value vectors, just with different weights`
+  );
+  const stackedHtml = result.tokens
+    .map((t, j) => labeledVecBlock(`&quot;${t}&quot; &times; ${rowWeights[j].toFixed(2)}`, scaledVecs[j]))
+    .join('<div class="wsum-plus">+</div>');
+  const stage2 = stageCard(
+    '02: TRANSFORM',
     'Scale every value vector, then add them',
     `Each value vector is scaled by its own attention weight, then every scaled vector is added together, position by position, to build the output for one token. Here's the full process for &quot;${t0}&quot;.`,
     `<div class="formula">$$ o_i = \\sum_j \\text{weight}_{ij} \\, v_j $$</div>
-     <div class="heatbar-block-row">${result.tokens.map((t, j) => labeledVecBlock(`&quot;${t}&quot; &times; ${rowWeights[j].toFixed(2)}`, scaledVecs[j])).join('')}</div>
-     <div class="sum-arrow">&darr; add ${result.tokens.length} scaled vectors</div>
+     <div class="wsum-stack">${stackedHtml}</div>
+     <div class="sum-arrow">&darr; sum</div>
      <div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>`,
-    `every row of weights blends the same ${result.tokens.length} value vectors, just with different weights`
+    `same shape as every value vector, since it's a sum of them`
   );
-  container.innerHTML = filmstrip([stage1]);
+  container.innerHTML = filmstrip([stage1, stage2]);
 }
 
 function renderOutput(container, stepId, result) {
