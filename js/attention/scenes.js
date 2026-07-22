@@ -340,7 +340,7 @@ function renderWsum(container, stepId, result) {
   const stage2 = stageCard(
     '02: SLICE',
     'One query token&#39;s weights',
-    `Focus on the attention weights for &quot;${t0}&quot;, highlighted above: ${rowWeights.map((w, j) => `${(w * 100).toFixed(0)}% on &quot;${result.tokens[j]}&quot;`).join(', ')}. Each value vector below is shown at an opacity matching its weight, so the one &quot;${t0}&quot; is attending to most is the most visible.`,
+    `Focus on the attention weights for &quot;${t0}&quot;: ${rowWeights.map((w, j) => `${(w * 100).toFixed(0)}% on &quot;${result.tokens[j]}&quot;`).join(', ')}. Each value vector below is shown at an opacity matching its weight, so the one &quot;${t0}&quot; is attending to most is the most visible.`,
     result.tokens.map((t, j) => weightedVecBlock(t, rowWeights[j], result.V[t])).join(''),
     `these weights are the same ones computed in the Softmax step, always summing to 1.00`
   );
