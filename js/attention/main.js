@@ -9,11 +9,15 @@ import { initFilmstrips } from './filmstrip.js';
 let currentPreset = PRESETS[0];
 let currentCausal = false;
 let currentWsumFocus = 0;
+let currentScoresQFocus = 0;
+let currentScoresKFocus = 0;
 
 function buildAndRenderAll() {
   const result = computePipeline(currentPreset.tokens, currentPreset.embeddings, WEIGHTS, { causal: currentCausal });
   result.tokenColors = TOKEN_COLORS;
   result.wsumFocus = currentWsumFocus;
+  result.scoresQFocus = currentScoresQFocus;
+  result.scoresKFocus = currentScoresKFocus;
   renderAllScenes(result);
   updatePickerActiveState();
   // Some concept-stage prose is real MathJax notation ($...$), injected after MathJax's own
@@ -41,6 +45,14 @@ window.attentionSetWsumFocus = function setWsumFocus(idx) {
   buildAndRenderAll();
 };
 
+// The QKT-scores scene's Q and K matrices are independently clickable: picking a query row
+// and/or a key row changes which score-grid cell the SLICE and TRANSFORM stages walk through.
+window.attentionSetScoresFocus = function setScoresFocus(which, idx) {
+  if (which === 'q') currentScoresQFocus = idx;
+  else if (which === 'k') currentScoresKFocus = idx;
+  buildAndRenderAll();
+};
+
 function updatePickerActiveState() {
   const picker = document.getElementById('presetPicker');
   if (!picker) return;
@@ -62,6 +74,8 @@ function initPresetPicker() {
     if (!preset) return;
     currentPreset = preset;
     currentWsumFocus = 0;
+    currentScoresQFocus = 0;
+    currentScoresKFocus = 0;
     buildAndRenderAll();
   });
 }

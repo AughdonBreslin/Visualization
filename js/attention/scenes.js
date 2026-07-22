@@ -204,26 +204,29 @@ function renderQkv(container, stepId, result) {
 }
 
 function renderScores(container, stepId, result) {
-  const t0 = result.tokens[0];
+  const qIdx = Math.min(result.scoresQFocus ?? 0, result.tokens.length - 1);
+  const kIdx = Math.min(result.scoresKFocus ?? 0, result.tokens.length - 1);
+  const tQ = result.tokens[qIdx];
+  const tK = result.tokens[kIdx];
   const stage1 = stageCard(
     '01: STORAGE',
     'Every query, every key',
-    `The previous step already produced a query vector and a key vector for every token. $Q$ below stacks all the query vectors, one row per token; $K$ stacks all the key vectors the same way.`,
-    `<div><div class="heatbar-block-title">$Q$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.Q[t]), { hiRow: 0, rowLabels: result.tokens })}</div>
-     <div><div class="heatbar-block-title">$K$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.K[t]), { hiRow: 0, rowLabels: result.tokens })}</div>`,
+    `The previous step already produced a query vector and a key vector for every token. $Q$ below stacks all the query vectors, one row per token; $K$ stacks all the key vectors the same way. Click a row in either to pick which query and key the next two stages walk through.`,
+    `<div><div class="heatbar-block-title">$Q$: one row per token</div><div class="attn-row-select" data-role="scores-q-grid">${heatMatrixGrid(result.tokens.map((t) => result.Q[t]), { hiRow: qIdx, rowLabels: result.tokens })}</div></div>
+     <div><div class="heatbar-block-title">$K$: one row per token</div><div class="attn-row-select" data-role="scores-k-grid">${heatMatrixGrid(result.tokens.map((t) => result.K[t]), { hiRow: kIdx, rowLabels: result.tokens })}</div></div>`,
     `every query paired with every key, comparisons still to come`
   );
   const stage2 = stageCard(
     '02: SLICE',
     'One query, one key',
-    `To fill in exactly one cell of the score grid, where the first token's query meets the first token's key, row 0 column 0, we only need one row from $Q$ and one row from $K$, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
-    `<div><div class="heatbar-block-title">$q_{\\text{${t0}}}$</div><div class="heatbar-list">${heatBarList(result.Q[t0])}</div></div>
-     <div><div class="heatbar-block-title">$k_{\\text{${t0}}}$</div><div class="heatbar-list">${heatBarList(result.K[t0])}</div></div>
-     <div class="calc-line">${result.Q[t0].map((qv, j) => `${qv.toFixed(2)}&times;${result.K[t0][j].toFixed(2)}`).join(' + ')} = <b>${result.scores[0][0].toFixed(2)}</b></div>`,
-    `this pair lands in score grid cell [0,0]: that's a dot product, the standard way to measure how aligned two vectors are`
+    `To fill in exactly one cell of the score grid, where &quot;${tQ}&quot;'s query meets &quot;${tK}&quot;'s key, row ${qIdx} column ${kIdx}, we only need one row from $Q$ and one row from $K$, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
+    `<div><div class="heatbar-block-title">$q_{\\text{${tQ}}}$</div><div class="heatbar-list">${heatBarList(result.Q[tQ])}</div></div>
+     <div><div class="heatbar-block-title">$k_{\\text{${tK}}}$</div><div class="heatbar-list">${heatBarList(result.K[tK])}</div></div>
+     <div class="calc-line">${result.Q[tQ].map((qv, j) => `${qv.toFixed(2)}&times;${result.K[tK][j].toFixed(2)}`).join(' + ')} = <b>${result.scores[qIdx][kIdx].toFixed(2)}</b></div>`,
+    `this pair lands in score grid cell [${qIdx},${kIdx}]: that's a dot product, the standard way to measure how aligned two vectors are`
   );
   const n = result.tokens.length;
-  const blankGrid = `<div class="mgrid-wrap"><div class="mgrid-rowlabels">${result.tokens.map((t) => `<div class="mgrid-rowlabel" style="color:var(--text-muted)">${t}</div>`).join('')}</div><div class="mgrid g${n}x${n}">${result.tokens.map(() => result.tokens.map(() => '<div class="mcell pending">?</div>').join('')).join('')}</div></div>`;
+  const blankGrid = `<div class="mgrid-wrap"><div class="mgrid-rowlabels">${result.tokens.map((t) => `<div class="mgrid-rowlabel" style="color:var(--text-muted)">${t}</div>`).join('')}</div><div class="mgrid g${n}x${n}">${result.tokens.map((_, i) => result.tokens.map((_, j) => `<div class="mcell pending${i === qIdx && j === kIdx ? ' selected' : ''}">?</div>`).join('')).join('')}</div></div>`;
   const stage3 = stageCard(
     '03: TRANSFORM',
     'Fill in the grid, one comparison at a time',
@@ -258,18 +261,35 @@ function renderScores(container, stepId, result) {
   const sweepBtn = container.querySelector('[data-role="sweep-btn"]');
   const scaleGrid = container.querySelector('[data-role="scale-grid"]');
   sweepBtn.addEventListener('click', () => {
-    sweepGrid.innerHTML = heatMatrixGrid(result.scores, { rowLabels: result.tokens });
+    sweepGrid.innerHTML = heatMatrixGrid(result.scores, { rowLabels: result.tokens, hiCell: [qIdx, kIdx] });
     sweepGrid.querySelectorAll('.mcell').forEach((cell, idx) => {
       cell.style.animationDelay = `${idx * 55}ms`;
       cell.classList.add('cell-fade-in');
     });
-    scaleGrid.innerHTML = heatMatrixGrid(result.scaled, { rowLabels: result.tokens });
+    scaleGrid.innerHTML = heatMatrixGrid(result.scaled, { rowLabels: result.tokens, hiCell: [qIdx, kIdx] });
     scaleGrid.querySelectorAll('.mcell').forEach((cell, idx) => {
       cell.style.animationDelay = `${idx * 55}ms`;
       cell.classList.add('cell-fade-in');
     });
     sweepBtn.disabled = true;
     sweepBtn.textContent = 'all cells computed';
+  });
+
+  // The Q and K matrices in 01 are independently clickable: picking a query row and/or a key
+  // row changes which score-grid cell 02 and 03 walk through.
+  const qGrid = container.querySelector('[data-role="scores-q-grid"]');
+  const kGrid = container.querySelector('[data-role="scores-k-grid"]');
+  qGrid.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-row]');
+    if (!target) return;
+    const idx = parseInt(target.dataset.row, 10);
+    if (!Number.isNaN(idx) && window.attentionSetScoresFocus) window.attentionSetScoresFocus('q', idx);
+  });
+  kGrid.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-row]');
+    if (!target) return;
+    const idx = parseInt(target.dataset.row, 10);
+    if (!Number.isNaN(idx) && window.attentionSetScoresFocus) window.attentionSetScoresFocus('k', idx);
   });
 }
 
@@ -343,7 +363,7 @@ function renderWsum(container, stepId, result) {
     '01: STORAGE',
     'Every attention weight, every value',
     `Take the softmaxed weights from $QK^T$, and $V$ from the initial projections.`,
-    `<div><div class="heatbar-block-title">attention weights</div><div data-role="wsum-weights-grid">${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div></div>
+    `<div><div class="heatbar-block-title">attention weights</div><div class="attn-row-select" data-role="wsum-weights-grid">${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div></div>
      <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
     `click any row of weights above to see its full computation worked out in 02`
   );
