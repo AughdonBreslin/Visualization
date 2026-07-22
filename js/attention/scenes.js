@@ -242,7 +242,7 @@ function renderScores(container, stepId, result) {
      <div class="scale-shrink-wrap"><div data-role="scale-grid">${blankGrid}</div></div>`
   );
   const stage5 = stageCard(
-    '05: SELF-ATTENTION',
+    '05: CONCEPT',
     'Why does a token attend to itself?',
     null,
     `<p class="concept-box">Self-attention doesn't treat a token's own position as special: every token produces a query, a key, and a value from its own embedding, computed the exact same way for every token, with no exception for itself. The score grid is just every query paired with every key, $\\text{score}_{ij} = q_i \\cdot k_j$ for every $i$ and $j$; when a token is both the query and the key, that's simply $q_i \\cdot k_i$, one ordinary cell among the rest, not a special case. Whether a token ends up attending to itself is left to training: it often means the token's own content is already the most relevant thing for building its contextual output, useful when it needs little modification from its neighbors.</p>`
