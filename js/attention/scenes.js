@@ -376,7 +376,7 @@ function renderOutput(container, stepId, result) {
   const stage1 = stageCard(
     '01: STORAGE',
     'Same shape as the input, different content',
-    `Every output vector here is exactly ${result.d} numbers, the same width as the embeddings this pipeline started from. Nothing about the shape changed; what changed is that each vector is now a blend of the whole sequence rather than the token in isolation.`,
+    `Every output vector has exactly the same shape as the input, but now each vector carries a more context-aware representation, picked up from the rest of the sequence.`,
     storageBody,
     `compare this to the Input embeddings step: same shape, different content`
   );
