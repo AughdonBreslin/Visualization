@@ -75,7 +75,7 @@
       <section class="panel" id="step-wsum">
         <h2>Weighted sum</h2>
         <div class="scene-hero-glyph"></div>
-        <p>Now that there is a legitimate probability distribution over how much to listen to each token, the actual listening happens by blending: each token's output is the attention-weighted combination of every value vector, mostly its highest-weighted neighbors, a little of everything else. Like $Q$ and $K$, $V$ is its own learned projection, so the model can choose what a token actually contributes to others independent of what makes it a good match (its key) or what it's searching for (its query). A token can be highly relevant (a large attention weight) while contributing very little of any one particular feature, or the reverse, because relevance and content are computed by two entirely separate weight matrices.</p>
+        <p>Each token's output blends every value vector, weighted by the attention weights just computed. Most of the blend comes from its highest-weighted neighbors, with a smaller share from everything else. Like $Q$ and $K$, $V$ is its own learned projection, so the model chooses what a token contributes to others separately from what makes it a good match or what it's searching for. A token can be highly relevant while contributing very little of any one feature, or the reverse, since relevance and content come from two entirely separate weight matrices.</p>
         <div class="scene-anim"></div>
       </section>
 
