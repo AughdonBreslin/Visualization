@@ -337,19 +337,21 @@ function renderWsum(container, stepId, result) {
      <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
     `every row of weights will blend the same ${result.tokens.length} value vectors, just with different weights`
   );
+  const dCol = result.tokens.map((t) => result.V[t][0]);
   const stage2 = stageCard(
     '02: SLICE',
-    'One query token&#39;s weights',
-    `Focus on the attention weights for &quot;${t0}&quot;: ${rowWeights.map((w, j) => `${(w * 100).toFixed(0)}% on &quot;${result.tokens[j]}&quot;`).join(', ')}. Each value vector below is shown at an opacity matching its weight, so the one &quot;${t0}&quot; is attending to most is the most visible.`,
-    result.tokens.map((t, j) => weightedVecBlock(t, rowWeights[j], result.V[t])).join(''),
-    `these weights are the same ones computed in the Softmax step, always summing to 1.00`
+    'One dot product, one output dimension',
+    `Each dimension of the output is its own dot product: the attention-weight row for &quot;${t0}&quot; against that dimension's column of $V$. Here's dimension 0.`,
+    `<div class="formula">$$ o_{i,d} = \\sum_j \\text{weight}_{ij} \\, v_{j,d} $$</div>
+     ${result.tokens.map((t, j) => weightedVecBlock(t, rowWeights[j], result.V[t])).join('')}
+     <div class="calc-line">${rowWeights.map((w, j) => `${w.toFixed(2)}&times;${dCol[j].toFixed(2)}`).join(' + ')} = <b>${result.output[focusIdx][0].toFixed(2)}</b></div>`,
+    `this is the first number of the output for &quot;${t0}&quot;; the same dot product repeats for every other dimension`
   );
   const stage3 = stageCard(
     '03: TRANSFORM',
-    'Scale each value vector, then add them',
-    `Multiply each value vector by its own weight (a scalar times a vector, not a dot product), then add the ${result.tokens.length} resulting vectors together, position by position. That sum is the output for &quot;${t0}&quot;.`,
-    `<div class="formula">$$ o_i = \\sum_j \\text{weight}_{ij} \\, v_j $$</div>
-     <div class="sum-arrow">&darr; add ${result.tokens.length} weighted vectors</div><div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>`
+    'Repeat for every dimension',
+    `Run that same dot product once per dimension of $V$ to fill in the complete output vector for &quot;${t0}&quot;.`,
+    `<div class="sum-arrow">&darr; ${result.d} dot products, one per dimension</div><div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>`
   );
   container.innerHTML = filmstrip([stage1, stage2, stage3]);
 }
