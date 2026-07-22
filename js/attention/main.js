@@ -11,6 +11,7 @@ let currentCausal = false;
 let currentWsumFocus = 0;
 let currentScoresQFocus = 0;
 let currentScoresKFocus = 0;
+let currentQkvFocus = 0;
 
 function buildAndRenderAll() {
   const result = computePipeline(currentPreset.tokens, currentPreset.embeddings, WEIGHTS, { causal: currentCausal });
@@ -18,6 +19,7 @@ function buildAndRenderAll() {
   result.wsumFocus = currentWsumFocus;
   result.scoresQFocus = currentScoresQFocus;
   result.scoresKFocus = currentScoresKFocus;
+  result.qkvFocus = currentQkvFocus;
   renderAllScenes(result);
   updatePickerActiveState();
   // Some concept-stage prose is real MathJax notation ($...$), injected after MathJax's own
@@ -53,6 +55,13 @@ window.attentionSetScoresFocus = function setScoresFocus(which, idx) {
   buildAndRenderAll();
 };
 
+// The Q/K/V-projections scene's X matrix is clickable: picking a row changes which token's
+// projection the SLICE and TRANSFORM stages walk through.
+window.attentionSetQkvFocus = function setQkvFocus(idx) {
+  currentQkvFocus = idx;
+  buildAndRenderAll();
+};
+
 function updatePickerActiveState() {
   const picker = document.getElementById('presetPicker');
   if (!picker) return;
@@ -76,6 +85,7 @@ function initPresetPicker() {
     currentWsumFocus = 0;
     currentScoresQFocus = 0;
     currentScoresKFocus = 0;
+    currentQkvFocus = 0;
     buildAndRenderAll();
   });
 }

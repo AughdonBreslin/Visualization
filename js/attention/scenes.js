@@ -151,7 +151,8 @@ function qkvFanoutSVG() {
 }
 
 function renderQkv(container, stepId, result) {
-  const t0 = result.tokens[0];
+  const focusIdx = Math.min(result.qkvFocus ?? 0, result.tokens.length - 1);
+  const t0 = result.tokens[focusIdx];
   const xMatrix = result.tokens.map((t) => result.embeddings[t]);
   const qMatrix = result.tokens.map((t) => result.Q[t]);
   const kMatrix = result.tokens.map((t) => result.K[t]);
@@ -159,9 +160,9 @@ function renderQkv(container, stepId, result) {
   const stage1 = stageCard(
     '01: STORAGE',
     'The full data at rest',
-    `$X$ below stacks all the embeddings, one row per token. The three matrices on the right are the actual $W_Q$, $W_K$, and $W_V$ this model learned: $X$ gets multiplied by each of them independently, producing a query, a key, and a value.`,
+    `$X$ below stacks all the embeddings, one row per token. The three matrices on the right are the actual $W_Q$, $W_K$, and $W_V$ this model learned: $X$ gets multiplied by each of them independently, producing a query, a key, and a value. Click a row in $X$ to pick which token the next two stages walk through.`,
     `<div class="qkv-storage-row">
-       <div class="qkv-storage-block"><div class="heatbar-block-title">$X$: one row per token</div>${heatMatrixGrid(xMatrix, { rowLabels: result.tokens })}</div>
+       <div class="qkv-storage-block"><div class="heatbar-block-title">$X$: one row per token</div><div class="attn-row-select" data-role="qkv-x-grid">${heatMatrixGrid(xMatrix, { rowLabels: result.tokens, hiRow: focusIdx })}</div></div>
        ${qkvFanoutSVG()}
        <div class="qkv-storage-outputs">
          <div class="qkv-storage-block"><div class="heatbar-block-title">$W_Q$</div>${heatMatrixGrid(WEIGHTS.WQ)}</div>
@@ -188,9 +189,9 @@ function renderQkv(container, stepId, result) {
     'The same multiply, every token at once',
     `Each token in $X$ goes through $W_Q$, $W_K$, and $W_V$, producing the full $Q$, $K$, $V$ matrices below.`,
     `<div class="heatbar-block-row">
-       <div class="qkv-storage-block"><div class="heatbar-block-title">$Q$</div>${heatMatrixGrid(qMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
-       <div class="qkv-storage-block"><div class="heatbar-block-title">$K$</div>${heatMatrixGrid(kMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
-       <div class="qkv-storage-block"><div class="heatbar-block-title">$V$</div>${heatMatrixGrid(vMatrix, { rowLabels: result.tokens, hiRow: 0 })}</div>
+       <div class="qkv-storage-block"><div class="heatbar-block-title">$Q$</div>${heatMatrixGrid(qMatrix, { rowLabels: result.tokens, hiRow: focusIdx })}</div>
+       <div class="qkv-storage-block"><div class="heatbar-block-title">$K$</div>${heatMatrixGrid(kMatrix, { rowLabels: result.tokens, hiRow: focusIdx })}</div>
+       <div class="qkv-storage-block"><div class="heatbar-block-title">$V$</div>${heatMatrixGrid(vMatrix, { rowLabels: result.tokens, hiRow: focusIdx })}</div>
      </div>`,
     `${result.tokens.length} tokens &times; 3 matrices, all produced by the same multiply shown in stage 2`
   );
@@ -201,6 +202,14 @@ function renderQkv(container, stepId, result) {
     `<p class="concept-box">If $Q$ and $K$ shared a matrix, every token's query would equal its own key, forcing every attention pattern to be symmetric (token A attends to B exactly as much as B attends to A) and collapsing the asking and answering roles into one. A 2026 study, <a href="https://arxiv.org/abs/2606.04032" target="_blank" rel="noopener">Do Transformers Need Three Projections? Systematic Study of QKV Variants</a>, tested this directly: tying $Q$ and $K$ broke attention's directionality and hurt quality, while tying $K$ and $V$ instead held up, cutting the KV cache in half for only a &tilde;3% perplexity increase. The asymmetry makes sense: a key (&quot;how to be found&quot;) and a value (&quot;what to contribute&quot;) can share a representational space without conflict, but a token's query and key must stay free to diverge, or it could only ever attend to itself.</p>`
   );
   container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
+
+  const xGrid = container.querySelector('[data-role="qkv-x-grid"]');
+  xGrid.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-row]');
+    if (!target) return;
+    const idx = parseInt(target.dataset.row, 10);
+    if (!Number.isNaN(idx) && window.attentionSetQkvFocus) window.attentionSetQkvFocus(idx);
+  });
 }
 
 function renderScores(container, stepId, result) {
