@@ -139,7 +139,7 @@ function renderInput(container, stepId, result) {
     .join('')}</div>`;
   const stage1 = stageCard(
     '01: STORAGE',
-    'The three embeddings',
+    'The input embeddings',
     `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. Stacked together, the embeddings below form $E$, the raw lookup-table rows this sentence selects, before anything else happens to them.`,
     storageBody,
     `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`,
