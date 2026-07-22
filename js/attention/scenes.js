@@ -159,7 +159,7 @@ function renderQkv(container, stepId, result) {
   const vMatrix = result.tokens.map((t) => result.V[t]);
   const stage1 = stageCard(
     '01: STORAGE',
-    'X and the Weights',
+    'X and the weights',
     `$X$ below stacks all the embeddings, one row per token. The three matrices on the right are the actual $W_Q$, $W_K$, and $W_V$ this model learned: $X$ gets multiplied by each of them independently, producing a query, a key, and a value. Click a row in $X$ to pick which token the next two stages walk through.`,
     `<div class="qkv-storage-row">
        <div class="qkv-storage-block"><div class="heatbar-block-title">$X$: one row per token</div><div class="attn-row-select" data-role="qkv-x-grid">${heatMatrixGrid(xMatrix, { rowLabels: result.tokens, hiRow: focusIdx })}</div></div>
@@ -186,7 +186,7 @@ function renderQkv(container, stepId, result) {
   );
   const stage3 = stageCard(
     '03: TRANSFORM',
-    'Applying to the whole matrices',
+    'Applying to the full matrices',
     `Each token in $X$ goes through $W_Q$, $W_K$, and $W_V$, producing the full $Q$, $K$, $V$ matrices below.`,
     `<div class="heatbar-block-row">
        <div class="qkv-storage-block"><div class="heatbar-block-title">$Q$</div>${heatMatrixGrid(qMatrix, { rowLabels: result.tokens, hiRow: focusIdx })}</div>
@@ -227,7 +227,7 @@ function renderScores(container, stepId, result) {
   );
   const stage2 = stageCard(
     '02: SLICE',
-    'Initial Scoring',
+    'Initial scoring',
     `To fill in exactly one cell of the score grid, where &quot;${tQ}&quot;'s query meets &quot;${tK}&quot;'s key, row ${qIdx} column ${kIdx}, we only need one row from $Q$ and one row from $K$, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
     `<div><div class="heatbar-block-title">$q_{\\text{${tQ}}}$</div><div class="heatbar-list">${heatBarList(result.Q[tQ])}</div></div>
      <div><div class="heatbar-block-title">$k_{\\text{${tK}}}$</div><div class="heatbar-list">${heatBarList(result.K[tK])}</div></div>
@@ -238,7 +238,7 @@ function renderScores(container, stepId, result) {
   const blankGrid = `<div class="mgrid-wrap"><div class="mgrid-rowlabels">${result.tokens.map((t) => `<div class="mgrid-rowlabel" style="color:var(--text-muted)">${t}</div>`).join('')}</div><div class="mgrid g${n}x${n}">${result.tokens.map((_, i) => result.tokens.map((_, j) => `<div class="mcell pending${i === qIdx && j === kIdx ? ' selected' : ''}">?</div>`).join('')).join('')}</div></div>`;
   const stage3 = stageCard(
     '03: TRANSFORM',
-    'Apply to all Combinations',
+    'Apply to all combinations',
     `Every cell repeats the same operation: pair up one query row and one key row by position, multiply each pair, add the results. Click below to watch all cells compute at once.`,
     `<div class="formula">$$ \\text{score}_{ij} = q_i \\cdot k_j $$</div>
      <div class="scale-shrink-wrap"><div data-role="sweep-grid">${blankGrid}</div></div>
@@ -370,7 +370,7 @@ function renderWsum(container, stepId, result) {
   const scaledVecs = result.tokens.map((t, j) => result.V[t].map((v) => v * rowWeights[j]));
   const stage1 = stageCard(
     '01: STORAGE',
-    'Attention Scores and V',
+    'Attention weights and V',
     `Take the softmaxed weights from $QK^T$, and $V$ from the initial projections.`,
     `<div><div class="heatbar-block-title">attention weights</div><div class="attn-row-select" data-role="wsum-weights-grid">${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div></div>
      <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
@@ -404,7 +404,7 @@ function renderOutput(container, stepId, result) {
   const storageBody = result.tokens.map((t, i) => labeledVecBlock(`&quot;${t}&quot;`, result.output[i])).join('');
   const stage1 = stageCard(
     '01: STORAGE',
-    'Context-Aware Representations',
+    'Context-aware representations',
     `Every output vector has exactly the same shape as the input, but now each vector carries a more context-aware representation, picked up from the rest of the sequence.`,
     storageBody,
     `compare this to the Input embeddings step: same shape, different content`
