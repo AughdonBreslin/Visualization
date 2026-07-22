@@ -131,7 +131,13 @@ function renderInput(container, stepId, result) {
     storageBody,
     `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`
   );
-  container.innerHTML = filmstrip([stage1]);
+  const stage2 = stageCard(
+    '02: CONCEPT',
+    'How does this compare to a real model?',
+    null,
+    `<p class="concept-box">This page shows the real math, but at toy scale, chosen so every number can be hand-verified. Real transformer layers multiply this along several axes at once: dozens to over a hundred attention heads run in parallel per layer, each on its own slice of a much larger $d$ (hundreds to tens of thousands, not 4), then concatenated back together; dozens to over a hundred of these layers stack on top of each other; real sequences run to thousands or even millions of tokens instead of three; and the vocabulary is tens to hundreds of thousands of subword pieces instead of six whole words. None of that changes the operation itself: scaled dot-product attention works exactly as shown here, at any size. It just runs many, many more times per forward pass.</p>`
+  );
+  container.innerHTML = filmstrip([stage1, stage2]);
 }
 
 // X fans out into three independent multiplications at once: one line in, three lines out,
