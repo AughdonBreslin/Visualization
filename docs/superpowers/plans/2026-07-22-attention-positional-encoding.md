@@ -123,12 +123,15 @@ Expected: FAIL — `positionalEncoding` and `buildInputMatrix` are not exported 
 
 - [ ] **Step 3: Write the implementation**
 
-Replace the full contents of `js/attention/math.js`:
+Replace the full contents of `js/attention/math.js`. Note the file header comment's em-dash is
+fixed to a colon in the process (the current file already has one, predating this plan; since
+this task rewrites the file anyway, this is the natural point to clean it up rather than carry
+a pre-existing Global Constraints violation forward):
 
 ```js
 // js/attention/math.js
 // Pure computation for single-head scaled dot-product attention. No DOM access anywhere in
-// this file — it is the only part of this page's code unit-testable with plain Node asserts.
+// this file: it is the only part of this page's code unit-testable with plain Node asserts.
 
 export function linearProject(W, x) {
   return W.map((row) => row.reduce((sum, w, j) => sum + w * x[j], 0));
