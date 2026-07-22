@@ -290,7 +290,7 @@ function renderSoftmax(container, stepId, result) {
   const stage1 = stageCard(
     '01: TRANSFORM',
     'Exponentiate, then normalize',
-    `We get the actual attention weights by softmaxing the scaled (and possibly masked) scores: exponentiate every value in a row, then divide each by that row's sum, so the row becomes a probability distribution that adds up to exactly 1.00.`,
+    null,
     `<div class="formula">$$ \\text{weight}_{ij} = \\frac{e^{\\text{scaled}_{ij}}}{\\sum_k e^{\\text{scaled}_{ik}}} $$</div>
      <div class="softmax-row">
        <div><div class="heatbar-block-title">before softmax</div>${heatMatrixGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), {
