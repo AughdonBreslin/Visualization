@@ -136,11 +136,13 @@ function renderInput(container, stepId, result) {
     'True attention head scale',
     null,
     `<div class="scale-stats">
-       <div class="scale-stat"><div class="scale-stat-label">attention heads</div><div class="scale-stat-value">1 &rarr; <b>dozens to 100+, run in parallel per layer</b></div></div>
-       <div class="scale-stat"><div class="scale-stat-label">model dimension ($d$)</div><div class="scale-stat-value">4 &rarr; <b>hundreds to tens of thousands</b></div></div>
-       <div class="scale-stat"><div class="scale-stat-label">layers</div><div class="scale-stat-value">1 &rarr; <b>dozens to 100+, stacked</b></div></div>
-       <div class="scale-stat"><div class="scale-stat-label">sequence length</div><div class="scale-stat-value">3 tokens &rarr; <b>thousands to millions</b></div></div>
-       <div class="scale-stat"><div class="scale-stat-label">vocabulary</div><div class="scale-stat-value">6 words &rarr; <b>tens to hundreds of thousands of subword pieces</b></div></div>
+       <div class="scale-stat"><div class="scale-stat-label">attention heads</div><div class="scale-stat-value">1 here. Real attention layers run many heads in parallel (12 in BERT-base, 32 to 96+ in larger models), each with its own smaller $W_Q$, $W_K$, $W_V$, concatenated back together through one more learned matrix, $W_O$. Multi-head attention is entirely absent from this page.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">model dimension ($d$)</div><div class="scale-stat-value">${result.d} here. Real models run 768 (BERT-base, GPT-2 small) up to 12,288+ (large GPT-3-class models), or 4,096 to 16,384+ in modern LLMs.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">layers</div><div class="scale-stat-value">1 here, this single attention operation. Real transformers stack dozens to over a hundred blocks (12 in BERT-base, 96+ in large GPT-3-class models, 80+ in the largest open models), each with its own attention and a feedforward layer.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">sequence length</div><div class="scale-stat-value">${result.tokens.length} tokens here. Real context windows run from the low thousands historically up to hundreds of thousands or millions of tokens in current long-context models.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">vocabulary</div><div class="scale-stat-value">${result.tokens.length} whole words here. Real models tokenize into tens to a few hundred thousand subword pieces instead.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">parameters</div><div class="scale-stat-value">${3 * result.d * result.d} numbers here (three ${result.d}&times;${result.d} weight matrices). Real models run from millions up to hundreds of billions of parameters.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">position</div><div class="scale-stat-value">Left out here to keep focus on attention itself. Real models always add positional information (sinusoidal, learned, or rotary/ALiBi-style schemes), since attention alone has no sense of token order.</div></div>
      </div>`
   );
   container.innerHTML = filmstrip([stage1, stage2]);
