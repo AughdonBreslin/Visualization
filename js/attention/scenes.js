@@ -316,15 +316,6 @@ function labeledVecBlock(label, values, opts = {}) {
   </div>`;
 }
 
-// A value vector scaled by its attention weight: labeledVecBlock with the label naming the
-// weight, and the whole block's opacity driven by that weight, so a barely-attended token
-// visibly fades instead of just being one more identical-looking row in the list.
-function weightedVecBlock(token, weight, vec) {
-  return labeledVecBlock(`&quot;${token}&quot; &times; ${weight.toFixed(2)}`, vec, {
-    style: `opacity:${(0.55 + weight * 0.45).toFixed(2)}`,
-  });
-}
-
 function renderWsum(container, stepId, result) {
   const focusIdx = Math.min(1, result.tokens.length - 1);
   const t0 = result.tokens[focusIdx];
@@ -337,21 +328,26 @@ function renderWsum(container, stepId, result) {
      <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
     `every row of weights will blend the same ${result.tokens.length} value vectors, just with different weights`
   );
-  const dCol = result.tokens.map((t) => result.V[t][0]);
+  const j0 = 0;
+  const w0 = rowWeights[j0];
+  const v0 = result.V[result.tokens[j0]];
+  const scaled0 = v0.map((v) => v * w0);
   const stage2 = stageCard(
     '02: SLICE',
-    'One dot product, one output dimension',
-    `Each dimension of the output is its own dot product: the attention-weight row for &quot;${t0}&quot; against that dimension's column of $V$. Here's dimension 0.`,
-    `<div class="formula">$$ o_{i,d} = \\sum_j \\text{weight}_{ij} \\, v_{j,d} $$</div>
-     ${result.tokens.map((t, j) => weightedVecBlock(t, rowWeights[j], result.V[t])).join('')}
-     <div class="calc-line">${rowWeights.map((w, j) => `${w.toFixed(2)}&times;${dCol[j].toFixed(2)}`).join(' + ')} = <b>${result.output[focusIdx][0].toFixed(2)}</b></div>`,
-    `this is the first number of the output for &quot;${t0}&quot;; the same dot product repeats for every other dimension`
+    'Scale one value vector by its weight',
+    `The actual operation is a scalar times a vector: take one key token's value vector and multiply every entry by that token's attention weight. Here's &quot;${result.tokens[j0]}&quot;, weighted by ${w0.toFixed(2)}.`,
+    `<div class="formula">$$ \\text{weight}_{ij} \\, v_j $$</div>
+     <div class="mult-list">${v0.map((v, i) => `<div class="mult-row"><span class="mult-dimlabel">d${i}</span><span class="mult-chip" style="color:var(--accent-link)">${w0.toFixed(2)}</span><span class="mult-eq">&times;</span><span class="mult-chip" style="color:#ffd97a">${v.toFixed(2)}</span><span class="mult-eq">=</span><span class="mult-prod">${scaled0[i].toFixed(2)}</span></div>`).join('')}</div>
+     <div class="sum-arrow">&darr; scaled vector</div>
+     <div><div class="heatbar-block-title">&quot;${result.tokens[j0]}&quot; &times; ${w0.toFixed(2)}</div><div class="heatbar-list">${heatBarList(scaled0)}</div></div>`,
+    `this scaled vector is one of ${result.tokens.length} that get added together to build the output for &quot;${t0}&quot;`
   );
   const stage3 = stageCard(
     '03: TRANSFORM',
-    'Repeat for every dimension',
-    `Run that same dot product once per dimension of $V$ to fill in the complete output vector for &quot;${t0}&quot;.`,
-    `<div class="sum-arrow">&darr; ${result.d} dot products, one per dimension</div><div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>`
+    'Scale every value vector, then add them',
+    `Mass apply that same scaling: one weight times each row of $V$. Add all ${result.tokens.length} results together, position by position, to get the output for &quot;${t0}&quot;.`,
+    `<div class="formula">$$ o_i = \\sum_j \\text{weight}_{ij} \\, v_j $$</div>
+     <div class="sum-arrow">&darr; add ${result.tokens.length} scaled vectors</div><div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>`
   );
   container.innerHTML = filmstrip([stage1, stage2, stage3]);
 }
