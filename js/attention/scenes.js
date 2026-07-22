@@ -321,7 +321,7 @@ function labeledVecBlock(label, values, opts = {}) {
 // visibly fades instead of just being one more identical-looking row in the list.
 function weightedVecBlock(token, weight, vec) {
   return labeledVecBlock(`&quot;${token}&quot; &times; ${weight.toFixed(2)}`, vec, {
-    style: `opacity:${(0.3 + weight * 0.7).toFixed(2)}`,
+    style: `opacity:${(0.55 + weight * 0.45).toFixed(2)}`,
   });
 }
 
@@ -332,7 +332,7 @@ function renderWsum(container, stepId, result) {
   const stage1 = stageCard(
     '01: STORAGE',
     'Every attention weight, every value',
-    `Softmax already produced a full row of weights for every query token; the Q/K/V projection step already produced a value vector for every token. Both are just collected here, nothing new computed yet.`,
+    `Take the softmaxed weights from $QK^T$, and $V$ from the initial projections.`,
     `<div><div class="heatbar-block-title">attention weights</div>${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div>
      <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
     `every row of weights will blend the same ${result.tokens.length} value vectors, just with different weights`
@@ -348,8 +348,8 @@ function renderWsum(container, stepId, result) {
     '03: TRANSFORM',
     'Scale each value vector, then add them',
     `Multiply each value vector by its own weight (a scalar times a vector, not a dot product), then add the ${result.tokens.length} resulting vectors together, position by position. That sum is the output for &quot;${t0}&quot;.`,
-    `<div class="sum-arrow">&darr; add ${result.tokens.length} weighted vectors</div><div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>
-     <div class="formula">$$ o_i = \\sum_j \\text{weight}_{ij} \\, v_j $$</div>`
+    `<div class="formula">$$ o_i = \\sum_j \\text{weight}_{ij} \\, v_j $$</div>
+     <div class="sum-arrow">&darr; add ${result.tokens.length} weighted vectors</div><div><div class="heatbar-block-title">output for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(result.output[focusIdx])}</div></div>`
   );
   container.innerHTML = filmstrip([stage1, stage2, stage3]);
 }
