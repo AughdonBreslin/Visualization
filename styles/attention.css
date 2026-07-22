@@ -276,14 +276,6 @@
 
 .ui.attention .scale-shrink-wrap { padding: 4px; }
 
-/* --- proportion bar: the distribution primitive, Softmax only. One bar splitting into
-   token-colored segments sized by weight, not another grid of numbers. --- */
-.ui.attention .propbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.ui.attention .propbar-rowlabel { flex: none; font: 700 10.5px/1 var(--font-mono); color: var(--text-muted); min-width: 34px; }
-.ui.attention .propbar { flex: 1; display: flex; height: 22px; border-radius: 3px; overflow: hidden; background: var(--surface); }
-.ui.attention .propbar-seg { display: flex; align-items: center; justify-content: center; min-width: 2px; opacity: .88; transition: width 300ms var(--ease-out); }
-.ui.attention .propbar-label { font: 700 10px/1 var(--font-mono); color: #0c0c0d; text-shadow: 0 1px 0 rgba(255,255,255,.2); }
-
 @media (max-width: 640px) {
   .ui.attention .mgrid.g4x4 { grid-template-columns: repeat(4, 25px); grid-template-rows: repeat(4, 25px); }
   .ui.attention .mgrid.g3x4 { grid-template-columns: repeat(4, 27px); grid-template-rows: repeat(3, 27px); }

@@ -95,19 +95,6 @@ function multBreakdown(a, b, resultLabel, resultValue) {
   return `<div class="mult-list">${rows}</div><div class="sum-arrow">&darr; add the ${a.length} products</div><div class="sum-result">${resultLabel} = ${resultValue}</div>`;
 }
 
-// A single bar split into proportional, token-colored segments -- the distribution primitive,
-// used only by Softmax, where "these numbers become proportions of a whole that sum to 1" is
-// the entire point of the step and is best shown as a bar splitting into parts, not more bars
-// or grids.
-function probBar(tokens, weights, tokenColors, rowLabel) {
-  const segs = tokens.map((t, j) => {
-    const pct = weights[j] * 100;
-    return `<div class="propbar-seg" style="width:${pct.toFixed(2)}%; background:${tokenColors[j]}" title="${t}: ${pct.toFixed(1)}%">${pct >= 12 ? `<span class="propbar-label">${pct.toFixed(0)}%</span>` : ''}</div>`;
-  }).join('');
-  const rowLabelHtml = rowLabel ? `<div class="propbar-rowlabel">${rowLabel}</div>` : '';
-  return `<div class="propbar-row">${rowLabelHtml}<div class="propbar">${segs}</div></div>`;
-}
-
 function stageCard(n, title, proseHtml, bodyHtml, noteHtml, extraClass = '') {
   return `<div class="stage${extraClass ? ` ${extraClass}` : ''}">
     <div class="stage-connector"></div>
@@ -300,41 +287,20 @@ function renderMask(container, stepId, result) {
 }
 
 function renderSoftmax(container, stepId, result) {
-  const t0 = result.tokens[0];
-  const row0 = result.masked[0].filter((v) => v > -1e8);
-  const rowTokens = result.tokens.filter((_, j) => result.masked[0][j] > -1e8);
-  const exps = row0.map((v) => Math.exp(v));
-  const expSum = exps.reduce((a, b) => a + b, 0);
   const stage1 = stageCard(
-    '01: STORAGE',
-    'The full scaled (and possibly masked) matrix',
-    `Softmax runs on whatever this matrix looks like after scaling and masking, the same numbers the previous two steps produced.`,
-    heatMatrixGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), {
-      rowLabels: result.tokens,
-      hiRow: 0,
-      maskedCells: (i, j) => result.causal && j > i,
-    }),
-    `softmax processes one full row at a time, never a single cell`
-  );
-  const stage2 = stageCard(
-    '02: SLICE',
-    'One full row',
-    `Unlike the previous steps, softmax can't be sliced down to a single cell: normalizing means every value in a row depends on every other value in that same row. So the smallest meaningful slice is the whole row for query &quot;${t0}&quot;.`,
-    `<div class="heatbar-block-title">scaled row for &quot;${t0}&quot;</div><div class="heatbar-list">${heatBarList(row0, { labels: rowTokens })}</div>`,
-    `${row0.length} value${row0.length === 1 ? '' : 's'} in this row (masked cells are excluded, they're already headed to 0)`
-  );
-  const expRows = row0.map((v, i) => `<div class="mult-row"><span class="mult-dimlabel">${rowTokens[i]}</span><span class="mult-chip" style="color:var(--accent-link)">${v.toFixed(2)}</span><span class="mult-eq">&rarr; e^</span><span class="mult-prod">${exps[i].toFixed(2)}</span></div>`).join('');
-  const rowColors = rowTokens.map((t) => result.tokenColors[result.tokens.indexOf(t)]);
-  const allBars = result.tokens.map((ti, i) => probBar(result.tokens, result.weights[i], result.tokenColors, `&quot;${ti}&quot;`)).join('');
-  const stage3 = stageCard(
-    '03: TRANSFORM',
+    '01: TRANSFORM',
     'Exponentiate, then normalize',
-    `Two steps, not one: first exponentiate every value in the row, which makes everything positive and stretches the gaps between them. Then divide each exponentiated value by their sum, so the row splits into the proportions shown below, adding up to exactly 1.00.`,
-    `${expRows}<div class="sum-arrow">&darr; divide each by the sum (${expSum.toFixed(2)})</div>${probBar(rowTokens, exps.map((e) => e / expSum), rowColors)}
-     <div class="formula">$$ \\text{weight}_{ij} = \\frac{e^{\\text{scaled}_{ij}}}{\\sum_k e^{\\text{scaled}_{ik}}} $$</div>
-     <div class="heatbar-block-title" style="margin-top:8px">every row becomes its own distribution</div>${allBars}`
+    `We get the actual attention weights by softmaxing the scaled (and possibly masked) scores: exponentiate every value in a row, then divide each by that row's sum, so the row becomes a probability distribution that adds up to exactly 1.00.`,
+    `<div class="formula">$$ \\text{weight}_{ij} = \\frac{e^{\\text{scaled}_{ij}}}{\\sum_k e^{\\text{scaled}_{ik}}} $$</div>
+     <div><div class="heatbar-block-title">before softmax</div>${heatMatrixGrid(result.masked.map((row) => row.map((v) => (v <= -1e8 ? 0 : v))), {
+       rowLabels: result.tokens,
+       maskedCells: (i, j) => result.causal && j > i,
+     })}</div>
+     <div class="sum-arrow">&darr; softmax</div>
+     <div><div class="heatbar-block-title">after softmax: the attention weights</div>${heatMatrixGrid(result.weights, { rowLabels: result.tokens })}</div>`,
+    `every row sums to exactly 1.00`
   );
-  container.innerHTML = filmstrip([stage1, stage2, stage3]);
+  container.innerHTML = filmstrip([stage1]);
 }
 
 // A vector with its label (a token, usually) placed beside it rather than on its own line above
