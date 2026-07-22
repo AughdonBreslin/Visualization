@@ -289,7 +289,7 @@ function renderScale(container, stepId, result) {
   const stage3 = stageCard(
     '03: TRANSFORM',
     'Watch the whole grid shrink',
-    `d = ${result.d} here, so &radic;d = ${sqrtD.toFixed(2)}. Every cell in the grid divides by that same number at once, not one at a time. Click below to watch it happen.`,
+    `$d = ${result.d}$ here, so $\\sqrt{d} = ${sqrtD.toFixed(2)}$. Every cell in the grid divides by that same number at once, not one at a time. Click below to watch it happen.`,
     `<div class="scale-shrink-wrap"><div class="scale-shrink-grid" data-role="shrink-grid">${heatMatrixGrid(result.scores, { rowLabels: result.tokens })}</div></div>
      <div class="anim-controls"><button class="anim-btn" type="button" data-role="shrink-btn">&#9654; divide every cell by &radic;${result.d}</button></div>
      <div class="formula">$$ \\text{scaled}_{ij} = \\frac{\\text{score}_{ij}}{\\sqrt{d}} $$</div>`

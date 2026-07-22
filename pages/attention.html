@@ -61,7 +61,7 @@
       <section class="panel" id="step-scale">
         <h2>Scale</h2>
         <div class="scene-hero-glyph"></div>
-        <p>The raw score is unbounded, and grows with the query and key vectors' magnitude. Every score divides by √d to control that: dot-product magnitude grows with the number of dimensions being summed, d, so if $Q$ and $K$ entries have roughly unit variance, the dot product's own variance grows proportional to d, and its standard deviation grows with √d. Dividing by √d is exactly what keeps a score's scale roughly constant no matter how large d is chosen to be; without it, larger d would push softmax into a near one-hot regime with vanishing gradients almost everywhere else, leaving little for training to work with.</p>
+        <p>The raw score is unbounded, and grows with the query and key vectors' magnitude. Every score divides by $\sqrt{d}$ to control that: dot-product magnitude grows with the number of dimensions being summed, $d$, so if $Q$ and $K$ entries have roughly unit variance, the dot product's own variance grows proportional to $d$, and its standard deviation grows with $\sqrt{d}$. Dividing by $\sqrt{d}$ is exactly what keeps a score's scale roughly constant no matter how large $d$ is chosen to be; without it, larger $d$ would push softmax into a near one-hot regime with vanishing gradients almost everywhere else, leaving little for training to work with.</p>
         <div class="scene-anim"></div>
       </section>
 
