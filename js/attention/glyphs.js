@@ -126,13 +126,21 @@ export function connectorsSVG(count, opts = {}) {
   const xs = Array.from({ length: count }, (_, i) => 30 + (i * (width - 60)) / (count - 1));
   let out =
     '<defs><marker id="attn-arrowhead" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">' +
-    '<path d="M0,0 L6,3 L0,6 Z" fill="var(--hairline-strong)"/></marker></defs>';
+    '<path d="M0,0 L6,3 L0,6 Z" fill="var(--text-muted)"/></marker></defs>';
+  // Measured against the actual rendered glyphs: their vertical center sits at 0.444 of the
+  // bar's height, not the geometric middle -- using anything else leaves the curve's endpoints
+  // floating above the icons instead of meeting them. Each arch alternates up/down from one
+  // connector to the next (a continuous wave across the bar) via a single shared control point
+  // at the horizontal midpoint, which is a quadratic curve in disguise: mathematically a single
+  // smooth hump, never the S-shaped pinch two independently-offset control points can produce.
+  const midY = height * 0.444;
+  const archHeight = height * 0.22;
   for (let i = 0; i < xs.length - 1; i++) {
-    const x1 = xs[i] + 18;
-    const x2 = xs[i + 1] - 20;
-    const midY = height * 0.3;
-    const dipY = height * 0.67;
-    out += `<path d="M${x1} ${midY} C ${x1 + 40} ${dipY}, ${x2 - 40} ${dipY}, ${x2} ${midY}" fill="none" stroke="var(--hairline-strong)" stroke-width="1.3" marker-end="url(#attn-arrowhead)"/>`;
+    const x1 = xs[i] + 20;
+    const x2 = xs[i + 1] - 24;
+    const archY = i % 2 === 0 ? midY - archHeight : midY + archHeight;
+    const cx = (x1 + x2) / 2;
+    out += `<path d="M${x1} ${midY} C ${cx} ${archY}, ${cx} ${archY}, ${x2} ${midY}" fill="none" stroke="var(--text-muted)" stroke-width="1.3" marker-end="url(#attn-arrowhead)"/>`;
   }
   return out;
 }
