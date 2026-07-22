@@ -120,18 +120,76 @@ function filmstrip(stages) {
 
 // ---- per-step renderers ----------------------------------------------------------------------
 
+// Scans for the first two positions sharing an identical raw embedding -- i.e. a repeated
+// word. Position-agnostic on purpose: only the "dog-chased-cat" preset has one, but this
+// function makes no assumption about which preset is active, so the other two presets fall
+// back to showing the general addition with no repeat comparison.
+function findRepeatedPositions(embeddings) {
+  for (let i = 0; i < embeddings.length; i++) {
+    for (let j = i + 1; j < embeddings.length; j++) {
+      if (embeddings[i].every((v, k) => v === embeddings[j][k])) return [i, j];
+    }
+  }
+  return null;
+}
+
 function renderInput(container, stepId, result) {
   const storageBody = `<div class="heatbar-block-row">${result.tokens
-    .map((t) => labeledVecBlock(`&quot;${t}&quot;`, result.embeddings[t]))
+    .map((t, i) => labeledVecBlock(`&quot;${t}&quot;`, result.embeddings[i]))
     .join('')}</div>`;
   const stage1 = stageCard(
     '01: STORAGE',
-    'The three embeddings',
-    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. Stacked together, the embeddings below form $X$, the matrix the rest of this pipeline operates on.`,
+    'The input embeddings',
+    `Every token in this worked example starts as a ${result.d}-number vector called an <b>embedding</b>. Stacked together, the embeddings below form $E$, the raw lookup-table rows this sentence selects, before anything else happens to them.`,
     storageBody,
-    `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`
+    `${result.tokens.length} tokens, ${result.d} numbers each, stored in full`,
+    'stage-wide'
   );
-  container.innerHTML = filmstrip([stage1]);
+  const repeat = findRepeatedPositions(result.embeddings);
+  const repeatHtml = repeat
+    ? `<div class="heatbar-block-row">
+         ${labeledVecBlock(`$X_{${repeat[0]}}$ (&quot;${result.tokens[repeat[0]]}&quot;)`, result.X[repeat[0]])}
+         ${labeledVecBlock(`$X_{${repeat[1]}}$ (&quot;${result.tokens[repeat[1]]}&quot;)`, result.X[repeat[1]])}
+       </div>`
+    : '';
+  const repeatNote = repeat
+    ? `&quot;${result.tokens[repeat[0]]}&quot; appears at both position ${repeat[0]} and position ${repeat[1]} with an identical raw embedding; their final $X$ rows differ only because of position`
+    : `every position gets the same treatment, whether or not a word repeats`;
+  const stage2 = stageCard(
+    '02: TRANSFORM',
+    'Adding position',
+    `Every embedding is scaled by $\\sqrt{d}$, then a positional encoding is added, so the model can tell tokens apart by where they sit and not just what they are.`,
+    `<div class="formula">$$ X_i = \\sqrt{d}\\,E_i + PE(i) $$</div>
+     <div class="formula">$$ PE(i)_{2k} = \\sin\\!\\left(\\frac{i}{10000^{2k/d}}\\right), \\quad PE(i)_{2k+1} = \\cos\\!\\left(\\frac{i}{10000^{2k/d}}\\right) $$</div>
+     ${repeatHtml}
+     <div class="heatbar-block-title">$X$: every position, after scaling and adding position</div>
+     ${heatMatrixGrid(result.X, { rowLabels: result.tokens })}`,
+    repeatNote,
+    'stage-wide'
+  );
+  const stage3 = stageCard(
+    '03: CONCEPT',
+    'True attention head scale',
+    null,
+    `<div class="scale-stats">
+       <div class="scale-stat"><div class="scale-stat-label">attention heads</div><div class="scale-stat-value">1 here. Real attention layers run many heads in parallel (12 in BERT-base, 32 to 96+ in larger models), each with its own smaller $W_Q$, $W_K$, $W_V$, concatenated back together through one more learned matrix, $W_O$. Multi-head attention is entirely absent from this page.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">model dimension ($d$)</div><div class="scale-stat-value">${result.d} here. Real models run 768 (BERT-base, GPT-2 small) up to 12,288+ (large GPT-3-class models), or 4,096 to 16,384+ in modern LLMs.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">layers</div><div class="scale-stat-value">1 here, this single attention operation. Real transformers stack dozens to over a hundred blocks (12 in BERT-base, 96+ in large GPT-3-class models, 80+ in the largest open models), each with its own attention and a feedforward layer.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">sequence length</div><div class="scale-stat-value">${result.tokens.length} tokens here. Real context windows run from the low thousands historically up to hundreds of thousands or millions of tokens in current long-context models.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">vocabulary</div><div class="scale-stat-value">${result.tokens.length} whole words here. Real models tokenize into tens to a few hundred thousand subword pieces instead.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">parameters</div><div class="scale-stat-value">${3 * result.d * result.d} numbers here (three ${result.d}&times;${result.d} weight matrices). Real models run from millions up to hundreds of billions of parameters.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">position</div><div class="scale-stat-value">Added here via sinusoidal positional encoding, computed exactly rather than learned. Real models add position the same way, or with a learned, rotary, or ALiBi-style variant instead.</div></div>
+     </div>`,
+    undefined,
+    'stage-wide'
+  );
+  const stage4 = stageCard(
+    '04: RELATED RESEARCH',
+    'A rotation instead of an addition',
+    null,
+    `<p class="concept-box">The additive encoding above is the original approach, but it isn't what most current large language models use. <a href="https://arxiv.org/abs/2104.09864" target="_blank" rel="noopener">RoFormer: Enhanced Transformer with Rotary Position Embedding</a> (Su et al., 2021) introduced an alternative, RoPE, which rotates $Q$ and $K$ by an angle proportional to position instead of adding anything to the embedding. Rotating two vectors and then taking their dot product depends only on the angle between them, so every attention score ends up depending on relative distance rather than absolute position, structurally, not just in practice; that property, plus leaving vector magnitude untouched, is why RoPE is what LLaMA, GPT-NeoX, PaLM, and Falcon actually use instead of additive encoding. A third option, ALiBi, skips rotating $Q$/$K$ altogether and instead adds a distance-based penalty directly to the raw scores before softmax, the same place the causal mask already operates, just as a smooth decay instead of a hard cutoff.</p>`
+  );
+  container.innerHTML = filmstrip([stage1, stage2, stage3, stage4]);
 }
 
 // X fans out into three independent multiplications at once: one line in, three lines out,
@@ -153,10 +211,10 @@ function qkvFanoutSVG() {
 function renderQkv(container, stepId, result) {
   const focusIdx = Math.min(result.qkvFocus ?? 0, result.tokens.length - 1);
   const t0 = result.tokens[focusIdx];
-  const xMatrix = result.tokens.map((t) => result.embeddings[t]);
-  const qMatrix = result.tokens.map((t) => result.Q[t]);
-  const kMatrix = result.tokens.map((t) => result.K[t]);
-  const vMatrix = result.tokens.map((t) => result.V[t]);
+  const xMatrix = result.X;
+  const qMatrix = result.Q;
+  const kMatrix = result.K;
+  const vMatrix = result.V;
   const stage1 = stageCard(
     '01: STORAGE',
     'X and the weights',
@@ -178,9 +236,9 @@ function renderQkv(container, stepId, result) {
     `Take one token's embedding, $x_{\\text{${t0}}}$, and multiply it by all three matrices at once: $x \\cdot W_Q$ gives its query, $x \\cdot W_K$ gives its key, $x \\cdot W_V$ gives its value, all independently and in parallel off the same input vector.`,
     `<div class="formula">$$ q_i = x_i W_Q, \\quad k_i = x_i W_K, \\quad v_i = x_i W_V $$</div>
      <div class="heatbar-block-row">
-       ${labeledVecBlock(`$q_{\\text{${t0}}}$`, result.Q[t0])}
-       ${labeledVecBlock(`$k_{\\text{${t0}}}$`, result.K[t0])}
-       ${labeledVecBlock(`$v_{\\text{${t0}}}$`, result.V[t0])}
+       ${labeledVecBlock(`$q_{\\text{${t0}}}$`, result.Q[focusIdx])}
+       ${labeledVecBlock(`$k_{\\text{${t0}}}$`, result.K[focusIdx])}
+       ${labeledVecBlock(`$v_{\\text{${t0}}}$`, result.V[focusIdx])}
      </div>`,
     `one input vector, three separate matrix multiplies, three separate outputs`
   );
@@ -221,17 +279,17 @@ function renderScores(container, stepId, result) {
     '01: STORAGE',
     'Q and K',
     `The previous step already produced a query vector and a key vector for every token. $Q$ below stacks all the query vectors, one row per token; $K$ stacks all the key vectors the same way. Click a row in either to pick which query and key the next two stages walk through.`,
-    `<div><div class="heatbar-block-title">$Q$: one row per token</div><div class="attn-row-select" data-role="scores-q-grid">${heatMatrixGrid(result.tokens.map((t) => result.Q[t]), { hiRow: qIdx, rowLabels: result.tokens })}</div></div>
-     <div><div class="heatbar-block-title">$K$: one row per token</div><div class="attn-row-select" data-role="scores-k-grid">${heatMatrixGrid(result.tokens.map((t) => result.K[t]), { hiRow: kIdx, rowLabels: result.tokens })}</div></div>`,
+    `<div><div class="heatbar-block-title">$Q$: one row per token</div><div class="attn-row-select" data-role="scores-q-grid">${heatMatrixGrid(result.Q, { hiRow: qIdx, rowLabels: result.tokens })}</div></div>
+     <div><div class="heatbar-block-title">$K$: one row per token</div><div class="attn-row-select" data-role="scores-k-grid">${heatMatrixGrid(result.K, { hiRow: kIdx, rowLabels: result.tokens })}</div></div>`,
     `every query paired with every key, comparisons still to come`
   );
   const stage2 = stageCard(
     '02: SLICE',
     'Initial scoring',
     `To fill in exactly one cell of the score grid, where &quot;${tQ}&quot;'s query meets &quot;${tK}&quot;'s key, row ${qIdx} column ${kIdx}, we only need one row from $Q$ and one row from $K$, both highlighted above. Every other row belongs to a different cell and isn't used here.`,
-    `<div><div class="heatbar-block-title">$q_{\\text{${tQ}}}$</div><div class="heatbar-list">${heatBarList(result.Q[tQ])}</div></div>
-     <div><div class="heatbar-block-title">$k_{\\text{${tK}}}$</div><div class="heatbar-list">${heatBarList(result.K[tK])}</div></div>
-     <div class="calc-line">${result.Q[tQ].map((qv, j) => `${qv.toFixed(2)}&times;${result.K[tK][j].toFixed(2)}`).join(' + ')} = <b>${result.scores[qIdx][kIdx].toFixed(2)}</b></div>`,
+    `<div><div class="heatbar-block-title">$q_{\\text{${tQ}}}$</div><div class="heatbar-list">${heatBarList(result.Q[qIdx])}</div></div>
+     <div><div class="heatbar-block-title">$k_{\\text{${tK}}}$</div><div class="heatbar-list">${heatBarList(result.K[kIdx])}</div></div>
+     <div class="calc-line">${result.Q[qIdx].map((qv, j) => `${qv.toFixed(2)}&times;${result.K[kIdx][j].toFixed(2)}`).join(' + ')} = <b>${result.scores[qIdx][kIdx].toFixed(2)}</b></div>`,
     `this pair lands in score grid cell [${qIdx},${kIdx}]: that's a dot product, the standard way to measure how aligned two vectors are`
   );
   const n = result.tokens.length;
@@ -367,13 +425,13 @@ function renderWsum(container, stepId, result) {
   const focusIdx = Math.min(result.wsumFocus ?? 0, result.tokens.length - 1);
   const t0 = result.tokens[focusIdx];
   const rowWeights = result.weights[focusIdx];
-  const scaledVecs = result.tokens.map((t, j) => result.V[t].map((v) => v * rowWeights[j]));
+  const scaledVecs = result.V.map((v, j) => v.map((vk) => vk * rowWeights[j]));
   const stage1 = stageCard(
     '01: STORAGE',
     'Attention weights and V',
     `Take the softmaxed weights from $QK^T$, and $V$ from the initial projections.`,
     `<div><div class="heatbar-block-title">attention weights</div><div class="attn-row-select" data-role="wsum-weights-grid">${heatMatrixGrid(result.weights, { rowLabels: result.tokens, hiRow: focusIdx })}</div></div>
-     <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.tokens.map((t) => result.V[t]), { rowLabels: result.tokens })}</div>`,
+     <div><div class="heatbar-block-title">$V$: one row per token</div>${heatMatrixGrid(result.V, { rowLabels: result.tokens })}</div>`,
     `click any row of weights above to see its full computation worked out in 02`
   );
   const stackedHtml = result.tokens
