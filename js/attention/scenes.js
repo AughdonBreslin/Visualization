@@ -375,7 +375,7 @@ function renderOutput(container, stepId, result) {
   const storageBody = result.tokens.map((t, i) => labeledVecBlock(`&quot;${t}&quot;`, result.output[i])).join('');
   const stage1 = stageCard(
     '01: STORAGE',
-    'Three vectors out, same shape as three vectors in',
+    'Same shape as the input, different content',
     `Every output vector here is exactly ${result.d} numbers, the same width as the embeddings this pipeline started from. Nothing about the shape changed; what changed is that each vector is now a blend of the whole sequence rather than the token in isolation.`,
     storageBody,
     `compare this to the Input embeddings step: same shape, different content`
