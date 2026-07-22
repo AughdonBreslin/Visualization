@@ -8,32 +8,11 @@
 
 export const PRESETS = [
   {
-    id: 'cat-sat',
-    label: '"the cat sat"',
-    tokens: ['the', 'cat', 'sat'],
-    embeddings: [
-      [0.2, 0.8, 0.1, 0.4],
-      [0.9, 0.1, 0.6, 0.3],
-      [0.3, 0.5, 0.8, 0.2],
-    ],
-  },
-  {
-    id: 'dog-ran-fast',
-    label: '"dog ran fast"',
-    tokens: ['dog', 'ran', 'fast'],
-    embeddings: [
-      [1.0, 0.0, 0.9, 0.0],
-      [0.0, 1.0, 0.0, 0.9],
-      [0.95, 0.05, 0.85, 0.05],
-    ],
-  },
-  {
-    // Repeats "the" at positions 0 and 3 with an identical raw embedding, so positional
-    // encoding is the only thing that can tell the two occurrences apart -- proving the
-    // string-keyed-collision fix actually does something. Reuses "the"/"dog"/"cat" from the
-    // two presets above; "chased" is the only genuinely new hand-picked embedding, tuned
-    // (together with the sqrt(d) embedding scale in math.js) so every row of every preset
-    // stays clearly peaked -- see dev/test/attention-presets.test.js.
+    // The default preset. Repeats "the" at positions 0 and 3 with an identical raw embedding,
+    // so positional encoding is the only thing that can tell the two occurrences apart --
+    // proving the string-keyed-collision fix actually does something. "chased" is a hand-picked
+    // embedding, tuned (together with the sqrt(d) embedding scale in math.js) so every row of
+    // every preset stays clearly peaked -- see dev/test/attention-presets.test.js.
     id: 'dog-chased-cat',
     label: '"the dog chased the cat"',
     tokens: ['the', 'dog', 'chased', 'the', 'cat'],
@@ -43,6 +22,34 @@ export const PRESETS = [
       [0.2, 0.4, 1.0, 1.0],
       [0.2, 0.8, 0.1, 0.4],
       [0.9, 0.1, 0.6, 0.3],
+    ],
+  },
+  {
+    // "quiet" and "##ly" split what's semantically one word ("quietly") into two tokens, using
+    // the WordPiece-style "##" continuation-marker convention (the same convention BERT-base
+    // uses, already cited elsewhere on this page) -- demonstrating that tokenization isn't
+    // always one token per word.
+    id: 'cat-sat',
+    label: '"the cat sat quietly"',
+    tokens: ['the', 'cat', 'sat', 'quiet', '##ly'],
+    embeddings: [
+      [0.2, 0.8, 0.1, 0.4],
+      [0.9, 0.1, 0.6, 0.3],
+      [0.3, 0.5, 0.8, 0.2],
+      [1.2, 0.2, 1.2, 0.8],
+      [0.0, 0.0, 0.0, 1.2],
+    ],
+  },
+  {
+    id: 'dog-ran-fast',
+    label: '"the dog ran very fast"',
+    tokens: ['the', 'dog', 'ran', 'very', 'fast'],
+    embeddings: [
+      [0.2, 0.8, 0.1, 0.4],
+      [1.0, 0.0, 0.9, 0.0],
+      [0.0, 1.0, 0.0, 0.9],
+      [-0.6, -0.6, -0.2, -0.6],
+      [0.95, 0.05, 0.85, 0.05],
     ],
   },
 ];
