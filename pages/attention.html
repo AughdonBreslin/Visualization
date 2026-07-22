@@ -68,7 +68,7 @@
       <section class="panel" id="step-softmax">
         <h2>Softmax</h2>
         <div class="scene-hero-glyph"></div>
-        <p>We get the actual attention weights by softmaxing the $QK^T$ scores. The exponential is what makes softmax amplify differences: a score only slightly larger than its neighbors can end up with a much larger share of the final weight, once the gap has been stretched by exponentiating. This is part of why scaling mattered earlier: unscaled scores would make softmax nearly one-hot almost everywhere, leaving no useful gradient for training to work with.</p>
+        <p>We get the actual attention weights by softmaxing the $QK^T$ scores: exponentiate each entry, then divide it by the sum of the exponentiated entries in its row. Without the earlier scaling step, the larger score differences would push softmax to nearly zero out every entry but the largest, collapsing each row into a one-hot vector with no useful gradient for training.</p>
         <div class="scene-anim"></div>
       </section>
 
