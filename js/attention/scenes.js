@@ -133,6 +133,19 @@ function findRepeatedPositions(embeddings) {
   return null;
 }
 
+// Reads real tokenization back off the "##"-prefixed continuation convention (see presets.js's
+// "quiet"/"##ly" split) so the "03: CONCEPT" scale stat stays accurate whether or not the active
+// preset happens to split a word into subword pieces, instead of always claiming "whole words".
+function vocabStatValue(tokens) {
+  const subwords = tokens.filter((t) => t.startsWith('##'));
+  if (subwords.length === 0) {
+    return `${tokens.length} whole words here. Real models tokenize into tens to a few hundred thousand subword pieces instead.`;
+  }
+  const wordCount = tokens.length - subwords.length;
+  const subwordList = subwords.map((t) => `&quot;${t}&quot;`).join(', ');
+  return `${wordCount} whole words here, split into ${tokens.length} tokens (see ${subwordList} above): not every token is a whole word. Real models tokenize into tens to a few hundred thousand subword pieces the same way.`;
+}
+
 function renderInput(container, stepId, result) {
   const storageBody = `<div class="heatbar-block-row">${result.tokens
     .map((t, i) => labeledVecBlock(`&quot;${t}&quot;`, result.embeddings[i]))
@@ -176,7 +189,7 @@ function renderInput(container, stepId, result) {
        <div class="scale-stat"><div class="scale-stat-label">model dimension ($d$)</div><div class="scale-stat-value">${result.d} here. Real models run 768 (BERT-base, GPT-2 small) up to 12,288+ (large GPT-3-class models), or 4,096 to 16,384+ in modern LLMs.</div></div>
        <div class="scale-stat"><div class="scale-stat-label">layers</div><div class="scale-stat-value">1 here, this single attention operation. Real transformers stack dozens to over a hundred blocks (12 in BERT-base, 96+ in large GPT-3-class models, 80+ in the largest open models), each with its own attention and a feedforward layer.</div></div>
        <div class="scale-stat"><div class="scale-stat-label">sequence length</div><div class="scale-stat-value">${result.tokens.length} tokens here. Real context windows run from the low thousands historically up to hundreds of thousands or millions of tokens in current long-context models.</div></div>
-       <div class="scale-stat"><div class="scale-stat-label">vocabulary</div><div class="scale-stat-value">${result.tokens.length} whole words here. Real models tokenize into tens to a few hundred thousand subword pieces instead.</div></div>
+       <div class="scale-stat"><div class="scale-stat-label">vocabulary</div><div class="scale-stat-value">${vocabStatValue(result.tokens)}</div></div>
        <div class="scale-stat"><div class="scale-stat-label">parameters</div><div class="scale-stat-value">${3 * result.d * result.d} numbers here (three ${result.d}&times;${result.d} weight matrices). Real models run from millions up to hundreds of billions of parameters.</div></div>
        <div class="scale-stat"><div class="scale-stat-label">position</div><div class="scale-stat-value">Added here via sinusoidal positional encoding, computed exactly rather than learned. Real models add position the same way, or with a learned, rotary, or ALiBi-style variant instead.</div></div>
      </div>`,

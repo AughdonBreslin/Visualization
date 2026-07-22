@@ -252,8 +252,6 @@
 .ui.attention .mgrid-rowlabel { font: 700 10px/1 var(--font-mono); height: 32px; display: flex; align-items: center; }
 .ui.attention .mgrid { display: grid; gap: 3px; }
 .ui.attention .mgrid.g4x4 { grid-template-columns: repeat(4, 30px); grid-template-rows: repeat(4, 30px); }
-.ui.attention .mgrid.g3x4 { grid-template-columns: repeat(4, 35px); grid-template-rows: repeat(3, 35px); }
-.ui.attention .mgrid.g3x3 { grid-template-columns: repeat(3, 35px); grid-template-rows: repeat(3, 35px); }
 .ui.attention .mgrid.g5x4 { grid-template-columns: repeat(4, 35px); grid-template-rows: repeat(5, 35px); }
 .ui.attention .mgrid.g5x5 { grid-template-columns: repeat(5, 35px); grid-template-rows: repeat(5, 35px); }
 .ui.attention .mcell {
@@ -309,8 +307,6 @@
 
 @media (max-width: 640px) {
   .ui.attention .mgrid.g4x4 { grid-template-columns: repeat(4, 25px); grid-template-rows: repeat(4, 25px); }
-  .ui.attention .mgrid.g3x4 { grid-template-columns: repeat(4, 27px); grid-template-rows: repeat(3, 27px); }
-  .ui.attention .mgrid.g3x3 { grid-template-columns: repeat(3, 27px); grid-template-rows: repeat(3, 27px); }
   .ui.attention .mgrid.g5x4 { grid-template-columns: repeat(4, 27px); grid-template-rows: repeat(5, 27px); }
   .ui.attention .mgrid.g5x5 { grid-template-columns: repeat(5, 27px); grid-template-rows: repeat(5, 27px); }
   .ui.attention .mcell { font-size: 9px; }
