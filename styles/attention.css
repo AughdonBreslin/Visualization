@@ -36,6 +36,10 @@
   margin: 0 auto;
   padding: 12px 24px 8px;
 }
+/* The svg (curved connectors) and row (nodes) must scroll together as one unit, so this wrapper
+   -- not .pipe-bar -- is what the svg's inset:0 sizes against. .pipe-bar only becomes the
+   scrollable viewport once its mobile override below gives .pipe-scroll room to grow past it. */
+.ui.attention .pipe-scroll { position: relative; }
 .ui.attention .pipe-svg {
   position: absolute;
   inset: 0;
@@ -51,6 +55,10 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  /* flex: none (not flex-shrink alone) so a narrow viewport can't squeeze nodes below their
+     natural size -- that squeeze is what made labels and glyphs collide on mobile. Below the
+     640px breakpoint the row is left free to overflow .pipe-bar instead, which scrolls. */
+  flex: none;
   width: 50px;
   padding: 2px 0;
   cursor: pointer;
@@ -73,6 +81,21 @@
 .ui.attention .pipe-node.pulse .node-box { stroke: var(--accent); filter: drop-shadow(0 0 8px rgba(var(--accent-rgb), .8)); }
 .ui.attention .pipe-node.current .node-box { stroke: var(--accent); }
 .ui.attention .pipe-node.current .pipe-node-label { color: var(--accent-link); }
+
+/* Below this width the 7 fixed-size nodes no longer fit .pipe-bar's padded content box, so
+   instead of letting them squeeze (the mobile bug this fixes), .pipe-bar becomes the scroll
+   viewport and .pipe-scroll grows to its natural content width; pipeline.js scrolls the current
+   node into view as the page scrolls, so the active step stays visible without a manual swipe. */
+@media (max-width: 640px) {
+  .ui.attention .pipe-bar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .ui.attention .pipe-scroll { width: max-content; min-width: 100%; }
+  .ui.attention .pipe-row { justify-content: flex-start; gap: 22px; }
+}
 
 /* --- per-step scenes --- */
 /* Floated so the intro paragraph that follows wraps around it instead of starting fresh below a

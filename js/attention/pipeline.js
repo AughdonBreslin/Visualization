@@ -37,8 +37,10 @@ export function openNode(id) {
 
 function buildBar(barEl) {
   barEl.innerHTML = `
-    <svg class="pipe-svg" viewBox="0 0 700 60" preserveAspectRatio="none">${connectorsSVG(STEPS.length, { width: 700, height: 60 })}</svg>
-    <div class="pipe-row"></div>
+    <div class="pipe-scroll">
+      <svg class="pipe-svg" viewBox="0 0 700 60" preserveAspectRatio="none">${connectorsSVG(STEPS.length, { width: 700, height: 60 })}</svg>
+      <div class="pipe-row"></div>
+    </div>
   `;
   const row = barEl.querySelector('.pipe-row');
   barNodesById = new Map();
@@ -61,7 +63,14 @@ function wireCurrentStepHighlighting() {
         if (!entry.isIntersecting) continue;
         const id = entry.target.id.replace('step-', '');
         for (const [nodeId, node] of barNodesById) {
-          node.classList.toggle('current', nodeId === id);
+          const isCurrent = nodeId === id;
+          node.classList.toggle('current', isCurrent);
+          // On mobile .pipe-bar is a horizontal scroller (see attention.css); follow the active
+          // step so it's never left scrolled out of view as the page scrolls. inline: 'center'
+          // scrolls that horizontal axis only -- block: 'nearest' stops this from also nudging
+          // the page's own vertical scroll, which is already what triggered this in the first
+          // place. A no-op on desktop, where the bar never overflows.
+          if (isCurrent) node.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
       }
     },
