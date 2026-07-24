@@ -92,6 +92,12 @@
    padding shrink too, since a nav bar that's about to scroll horizontally anyway doesn't need to
    spend extra height trying to look complete at a glance. */
 @media (max-width: 640px) {
+  /* The base --outline-scroll-offset above (120px) was sized for the ~89px bar this page used to
+     ship on mobile; against the shrunk ~58px bar it left a ~97px dead gap between the bar and
+     the heading it jumps to (clicking a step, a rail link, or a plain #hash all scroll through
+     this same property). This override brings the offset back down to the same relationship: a
+     little clearance under the bar, not most of a screen's worth of empty space above the step. */
+  .ui.attention { --outline-scroll-offset: 44px; }
   .ui.attention .pipe-bar-outer { margin-inline: calc(-1 * var(--sp-5)); }
   .ui.attention .pipe-bar {
     padding: 6px var(--sp-4) 6px;
