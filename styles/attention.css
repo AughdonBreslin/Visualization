@@ -85,16 +85,25 @@
 /* Below this width the 7 fixed-size nodes no longer fit .pipe-bar's padded content box, so
    instead of letting them squeeze (the mobile bug this fixes), .pipe-bar becomes the scroll
    viewport and .pipe-scroll grows to its natural content width; pipeline.js scrolls the current
-   node into view as the page scrolls, so the active step stays visible without a manual swipe. */
+   node into view as the page scrolls, so the active step stays visible without a manual swipe.
+   The bar also breaks out of .container's side padding (.ui .container in system.css) and trims
+   its own padding, so the row gets the full viewport width to scroll through rather than being
+   boxed into the same reading-column margins as the prose below it; the icons and vertical
+   padding shrink too, since a nav bar that's about to scroll horizontally anyway doesn't need to
+   spend extra height trying to look complete at a glance. */
 @media (max-width: 640px) {
+  .ui.attention .pipe-bar-outer { margin-inline: calc(-1 * var(--sp-5)); }
   .ui.attention .pipe-bar {
+    padding: 6px var(--sp-4) 6px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
   }
   .ui.attention .pipe-scroll { width: max-content; min-width: 100%; }
-  .ui.attention .pipe-row { justify-content: flex-start; gap: 22px; }
+  .ui.attention .pipe-row { justify-content: flex-start; gap: 30px; }
+  .ui.attention .pipe-node { width: 54px; gap: 3px; padding: 0; }
+  .ui.attention .pipe-node svg { width: 32px; height: 32px; }
 }
 
 /* --- per-step scenes --- */
